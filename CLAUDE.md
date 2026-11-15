@@ -1,12 +1,12 @@
 # 송이 시즌 작업 규칙
 
-최종 수정: 26.11.15
+최종 수정: 26.11.16
 
-저장소를 만들면 이 파일을 루트의 `CLAUDE.md`로 넣는다.
 
 ## 저장소
 
-- GitHub 공개 저장소. 이름과 Unity 버전은 미정(정하면 여기 적기).
+- GitHub 공개 저장소: `MJ5353/ProjectMT`
+- Unity 버전: 6000.3.25f1
 - 목적: 넷마블네오 AI 인턴십 제출용. 심사자가 코드와 AI 작업 흔적을 직접 본다.
 
 ## 올리는 것
@@ -16,6 +16,7 @@
 - `Packages/manifest.json`, `Packages/packages-lock.json`, `ProjectSettings/`
 - 직접 만든 버섯 프랍, 이펙트
 - `CLAUDE.md`, 커밋 전 훅, 테스트 봇, 디버그 도구
+- `_Else/`: 기획 메모·표 원본
 - `README.md`(심사자용), `docs/AI_실험_로그.md`
 
 ## 가리는 것
