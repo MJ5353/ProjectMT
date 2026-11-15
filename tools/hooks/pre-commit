@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# 커밋 전 검사 (CLAUDE.md "커밋 전 훅" 4가지)
+# 켜기: git config core.hooksPath tools/hooks
+# 급할 때 건너뛰기: git commit --no-verify (가능하면 쓰지 않기)
+
+MAX_BYTES=$((10 * 1024 * 1024))
+LFS_EXT='\.(fbx|png|psd|tga|wav|ogg|mp3)$'
+KEY_PATTERN='(sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}|gh[pousr]_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|(api[_-]?key|secret|token)["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"']{16,}["'"'"'])'
+
+fail=0
+report() {
+  echo "[커밋 차단] $1: $2"
+  fail=1
+}
+
+# 추가·수정·이름 변경된 파일만 검사한다 (-z: 한글 파일명 안전)
+while IFS= read -r -d '' f; do
+  # 1. ThirdParty 경로
+  if echo "$f" | grep -qi '^Assets/ThirdParty/'; then
+    report "외부 에셋" "$f"
+    continue
+  fi
+
+  size=$(git cat-file -s ":$f")
+
+  if echo "$f" | grep -qiE "$LFS_EXT"; then
+    head_text=$(git cat-file -p ":$f" | head -c 200 | tr -d '\0')
+    # 2. LFS 대상인데 포인터가 아닌 파일
+    if ! echo "$head_text" | grep -q '^version https://git-lfs'; then
+      report "LFS 아님 (git lfs install 확인)" "$f"
+      continue
+    fi
+    # 3. 크기: LFS 파일은 포인터에 적힌 실제 크기로 본다
+    size=$(echo "$head_text" | sed -n 's/^size \([0-9]*\)$/\1/p')
+  fi
+
+  # 3. 10MB 초과
+  if [ -n "$size" ] && [ "$size" -gt "$MAX_BYTES" ]; then
+    report "10MB 초과 ($((size / 1024 / 1024))MB)" "$f"
+    continue
+  fi
+
+  # 4. API 키 패턴: 새로 추가된 줄만 본다. 이 훅 파일 자신은 제외
+  case "$f" in tools/hooks/*) continue ;; esac
+  if git diff --cached -U0 -- "$f" | grep '^+' | grep -v '^+++' | grep -qiE "$KEY_PATTERN"; then
+    report "API 키로 보이는 문자열" "$f"
+  fi
+done < <(git diff --cached --name-only --diff-filter=ACMR -z)
+
+if [ "$fail" -ne 0 ]; then
+  echo "위 파일을 고치거나 스테이지에서 뺀 뒤 다시 커밋하세요."
+  exit 1
+fi
+exit 0

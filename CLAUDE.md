@@ -11,7 +11,7 @@
 
 ## 올리는 것
 
-- `Assets/_Project/` 안의 내 스크립트, 씬, 프리팹, 데이터(몬스터·버섯·구매인 표)
+- `Assets/` 안의 내 스크립트, 씬, 프리팹, 데이터(몬스터·버섯·구매인 표). `ThirdParty/`만 제외
 - 모든 `.meta` 파일
 - `Packages/manifest.json`, `Packages/packages-lock.json`, `ProjectSettings/`
 - 직접 만든 버섯 프랍, 이펙트
@@ -30,15 +30,15 @@
 
 ```
 Assets/
-  _Project/      내가 만든 것 (git 추적)
-    Scripts/
-    Scenes/
-    Prefabs/
-    Data/
-    Art/
+  Scripts/       내가 만든 것 (git 추적)
+  Scenes/
+  Prefabs/
+  Data/
+  Art/
   ThirdParty/    남이 만든 것 (git 제외)
 ```
 
+- `_Project/` 폴더로 묶지 않고 `Assets/` 바로 아래에 둔다. (26.11.16 대장 결정)
 - 외부 에셋은 반드시 `ThirdParty/` 아래로 옮긴 뒤 쓴다.
 - Unity 설정: Asset Serialization = Force Text, Version Control = Visible Meta Files.
 
