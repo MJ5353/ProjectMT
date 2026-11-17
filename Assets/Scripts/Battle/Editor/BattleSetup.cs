@@ -24,6 +24,10 @@ public static class BattleSetup
     private const string BuggiPrefabPath = PrefabDir + "Mob_Buggi.prefab";
     private const string SongiPickupPath = PrefabDir + "Pickup_Songi.prefab";
     private const string BuggiDefPath = MobDataDir + "Mob_Buggi.asset";
+    private const string BugomPrefabPath = PrefabDir + "Mob_Bugom.prefab";
+    private const string CloudPickupPath = PrefabDir + "Pickup_Cloud.prefab";
+    private const string BugomDefPath = MobDataDir + "Mob_Bugom.asset";
+    private const string MushroomDataDir = "Assets/Data/Mushrooms/";
 
     // ==================================================
 
@@ -51,10 +55,19 @@ public static class BattleSetup
     {
         Directory.CreateDirectory(AnimatorDir);
         Directory.CreateDirectory(MobDataDir);
+        Directory.CreateDirectory(MushroomDataDir);
+
+        BuildMushroomDef("Mushroom_Songi", "송이");
+        BuildMushroomDef("Mushroom_Cloud", "구름버섯");
 
         MushroomPickup songiPickup = BuildPickup(SongiPickupPath, "Mush_Songi", "Mushroom_Songi", isForce);
         MobDef buggiDef = BuildBuggiDef(songiPickup);
         BuildBuggi(buggiDef, isForce);
+
+        MushroomPickup cloudPickup = BuildPickup(CloudPickupPath, "Mush_Cloud", "Mushroom_Cloud", isForce);
+        MobDef bugomDef = BuildBugomDef(cloudPickup);
+        BuildBugom(bugomDef, isForce);
+
         BuildPlayer(isForce);
 
         AssetDatabase.SaveAssets();
@@ -107,6 +120,72 @@ public static class BattleSetup
         def.EditorSetup(headbutt, 1.2f, listMushroom, listDrop);
         EditorUtility.SetDirty(def);
         return def;
+    }
+
+    private static void BuildMushroomDef(string id, string displayName)
+    {
+        string path = $"{MushroomDataDir}{id}.asset";
+        if (File.Exists(path))
+            return;
+
+        MushroomDef def = ScriptableObject.CreateInstance<MushroomDef>();
+        AssetDatabase.CreateAsset(def, path);
+        SetString(def, "m_ID", id);
+        SetString(def, "m_DisplayName", displayName);
+    }
+
+    // 버곰: 느리고 단단하다. 넉백이 덜 먹고, 예비 동작이 길고, 한 방이 세다
+    private static MobDef BuildBugomDef(MushroomPickup cloudPickup)
+    {
+        MobDef def = AssetDatabase.LoadAssetAtPath<MobDef>(BugomDefPath);
+        if (def != null)
+            return def;
+
+        def = ScriptableObject.CreateInstance<MobDef>();
+        AssetDatabase.CreateAsset(def, BugomDefPath);
+        SetString(def, "m_ID", "Mob_Bugom");
+        SetString(def, "m_DisplayName", "버곰");
+        SetInt(def, "m_MaxHp", 7);
+        SetFloat(def, "m_MoveSpeed", 2.2f);
+        SetFloat(def, "m_WanderSpeed", 0.9f);
+        SetFloat(def, "m_KnockbackScale", 0.35f);
+        SetFloat(def, "m_SightRange", 8f);
+        SetFloat(def, "m_AttackRange", 2.2f);
+        SetFloat(def, "m_WindupTime", 0.7f);
+        SetFloat(def, "m_AttackCooldown", 1.8f);
+        SetFloat(def, "m_HitStunTime", 0.2f);
+
+        GameObject cloudModel = LoadModel("Mush_Cloud");
+        List<MobDef.MushroomSocket> listMushroom = new()
+        {
+            new MobDef.MushroomSocket("Socket_Back1", cloudModel, 1.5f),
+            new MobDef.MushroomSocket("Socket_Back2", cloudModel, 1.3f),
+            new MobDef.MushroomSocket("Socket_Head", cloudModel, 0.8f),
+        };
+        List<MobDef.DropEntry> listDrop = new()
+        {
+            new MobDef.DropEntry(cloudPickup, 2, 3, 1f),
+        };
+
+        // 일어서서 내려찍기: 19프레임 판정, 앞쪽 넓게
+        AttackSpec slam = new("Attack", 2, 19, 1.5f, 1.3f, 0.5f, 10f, 0.09f, 0f);
+        def.EditorSetup(slam, 0f, listMushroom, listDrop);
+        EditorUtility.SetDirty(def);
+        return def;
+    }
+
+    private static void BuildBugom(MobDef def, bool isForce)
+    {
+        if (File.Exists(BugomPrefabPath) && isForce == false)
+            return;
+
+        GameObject root = BuildUnit("Mob_Bugom", "Bugom", 1.6f, 0.75f, ETeam.Mob, 0f, def.MaxHp, new Color(0.55f, 0.4f, 0.3f));
+        MobController mob = root.AddComponent<MobController>();
+        SetObject(mob, "m_Def", def);
+        SetObject(mob, "m_VisualRoot", root.transform.Find("Model"));
+
+        PrefabUtility.SaveAsPrefabAsset(root, BugomPrefabPath);
+        Object.DestroyImmediate(root);
     }
 
     private static void BuildBuggi(MobDef def, bool isForce)
@@ -220,7 +299,6 @@ public static class BattleSetup
 
         Transform map = BuildMap();
         Transform playerSpawn = FindDeep(map, "Spawn_Player");
-        List<Transform> listBuggiPoint = FindAllByPrefix(map, "Spawn_Buggi");
 
         GameObject player = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath));
         if (playerSpawn != null)
@@ -241,22 +319,29 @@ public static class BattleSetup
         SerializedObject so = new SerializedObject(battleM);
         so.FindProperty("m_Player").objectReferenceValue = player.GetComponent<PlayerController>();
         SerializedProperty listGroup = so.FindProperty("m_ListGroup");
-        listGroup.arraySize = 1;
-        SerializedProperty group = listGroup.GetArrayElementAtIndex(0);
-        group.FindPropertyRelative("m_Prefab").objectReferenceValue = AssetDatabase.LoadAssetAtPath<MobController>(BuggiPrefabPath);
-        group.FindPropertyRelative("m_MaxAlive").intValue = listBuggiPoint.Count;
-        group.FindPropertyRelative("m_RespawnDelay").floatValue = 4f;
-        SerializedProperty listPoint = group.FindPropertyRelative("m_ListPoint");
-        listPoint.arraySize = listBuggiPoint.Count;
-        for (int i = 0; i < listBuggiPoint.Count; i++)
-        {
-            listPoint.GetArrayElementAtIndex(i).objectReferenceValue = listBuggiPoint[i];
-        }
+        listGroup.arraySize = 2;
+        SetGroup(listGroup.GetArrayElementAtIndex(0), BuggiPrefabPath, "Spawn_Buggi", 6, 4f);
+        SetGroup(listGroup.GetArrayElementAtIndex(1), BugomPrefabPath, "Spawn_Bugom", 3, 8f);
         so.ApplyModifiedPropertiesWithoutUndo();
+
+        // 결과 화면(UI 스레드 담당)
+        BattleUISetup.AddResultScreen();
 
         EditorSceneManager.SaveScene(scene, ScenePath);
         AddToBuildSettings();
-        CLogger.Log("BattleSetup", $"{ScenePath} 생성. 버끼 스폰 지점 {listBuggiPoint.Count}개");
+        int buggiCount = FindAllByPrefix(map, "Spawn_Buggi").Count;
+        int bugomCount = FindAllByPrefix(map, "Spawn_Bugom").Count;
+        CLogger.Log("BattleSetup", $"{ScenePath} 생성. 스폰 지점 버끼 {buggiCount}개, 버곰 {bugomCount}개");
+    }
+
+    // 지점은 플레이 때 이름 접두사로 찾는다(맵을 다시 만들어도 끊기지 않게)
+    private static void SetGroup(SerializedProperty group, string prefabPath, string pointPrefix, int maxAlive, float respawnDelay)
+    {
+        group.FindPropertyRelative("m_Prefab").objectReferenceValue = AssetDatabase.LoadAssetAtPath<MobController>(prefabPath);
+        group.FindPropertyRelative("m_PointPrefix").stringValue = pointPrefix;
+        group.FindPropertyRelative("m_ListPoint").arraySize = 0;
+        group.FindPropertyRelative("m_MaxAlive").intValue = maxAlive;
+        group.FindPropertyRelative("m_RespawnDelay").floatValue = respawnDelay;
     }
 
     // 맵 FBX가 있으면 그것을, 없으면 평지와 임시 스폰 지점을 만든다
