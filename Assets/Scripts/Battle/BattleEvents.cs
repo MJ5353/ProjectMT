@@ -16,12 +16,12 @@ public readonly struct MobKilled
 
 public readonly struct LootPicked
 {
-    public readonly string ItemId;
+    public readonly string ItemID;
     public readonly int Amount;
 
-    public LootPicked(string itemId, int amount)
+    public LootPicked(string itemID, int amount)
     {
-        ItemId = itemId;
+        ItemID = itemID;
         Amount = amount;
     }
 }

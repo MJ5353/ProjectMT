@@ -10,15 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6208450686341404573}
   - component: {fileID: 8827486216850750618}
-  - component: {fileID: 2881067547615945974}
-  - component: {fileID: 8342150548224526391}
-  - component: {fileID: 7105904399311821974}
-  - component: {fileID: 5867267522728969171}
-  - component: {fileID: 4978503421839048484}
-  - component: {fileID: 1681428793696524150}
-  - component: {fileID: 4007439182833918012}
-  - component: {fileID: 7869874681447845156}
-  - component: {fileID: 6021080332880849700}
   - component: {fileID: 3701865610991526730}
   m_Layer: 0
   m_Name: Mob_Bugom
@@ -68,144 +59,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.8, z: 0}
---- !u!114 &2881067547615945974
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8443540505095644120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f6b775720d57b7c40993d1888691e3e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoveFeature
-  m_Gravity: -25
-  m_ImpulseDamping: 9
-  m_TurnSpeed: 900
-  m_FallLimitY: -10
---- !u!114 &8342150548224526391
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8443540505095644120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2427bb1bfe4c44743b6fffc1f7f385a7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AnimFeature
-  m_Animator: {fileID: 7203222215189828272}
-  m_DefaultFade: 0.08
---- !u!114 &7105904399311821974
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8443540505095644120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c709725783b5e414f8a0038531b57561, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HealthFeature
-  m_MaxHp: 7
---- !u!114 &5867267522728969171
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8443540505095644120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a36708b4fa521684eb3db79c4c152b2f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HitFeature
-  m_Team: 1
-  m_InvincibleTime: 0
---- !u!114 &4978503421839048484
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8443540505095644120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 99005934433332446848ff56d946aba3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::KnockbackFeature
-  m_Scale: 1
-  m_Lift: 0
---- !u!114 &1681428793696524150
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8443540505095644120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a55b7a80aaf3274eb981c71bdc71883, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FlashFeature
-  m_Duration: 0.08
-  m_FlashMaterial: {fileID: 0}
---- !u!114 &4007439182833918012
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8443540505095644120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9073d629ab528c14fa0a8d0189693104, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HitStopFeature
-  m_Scale: 1
---- !u!114 &7869874681447845156
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8443540505095644120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3153f06822c4be648ad3631e8785afb9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ChunkBurstFeature
-  m_Count: 6
-  m_Color: {r: 0.55, g: 0.4, b: 0.3, a: 1}
-  m_Size: 0.12
-  m_Speed: 4
-  m_Height: 0.5
---- !u!114 &6021080332880849700
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8443540505095644120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5c7b292008660c409066a502c08e9f2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MeleeAttackFeature
-  m_Team: 1
-  m_GizmoSpec:
-    m_Clip: Attack
-    m_Damage: 1
-    m_HitFrame: 9
-    m_Reach: 1
-    m_Radius: 0.9
-    m_Height: 0.6
-    m_Knockback: 6
-    m_HitStop: 0.06
-    m_Lunge: 0
 --- !u!114 &3701865610991526730
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -219,7 +72,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MobController
   m_Def: {fileID: 11400000, guid: 5c880b59f0cba5044b02df65c38989e5, type: 2}
-  m_VisualRoot: {fileID: 7361855927302295459}
+  m_CharacterController: {fileID: 8827486216850750618}
+  m_Animator: {fileID: 7203222215189828272}
+  m_ListBodyRenderer:
+  - {fileID: 7676956066535679772}
 --- !u!1001 &7034668296889198664
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -283,6 +139,11 @@ PrefabInstance:
 --- !u!4 &7361855927302295459 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1465538fb42ff934f947f833b149f699, type: 3}
+  m_PrefabInstance: {fileID: 7034668296889198664}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &7676956066535679772 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -8418864510442680492, guid: 1465538fb42ff934f947f833b149f699, type: 3}
   m_PrefabInstance: {fileID: 7034668296889198664}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &7881651580595164441 stripped

@@ -31,7 +31,7 @@ public static class DataTools
         }
 
         List<DataDef> listDef = CollectDefs();
-        db.EditorSetDefs(listDef);
+        db.EditorSetList(listDef);
         EditorUtility.SetDirty(db);
         AssetDatabase.SaveAssetIfDirty(db);
 

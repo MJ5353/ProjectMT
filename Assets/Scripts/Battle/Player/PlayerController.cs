@@ -11,34 +11,9 @@ public enum EPlayerState
 }
 
 // 채집꾼 조작. 이동(WASD·방향키·왼스틱), 공격(클릭·스페이스·J·패드 A), 대시(Shift·패드 B).
-// 공격 버튼을 누르면 가까운 몹 쪽으로 자동으로 돌아서 내려친다(모바일 대비)
-[RequireComponent(typeof(MoveFeature), typeof(HitFeature), typeof(HealthFeature))]
-public class PlayerController : MonoBehaviour
+// 공격 버튼을 누르면 가까운 몹 쪽으로 자동으로 돌아서 내려친다(모바일 대비). 수치는 PlayerDef
+public class PlayerController : UnitController<PlayerDef>
 {
-    [Header("이동")]
-    [SerializeField] private float m_MoveSpeed = 5f;
-    [SerializeField, Tooltip("입력 세기가 이 값 이상이면 Run 애니")] private float m_RunThreshold = 0.6f;
-
-    [Header("공격")]
-    [SerializeField] private AttackSpec m_Attack = new("Attack", 1, 9, 1.1f, 1f, 0.7f, 7f, 0.07f, 2f);
-    [SerializeField, Tooltip("이 거리 안의 몹 쪽으로 자동 회전")] private float m_AutoAimRange = 3.5f;
-    [SerializeField, Tooltip("판정 뒤 이 시간이 지나면 다음 공격으로 끊을 수 있음")] private float m_CancelDelay = 0.12f;
-
-    [Header("대시")]
-    [SerializeField] private float m_DashSpeed = 16f;
-    [SerializeField] private float m_DashTime = 0.18f;
-    [SerializeField] private float m_DashCooldown = 0.5f;
-    [SerializeField, Tooltip("대시 중 무적")] private bool m_IsDashInvincible = true;
-    [SerializeField] private float m_DashAnimSpeed = 1.6f;
-
-    [Header("피격")]
-    [SerializeField] private float m_HitStunTime = 0.3f;
-
-    private MoveFeature m_Move;
-    private AnimFeature m_Anim;
-    private HealthFeature m_Health;
-    private HitFeature m_HitFeature;
-    private MeleeAttackFeature m_Melee;
     private Transform m_CameraTransform;
 
     private InputAction m_MoveAction;
@@ -56,21 +31,16 @@ public class PlayerController : MonoBehaviour
     public static PlayerController Current { get; private set; }
 
     public EPlayerState State => m_State;
-    public bool IsDead => m_State == EPlayerState.Dead;
-    public HealthFeature Health => m_Health;
+
+    protected override ETeam Team => ETeam.Player;
 
     // ==================================================
 
-    private void Awake()
+    protected override void Awake()
     {
         Current = this;
-        m_Move = GetComponent<MoveFeature>();
-        m_Anim = GetComponent<AnimFeature>();
-        m_Health = GetComponent<HealthFeature>();
-        m_HitFeature = GetComponent<HitFeature>();
-        m_Melee = GetComponent<MeleeAttackFeature>();
-
         InitInput();
+        base.Awake();
     }
 
     private void Start()
@@ -83,17 +53,14 @@ public class PlayerController : MonoBehaviour
         m_MoveAction.Enable();
         m_AttackAction.Enable();
         m_DashAction.Enable();
-        m_HitFeature.Hit += OnHit;
-        m_Health.Died += OnDied;
     }
 
-    private void OnDisable()
+    protected override void OnDisable()
     {
+        base.OnDisable();
         m_MoveAction.Disable();
         m_AttackAction.Disable();
         m_DashAction.Disable();
-        m_HitFeature.Hit -= OnHit;
-        m_Health.Died -= OnDied;
     }
 
     private void OnDestroy()
@@ -105,9 +72,8 @@ public class PlayerController : MonoBehaviour
             Current = null;
     }
 
-    private void Update()
+    protected override void OnUpdate(float deltaTime)
     {
-        float deltaTime = Time.deltaTime;
         if (deltaTime <= 0f)
             return;
 
@@ -134,8 +100,9 @@ public class PlayerController : MonoBehaviour
                 UpdateDash();
                 break;
             case EPlayerState.Hit:
-                if (m_TimeInState >= m_HitStunTime)
+                if (m_TimeInState >= Def.HitStunTime)
                     ChangeState(EPlayerState.Move);
+
                 break;
         }
     }
@@ -144,11 +111,6 @@ public class PlayerController : MonoBehaviour
     {
         if (Camera.main != null)
             m_CameraTransform = Camera.main.transform;
-        if (m_Melee != null)
-        {
-            m_Melee.Init(ETeam.Player);
-            m_Melee.SetGizmoSpec(m_Attack);
-        }
 
         ChangeState(EPlayerState.Move);
     }
@@ -185,7 +147,7 @@ public class PlayerController : MonoBehaviour
 
     private void ChangeState(EPlayerState next)
     {
-        m_Anim.SetSpeed(1f);
+        Anim.SetSpeed(1f);
         m_State = next;
         m_TimeInState = 0f;
 
@@ -198,12 +160,12 @@ public class PlayerController : MonoBehaviour
                 EnterDash();
                 break;
             case EPlayerState.Hit:
-                m_Move.Stop();
-                m_Anim.Play("Hit", true);
+                Move.Stop();
+                Anim.Play("Hit", true);
                 break;
             case EPlayerState.Dead:
-                m_Move.Stop();
-                m_Anim.Play("Death", true);
+                Move.Stop();
+                Anim.Play("Death", true);
                 break;
         }
     }
@@ -220,45 +182,44 @@ public class PlayerController : MonoBehaviour
         float strength = Mathf.Clamp01(input.magnitude);
         if (strength < 0.1f)
         {
-            m_Move.Stop();
-            m_Anim.Play("Idle");
+            Move.Stop();
+            Anim.Play("Idle");
             return;
         }
 
-        m_Move.SetVelocity(input.normalized * (m_MoveSpeed * strength));
-        m_Move.FaceTo(input);
-        m_Anim.Play(strength >= m_RunThreshold ? "Run" : "Walk");
+        Move.SetVelocity(input.normalized * (Def.MoveSpeed * strength));
+        Move.FaceTo(input);
+        Anim.Play(strength >= Def.RunThreshold ? "Run" : "Walk");
     }
 
     private void EnterAttack()
     {
         m_IsHitDone = false;
         m_IsAttackQueued = false;
-        m_AttackLength = m_Anim.GetLength(m_Attack.Clip);
+        m_AttackLength = Anim.GetLength(Def.Attack.Clip);
 
-        m_Move.Stop();
+        Move.Stop();
         Vector3 aimDirection = FindAimDirection();
-        m_Move.FaceTo(aimDirection, true);
-        m_Anim.Play(m_Attack.Clip, true);
+        Move.FaceTo(aimDirection, true);
+        Anim.Play(Def.Attack.Clip, true);
 
-        if (m_Attack.Lunge > 0f)
-            m_Move.AddImpulse(transform.forward * m_Attack.Lunge);
+        if (Def.Attack.Lunge > 0f)
+            Move.AddImpulse(transform.forward * Def.Attack.Lunge);
     }
 
     private void UpdateAttack(bool isAttackPressed)
     {
-        if (m_IsHitDone == false && m_TimeInState >= m_Attack.HitTime)
+        if (m_IsHitDone == false && m_TimeInState >= Def.Attack.HitTime)
         {
             m_IsHitDone = true;
-            if (m_Melee != null)
-                m_Melee.Perform(m_Attack);
+            Melee.Perform(Def.Attack);
         }
 
         if (isAttackPressed)
             m_IsAttackQueued = true;
 
         // 판정이 끝난 뒤 입력이 있으면 다음 공격으로 끊는다
-        bool canCancel = m_IsHitDone && m_TimeInState >= m_Attack.HitTime + m_CancelDelay;
+        bool canCancel = m_IsHitDone && m_TimeInState >= Def.Attack.HitTime + Def.CancelDelay;
         if (canCancel && m_IsAttackQueued)
         {
             ChangeState(EPlayerState.Attack);
@@ -291,23 +252,23 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 input = GetMoveInput();
         m_DashDirection = input.sqrMagnitude > 0.01f ? input.normalized : transform.forward;
-        m_DashCooldownRemain = m_DashCooldown + m_DashTime;
+        m_DashCooldownRemain = Def.DashCooldown + Def.DashTime;
 
-        m_Move.FaceTo(m_DashDirection, true);
-        m_Move.SetVelocity(m_DashDirection * m_DashSpeed);
-        m_Anim.SetSpeed(m_DashAnimSpeed);
-        m_Anim.Play("Run", true);
+        Move.FaceTo(m_DashDirection, true);
+        Move.SetVelocity(m_DashDirection * Def.DashSpeed);
+        Anim.SetSpeed(Def.DashAnimSpeed);
+        Anim.Play("Run", true);
 
-        if (m_IsDashInvincible)
-            m_HitFeature.SetInvincible(m_DashTime);
+        if (Def.IsDashInvincible)
+            HitFeature.SetInvincible(Def.DashTime);
     }
 
     private void UpdateDash()
     {
-        if (m_TimeInState < m_DashTime)
+        if (m_TimeInState < Def.DashTime)
             return;
 
-        m_Move.Stop();
+        Move.Stop();
         ChangeState(EPlayerState.Move);
     }
 
@@ -331,7 +292,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 FindAimDirection()
     {
         MobController nearest = null;
-        float nearestDistance = m_AutoAimRange;
+        float nearestDistance = Def.AutoAimRange;
         foreach (MobController mob in MobController.ListActive)
         {
             if (mob.IsDead)
@@ -352,7 +313,7 @@ public class PlayerController : MonoBehaviour
         return input.sqrMagnitude > 0.01f ? input : transform.forward;
     }
 
-    private void OnHit(HitParams hit)
+    protected override void OnHit(HitParams hit)
     {
         if (IsDead)
             return;
@@ -360,7 +321,7 @@ public class PlayerController : MonoBehaviour
         ChangeState(EPlayerState.Hit);
     }
 
-    private void OnDied()
+    protected override void OnDied()
     {
         ChangeState(EPlayerState.Dead);
     }

@@ -10,8 +10,8 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     public GameDatabase Database { get; private set; }
-    public PlayerData Player { get; private set; }
     public GameFlow Flow { get; private set; }
+    public PlayerData Player { get; private set; }
 
     private SaveService m_SaveService;
 
@@ -36,9 +36,6 @@ public class GameManager : MonoBehaviour
         Flow.ChangeState(GameFlow.GetStateByScene(SceneManager.GetActiveScene().name));
     }
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetStatics() => Instance = null;
-
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
     {
@@ -51,7 +48,10 @@ public class GameManager : MonoBehaviour
         go.AddComponent<DebugPanel>();
 #endif
     }
-
+    
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics() => Instance = null;
+    
     private void Init()
     {
         Database = Resources.Load<GameDatabase>(GameDatabase.ResourcePath);
@@ -78,7 +78,7 @@ public class GameManager : MonoBehaviour
         Player.Clear();
     }
 
-    #region ApplicationEvent
+    // ApplicationEvent
 
     private void OnApplicationPause(bool isPaused)
     {
@@ -87,6 +87,4 @@ public class GameManager : MonoBehaviour
     }
 
     private void OnApplicationQuit() => SaveNow();
-
-    #endregion
 }

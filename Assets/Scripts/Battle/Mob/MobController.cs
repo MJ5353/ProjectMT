@@ -13,106 +13,35 @@ public enum EMobState
     Dead,
 }
 
-// 몹 하나의 두뇌. 부품(이동·애니·체력·피격·공격)을 묶고 FSM으로 움직인다.
+// 몹 하나의 두뇌. 몸(UnitController)에 FSM과 몸에 꽂는 버섯을 더한다.
 // 상태 클래스는 MobStates.cs, 수치는 MobDef
-[RequireComponent(typeof(MoveFeature), typeof(HitFeature), typeof(HealthFeature))]
-public class MobController : MonoBehaviour
+public class MobController : UnitController<MobDef>
 {
     private static readonly List<MobController> s_ListActive = new();
-
-    [SerializeField] private MobDef m_Def = null;
-    [SerializeField, Tooltip("움츠림 연출에 쓰는 모델 루트")] private Transform m_VisualRoot = null;
 
     private readonly StateMachine<EMobState> m_Fsm = new();
 
     public static IReadOnlyList<MobController> ListActive => s_ListActive;
 
-    public MobDef Def => m_Def;
-    public Transform VisualRoot => m_VisualRoot;
-    public MoveFeature Move { get; private set; }
-    public AnimFeature Anim { get; private set; }
-    public HealthFeature Health { get; private set; }
-    public HitFeature HitFeature { get; private set; }
-    public MeleeAttackFeature Melee { get; private set; }
     public Transform Target { get; private set; }
     public Vector3 HomePosition { get; private set; }
     public Vector3 LastHitDirection { get; private set; }
     public float CooldownRemain { get; set; }
     public EMobState State => m_Fsm.Current;
     public float TimeInState => m_Fsm.TimeInState;
-    public bool IsDead => Health.IsDead;
+
+    protected override ETeam Team => ETeam.Mob;
 
     // ==================================================
 
-    private void Awake()
+    protected override void Awake()
     {
-        Move = GetComponent<MoveFeature>();
-        Anim = GetComponent<AnimFeature>();
-        Health = GetComponent<HealthFeature>();
-        HitFeature = GetComponent<HitFeature>();
-        Melee = GetComponent<MeleeAttackFeature>();
-    }
-
-    private void Start()
-    {
-        Init();
-    }
-
-    private void OnEnable()
-    {
-        s_ListActive.Add(this);
-        HitFeature.Hit += OnHit;
-        Health.Died += OnDied;
-    }
-
-    private void OnDisable()
-    {
-        s_ListActive.Remove(this);
-        HitFeature.Hit -= OnHit;
-        Health.Died -= OnDied;
-    }
-
-    private void Update()
-    {
-        float deltaTime = Time.deltaTime;
-        if (CooldownRemain > 0f)
-            CooldownRemain -= deltaTime;
-
-        if (Target == null && PlayerController.Current != null)
-            Target = PlayerController.Current.transform;
-
-        m_Fsm.Update(deltaTime);
-    }
-
-    public void Init()
-    {
-        if (m_Def == null)
-        {
-            CLogger.Error("MobController", $"MobDef가 비어 있습니다: {name}", this);
-            enabled = false;
+        base.Awake();
+        if (enabled == false)
             return;
-        }
-
-        HomePosition = transform.position;
-        Health.Init(m_Def.MaxHp);
-
-        KnockbackFeature knockback = GetComponent<KnockbackFeature>();
-        if (knockback != null)
-            knockback.Init(m_Def.KnockbackScale);
-
-        if (Melee != null)
-        {
-            Melee.Init(ETeam.Mob);
-            Melee.SetGizmoSpec(m_Def.Attack);
-        }
 
         AttachMushrooms();
 
-        FlashFeature flash = GetComponent<FlashFeature>();
-        if (flash != null)
-            flash.Refresh();
-
-        m_Fsm.Clear();
         m_Fsm.Add(EMobState.Idle, new MobIdleState(this));
         m_Fsm.Add(EMobState.Wander, new MobWanderState(this));
         m_Fsm.Add(EMobState.Chase, new MobChaseState(this));
@@ -121,7 +50,34 @@ public class MobController : MonoBehaviour
         m_Fsm.Add(EMobState.Hit, new MobHitState(this));
         m_Fsm.Add(EMobState.Flee, new MobFleeState(this));
         m_Fsm.Add(EMobState.Dead, new MobDeadState(this));
+    }
+
+    private void Start()
+    {
+        HomePosition = transform.position;
         m_Fsm.Change(EMobState.Idle);
+    }
+
+    private void OnEnable()
+    {
+        s_ListActive.Add(this);
+    }
+
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        s_ListActive.Remove(this);
+    }
+
+    protected override void OnUpdate(float deltaTime)
+    {
+        if (CooldownRemain > 0f)
+            CooldownRemain -= deltaTime;
+
+        if (Target == null && PlayerController.Current != null)
+            Target = PlayerController.Current.transform;
+
+        m_Fsm.Update(deltaTime);
     }
 
     public void ChangeState(EMobState next)
@@ -155,10 +111,11 @@ public class MobController : MonoBehaviour
     {
         if (Target == null)
             return false;
+
         if (PlayerController.Current != null && PlayerController.Current.IsDead)
             return false;
 
-        return GetTargetDistance() <= m_Def.SightRange;
+        return GetTargetDistance() <= Def.SightRange;
     }
 
     public void MoveTo(Vector3 direction, float speed)
@@ -170,43 +127,30 @@ public class MobController : MonoBehaviour
 
     // ==================================================
 
+    // 버섯을 소켓 뼈에 꽂고, 맞을 때 같이 번쩍이도록 렌더러를 넘긴다
     private void AttachMushrooms()
     {
-        foreach (MobDef.MushroomSocket socket in m_Def.ListMushroom)
+        foreach (MobDef.MushroomSocket socket in Def.ListMushroom)
         {
-            if (socket.Prefab == null)
+            if (socket.Model == null)
                 continue;
 
-            Transform bone = FindDeep(transform, socket.SocketName);
+            Transform bone = transform.E_FindDeep(socket.SocketName);
             if (bone == null)
             {
                 CLogger.Warning("MobController", $"소켓을 찾지 못함: {socket.SocketName} ({name})", this);
                 continue;
             }
 
-            GameObject mushroom = Instantiate(socket.Prefab, bone);
+            Renderer mushroom = Instantiate(socket.Model, bone);
             mushroom.transform.localPosition = Vector3.zero;
             mushroom.transform.localRotation = Quaternion.Euler(socket.Euler);
             mushroom.transform.localScale = Vector3.one * socket.Scale;
+            Flash.AddRenderer(mushroom);
         }
     }
 
-    private static Transform FindDeep(Transform parent, string targetName)
-    {
-        if (parent.name == targetName)
-            return parent;
-
-        foreach (Transform child in parent)
-        {
-            Transform found = FindDeep(child, targetName);
-            if (found != null)
-                return found;
-        }
-
-        return null;
-    }
-
-    private void OnHit(HitParams hit)
+    protected override void OnHit(HitParams hit)
     {
         if (IsDead)
             return;
@@ -218,7 +162,7 @@ public class MobController : MonoBehaviour
         m_Fsm.Change(EMobState.Hit);
     }
 
-    private void OnDied()
+    protected override void OnDied()
     {
         m_Fsm.Change(EMobState.Dead);
     }

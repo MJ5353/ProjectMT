@@ -10,6 +10,24 @@ public static class CommonExtensions
         return obj != null ? obj : null;
     }
 
+    // 이름으로 자식 전체(손자 포함)에서 찾는다. 자기 자신도 포함
+    public static UnityEngine.Transform E_FindDeep(this UnityEngine.Transform parent, string targetName)
+    {
+        if (parent == null)
+            return null;
+        if (parent.name == targetName)
+            return parent;
+
+        foreach (UnityEngine.Transform child in parent)
+        {
+            UnityEngine.Transform found = child.E_FindDeep(targetName);
+            if (found != null)
+                return found;
+        }
+
+        return null;
+    }
+
     // collection ------------------------------------------------
 
     public static bool E_IsNullOrEmpty(this string str) => string.IsNullOrEmpty(str);

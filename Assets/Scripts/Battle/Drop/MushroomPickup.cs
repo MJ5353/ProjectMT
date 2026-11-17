@@ -3,15 +3,15 @@ using UnityEngine;
 // 바닥에 떨어진 버섯. 튀어 올랐다 떨어진 뒤, 플레이어가 가까이 오면 빨려 들어가 주워진다
 public class MushroomPickup : MonoBehaviour
 {
-    [SerializeField, Tooltip("인벤토리 ID (MushroomDef ID)")] private string m_ItemID = "Mushroom_Songi";
-    [SerializeField] private int m_Amount = 1;
-    [SerializeField] private float m_PickupRadius = 1.8f;
-    [SerializeField] private float m_MagnetSpeed = 12f;
-    [SerializeField, Tooltip("떨어진 뒤 주울 수 있기까지")] private float m_ActivateDelay = 0.5f;
-    [SerializeField] private float m_SpinSpeed = 120f;
-
     private const float Gravity = -20f;
-    private const float CollectDistance = 0.5f;
+    private const float CollectDistance = 0.5f;  // 이 거리까지 빨려 오면 주운 것으로 친다
+    private const float PickupRadius = 1.8f;     // 플레이어가 이 거리 안에 오면 빨려 들기 시작
+    private const float MagnetSpeed = 12f;
+    private const float ActivateDelay = 0.5f;    // 떨어진 뒤 주울 수 있기까지(초)
+    private const float SpinSpeed = 120f;        // 바닥에서 도는 속도(초당 각도)
+
+    [SerializeField] private string m_ItemID = "Mushroom_Songi";   // 인벤토리에 넣을 ID(MushroomDef ID)
+    [SerializeField] private int m_Amount = 1;                     // 한 번에 주워지는 개수
 
     private Vector3 m_Velocity;
     private bool m_IsLanded;
@@ -42,7 +42,7 @@ public class MushroomPickup : MonoBehaviour
         else
             UpdateIdle(deltaTime);
 
-        if (m_Age >= m_ActivateDelay && IsPlayerNear())
+        if (m_Age >= ActivateDelay && IsPlayerNear())
             m_IsMagnet = true;
     }
 
@@ -65,7 +65,7 @@ public class MushroomPickup : MonoBehaviour
         Vector3 rayStart = transform.position + Vector3.up * 0.5f;
         float rayLength = 0.5f + Mathf.Max(0f, -m_Velocity.y * deltaTime) + 0.05f;
         if (m_Velocity.y < 0f && Physics.Raycast(rayStart, Vector3.down, out RaycastHit hitInfo, rayLength, ~0, QueryTriggerInteraction.Ignore)
-            && hitInfo.collider.GetComponentInParent<CharacterController>() == null)
+            && hitInfo.collider.GetComponentInParent<CharacterController>() == null) // !!) 보류: 콜라이더에서 대상 찾기. 레이어 검사로 바꿀지 검토
         {
             next.y = hitInfo.point.y;
             m_GroundY = next.y;
@@ -80,7 +80,7 @@ public class MushroomPickup : MonoBehaviour
         Vector3 position = transform.position;
         position.y = m_GroundY + (Mathf.Sin(m_Age * 3f) + 1f) * 0.08f;
         transform.position = position;
-        transform.Rotate(0f, m_SpinSpeed * deltaTime, 0f, Space.World);
+        transform.Rotate(0f, SpinSpeed * deltaTime, 0f, Space.World);
     }
 
     private void UpdateMagnet(float deltaTime)
@@ -93,7 +93,7 @@ public class MushroomPickup : MonoBehaviour
         }
 
         Vector3 target = player.transform.position + Vector3.up * 0.8f;
-        transform.position = Vector3.MoveTowards(transform.position, target, m_MagnetSpeed * deltaTime);
+        transform.position = Vector3.MoveTowards(transform.position, target, MagnetSpeed * deltaTime);
         if (Vector3.Distance(transform.position, target) > CollectDistance)
             return;
 
@@ -106,7 +106,7 @@ public class MushroomPickup : MonoBehaviour
         if (player == null || player.IsDead)
             return false;
 
-        return Vector3.Distance(player.transform.position, transform.position) <= m_PickupRadius;
+        return Vector3.Distance(player.transform.position, transform.position) <= PickupRadius;
     }
 
     private void Collect()

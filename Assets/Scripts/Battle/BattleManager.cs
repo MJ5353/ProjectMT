@@ -14,20 +14,18 @@ public enum EBattleState
 // 끝나면 주운 버섯을 인벤토리에 넣고 게임 흐름을 결과(Result)로 넘긴다
 public class BattleManager : MonoBehaviour
 {
-    // 한 종류 몹을 정해진 지점들에 유지한다
+    // 한 종류 몹을 정해진 지점들에 유지한다(씬의 BattleManager 인스펙터에서 설정)
     // 지점은 이름 접두사(Spawn_Buggi 등)로 플레이 시작 때 씬에서 찾는다. 맵 FBX를 다시 만들어도 끊기지 않게
     [Serializable]
     public class SpawnGroup
     {
         [SerializeField] private MobController m_Prefab = null;
-        [SerializeField, Tooltip("스폰 지점 이름 접두사")] private string m_PointPrefix = "Spawn_Buggi";
-        [SerializeField, Tooltip("비우면 접두사로 찾는다")] private List<Transform> m_ListPoint = new();
-        [SerializeField] private int m_MaxAlive = 6;
-        [SerializeField] private float m_RespawnDelay = 4f;
+        [SerializeField] private string m_PointPrefix = "Spawn_Buggi";   // 스폰 지점 이름 접두사
+        [SerializeField] private int m_MaxAlive = 6;                     // 동시에 살아 있는 최대 수
+        [SerializeField] private float m_RespawnDelay = 4f;              // 빈자리가 생긴 뒤 다시 나오기까지(초)
 
         public MobController Prefab => m_Prefab;
         public string PointPrefix => m_PointPrefix;
-        public List<Transform> ListPoint => m_ListPoint;
         public int MaxAlive => m_MaxAlive;
         public float RespawnDelay => m_RespawnDelay;
 
@@ -40,25 +38,38 @@ public class BattleManager : MonoBehaviour
         }
     }
 
+    // 스폰 그룹 하나의 플레이 중 상태
+    private class SpawnState
+    {
+        public readonly SpawnGroup Group;
+        public readonly List<Transform> ListPoint = new();
+        public int AliveCount;
+        public float RespawnTimer;
+
+        public SpawnState(SpawnGroup group)
+        {
+            Group = group;
+        }
+    }
+
     public const string TerrainName = "Map_Terrain";
     // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
     public const float SpawnLift = 0.3f;
+    private const string PlayerSpawnName = "Spawn_Player";   // 시작할 때 플레이어를 옮길 지점 이름
+    private const int GoalKillCount = 10;                    // 이만큼 잡으면 승리 (보스가 들어오기 전 임시 조건)
 
-    [SerializeField] private PlayerController m_Player = null;
-    [SerializeField, Tooltip("시작할 때 플레이어를 옮길 지점 이름")] private string m_PlayerSpawnName = "Spawn_Player";
     [SerializeField] private List<SpawnGroup> m_ListGroup = new();
-    [SerializeField, Tooltip("이만큼 잡으면 승리 (보스가 들어오기 전 임시 조건)")] private int m_KillGoal = 10;
 
     private readonly Dictionary<string, int> m_DicLoot = new();
-    private readonly List<int> m_ListAlive = new();
-    private readonly List<float> m_ListRespawnTimer = new();
-    private readonly Dictionary<MobController, int> m_DicGroupByMob = new();
+    private readonly List<SpawnState> m_ListSpawn = new();
+    private readonly Dictionary<MobController, SpawnState> m_DicSpawnByMob = new();
+    private PlayerController m_Player;
 
     public static BattleManager Instance { get; private set; }
 
     public EBattleState State { get; private set; }
     public int KillCount { get; private set; }
-    public int KillGoal => m_KillGoal;
+    public int KillGoal => GoalKillCount;
     public float ElapsedTime { get; private set; }
     public PlayerController Player => m_Player;
     public IReadOnlyDictionary<string, int> DicLoot => m_DicLoot;
@@ -109,36 +120,34 @@ public class BattleManager : MonoBehaviour
         KillCount = 0;
         ElapsedTime = 0f;
         m_DicLoot.Clear();
-        m_DicGroupByMob.Clear();
-        m_ListAlive.Clear();
-        m_ListRespawnTimer.Clear();
+        m_DicSpawnByMob.Clear();
+        m_ListSpawn.Clear();
 
-        if (m_Player == null)
-            m_Player = PlayerController.Current;
+        m_Player = PlayerController.Current;
+
         if (m_Player != null)
         {
             m_Player.Health.Died += OnPlayerDied;
             PlacePlayer();
         }
 
-        for (int i = 0; i < m_ListGroup.Count; i++)
+        foreach (SpawnGroup group in m_ListGroup)
         {
-            m_ListAlive.Add(0);
-            m_ListRespawnTimer.Add(0f);
+            SpawnState spawn = new(group);
+            m_ListSpawn.Add(spawn);
 
-            SpawnGroup group = m_ListGroup[i];
-            ResolvePoints(group);
-            if (group.Prefab == null || group.ListPoint.Count == 0)
+            FindPoints(spawn);
+            if (group.Prefab == null || spawn.ListPoint.Count == 0)
             {
-                CLogger.Warning("BattleManager", $"스폰 불가: 프리팹 {(group.Prefab == null ? "없음" : group.Prefab.name)}, '{group.PointPrefix}' 지점 {group.ListPoint.Count}개", this);
+                CLogger.Warning("BattleManager", $"스폰 불가: 프리팹 {(group.Prefab == null ? "없음" : group.Prefab.name)}, '{group.PointPrefix}' 지점 {spawn.ListPoint.Count}개", this);
                 continue;
             }
 
-            CLogger.Log("BattleManager", $"{group.Prefab.name} 스폰 지점 {group.ListPoint.Count}개");
-            int count = Mathf.Min(group.MaxAlive, group.ListPoint.Count);
+            CLogger.Log("BattleManager", $"{group.Prefab.name} 스폰 지점 {spawn.ListPoint.Count}개");
+            int count = Mathf.Min(group.MaxAlive, spawn.ListPoint.Count);
             for (int k = 0; k < count; k++)
             {
-                Spawn(i, group.ListPoint[k]);
+                Spawn(spawn, spawn.ListPoint[k]);
             }
         }
     }
@@ -167,34 +176,36 @@ public class BattleManager : MonoBehaviour
 
     private void PlacePlayer()
     {
-        GameObject spawn = string.IsNullOrEmpty(m_PlayerSpawnName) ? null : GameObject.Find(m_PlayerSpawnName);
+        GameObject spawn = GameObject.Find(PlayerSpawnName);
         if (spawn == null)
             return;
 
         // CharacterController가 켜져 있으면 위치를 덮어써 버려서 잠깐 끈다
+        // !!) 보류: GetComponent 대신 PlayerController.Teleport()로 바꿀지 검토
         CharacterController controller = m_Player.GetComponent<CharacterController>();
         if (controller != null)
             controller.enabled = false;
+
         m_Player.transform.SetPositionAndRotation(SnapToGround(spawn.transform.position), spawn.transform.rotation);
         if (controller != null)
             controller.enabled = true;
     }
 
-    // 지정 목록에 빈 칸이 있거나 비어 있으면 이름 접두사로 다시 찾는다
-    private void ResolvePoints(SpawnGroup group)
+    // 이름 접두사로 스폰 지점을 찾는다
+    private static void FindPoints(SpawnState spawn)
     {
-        group.ListPoint.RemoveAll(point => point == null);
-        if (group.ListPoint.Count > 0 || string.IsNullOrEmpty(group.PointPrefix))
+        string prefix = spawn.Group.PointPrefix;
+        if (prefix.E_IsNullOrEmpty())
             return;
 
         Transform[] all = FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
         foreach (Transform t in all)
         {
-            if (t.name.StartsWith(group.PointPrefix))
-                group.ListPoint.Add(t);
+            if (t.name.StartsWith(prefix))
+                spawn.ListPoint.Add(t);
         }
 
-        group.ListPoint.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+        spawn.ListPoint.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
     }
 
     // 지점을 땅 위에 세운다. 위에서 아래로 쏴서 지형(Map_Terrain)에 맞은 가장 높은 점을 쓴다(나무·바위 위는 피함)
@@ -224,43 +235,41 @@ public class BattleManager : MonoBehaviour
         return position;
     }
 
-    private void Spawn(int groupIndex, Transform point)
+    private void Spawn(SpawnState spawn, Transform point)
     {
-        SpawnGroup group = m_ListGroup[groupIndex];
-        if (group.Prefab == null || point == null)
+        if (spawn.Group.Prefab == null || point == null)
             return;
 
-        MobController mob = Instantiate(group.Prefab, SnapToGround(point.position), point.rotation);
-        m_DicGroupByMob[mob] = groupIndex;
-        m_ListAlive[groupIndex]++;
+        MobController mob = Instantiate(spawn.Group.Prefab, SnapToGround(point.position), point.rotation);
+        m_DicSpawnByMob[mob] = spawn;
+        spawn.AliveCount++;
     }
 
     private void UpdateRespawn(float deltaTime)
     {
-        for (int i = 0; i < m_ListGroup.Count; i++)
+        foreach (SpawnState spawn in m_ListSpawn)
         {
-            SpawnGroup group = m_ListGroup[i];
-            if (m_ListAlive[i] >= group.MaxAlive || group.ListPoint.Count == 0)
+            if (spawn.AliveCount >= spawn.Group.MaxAlive || spawn.ListPoint.Count == 0)
                 continue;
 
-            m_ListRespawnTimer[i] += deltaTime;
-            if (m_ListRespawnTimer[i] < group.RespawnDelay)
+            spawn.RespawnTimer += deltaTime;
+            if (spawn.RespawnTimer < spawn.Group.RespawnDelay)
                 continue;
 
-            m_ListRespawnTimer[i] = 0f;
-            Spawn(i, PickFarPoint(group));
+            spawn.RespawnTimer = 0f;
+            Spawn(spawn, PickFarPoint(spawn));
         }
     }
 
     // 플레이어 눈앞에 갑자기 생기지 않게 가장 먼 지점 근처에서 고른다
-    private Transform PickFarPoint(SpawnGroup group)
+    private Transform PickFarPoint(SpawnState spawn)
     {
         if (m_Player == null)
-            return group.ListPoint[UnityEngine.Random.Range(0, group.ListPoint.Count)];
+            return spawn.ListPoint[UnityEngine.Random.Range(0, spawn.ListPoint.Count)];
 
         Transform best = null;
         float bestDistance = -1f;
-        foreach (Transform point in group.ListPoint)
+        foreach (Transform point in spawn.ListPoint)
         {
             float distance = Vector3.Distance(point.position, m_Player.transform.position) + UnityEngine.Random.Range(0f, 4f);
             if (distance <= bestDistance)
@@ -279,24 +288,24 @@ public class BattleManager : MonoBehaviour
             return;
 
         KillCount++;
-        foreach (var pair in m_DicGroupByMob)
+        foreach (var pair in m_DicSpawnByMob)
         {
             if (pair.Key != null && pair.Key.IsDead == false)
                 continue;
 
-            m_ListAlive[pair.Value] = Mathf.Max(0, m_ListAlive[pair.Value] - 1);
-            m_DicGroupByMob.Remove(pair.Key);
+            pair.Value.AliveCount = Mathf.Max(0, pair.Value.AliveCount - 1);
+            m_DicSpawnByMob.Remove(pair.Key);
             break;
         }
 
-        if (KillCount >= m_KillGoal)
+        if (KillCount >= GoalKillCount)
             End(true);
     }
 
     private void OnLootPicked(LootPicked evt)
     {
-        m_DicLoot.TryGetValue(evt.ItemId, out int count);
-        m_DicLoot[evt.ItemId] = count + evt.Amount;
+        m_DicLoot.TryGetValue(evt.ItemID, out int count);
+        m_DicLoot[evt.ItemID] = count + evt.Amount;
     }
 
     private void OnPlayerDied()

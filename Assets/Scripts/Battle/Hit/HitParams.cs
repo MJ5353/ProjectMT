@@ -6,7 +6,7 @@ public enum ETeam
     Mob,
 }
 
-// 한 번의 타격 정보. 공격하는 쪽이 만들고, 맞는 쪽 HitFeature가 반응 컴포넌트들에 그대로 넘긴다.
+// 한 번의 타격 정보. 공격하는 쪽이 만들고, 맞는 쪽 HitFeature가 반응 부품들에 그대로 넘긴다.
 public readonly struct HitParams
 {
     public readonly GameObject Attacker;
@@ -29,10 +29,16 @@ public readonly struct HitParams
     }
 }
 
-// 피격 반응 하나. 체력, 넉백, 번쩍, 히트스톱처럼 반응마다 컴포넌트를 나눠 조합한다.
-// Order가 작은 것부터 실행된다(체력이 먼저라서 뒤 반응은 IsDead를 볼 수 있다).
+// 피격 반응 하나. 체력, 넉백, 번쩍, 히트스톱처럼 반응마다 클래스를 나눠 조합한다.
+// 실행 순서는 HitFeature에 넣은 순서(UnitController.Awake)
 public interface IHitReaction
 {
-    int Order { get; }
     void OnHit(in HitParams hit);
+}
+
+// 맞을 수 있는 대상. 근접 공격이 맞힌 콜라이더에서 이것을 찾는다
+public interface IHitTarget
+{
+    Transform transform { get; }
+    HitFeature HitFeature { get; }
 }

@@ -1,96 +1,85 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// 하얀 번쩍 반응. 잠깐 모든 렌더러의 머티리얼을 흰색 단색으로 바꿨다가 되돌린다.
-// 히트스톱 중에도 끝나도록 실제 시간으로 잰다.
-public class FlashFeature : MonoBehaviour, IHitReaction
+// 하얀 번쩍 반응. 잠깐 몸 렌더러의 머티리얼을 흰색 단색으로 바꿨다가 되돌린다.
+// 히트스톱 중에도 끝나도록 주인이 실제 시간(unscaled)으로 Tick을 부른다
+public class FlashFeature : IHitReaction
 {
-    [SerializeField] private float m_Duration = 0.08f;
-    [SerializeField, Tooltip("비우면 URP Unlit 흰색을 만들어 쓴다")] private Material m_FlashMaterial;
+    private const float Duration = 0.08f;
 
-    private static Material s_DefaultFlash;
+    private static Material s_FlashMaterial;
 
     private readonly List<Renderer> m_ListRenderer = new();
     private readonly List<Material[]> m_ListOriginal = new();
-    private Coroutine m_Routine;
-
-    public int Order => 20;
+    private float m_Remain;
 
     // ==================================================
 
-    private void OnDisable()
+    public FlashFeature(List<Renderer> listRenderer)
     {
-        Restore();
+        foreach (Renderer meshRenderer in listRenderer)
+        {
+            AddRenderer(meshRenderer);
+        }
     }
 
-    // 버섯처럼 나중에 붙인 렌더러까지 다시 모은다
-    public void Refresh()
+    // 몸에 꽂은 버섯처럼 나중에 붙인 렌더러를 더한다
+    public void AddRenderer(Renderer meshRenderer)
     {
-        Restore();
-        m_ListRenderer.Clear();
-        m_ListOriginal.Clear();
+        if (meshRenderer == null)
+            return;
 
-        foreach (Renderer r in GetComponentsInChildren<Renderer>(true))
-        {
-            if (r is ParticleSystemRenderer)
-                continue;
-            m_ListRenderer.Add(r);
-            m_ListOriginal.Add(r.sharedMaterials);
-        }
+        m_ListRenderer.Add(meshRenderer);
+        m_ListOriginal.Add(meshRenderer.sharedMaterials);
     }
 
     public void OnHit(in HitParams hit)
     {
-        if (m_ListRenderer.Count == 0)
-            Refresh();
-
-        if (m_Routine != null)
-            StopCoroutine(m_Routine);
-        m_Routine = StartCoroutine(FlashRoutine());
-    }
-
-    private IEnumerator FlashRoutine()
-    {
-        Material flash = m_FlashMaterial != null ? m_FlashMaterial : GetDefaultFlash();
+        Material flash = GetFlashMaterial();
         for (int i = 0; i < m_ListRenderer.Count; i++)
         {
             if (m_ListRenderer[i] == null)
                 continue;
-            Material[] mats = new Material[m_ListOriginal[i].Length];
-            for (int k = 0; k < mats.Length; k++)
+
+            Material[] flashMaterials = new Material[m_ListOriginal[i].Length];
+            for (int k = 0; k < flashMaterials.Length; k++)
             {
-                mats[k] = flash;
+                flashMaterials[k] = flash;
             }
-            m_ListRenderer[i].sharedMaterials = mats;
+
+            m_ListRenderer[i].sharedMaterials = flashMaterials;
         }
 
-        yield return new WaitForSecondsRealtime(m_Duration);
-        Restore();
+        m_Remain = Duration;
     }
 
-    private void Restore()
+    public void Tick(float unscaledDeltaTime)
     {
-        m_Routine = null;
+        if (m_Remain <= 0f)
+            return;
+
+        m_Remain -= unscaledDeltaTime;
+        if (m_Remain <= 0f)
+            Restore();
+    }
+
+    public void Restore()
+    {
+        m_Remain = 0f;
         for (int i = 0; i < m_ListRenderer.Count; i++)
         {
             if (m_ListRenderer[i] == null)
                 continue;
+
             m_ListRenderer[i].sharedMaterials = m_ListOriginal[i];
         }
     }
 
-    private static Material GetDefaultFlash()
+    private static Material GetFlashMaterial()
     {
-        if (s_DefaultFlash != null)
-            return s_DefaultFlash;
+        if (s_FlashMaterial == null)
+            s_FlashMaterial = HitMaterials.CreateUnlit("HitFlash (Runtime)", Color.white);
 
-        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-        if (shader == null)
-            shader = Shader.Find("Unlit/Color");
-
-        s_DefaultFlash = new Material(shader) { name = "HitFlash (Runtime)" };
-        s_DefaultFlash.color = Color.white;
-        return s_DefaultFlash;
+        return s_FlashMaterial;
     }
 }

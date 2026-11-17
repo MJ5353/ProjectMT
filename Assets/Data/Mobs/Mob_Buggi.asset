@@ -17,18 +17,10 @@ MonoBehaviour:
   m_Description: 
   m_Icon: {fileID: 0}
   m_MaxHp: 3
-  m_MoveSpeed: 3
-  m_WanderSpeed: 1.2
   m_KnockbackScale: 1
-  m_SightRange: 7
-  m_LoseRange: 12
-  m_WanderRadius: 4
-  m_AttackRange: 1.4
-  m_WindupTime: 0.45
-  m_AttackCooldown: 1.2
   m_HitStunTime: 0.35
-  m_FleeTime: 1.2
-  m_FleeSpeed: 4
+  m_InvincibleTime: 0
+  m_ChunkColor: {r: 0.95, g: 0.9, b: 0.8, a: 1}
   m_Attack:
     m_Clip: Attack
     m_Damage: 1
@@ -39,13 +31,23 @@ MonoBehaviour:
     m_Knockback: 6
     m_HitStop: 0.05
     m_Lunge: 5
+  m_MoveSpeed: 3
+  m_WanderSpeed: 1.2
+  m_SightRange: 7
+  m_LoseRange: 12
+  m_WanderRadius: 4
+  m_AttackRange: 1.4
+  m_WindupTime: 0.45
+  m_AttackCooldown: 1.2
+  m_FleeTime: 1.2
+  m_FleeSpeed: 4
   m_ListMushroom:
   - m_SocketName: Socket_Head
-    m_Prefab: {fileID: 919132149155446097, guid: b998858976204af468748a779cea7f15, type: 3}
+    m_Model: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
     m_Scale: 0.8
     m_Euler: {x: 0, y: 0, z: 0}
   - m_SocketName: Socket_Back
-    m_Prefab: {fileID: 919132149155446097, guid: b998858976204af468748a779cea7f15, type: 3}
+    m_Model: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
     m_Scale: 0.6
     m_Euler: {x: 0, y: 0, z: 0}
   m_ListDrop:

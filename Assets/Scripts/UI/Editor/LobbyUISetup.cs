@@ -170,7 +170,7 @@ public static class LobbyUISetup
             RectTransform highlight = UIBuilder.Rect("Highlight", btnRt, new Vector2(0, 1), Vector2.one, new Vector2(0, -8), Vector2.zero);
             UIBuilder.AddImage(highlight, UIStyle.Gold);
 
-            listEntry.Add(new TabBar.Entry { button = button, view = listView[i], highlight = highlight.gameObject });
+            listEntry.Add(new TabBar.Entry(button, listView[i], highlight.gameObject));
         }
 
         TabBar tabBar = bar.gameObject.AddComponent<TabBar>();

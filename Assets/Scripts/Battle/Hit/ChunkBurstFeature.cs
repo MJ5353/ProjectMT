@@ -1,53 +1,58 @@
 using UnityEngine;
 
 // 복셀 조각 튀김 반응. 작은 큐브 몇 개를 맞은 방향으로 흩뿌린다. 충돌 없이 잠깐 날다 줄어들어 사라진다.
-public class ChunkBurstFeature : MonoBehaviour, IHitReaction
+// !!) 보류: 조각 오브젝트 생성(CreatePrimitive·GetComponent·AddComponent). RenderMeshInstanced로 바꿀지 검토
+public class ChunkBurstFeature : IHitReaction
 {
-    [SerializeField] private int m_Count = 6;
-    [SerializeField] private Color m_Color = new(0.85f, 0.75f, 0.6f);
-    [SerializeField] private float m_Size = 0.12f;
-    [SerializeField] private float m_Speed = 4f;
-    [SerializeField] private float m_Height = 0.5f;
+    private const int Count = 6;
+    private const float Size = 0.12f;
+    private const float Speed = 4f;
+    private const float Height = 0.5f;   // 조각이 튀어나오는 높이
 
     private static Material s_Material;
     private static readonly int s_BaseColorId = Shader.PropertyToID("_BaseColor");
     private static readonly int s_ColorId = Shader.PropertyToID("_Color");
 
-    public int Order => 40;
+    private readonly Transform m_Owner;
+    private readonly Color m_Color;
+
+    // ==================================================
+
+    public ChunkBurstFeature(Transform owner, Color color)
+    {
+        m_Owner = owner;
+        m_Color = color;
+    }
 
     public void OnHit(in HitParams hit)
     {
-        Vector3 origin = transform.position + Vector3.up * m_Height;
+        Vector3 origin = m_Owner.position + Vector3.up * Height;
         MaterialPropertyBlock block = new();
         block.SetColor(s_BaseColorId, m_Color);
         block.SetColor(s_ColorId, m_Color);
 
-        for (int i = 0; i < m_Count; i++)
+        for (int i = 0; i < Count; i++)
         {
             GameObject chunk = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            Destroy(chunk.GetComponent<Collider>());
+            Object.Destroy(chunk.GetComponent<Collider>());
             chunk.name = "Chunk";
             chunk.transform.SetPositionAndRotation(origin + Random.insideUnitSphere * 0.2f, Random.rotation);
-            chunk.transform.localScale = Vector3.one * m_Size;
+            chunk.transform.localScale = Vector3.one * Size;
 
             MeshRenderer renderer = chunk.GetComponent<MeshRenderer>();
             renderer.sharedMaterial = GetMaterial();
             renderer.SetPropertyBlock(block);
 
             Vector3 dir = (hit.Direction + Random.insideUnitSphere * 0.8f + Vector3.up).normalized;
-            chunk.AddComponent<Chunk>().Init(dir * m_Speed * Random.Range(0.6f, 1.2f));
+            chunk.AddComponent<Chunk>().Init(dir * Speed * Random.Range(0.6f, 1.2f));
         }
     }
 
     private static Material GetMaterial()
     {
-        if (s_Material != null)
-            return s_Material;
+        if (s_Material == null)
+            s_Material = HitMaterials.CreateUnlit("Chunk (Runtime)", Color.white);
 
-        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-        if (shader == null)
-            shader = Shader.Find("Unlit/Color");
-        s_Material = new Material(shader) { name = "Chunk (Runtime)", enableInstancing = true };
         return s_Material;
     }
 

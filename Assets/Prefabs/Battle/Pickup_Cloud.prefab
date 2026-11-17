@@ -47,10 +47,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MushroomPickup
   m_ItemID: Mushroom_Cloud
   m_Amount: 1
-  m_PickupRadius: 1.8
-  m_MagnetSpeed: 12
-  m_ActivateDelay: 0.5
-  m_SpinSpeed: 120
 --- !u!1001 &3364067473099296431
 PrefabInstance:
   m_ObjectHideFlags: 0
