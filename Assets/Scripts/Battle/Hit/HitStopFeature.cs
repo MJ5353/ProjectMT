@@ -3,6 +3,6 @@ public class HitStopFeature : IHitReaction
 {
     public void OnHit(in HitParams hit)
     {
-        HitStopManager.Request(hit.HitStop);
+        HitStopManager.Instance?.Request(hit.HitStop);
     }
 }

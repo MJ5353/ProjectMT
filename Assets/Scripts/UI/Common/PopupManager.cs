@@ -5,10 +5,8 @@ using UnityEngine.InputSystem;
 #endif
 
 // 씬마다 하나 두는 팝업 스택. 마지막에 연 팝업이 맨 위에 오고, 뒤로 가기는 맨 위부터 닫는다
-public class PopupManager : MonoBehaviour
+public class PopupManager : MonoSingleton<PopupManager>
 {
-    public static PopupManager Instance { get; private set; }
-
     [SerializeField] private RectTransform m_Root = null;
 
     private readonly List<Popup> m_ListPopup = new();
@@ -17,24 +15,19 @@ public class PopupManager : MonoBehaviour
 
     // ==================================================
 
-    private void Awake()
+    protected override void OnInit()
     {
-        Instance = this;
 
         if (m_Root == null)
             m_Root = (RectTransform)transform;
     }
 
-    private void Update()
+    protected override void OnClear() => m_ListPopup.Clear();
+
+    internal void Tick()
     {
         if (IsBackPressed())
             CloseTop();
-    }
-
-    private void OnDestroy()
-    {
-        if (Instance == this)
-            Instance = null;
     }
 
     public T Open<T>(T prefab) where T : Popup

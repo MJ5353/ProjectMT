@@ -12,7 +12,7 @@ public enum EBattleState
 
 // 전투 한 판 진행. 몹 스폰·리스폰, 처치 수, 주운 버섯, 승패를 맡는다.
 // 끝나면 주운 버섯을 인벤토리에 넣고 게임 흐름을 결과(Result)로 넘긴다
-public class BattleManager : MonoBehaviour
+public class BattleManager : MonoSingleton<BattleManager>
 {
     // 한 종류 몹을 정해진 지점들에 유지한다(씬의 BattleManager 인스펙터에서 설정)
     // 지점은 이름 접두사(Spawn_Buggi 등)로 플레이 시작 때 씬에서 찾는다. 맵 FBX를 다시 만들어도 끊기지 않게
@@ -65,8 +65,6 @@ public class BattleManager : MonoBehaviour
     private readonly Dictionary<MobController, SpawnState> m_DicSpawnByMob = new();
     private PlayerController m_Player;
 
-    public static BattleManager Instance { get; private set; }
-
     public EBattleState State { get; private set; }
     public int KillCount { get; private set; }
     public int KillGoal => GoalKillCount;
@@ -76,45 +74,18 @@ public class BattleManager : MonoBehaviour
 
     // ==================================================
 
-    private void Awake()
-    {
-        Instance = this;
-    }
-
-    private void OnEnable()
-    {
-        EventBus.Subscribe<MobKilled>(OnMobKilled);
-        EventBus.Subscribe<LootPicked>(OnLootPicked);
-    }
-
-    private void OnDisable()
-    {
-        EventBus.Unsubscribe<MobKilled>(OnMobKilled);
-        EventBus.Unsubscribe<LootPicked>(OnLootPicked);
-    }
-
-    private void OnDestroy()
-    {
-        if (Instance == this)
-            Instance = null;
-    }
-
-    private void Start()
-    {
-        Init();
-    }
-
-    private void Update()
+    internal void Tick(float deltaTime)
     {
         if (State != EBattleState.Playing)
             return;
 
-        float deltaTime = Time.deltaTime;
         ElapsedTime += deltaTime;
         UpdateRespawn(deltaTime);
     }
 
-    public void Init()
+    // virtual ----
+
+    protected override void OnInit()
     {
         State = EBattleState.Playing;
         KillCount = 0;
@@ -125,11 +96,14 @@ public class BattleManager : MonoBehaviour
 
         m_Player = PlayerController.Current;
 
-        if (m_Player != null)
+        if (m_Player != null && m_Player.Health != null)
         {
             m_Player.Health.Died += OnPlayerDied;
             PlacePlayer();
         }
+
+        EventBus.Subscribe<MobKilled>(OnMobKilled);
+        EventBus.Subscribe<LootPicked>(OnLootPicked);
 
         foreach (SpawnGroup group in m_ListGroup)
         {
@@ -150,6 +124,16 @@ public class BattleManager : MonoBehaviour
                 Spawn(spawn, spawn.ListPoint[k]);
             }
         }
+    }
+
+    protected override void OnClear()
+    {
+        EventBus.Unsubscribe<MobKilled>(OnMobKilled);
+        EventBus.Unsubscribe<LootPicked>(OnLootPicked);
+
+        HealthFeature health = m_Player?.Health;
+        if (health != null)
+            health.Died -= OnPlayerDied;
     }
 
     // 다시 하기: 같은 씬을 새로 연다

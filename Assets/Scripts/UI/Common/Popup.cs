@@ -6,7 +6,7 @@ public class Popup : MonoBehaviour
     // 뒤로 가기(Esc, 안드로이드 뒤로)로 닫을 수 있는지
     public virtual bool IsCloseOnBack => true;
 
-    public void Close() => PopupManager.Instance.Close(this);
+    public void Close() => PopupManager.Instance?.Close(this);
 
     // virtual ------------------------------------------------
 

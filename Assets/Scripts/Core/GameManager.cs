@@ -1,10 +1,8 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-// 로비와 전투에서 공유하는 게임 상태. SceneBootstrap이 초기화한다.
+// 로비와 전투에서 공유하는 게임 상태. SceneController가 초기화한다.
 // 데이터베이스, 플레이어 데이터, 세이브, 게임 흐름을 들고 있는다
 
-[DefaultExecutionOrder(-1000)]
 public class GameManager : MonoSingleton<GameManager>
 {
     public GameDatabase Database { get; private set; }
@@ -16,26 +14,9 @@ public class GameManager : MonoSingleton<GameManager>
 
     // ==================================================
 
-    private void Start()
-    {
-        if (Flow == null)
-            return;
-
-        Flow.ChangeState(GameFlow.GetStateByScene(SceneManager.GetActiveScene().name));
-    }
-
-    private void OnApplicationPause(bool isPaused)
-    {
-        if (isPaused && Player != null)
-            SaveNow();
-    }
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetStatics() => ResetSingleton();
-
     // virtual ----
 
-    protected override void Init()
+    protected override void OnInit()
     {
         Database = Resources.Load<GameDatabase>(GameDatabase.ResourcePath);
         if (Database == null)
@@ -49,14 +30,13 @@ public class GameManager : MonoSingleton<GameManager>
         Player.Load(m_SaveService.Load());
 
         Flow = new GameFlow(this);
+        DontDestroyOnLoad(gameObject);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (TryGetComponent<DebugPanel>(out _) == false)
             gameObject.AddComponent<DebugPanel>();
 #endif
     }
-
-    protected override void OnQuit() => SaveNow();
 
     // save
 

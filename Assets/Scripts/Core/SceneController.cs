@@ -1,10 +1,90 @@
 using UnityEngine;
 
 [DefaultExecutionOrder(-1100)]
-public sealed class SceneBootstrap : MonoBehaviour
+public sealed class SceneController : MonoBehaviour
 {
+    [SerializeField] private BattleManager m_BattleManager = null;
+    [SerializeField] private PopupManager m_PopupManager = null;
+
+    private HitStopManager m_HitStopManager;
+
+    // ==================================================
+
     private void Awake()
     {
-        GameManager.InitializeSingleton();
+        GameManager gameM = GameManager.Instance;
+        if (gameM == null)
+        {
+            gameM = FindFirstObjectByType<GameManager>();
+            if (gameM == null)
+                gameM = new GameObject("[GameManager]").AddComponent<GameManager>();
+
+            gameM.Init();
+        }
+
+        if (m_PopupManager != null)
+            m_PopupManager.Init();
+
+        if (m_BattleManager != null)
+        {
+            m_HitStopManager = gameObject.AddComponent<HitStopManager>();
+            m_HitStopManager.Init();
+        }
     }
+
+    private void Start()
+    {
+        // 플레이어의 Awake에서 체력과 피격 부품을 만든 뒤 전투를 초기화한다.
+        if (m_BattleManager != null)
+            m_BattleManager.Init();
+
+        GameFlow flow = GameManager.Instance?.Flow;
+        if (flow != null && flow.Current == EGameState.None && flow.IsTransitioning == false)
+            flow.ChangeState(GameFlow.GetStateByScene(gameObject.scene.name));
+    }
+
+    private void Update()
+    {
+        if (m_BattleManager != null)
+            m_BattleManager.Tick(Time.deltaTime);
+
+        if (m_HitStopManager != null)
+            m_HitStopManager.Tick(Time.unscaledDeltaTime);
+
+        if (m_PopupManager != null)
+            m_PopupManager.Tick();
+    }
+
+    private void OnDestroy()
+    {
+        m_BattleManager?.Clear();
+        m_HitStopManager?.Clear();
+        m_PopupManager?.Clear();
+    }
+
+    private void OnApplicationPause(bool isPaused)
+    {
+        if (isPaused)
+            GameManager.Instance?.SaveNow();
+    }
+
+    private void OnApplicationQuit() => GameManager.Instance?.SaveNow();
+
+    // 도메인 리로드를 끈 상태에서도 새 플레이마다 등록을 초기화한다.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetSingletons()
+    {
+        GameManager.ResetSingleton();
+        BattleManager.ResetSingleton();
+        HitStopManager.ResetSingleton();
+        PopupManager.ResetSingleton();
+    }
+
+#if UNITY_EDITOR
+    public void EditorSetup(BattleManager battleManager = null, PopupManager popupManager = null)
+    {
+        m_BattleManager = battleManager;
+        m_PopupManager = popupManager;
+    }
+#endif
 }

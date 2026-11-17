@@ -340,7 +340,7 @@ public static class BattleSetup
     private static void BuildScene()
     {
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
-        new GameObject(nameof(SceneController)).AddComponent<SceneController>();
+        SceneController sceneController = new GameObject(nameof(SceneController)).AddComponent<SceneController>();
 
         Transform map = BuildMap();
         Transform playerSpawn = map.E_FindDeep("Spawn_Player");
@@ -358,6 +358,7 @@ public static class BattleSetup
 
         GameObject battle = new GameObject("BattleManager");
         BattleManager battleM = battle.AddComponent<BattleManager>();
+        sceneController.EditorSetup(battleManager: battleM);
         battle.AddComponent<BattleHud>();
 
         SerializedObject so = new SerializedObject(battleM);
