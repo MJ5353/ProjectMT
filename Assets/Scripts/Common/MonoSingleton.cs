@@ -1,13 +1,15 @@
 using UnityEngine;
 
+// ==================================================
+
 public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
 {
     private static T s_Instance;
 
     public static T Instance => s_Instance.E_Alive();
 
-    // ==================================================
-
+    // core ---
+    
     public void Init()
     {
         if (Instance != null)
@@ -28,7 +30,7 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T
 
     public static void ResetSingleton() => s_Instance = null;
 
-    // virtual---
+    // virtual ---
 
     protected virtual void OnInit() { }
     protected virtual void OnClear() { }

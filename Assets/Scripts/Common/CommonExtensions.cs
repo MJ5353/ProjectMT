@@ -1,21 +1,19 @@
 using System.Collections.Generic;
 
-// 공용 확장 함수. 이름은 E_ 접두사로 시작해 Unity·.NET 기본 함수와 구분한다
+// ==================================================
+
+// 공용 확장 함수. 이름은 E_ 접두사로 시작해 Unity·.NET 기본 함수와 구분
 public static class CommonExtensions
 {
     // Unity 오브젝트가 Destroy된 경우에도 null을 돌려줘서 ?. 연산자를 안전하게 쓸 수 있게 한다
-    // 예) GameManager.Instance.E_Alive()?.SaveNow();
     public static T E_Alive<T>(this T obj) where T : UnityEngine.Object
     {
         return obj != null ? obj : null;
     }
 
-    // 이름으로 자식 전체(손자 포함)에서 찾는다. 자기 자신도 포함
     public static UnityEngine.Transform E_FindDeep(this UnityEngine.Transform parent, string targetName)
     {
-        if (parent == null)
-            return null;
-        if (parent.name == targetName)
+        if (parent == null || parent.name == targetName)
             return parent;
 
         foreach (UnityEngine.Transform child in parent)
@@ -32,7 +30,6 @@ public static class CommonExtensions
 
     public static bool E_IsNullOrEmpty(this string str) => string.IsNullOrEmpty(str);
 
-    // !!) List, Dictionary 등은 ICollection과 IReadOnlyCollection을 모두 구현해서 ICollection 하나만 둔다
     public static bool E_IsNullOrEmpty<T>(this ICollection<T> collection) => collection == null || collection.Count <= 0;
 
     public static bool E_IsNullOrEmpty<T>(this T[] array) => array == null || array.Length <= 0;
