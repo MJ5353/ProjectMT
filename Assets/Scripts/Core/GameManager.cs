@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// 게임 전역 진입점. 어떤 씬에서 플레이를 눌러도 씬 로드 전에 자동 생성된다.
+// 로비와 전투에서 공유하는 게임 상태. SceneBootstrap이 초기화한다.
 // 데이터베이스, 플레이어 데이터, 세이브, 게임 흐름을 들고 있는다
 
 [DefaultExecutionOrder(-1000)]
@@ -29,9 +29,6 @@ public class GameManager : MonoSingleton<GameManager>
         if (isPaused && Player != null)
             SaveNow();
     }
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void Bootstrap() => _ = Instance;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics() => ResetSingleton();

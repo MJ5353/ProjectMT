@@ -340,6 +340,7 @@ public static class BattleSetup
     private static void BuildScene()
     {
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
+        new GameObject(nameof(SceneController)).AddComponent<SceneController>();
 
         Transform map = BuildMap();
         Transform playerSpawn = map.E_FindDeep("Spawn_Player");

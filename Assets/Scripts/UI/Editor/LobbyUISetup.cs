@@ -86,6 +86,7 @@ public static class LobbyUISetup
     private static void BuildScene()
     {
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        new GameObject(nameof(SceneController)).AddComponent<SceneController>();
 
         // UI만 있는 씬이라 카메라는 바탕색만 칠한다
         Camera cam = new GameObject("Main Camera", typeof(Camera)).GetComponent<Camera>();
