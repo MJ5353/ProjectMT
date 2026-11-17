@@ -115,7 +115,9 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         m_IsBattleOver = false;
 
         for (int i = 0; i < m_ListFeature.Count; ++i)
+        {
             m_ListFeature[i].Reset();
+        }
 
         OnSpawned();
     }
@@ -125,7 +127,9 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     {
         ActorID = 0;
         for (int i = 0; i < m_ListFeature.Count; ++i)
+        {
             m_ListFeature[i].Clear();
+        }
     }
 
     // ==================================================

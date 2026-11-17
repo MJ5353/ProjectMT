@@ -38,8 +38,8 @@ public class UICountLabel : MonoBehaviour
 
     private void Refresh()
     {
-        GameManager gameM = GameManager.Instance;
-        int count = gameM != null ? gameM.Player.Inventory.GetCount(m_ItemID) : 0;
+        PlayerDataManager playerDataM = PlayerDataManager.Instance;
+        int count = playerDataM != null ? playerDataM.Inventory.GetCount(m_ItemID) : 0;
 
         m_Text.text = string.Format(m_Format, count.ToString("N0"));
     }

@@ -1,14 +1,18 @@
 using System.Collections.Generic;
 
+// ==================================================
+
 // ID → 개수. 버섯, 재화, 재료 등 개수로 세는 것은 모두 여기에 둔다.
 // 바뀔 때마다 InventoryChanged를 발행하므로 UI는 이벤트만 구독하면 된다
-public class Inventory
+public class InventoryData : PlayerDataBase
 {
     private readonly Dictionary<string, int> m_DicCountByID = new();
 
     public IReadOnlyDictionary<string, int> DicCountByID => m_DicCountByID;
 
-    public void Clear()
+    // ------------------------------------------------
+    
+    public override void Clear()
     {
         m_DicCountByID.Clear();
     }
@@ -26,13 +30,23 @@ public class Inventory
         SEventService.Publish(new InventoryChanged(id, count, amount));
     }
     
-    // !!) 세이브 불러오기 전용. 이벤트를 발행하지 않는다
-    public void SetRaw(string id, int count)
+    public override void Load(SaveData data)
     {
-        if (id.E_IsNullOrEmpty() || count <= 0)
-            return;
+        foreach (ItemStack stack in data.items)
+        {
+            if (stack.id.E_IsNullOrEmpty() || stack.count <= 0)
+                continue;
 
-        m_DicCountByID[id] = count;
+            m_DicCountByID[stack.id] = stack.count;
+        }
+    }
+
+    public override void Save(SaveData data)
+    {
+        foreach (var pair in m_DicCountByID)
+        {
+            data.items.Add(new ItemStack(pair.Key, pair.Value));
+        }
     }
 
     // get ---

@@ -38,7 +38,7 @@ public class DebugPanel : MonoBehaviour
         GUILayout.Space(8);
         DrawItems(gameM);
         GUILayout.Space(8);
-        DrawSave(gameM);
+        DrawSave();
 
         GUILayout.EndScrollView();
         GUILayout.EndArea();
@@ -63,10 +63,11 @@ public class DebugPanel : MonoBehaviour
     private void DrawItems(GameManager gameM)
     {
         GUILayout.Label("아이템 지급");
-        if (gameM.Database == null)
+        PlayerDataManager playerDataM = PlayerDataManager.Instance;
+        if (gameM.Database == null || playerDataM == null)
             return;
 
-        Inventory inventory = gameM.Player.Inventory;
+        InventoryData inventory = playerDataM.Inventory;
         foreach (DataDef def in gameM.Database.ListDef)
         {
             if (def == null)
@@ -85,15 +86,19 @@ public class DebugPanel : MonoBehaviour
         }
     }
 
-    private void DrawSave(GameManager gameM)
+    private void DrawSave()
     {
+        PlayerDataManager playerDataM = PlayerDataManager.Instance;
+        if (playerDataM == null)
+            return;
+
         GUILayout.BeginHorizontal();
 
         if (GUILayout.Button("저장"))
-            gameM.RunSave();
+            playerDataM.RunSave();
 
         if (GUILayout.Button("세이브 삭제"))
-            gameM.ResetSave();
+            playerDataM.ResetSave();
 
         GUILayout.EndHorizontal();
     }

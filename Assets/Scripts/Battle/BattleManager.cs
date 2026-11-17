@@ -303,22 +303,24 @@ public class BattleManager : MonoSingleton<BattleManager>
             m_PlayerController.Health.Died -= OnPlayerDied;
 
         // [mj] todo) 패배 시 보상 규칙. 지금은 주운 것을 그대로 준다
-        GameManager gameM = GameManager.Instance;
-        if (gameM != null)
+        PlayerDataManager playerDataM = PlayerDataManager.Instance;
+        if (playerDataM != null)
         {
             foreach (var pair in _flow.Loot)
             {
-                gameM.Player.Inventory.Add(pair.Key, pair.Value);
+                playerDataM.Inventory.Add(pair.Key, pair.Value);
             }
 
             // 이긴 지역을 깬 것으로 표시해 다음 지역을 연다(UI 스레드 토벌 탭)
             if (isWin)
-                HuntContext.MarkCleared(HuntContext.SelectedRegion);
+                playerDataM.Hunt.MarkCleared(playerDataM.Hunt.SelectedRegion);
 
-            gameM.RunSave();
-            if (gameM.FlowService.Current == EGameState.Battle)
-                gameM.FlowService.ChangeState(EGameState.Result);
+            playerDataM.RunSave();
         }
+
+        GameManager gameM = GameManager.Instance;
+        if (gameM != null && gameM.FlowService.Current == EGameState.Battle)
+            gameM.FlowService.ChangeState(EGameState.Result);
 
         SEventService.Publish(new BattleEnded(isWin));
     }

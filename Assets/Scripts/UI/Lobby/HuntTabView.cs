@@ -41,10 +41,14 @@ public class HuntTabView : TabView
         if (m_ListNode.Count == 0)
             BuildNodes();
 
+        HuntData hunt = PlayerDataManager.Instance?.Hunt;
+        if (hunt == null)
+            return;
+
         // 마지막에 고른 지역, 없으면 열린 지역 중 가장 뒤
-        RegionDef target = HuntContext.SelectedRegion;
+        RegionDef target = hunt.SelectedRegion;
         if (target == null || m_ListRegion.Contains(target) == false)
-            target = m_ListRegion.LastOrDefault(HuntContext.IsUnlocked);
+            target = m_ListRegion.LastOrDefault(hunt.IsUnlocked);
 
         Select(target);
     }
@@ -87,15 +91,19 @@ public class HuntTabView : TabView
 
     private void RefreshNodes()
     {
+        HuntData hunt = PlayerDataManager.Instance?.Hunt;
+        if (hunt == null)
+            return;
+
         for (int i = 0; i < m_ListNode.Count; i++)
         {
             RegionDef region = m_ListRegion[i];
             Button node = m_ListNode[i];
 
             Color color = UIStyle.PanelLight;
-            if (HuntContext.IsCleared(region))
+            if (hunt.IsCleared(region))
                 color = UIStyle.Gold;
-            else if (HuntContext.IsUnlocked(region))
+            else if (hunt.IsUnlocked(region))
                 color = UIStyle.Accent;
 
             node.targetGraphic.color = color;
@@ -124,8 +132,9 @@ public class HuntTabView : TabView
         m_InfoName.text = m_Selected.DisplayName;
         m_InfoDesc.text = m_Selected.Description;
 
-        bool isUnlocked = HuntContext.IsUnlocked(m_Selected);
-        if (HuntContext.IsCleared(m_Selected))
+        HuntData hunt = PlayerDataManager.Instance?.Hunt;
+        bool isUnlocked = hunt != null && hunt.IsUnlocked(m_Selected);
+        if (hunt != null && hunt.IsCleared(m_Selected))
             m_InfoState.text = "토벌 완료";
         else if (isUnlocked)
             m_InfoState.text = "토벌 가능";
@@ -151,10 +160,11 @@ public class HuntTabView : TabView
     private void OnClickEnter()
     {
         GameManager gameM = GameManager.Instance;
-        if (gameM == null || m_Selected == null || HuntContext.IsUnlocked(m_Selected) == false)
+        HuntData hunt = PlayerDataManager.Instance?.Hunt;
+        if (gameM == null || hunt == null || m_Selected == null || hunt.IsUnlocked(m_Selected) == false)
             return;
 
-        HuntContext.Select(m_Selected);
+        hunt.Select(m_Selected);
         gameM.FlowService.ChangeState(EGameState.Battle);
     }
 }

@@ -29,6 +29,9 @@ public sealed class SceneController : MonoBehaviour
         if (ResourceManager.Instance == null)
             gameM.gameObject.AddComponent<ResourceManager>().Init();
 
+        if (PlayerDataManager.Instance == null)
+            gameM.gameObject.AddComponent<PlayerDataManager>().Init();
+
         if (m_PopupManager != null)
             m_PopupManager.Init();
 
@@ -77,10 +80,10 @@ public sealed class SceneController : MonoBehaviour
     private void OnApplicationPause(bool isPaused)
     {
         if (isPaused)
-            GameManager.Instance?.RunSave();
+            PlayerDataManager.Instance?.RunSave();
     }
 
-    private void OnApplicationQuit() => GameManager.Instance?.RunSave();
+    private void OnApplicationQuit() => PlayerDataManager.Instance?.RunSave();
 
     // 도메인 리로드를 끈 상태에서도 새 플레이마다 등록을 초기화한다.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -89,6 +92,7 @@ public sealed class SceneController : MonoBehaviour
         GameManager.ResetSingleton();
         TimeManager.ResetSingleton();
         ResourceManager.ResetSingleton();
+        PlayerDataManager.ResetSingleton();
         BattleManager.ResetSingleton();
         HitStopManager.ResetSingleton();
         PopupManager.ResetSingleton();
