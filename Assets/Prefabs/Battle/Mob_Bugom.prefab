@@ -83,6 +83,7 @@ MonoBehaviour:
   m_Gravity: -25
   m_ImpulseDamping: 9
   m_TurnSpeed: 900
+  m_FallLimitY: -10
 --- !u!114 &8342150548224526391
 MonoBehaviour:
   m_ObjectHideFlags: 0
