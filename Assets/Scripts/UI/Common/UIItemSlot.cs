@@ -9,7 +9,7 @@ public class UIItemSlot : MonoBehaviour
 {
     [SerializeField] private Image m_Icon = null;
     [SerializeField] private TMP_Text m_Count = null;
-    [SerializeField] private TMP_Text m_Name = null;
+    [SerializeField] private TMP_Text m_NameText = null;
     [SerializeField] private GameObject m_Badge = null;
     [SerializeField] private TMP_Text m_BadgeText = null;
     [SerializeField] private Button m_Button = null;
@@ -50,8 +50,8 @@ public class UIItemSlot : MonoBehaviour
 
         SetCount(count);
 
-        if (m_Name != null)
-            m_Name.text = displayName;
+        if (m_NameText != null)
+            m_NameText.text = displayName;
     }
 
     public void SetCount(int count)
@@ -96,8 +96,8 @@ public class UIItemSlot : MonoBehaviour
         SetCount(0);
         SetBadge(null, Color.clear);
 
-        if (m_Name != null)
-            m_Name.text = string.Empty;
+        if (m_NameText != null)
+            m_NameText.text = string.Empty;
     }
 
     private void OnClickSlot()
@@ -110,7 +110,7 @@ public class UIItemSlot : MonoBehaviour
     {
         m_Icon = icon;
         m_Count = count;
-        m_Name = displayName;
+        m_NameText = displayName;
         m_Badge = badge;
         m_BadgeText = badgeText;
         m_Button = button;

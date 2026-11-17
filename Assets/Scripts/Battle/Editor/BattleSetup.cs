@@ -349,7 +349,10 @@ public static class BattleSetup
     {
         GameObject mapModel = LoadModel(MapName);
         if (mapModel != null)
-            return ((GameObject)PrefabUtility.InstantiatePrefab(mapModel)).transform;
+        {
+            GameObject mapInstance = (GameObject)PrefabUtility.InstantiatePrefab(mapModel);
+            return mapInstance.transform;
+        }
 
         CLogger.Warning("BattleSetup", $"{MapName}.fbx가 없어 평지로 만듭니다.");
         GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);

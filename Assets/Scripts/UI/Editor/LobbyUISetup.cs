@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// 로비 씬(상단 재화 바, 하단 탭 5개, 토벌 탭)과 샘플 지역 데이터를 만드는 메뉴
+// 로비 씬(상단 재화 바, 하단 탭 4개, 토벌 탭)과 샘플 지역 데이터를 만드는 메뉴
 public static class LobbyUISetup
 {
     private const string ScenePath = "Assets/Scenes/" + SceneNames.Lobby + ".unity";
@@ -18,9 +18,9 @@ public static class LobbyUISetup
     private const float TopBarHeight = 110f;
     private const float TabBarHeight = 150f;
 
-    // 하단 탭 순서(26.11.17 대장 확정). 토벌이 가운데이자 기본 탭
-    private static readonly string[] s_TabNames = { "야시장", "파종", "토벌", "개량", "파견" };
-    private const int HuntTabIndex = 2;
+    // 하단 탭 순서(26.11.17 대장 확정, 파종 제외). 토벌이 기본 탭
+    private static readonly string[] s_TabNames = { "야시장", "토벌", "개량", "파견" };
+    private const int HuntTabIndex = 1;
 
     // ==================================================
 

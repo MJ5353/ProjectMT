@@ -23,7 +23,8 @@ public class BattleHud : MonoBehaviour
         float width = Screen.width / scale;
 
         DrawStatus(battleM);
-        if (battleM.State != EBattleState.Playing)
+        // uGUI 결과 화면(ResultScreen)이 있으면 그쪽에 맡긴다
+        if (battleM.State != EBattleState.Playing && ResultScreen.Instance == null)
             DrawResult(battleM, width);
     }
 

@@ -4,6 +4,8 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class MoveFeature : MonoBehaviour
 {
+    private const float MaxDeltaTime = 1f / 20f;
+
     [SerializeField] private float m_Gravity = -25f;
     [SerializeField, Tooltip("넉백이 줄어드는 빠르기")] private float m_ImpulseDamping = 9f;
     [SerializeField, Tooltip("초당 회전 각도")] private float m_TurnSpeed = 900f;
@@ -28,7 +30,8 @@ public class MoveFeature : MonoBehaviour
         if (m_Controller.enabled == false)
             return;
 
-        float dt = Time.deltaTime;
+        // 씬 로드 직후 같은 긴 프레임에 한 번에 크게 떨어지지 않게 자른다
+        float dt = Mathf.Min(Time.deltaTime, MaxDeltaTime);
         if (dt <= 0f)
             return;
 
