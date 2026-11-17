@@ -2,18 +2,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+// ==================================================
+
 // PoolableMono를 만들고, 돌려받고, 다시 꺼내 쓴다. 프리팹마다 꺼 둔 인스턴스를 쌓아 둔다.
-// GameManager 오브젝트에 붙어 씬이 바뀌어도 남는다(SceneController가 만든다).
+// [Managers] 루트 아래에 있어 씬이 바뀌어도 남는다(SceneController가 Create).
 // 돌려받은 인스턴스는 이 오브젝트 아래(Pool)에 보관해서 씬이 바뀌어도 다시 쓴다
+
 public class ResourceManager : MonoSingleton<ResourceManager>
 {
     private const string PoolRootName = "Pool";
-
+    private Transform m_PoolRoot;
+    
     private readonly Dictionary<int, Stack<PoolableMono>> m_DicPool = new();   // 프리팹 InstanceID → 꺼 둔 인스턴스
 
-    private Transform m_PoolRoot;
-
-    // ==================================================
+    // ------------------------------------------------
 
     // 풀에 있으면 꺼내 켜고, 없으면 새로 만든다. 켜기 전에 위치를 옮겨서 CharacterController가 덮어쓰지 않게 한다
     public T Spawn<T>(T prefab, Vector3 position, Quaternion rotation) where T : PoolableMono
@@ -23,6 +25,7 @@ public class ResourceManager : MonoSingleton<ResourceManager>
 
         int poolKey = prefab.GetInstanceID();
         T instance = Pop(poolKey) as T;
+        
         if (instance == null)
         {
             instance = Instantiate(prefab, position, rotation);
@@ -30,7 +33,7 @@ public class ResourceManager : MonoSingleton<ResourceManager>
         }
         else
         {
-            // 보관 중에는 GameManager(DontDestroyOnLoad) 아래에 있으니 지금 씬으로 다시 옮긴다
+            // 보관 중에는 [Managers](DontDestroyOnLoad) 아래에 있으니 지금 씬으로 다시 옮긴다
             instance.transform.SetParent(null);
             SceneManager.MoveGameObjectToScene(instance.gameObject, SceneManager.GetActiveScene());
             instance.transform.SetPositionAndRotation(position, rotation);
@@ -82,7 +85,7 @@ public class ResourceManager : MonoSingleton<ResourceManager>
         return null;
     }
 
-    // virtual---
+    // virtual ---
 
     protected override void OnInit()
     {

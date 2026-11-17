@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+// ==================================================
+
 // 액터가 공통으로 가져야 하는 것. ActorFactory가 풀에서 꺼낸 뒤 OnSpawn, 돌려보내기 전에 OnDespawn을 부른다
 public interface IActor : IHitTarget
 {
@@ -10,8 +12,10 @@ public interface IActor : IHitTarget
     void OnDespawn();
 }
 
+// ==================================================
+
 // 전투 한 판의 액터(플레이어·몬스터) 목록. 생성·삭제는 여기서만 한다(ActorFactory → ResourceManager 풀)
-public sealed class ActorManagement
+public sealed class ActorService : ServiceBase
 {
     private readonly ActorFactory m_Factory = new();
     private readonly Dictionary<int, IActor> m_DicActor = new();
@@ -22,7 +26,7 @@ public sealed class ActorManagement
 
     public event Action<int> ActorRemoved;
 
-    // ==================================================
+    // ------------------------------------------------
 
     public T Spawn<T>(T prefab, Vector3 position, Quaternion rotation) where T : PoolableMono, IActor
     {
@@ -59,7 +63,7 @@ public sealed class ActorManagement
     }
 
     // 씬이 닫히며 남은 액터가 함께 지워지므로 목록만 비운다
-    public void Clear()
+    public override void Clear()
     {
         m_DicActor.Clear();
         m_DicActorID.Clear();
@@ -73,7 +77,7 @@ public sealed class ActorManagement
         return actorTransform != null && m_DicActorID.TryGetValue(actorTransform, out actorID);
     }
 
-    // 주변 액터 검색---
+    // 주변 액터 검색 ---
 
     public IHitTarget FindNearestEnemy(Vector3 position, float range, ETeam team)
     {
@@ -119,6 +123,8 @@ public sealed class ActorManagement
         return actor.HitFeature.IsDead == false && actor.HitFeature.Team != team;
     }
 }
+
+// ==================================================
 
 public readonly struct ActorHitCandidate
 {

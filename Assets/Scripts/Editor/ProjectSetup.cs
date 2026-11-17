@@ -19,9 +19,9 @@ public static class ProjectSetup
 
     // ==================================================
 
-    private static void CreateDef<T>(string dir, string id, string displayName) where T : DataDef
+    private static void CreateDef<T>(string dir, string dataID, string displayName) where T : DataDef
     {
-        string path = $"{dir}/{id}.asset";
+        string path = $"{dir}/{dataID}.asset";
         if (File.Exists(path))
             return;
 
@@ -31,7 +31,7 @@ public static class ProjectSetup
         AssetDatabase.CreateAsset(def, path);
 
         SerializedObject so = new SerializedObject(def);
-        so.FindProperty("m_ID").stringValue = id;
+        so.FindProperty("m_ID").stringValue = dataID;
         so.FindProperty("m_DisplayName").stringValue = displayName;
         so.ApplyModifiedPropertiesWithoutUndo();
     }

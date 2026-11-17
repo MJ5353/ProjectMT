@@ -19,13 +19,13 @@ public class UICountLabel : MonoBehaviour
 
     private void OnEnable()
     {
-        SEventService.Subscribe<InventoryChanged>(OnInventoryChanged);
+        SEventManager.Subscribe<InventoryChanged>(OnInventoryChanged);
         Refresh();
     }
 
     private void OnDisable()
     {
-        SEventService.Unsubscribe<InventoryChanged>(OnInventoryChanged);
+        SEventManager.Unsubscribe<InventoryChanged>(OnInventoryChanged);
     }
 
     private void OnInventoryChanged(InventoryChanged evt)

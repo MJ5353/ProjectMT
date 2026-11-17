@@ -16,7 +16,7 @@ public abstract class PoolableMono : MonoBehaviour
         PoolKey = poolKey;
     }
 
-    // virtual---
+    // virtual ---
 
     public virtual void OnPoolSpawn() { }
     public virtual void OnPoolDespawn() { }

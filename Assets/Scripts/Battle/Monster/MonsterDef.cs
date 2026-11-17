@@ -21,6 +21,8 @@ public class MonsterDef : UnitDef
         public float Scale => m_Scale;
         public Vector3 Euler => m_Euler;
 
+        // ------------------------------------------------
+
         public MushroomSocket(string socketName, Renderer model, float scale)
         {
             m_SocketName = socketName;
@@ -43,6 +45,8 @@ public class MonsterDef : UnitDef
         public int Max => m_Max;
         public float Chance => m_Chance;
 
+        // ------------------------------------------------
+
         public DropEntry(MushroomPickup pickup, int min, int max, float chance)
         {
             m_Pickup = pickup;
@@ -52,11 +56,11 @@ public class MonsterDef : UnitDef
         }
     }
 
-    // 이동---
+    // 이동 ---
     [SerializeField] private float m_MoveSpeed = 3f;       // 추적 속도
     [SerializeField] private float m_WanderSpeed = 1.2f;   // 배회 속도
 
-    // AI---
+    // AI ---
     [SerializeField] private float m_SightRange = 7f;      // 플레이어를 알아채는 거리
     [SerializeField] private float m_LoseRange = 12f;      // 추적을 포기하는 거리
     [SerializeField] private float m_WanderRadius = 4f;    // 처음 자리에서 배회하는 반경
@@ -71,7 +75,7 @@ public class MonsterDef : UnitDef
     [SerializeField] private float m_BodyHeight = 0f;      // 캡슐 높이. 0이면 모델 크기로 자동 계산해 채운다
     [SerializeField] private float m_BodyRadius = 0f;      // 캡슐 반지름. 0이면 모델 크기로 자동 계산해 채운다
 
-    // 버섯·드랍---
+    // 버섯·드랍 ---
     [SerializeField] private List<MushroomSocket> m_ListMushroom = new();
     [SerializeField] private List<DropEntry> m_ListDrop = new();
 
@@ -90,6 +94,8 @@ public class MonsterDef : UnitDef
     public float BodyRadius => m_BodyRadius;
     public IReadOnlyList<MushroomSocket> ListMushroom => m_ListMushroom;
     public IReadOnlyList<DropEntry> ListDrop => m_ListDrop;
+
+    // ------------------------------------------------
 
 #if UNITY_EDITOR
     // BattleSetup 메뉴가 만들 때만 쓴다

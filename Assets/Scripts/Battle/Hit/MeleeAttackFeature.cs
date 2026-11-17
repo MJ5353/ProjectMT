@@ -6,7 +6,7 @@ public class MeleeAttackFeature : UnitFeature
 {
     private readonly List<ActorHitCandidate> m_ListCandidate = new();
 
-    // ==================================================
+    // ------------------------------------------------
 
     public MeleeAttackFeature(IActor owner) : base(owner) { }
 
@@ -18,7 +18,7 @@ public class MeleeAttackFeature : UnitFeature
     public int Perform(AttackSpec spec)
     {
         Transform owner = Owner.transform;
-        ActorManagement actors = GameManager.Instance?.ActiveActors;
+        ActorService actors = GameManager.Instance?.Actors;
         if (actors == null)
             return 0;
 

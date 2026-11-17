@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// 전투 결과 화면. BattleEnded를 받으면 열리고, BattleManager에서 시간·처치 수·주운 버섯을 읽어 보여 준다.
+// 전투 결과 화면. BattleEnded를 받으면 열리고, BattleService에서 시간·처치 수·주운 버섯을 읽어 보여 준다.
 // [mj] todo) 신선 등급은 전투 쪽 데이터(ListLootGrade 가안)가 확정되면 칸 뱃지로 붙인다
 public class ResultScreen : MonoBehaviour
 {
@@ -40,12 +40,12 @@ public class ResultScreen : MonoBehaviour
 
     private void OnEnable()
     {
-        SEventService.Subscribe<BattleEnded>(OnBattleEnded);
+        SEventManager.Subscribe<BattleEnded>(OnBattleEnded);
     }
 
     private void OnDisable()
     {
-        SEventService.Unsubscribe<BattleEnded>(OnBattleEnded);
+        SEventManager.Unsubscribe<BattleEnded>(OnBattleEnded);
     }
 
     private void OnDestroy()
@@ -56,7 +56,7 @@ public class ResultScreen : MonoBehaviour
 
     public void Open()
     {
-        BattleManager battleM = BattleManager.Instance;
+        BattleService battleM = GameManager.Instance?.Battle;
         if (battleM == null || IsOpen)
             return;
 
@@ -177,7 +177,7 @@ public class ResultScreen : MonoBehaviour
 
     private void OnClickRetry()
     {
-        BattleManager battleM = BattleManager.Instance;
+        BattleService battleM = GameManager.Instance?.Battle;
         if (battleM == null)
             return;
 
@@ -188,7 +188,7 @@ public class ResultScreen : MonoBehaviour
 
     private void OnClickLobby()
     {
-        BattleManager battleM = BattleManager.Instance;
+        BattleService battleM = GameManager.Instance?.Battle;
         if (battleM == null)
             return;
 

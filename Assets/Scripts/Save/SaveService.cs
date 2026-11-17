@@ -10,12 +10,14 @@ public class SaveService
 
     public string FilePath => m_FilePath;
 
+    // ------------------------------------------------
+
     public SaveService(string fileName = "save.json")
     {
         m_FilePath = Path.Combine(Application.persistentDataPath, fileName);
     }
 
-    // 세이브 파일 관리---
+    // 세이브 파일 관리 ---
 
     public SaveData Load()
     {

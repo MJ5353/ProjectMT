@@ -15,6 +15,8 @@ public abstract class DataDef : ScriptableObject
     public string Description => m_Description;
     public Sprite Icon => m_Icon;
 
+    // ------------------------------------------------
+
 #if UNITY_EDITOR
     // 비어 있으면 에셋 이름을 ID로 쓴다. 이후에는 자동으로 바꾸지 않는다
     protected virtual void OnValidate()

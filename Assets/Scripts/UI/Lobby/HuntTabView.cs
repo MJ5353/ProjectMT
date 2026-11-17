@@ -34,7 +34,7 @@ public class HuntTabView : TabView
         m_EnterButton.onClick.AddListener(OnClickEnter);
     }
 
-    // virtual---
+    // virtual ---
 
     protected override void OnOpen()
     {
@@ -165,6 +165,6 @@ public class HuntTabView : TabView
             return;
 
         hunt.Select(m_Selected);
-        gameM.FlowService.ChangeState(EGameState.Battle);
+        gameM.ChangeState(EGameState.Battle);
     }
 }

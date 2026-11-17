@@ -12,15 +12,16 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
 
     public TDef Def => m_Def;
     public Transform VisualRoot => m_Animator.transform;
+    public CharacterController HurtBody => m_CharacterController;
+    public bool IsDead => Health.IsDead;
+    public int ActorID { get; private set; }   // ActorService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
+    
+    // feature
     public MoveFeature Move { get; private set; }
     public AnimFeature Anim { get; private set; }
     public HealthFeature Health { get; private set; }
     public HitFeature HitFeature { get; private set; }
-    public CharacterController HurtBody => m_CharacterController;
     public MeleeAttackFeature Melee { get; private set; }
-    public bool IsDead => Health.IsDead;
-
-    public int ActorID { get; private set; }   // ActorManagement가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
 
     protected FlashFeature Flash { get; private set; }
     protected abstract ETeam Team { get; }
@@ -28,7 +29,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
     private bool m_IsBattleOver;
 
-    // ==================================================
+    // ------------------------------------------------
 
     protected virtual void Awake()
     {
@@ -62,13 +63,6 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         Flash?.Restore();
     }
 
-    // 부품을 수명 주기 목록에 넣고 그대로 돌려준다
-    protected T AddFeature<T>(T feature) where T : UnitFeature
-    {
-        m_ListFeature.Add(feature);
-        return feature;
-    }
-
     private void Update()
     {
         float deltaTime = Time.deltaTime;
@@ -80,7 +74,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         }
 
         // 승패가 나면 입력·AI를 멈추고 제자리에 세운다. 중력만 계속 받는다
-        BattleFlow battle = GameManager.Instance?.ActiveBattle;
+        BattleService battle = GameManager.Instance?.Battle;
         if (m_IsBattleOver == false && battle != null && battle.State != EBattleState.Playing)
         {
             m_IsBattleOver = true;
@@ -106,6 +100,13 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
 
         Gizmos.color = new Color(1f, 0.3f, 0.2f, 0.6f);
         Gizmos.DrawWireSphere(MeleeAttackFeature.GetCenter(transform, m_Def.Attack), m_Def.Attack.Radius);
+    }
+
+    // 부품을 수명 주기 목록에 넣고 그대로 돌려준다
+    protected T AddFeature<T>(T feature) where T : UnitFeature
+    {
+        m_ListFeature.Add(feature);
+        return feature;
     }
 
     // ActorFactory가 풀에서 꺼낸 직후. 처음 상태로 되돌린다
@@ -134,7 +135,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
 
     // ==================================================
 
-    // virtual---
+    // virtual ---
 
     protected abstract void OnSpawned();
     protected abstract void OnUpdate(float deltaTime);

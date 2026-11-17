@@ -22,7 +22,7 @@ public static class LobbyUISetup
     private static readonly string[] s_TabNames = { "야시장", "토벌", "개량", "파견" };
     private const int HuntTabIndex = 1;
 
-    // ==================================================
+    // ------------------------------------------------
 
     [MenuItem("MushTaker/UI/4. 로비 씬 만들기")]
     public static void CreateLobbyScene()
@@ -61,9 +61,9 @@ public static class LobbyUISetup
     }
 
     // 이미 있으면 그대로 둔다(대장이 고친 값 보호)
-    private static RegionDef CreateRegion(string id, string displayName, string description, int order, RegionDef require, Vector2 mapPosition, params MushroomDef[] mushrooms)
+    private static RegionDef CreateRegion(string regionID, string displayName, string description, int order, RegionDef require, Vector2 mapPosition, params MushroomDef[] mushrooms)
     {
-        string path = $"{RegionDir}/{id}.asset";
+        string path = $"{RegionDir}/{regionID}.asset";
         RegionDef exist = AssetDatabase.LoadAssetAtPath<RegionDef>(path);
         if (exist != null)
             return exist;
@@ -72,10 +72,11 @@ public static class LobbyUISetup
 
         RegionDef def = ScriptableObject.CreateInstance<RegionDef>();
         def.EditorSetup(order, require, mapPosition, mushrooms.Where(m => m != null).ToList());
+        def.EditorSetSpawnGroups(BattleSetup.CreateDefaultSpawnGroups());
         AssetDatabase.CreateAsset(def, path);
 
         SerializedObject so = new SerializedObject(def);
-        so.FindProperty("m_ID").stringValue = id;
+        so.FindProperty("m_ID").stringValue = regionID;
         so.FindProperty("m_DisplayName").stringValue = displayName;
         so.FindProperty("m_Description").stringValue = description;
         so.ApplyModifiedPropertiesWithoutUndo();
@@ -113,9 +114,7 @@ public static class LobbyUISetup
         BuildTabBar(safe, listView);
 
         RectTransform popupRoot = UIBuilder.Stretch("PopupRoot", safe);
-        PopupManager popupM = safe.parent.gameObject.AddComponent<PopupManager>();
-        popupM.EditorSetRoot(popupRoot);
-        sceneController.EditorSetup(popupManager: popupM);
+        sceneController.EditorSetup(popupRoot);
 
         EditorSceneManager.SaveScene(scene, ScenePath);
         AddToBuildSettings();

@@ -4,66 +4,85 @@ using UnityEngine;
 // Assets/Art/Voxel 아래 복셀 에셋 가져오기 설정 (tools/voxel 스크립트가 만든 FBX·PNG 전용)
 // - 텍스처: 점 필터, 밉맵·압축 끔 (도트 색이 번지지 않게)
 // - 모델: 맵 지형·소품 충돌체, 축 변환 굽기, Generic 애니, 클립 이름 "Buggi|Walk" -> "Walk", Idle/Walk/Run 반복
-// 주의: 다시 가져올 때마다 클립 설정을 덮어쓴다. 클립을 손으로 고칠 거면 이 파일에서 해당 부분을 빼야 한다.
+// !!) 다시 가져올 때마다 클립 설정을 덮어쓴다. 클립을 손으로 고칠 거면 이 파일에서 해당 부분을 빼야 한다.
 public class VoxelImportSettings : AssetPostprocessor
 {
-    const string Root = "Assets/Art/Voxel/";
-    static readonly string[] LoopClips = { "Idle", "Walk", "Run" };
+    private const string Root = "Assets/Art/Voxel/";
+    private static readonly string[] s_ArrLoopClip = { "Idle", "Walk", "Run" };
 
-    void OnPreprocessTexture()
+    // ==================================================
+
+    private void OnPreprocessTexture()
     {
-        if (!assetPath.StartsWith(Root)) return;
-        var ti = (TextureImporter)assetImporter;
-        ti.filterMode = FilterMode.Point;
-        ti.mipmapEnabled = false;
-        ti.textureCompression = TextureImporterCompression.Uncompressed;
-        ti.wrapMode = TextureWrapMode.Clamp;
-        ti.npotScale = TextureImporterNPOTScale.None;
+        if (assetPath.StartsWith(Root) == false)
+            return;
+
+        TextureImporter importer = (TextureImporter)assetImporter;
+        importer.filterMode = FilterMode.Point;
+        importer.mipmapEnabled = false;
+        importer.textureCompression = TextureImporterCompression.Uncompressed;
+        importer.wrapMode = TextureWrapMode.Clamp;
+        importer.npotScale = TextureImporterNPOTScale.None;
     }
 
-    void OnPreprocessModel()
+    private void OnPreprocessModel()
     {
-        if (!assetPath.StartsWith(Root)) return;
-        var mi = (ModelImporter)assetImporter;
-        mi.bakeAxisConversion = true;
-        mi.importCameras = false;
-        mi.importLights = false;
-        mi.animationType = ModelImporterAnimationType.Generic;
-        mi.materialImportMode = ModelImporterMaterialImportMode.ImportViaMaterialDescription;
+        if (assetPath.StartsWith(Root) == false)
+            return;
+
+        ModelImporter importer = (ModelImporter)assetImporter;
+        importer.bakeAxisConversion = true;
+        importer.importCameras = false;
+        importer.importLights = false;
+        importer.animationType = ModelImporterAnimationType.Generic;
+        importer.materialImportMode = ModelImporterMaterialImportMode.ImportViaMaterialDescription;
     }
 
-    void OnPreprocessAnimation()
+    private void OnPreprocessAnimation()
     {
-        if (!assetPath.StartsWith(Root)) return;
-        var mi = (ModelImporter)assetImporter;
-        var clips = mi.defaultClipAnimations;
-        if (clips == null || clips.Length == 0) return;
-        foreach (var c in clips)
+        if (assetPath.StartsWith(Root) == false)
+            return;
+
+        ModelImporter importer = (ModelImporter)assetImporter;
+        ModelImporterClipAnimation[] clips = importer.defaultClipAnimations;
+        if (clips == null || clips.Length == 0)
+            return;
+
+        foreach (ModelImporterClipAnimation clip in clips)
         {
-            int bar = c.name.LastIndexOf('|');
-            if (bar >= 0) c.name = c.name.Substring(bar + 1);
-            c.loopTime = System.Array.IndexOf(LoopClips, c.name) >= 0;
+            int bar = clip.name.LastIndexOf('|');
+            if (bar >= 0)
+                clip.name = clip.name.Substring(bar + 1);
+
+            clip.loopTime = System.Array.IndexOf(s_ArrLoopClip, clip.name) >= 0;
         }
-        mi.clipAnimations = clips;
+
+        importer.clipAnimations = clips;
     }
 
-    // 맵: 지형·소품·경계 벽에 MeshCollider (풀·꽃 Map_Grass는 제외), 경계 벽은 렌더러 끔
-    void OnPostprocessModel(GameObject g)
+    // 지형·소품·경계 벽에 MeshCollider를 추가하고 경계 벽은 숨긴다.
+    private void OnPostprocessModel(GameObject model)
     {
-        if (!assetPath.StartsWith(Root)) return;
-        foreach (var mf in g.GetComponentsInChildren<MeshFilter>())
+        if (assetPath.StartsWith(Root) == false)
+            return;
+
+        foreach (MeshFilter meshFilter in model.GetComponentsInChildren<MeshFilter>())
         {
-            if (mf.name == "Map_Terrain" || mf.name == "Map_Props" || mf.name == "Map_Bounds")
-                mf.gameObject.AddComponent<MeshCollider>().sharedMesh = mf.sharedMesh;
-            if (mf.name == "Map_Bounds" && mf.TryGetComponent<MeshRenderer>(out var mr))
-                mr.enabled = false;   // 보이지 않는 경계 벽
+            if (meshFilter.name == "Map_Terrain" || meshFilter.name == "Map_Props" || meshFilter.name == "Map_Bounds")
+                meshFilter.gameObject.AddComponent<MeshCollider>().sharedMesh = meshFilter.sharedMesh;
+            if (meshFilter.name == "Map_Bounds" && meshFilter.TryGetComponent<MeshRenderer>(out MeshRenderer renderer))
+                renderer.enabled = false;
         }
     }
 
-    void OnPostprocessMaterial(Material m)
+    private void OnPostprocessMaterial(Material material)
     {
-        if (!assetPath.StartsWith(Root)) return;
-        if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", 0f);
-        if (m.HasProperty("_Glossiness")) m.SetFloat("_Glossiness", 0f);
+        if (assetPath.StartsWith(Root) == false)
+            return;
+
+        if (material.HasProperty("_Smoothness"))
+            material.SetFloat("_Smoothness", 0f);
+        if (material.HasProperty("_Glossiness"))
+            material.SetFloat("_Glossiness", 0f);
     }
 }

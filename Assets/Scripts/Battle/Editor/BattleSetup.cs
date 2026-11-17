@@ -32,9 +32,10 @@ public static class BattleSetup
     private const string MushroomDataDir = "Assets/Data/Mushrooms/";
     private const string PlayerDataDir = "Assets/Data/Player/";
     private const string PlayerDefPath = PlayerDataDir + "Player.asset";
+    private const string RegionDataDir = "Assets/Data/Regions/";
     private const string HitMaterialDir = "Assets/Resources/" + HitMaterials.ResourceDir;
 
-    // ==================================================
+    // ------------------------------------------------
 
     [MenuItem("MushTaker/Battle/전투 씬 만들기 (1단계)")]
     public static void CreateBattleScene()
@@ -82,6 +83,25 @@ public static class BattleSetup
 
         PlayerDef playerDef = BuildPlayerDef();
         BuildPlayer(playerDef, isForce);
+        if (playerDef.Prefab == null)
+        {
+            playerDef.EditorSetPrefab(AssetDatabase.LoadAssetAtPath<PlayerController>(PlayerPrefabPath));
+            EditorUtility.SetDirty(playerDef);
+        }
+
+        for (int index = 1; index <= 3; index++)
+        {
+            RegionDef region = AssetDatabase.LoadAssetAtPath<RegionDef>($"{RegionDataDir}Region_{index:00}.asset");
+            if (region == null || region.ListSpawnGroup.Count != 0)
+                continue;
+
+            List<RegionDef.SpawnGroup> groups = CreateDefaultSpawnGroups();
+            if (groups.Count == 0)
+                continue;
+
+            region.EditorSetSpawnGroups(groups);
+            EditorUtility.SetDirty(region);
+        }
 
         AssetDatabase.SaveAssets();
         DataTools.RefreshDatabase(false);
@@ -199,15 +219,15 @@ public static class BattleSetup
         AssetDatabase.CreateAsset(material, path);
     }
 
-    private static void BuildMushroomDef(string id, string displayName)
+    private static void BuildMushroomDef(string mushroomID, string displayName)
     {
-        string path = $"{MushroomDataDir}{id}.asset";
+        string path = $"{MushroomDataDir}{mushroomID}.asset";
         if (File.Exists(path))
             return;
 
         MushroomDef def = ScriptableObject.CreateInstance<MushroomDef>();
         AssetDatabase.CreateAsset(def, path);
-        SetString(def, "m_ID", id);
+        SetString(def, "m_ID", mushroomID);
         SetString(def, "m_DisplayName", displayName);
     }
 
@@ -359,7 +379,7 @@ public static class BattleSetup
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
         SceneController sceneController = new GameObject(nameof(SceneController)).AddComponent<SceneController>();
 
-        // 플레이어는 씬에 두지 않고 플레이 때 BattleManager가 ActorManagement로 만든다
+        // 플레이어는 씬에 두지 않고 플레이 때 BattleService가 ActorService로 만든다
         Transform map = BuildMap();
 
         Camera cam = Object.FindAnyObjectByType<Camera>();
@@ -369,18 +389,10 @@ public static class BattleSetup
             cam.farClipPlane = 200f;
         }
 
-        GameObject battle = new GameObject("BattleManager");
-        BattleManager battleM = battle.AddComponent<BattleManager>();
-        sceneController.EditorSetup(battleManager: battleM);
-        battle.AddComponent<BattleHud>();
-
-        SerializedObject so = new SerializedObject(battleM);
-        so.FindProperty("m_PlayerPrefab").objectReferenceValue = AssetDatabase.LoadAssetAtPath<PlayerController>(PlayerPrefabPath);
-        SerializedProperty listGroup = so.FindProperty("m_ListGroup");
-        listGroup.arraySize = 2;
-        SetGroup(listGroup.GetArrayElementAtIndex(0), BuggiPrefabPath, "Spawn_Buggi", 6, 4f);
-        SetGroup(listGroup.GetArrayElementAtIndex(1), BugomPrefabPath, "Spawn_Bugom", 3, 8f);
-        so.ApplyModifiedPropertiesWithoutUndo();
+        new GameObject(nameof(BattleHud)).AddComponent<BattleHud>();
+        RectTransform popupRoot = UIBuilder.CreateCanvas("BattlePopupCanvas", 110);
+        RegionDef region = AssetDatabase.LoadAssetAtPath<RegionDef>(RegionDataDir + "Region_01.asset");
+        sceneController.EditorSetup(popupRoot, region);
 
         // 결과 화면(UI 스레드 담당)
         BattleUISetup.AddResultScreen();
@@ -392,13 +404,18 @@ public static class BattleSetup
         CLogger.Log("BattleSetup", $"{ScenePath} 생성. 스폰 지점 버끼 {buggiCount}개, 버곰 {bugomCount}개");
     }
 
-    // 지점은 플레이 때 이름 접두사로 찾는다(맵을 다시 만들어도 끊기지 않게)
-    private static void SetGroup(SerializedProperty group, string prefabPath, string pointPrefix, int maxAlive, float respawnDelay)
+    internal static List<RegionDef.SpawnGroup> CreateDefaultSpawnGroups()
     {
-        group.FindPropertyRelative("m_Prefab").objectReferenceValue = AssetDatabase.LoadAssetAtPath<MonsterController>(prefabPath);
-        group.FindPropertyRelative("m_PointPrefix").stringValue = pointPrefix;
-        group.FindPropertyRelative("m_MaxAlive").intValue = maxAlive;
-        group.FindPropertyRelative("m_RespawnDelay").floatValue = respawnDelay;
+        List<RegionDef.SpawnGroup> groups = new();
+        MonsterController buggi = AssetDatabase.LoadAssetAtPath<MonsterController>(BuggiPrefabPath);
+        MonsterController bugom = AssetDatabase.LoadAssetAtPath<MonsterController>(BugomPrefabPath);
+        if (buggi != null && bugom != null)
+        {
+            groups.Add(new RegionDef.SpawnGroup(buggi, "Spawn_Buggi", 6, 4f));
+            groups.Add(new RegionDef.SpawnGroup(bugom, "Spawn_Bugom", 3, 8f));
+        }
+
+        return groups;
     }
 
     // 맵 FBX가 있으면 그것을, 없으면 평지와 임시 스폰 지점을 만든다

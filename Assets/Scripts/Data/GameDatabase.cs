@@ -14,6 +14,8 @@ public class GameDatabase : ScriptableObject
     private readonly Dictionary<string, DataDef> m_DicDefByID = new();      // 런타임 조회용. Init에서 채운다
     internal const string ResourcePath = "GameDatabase";
 
+    // ------------------------------------------------
+
     public void Init()
     {
         m_DicDefByID.Clear();
@@ -27,25 +29,25 @@ public class GameDatabase : ScriptableObject
         }
     }
 
-    public T Get<T>(string id) where T : DataDef
+    public T Get<T>(string dataID) where T : DataDef
     {
-        if (TryGet(id, out T def))
+        if (TryGet(dataID, out T def))
             return def;
 
-        CLogger.Warning("GameDatabase", $"{typeof(T).Name} '{id}'를 찾지 못했습니다.");
+        CLogger.Warning("GameDatabase", $"{typeof(T).Name} '{dataID}'를 찾지 못했습니다.");
         return null;
     }
 
     public IEnumerable<T> GetAll<T>() where T : DataDef => m_ListDef.OfType<T>();
 
-    public bool TryGet<T>(string id, out T result) where T : DataDef
+    public bool TryGet<T>(string dataID, out T result) where T : DataDef
     {
         if (m_DicDefByID.Count == 0)
             Init();
 
         result = null;
-        
-        if (id.E_IsNullOrEmpty() || m_DicDefByID.TryGetValue(id, out DataDef def) == false)
+
+        if (dataID.E_IsNullOrEmpty() || m_DicDefByID.TryGetValue(dataID, out DataDef def) == false)
             return false;
 
         result = def as T;

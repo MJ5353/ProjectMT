@@ -5,14 +5,13 @@ using UnityEngine;
 public class BattleHud : MonoBehaviour
 {
     private const float RefHeight = 960f;
-
     private GUIStyle m_LabelStyle;
 
-    // ==================================================
+    // ------------------------------------------------
 
     private void OnGUI()
     {
-        BattleManager battleM = BattleManager.Instance;
+        BattleService battleM = GameManager.Instance?.Battle;
         if (battleM == null)
             return;
 
@@ -31,7 +30,7 @@ public class BattleHud : MonoBehaviour
         m_LabelStyle = new GUIStyle(GUI.skin.label) { fontSize = 22 };
     }
 
-    private void DrawStatus(BattleManager battleM)
+    private void DrawStatus(BattleService battleM)
     {
         GUILayout.BeginArea(new Rect(16, 16, 360, 260), GUI.skin.box);
 

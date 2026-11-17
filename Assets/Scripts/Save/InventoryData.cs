@@ -17,19 +17,19 @@ public class InventoryData : PlayerDataBase
         m_DicCountByID.Clear();
     }
 
-    public bool Has(string id, int amount = 1) => GetCount(id) >= amount;
+    public bool Has(string itemID, int amount = 1) => GetCount(itemID) >= amount;
 
-    public void Add(string id, int amount)
+    public void Add(string itemID, int amount)
     {
-        if (id.E_IsNullOrEmpty() || amount <= 0)
+        if (itemID.E_IsNullOrEmpty() || amount <= 0)
             return;
 
-        int count = GetCount(id) + amount;
-        m_DicCountByID[id] = count;
+        int count = GetCount(itemID) + amount;
+        m_DicCountByID[itemID] = count;
 
-        SEventService.Publish(new InventoryChanged(id, count, amount));
+        SEventManager.Publish(new InventoryChanged(itemID, count, amount));
     }
-    
+
     public override void Load(SaveData data)
     {
         foreach (ItemStack stack in data.items)
@@ -50,27 +50,27 @@ public class InventoryData : PlayerDataBase
     }
 
     // get ---
-    
-    public bool TryRemove(string id, int amount)
+
+    public bool TryRemove(string itemID, int amount)
     {
-        if (amount <= 0 || Has(id, amount) == false)
+        if (amount <= 0 || Has(itemID, amount) == false)
             return false;
 
-        int count = GetCount(id) - amount;
+        int count = GetCount(itemID) - amount;
         if (count == 0)
-            m_DicCountByID.Remove(id);
+            m_DicCountByID.Remove(itemID);
         else
-            m_DicCountByID[id] = count;
+            m_DicCountByID[itemID] = count;
 
-        SEventService.Publish(new InventoryChanged(id, count, -amount));
+        SEventManager.Publish(new InventoryChanged(itemID, count, -amount));
         return true;
     }
-    
-    public int GetCount(string id)
+
+    public int GetCount(string itemID)
     {
-        if (id.E_IsNullOrEmpty())
+        if (itemID.E_IsNullOrEmpty())
             return 0;
 
-        return m_DicCountByID.TryGetValue(id, out int count) ? count : 0;
+        return m_DicCountByID.TryGetValue(itemID, out int count) ? count : 0;
     }
 }

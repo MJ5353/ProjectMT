@@ -26,7 +26,7 @@ public static class CommonExtensions
         return null;
     }
 
-    // collection---
+    // collection ---
 
     public static bool E_IsNullOrEmpty(this string str) => string.IsNullOrEmpty(str);
 

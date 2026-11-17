@@ -12,7 +12,7 @@ public class DebugPanel : MonoBehaviour
     private bool m_IsOpen = false;
     private Vector2 m_ScrollPos = Vector2.zero;
 
-    // ==================================================
+    // ------------------------------------------------
 
     private void OnGUI()
     {
@@ -46,14 +46,14 @@ public class DebugPanel : MonoBehaviour
 
     private void DrawFlow(GameManager gameM)
     {
-        GUILayout.Label($"상태: {gameM.FlowService.Current}");
+        GUILayout.Label($"상태: {gameM.Current}");
         GUILayout.BeginHorizontal();
 
         foreach (EGameState state in s_MoveStates)
         {
-            GUI.enabled = gameM.FlowService.CanChange(state);
+            GUI.enabled = gameM.CanChange(state);
             if (GUILayout.Button(state.ToString()))
-                gameM.FlowService.ChangeState(state);
+                gameM.ChangeState(state);
         }
 
         GUI.enabled = true;

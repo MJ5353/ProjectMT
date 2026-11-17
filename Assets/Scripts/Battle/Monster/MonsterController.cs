@@ -27,7 +27,7 @@ public class MonsterController : UnitController<MonsterDef>
 
     protected override ETeam Team => ETeam.Monster;
 
-    // ==================================================
+    // ------------------------------------------------
 
     protected override void Awake()
     {
@@ -106,17 +106,17 @@ public class MonsterController : UnitController<MonsterDef>
     // 노릴 수 있는 플레이어. 없거나 PlayerController.IsValid()가 false면 null
     public PlayerController GetValidPlayer()
     {
-        PlayerController player = GameManager.Instance?.ActiveActors?.Player;
+        PlayerController player = GameManager.Instance?.Actors?.Player;
         if (player == null || player.IsValid() == false)
             return null;
 
         return player;
     }
 
-    // 죽은 뒤 사라질 때. 등록돼 있으면 ActorManagement가 지운다
+    // 죽은 뒤 사라질 때. 등록돼 있으면 ActorService가 지운다
     public void Despawn()
     {
-        ActorManagement actors = GameManager.Instance?.ActiveActors;
+        ActorService actors = GameManager.Instance?.Actors;
         if (actors != null && ActorID != 0)
         {
             actors.Despawn(ActorID);

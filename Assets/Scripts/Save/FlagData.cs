@@ -34,6 +34,6 @@ public class FlagData : PlayerDataBase
         if (isChanged == false)
             return;
 
-        SEventService.Publish(new FlagChanged(flag, value));
+        SEventManager.Publish(new FlagChanged(flag, value));
     }
 }

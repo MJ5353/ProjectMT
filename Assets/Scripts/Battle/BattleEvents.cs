@@ -4,12 +4,12 @@ using UnityEngine;
 
 public readonly struct MonsterKilled
 {
-    public readonly ActorManagement Actors;
+    public readonly ActorService Actors;
     public readonly int ActorID;
     public readonly MonsterDef Def;
     public readonly Vector3 Position;
 
-    public MonsterKilled(ActorManagement actors, int actorID, MonsterDef def, Vector3 position)
+    public MonsterKilled(ActorService actors, int actorID, MonsterDef def, Vector3 position)
     {
         Actors = actors;
         ActorID = actorID;

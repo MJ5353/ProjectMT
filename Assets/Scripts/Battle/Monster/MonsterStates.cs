@@ -10,6 +10,8 @@ public abstract class MonsterState : IState
     protected MonsterDef Def => m_Controller.Def;
     protected float TimeInState => m_Controller.TimeInState;
 
+    // ------------------------------------------------
+
     protected MonsterState(MonsterController controller)
     {
         m_Controller = controller;
@@ -17,7 +19,7 @@ public abstract class MonsterState : IState
 
     // ==================================================
 
-    // virtual---
+    // virtual ---
 
     public virtual void Enter() { }
     public virtual void Update(float deltaTime) { }
@@ -27,6 +29,8 @@ public abstract class MonsterState : IState
 public class MonsterIdleState : MonsterState
 {
     private float m_Duration;
+
+    // ------------------------------------------------
 
     public MonsterIdleState(MonsterController controller) : base(controller) { }
 
@@ -54,6 +58,8 @@ public class MonsterWanderState : MonsterState
 {
     private const float MaxDuration = 3f;
     private Vector3 m_Destination;
+
+    // ------------------------------------------------
 
     public MonsterWanderState(MonsterController controller) : base(controller) { }
 
@@ -119,8 +125,10 @@ public class MonsterChaseState : MonsterState
 // 공격 예고. 몸을 납작하게 움츠려서 플레이어가 보고 빠질 수 있게 한다
 public class MonsterWindupState : MonsterState
 {
-    private static readonly Vector3 SquashScale = new(1.15f, 0.8f, 1.15f);
+    private static readonly Vector3 s_SquashScale = new(1.15f, 0.8f, 1.15f);
     private Vector3 m_BaseScale;
+
+    // ------------------------------------------------
 
     public MonsterWindupState(MonsterController controller) : base(controller) { }
 
@@ -136,7 +144,7 @@ public class MonsterWindupState : MonsterState
         m_Controller.Move.FaceTo(m_Controller.GetTargetDirection());
 
         float t = Def.WindupTime > 0f ? Mathf.Clamp01(TimeInState / Def.WindupTime) : 1f;
-        m_Controller.VisualRoot.localScale = Vector3.Scale(m_BaseScale, Vector3.Lerp(Vector3.one, SquashScale, t));
+        m_Controller.VisualRoot.localScale = Vector3.Scale(m_BaseScale, Vector3.Lerp(Vector3.one, s_SquashScale, t));
 
         if (t >= 1f)
             m_Controller.ChangeState(EMonsterState.Attack);
@@ -152,6 +160,8 @@ public class MonsterAttackState : MonsterState
 {
     private bool m_IsHitDone;
     private float m_Length;
+
+    // ------------------------------------------------
 
     public MonsterAttackState(MonsterController controller) : base(controller) { }
 
@@ -243,6 +253,8 @@ public class MonsterDeadState : MonsterState
 
     private bool m_IsCollisionOff;
 
+    // ------------------------------------------------
+
     public MonsterDeadState(MonsterController controller) : base(controller) { }
 
     public override void Enter()
@@ -253,9 +265,9 @@ public class MonsterDeadState : MonsterState
         m_Controller.Anim.Play("Death", true);
 
         SpawnDrops();
-        ActorManagement actors = GameManager.Instance?.ActiveActors;
+        ActorService actors = GameManager.Instance?.Actors;
         if (actors != null)
-            SEventService.Publish(new MonsterKilled(actors, m_Controller.ActorID, Def, m_Controller.transform.position));
+            SEventManager.Publish(new MonsterKilled(actors, m_Controller.ActorID, Def, m_Controller.transform.position));
     }
 
     public override void Update(float deltaTime)

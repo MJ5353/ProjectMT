@@ -4,7 +4,7 @@ using UnityEngine;
 // ==================================================
 
 // 플레이어 데이터 창구. 저장소(지금은 로컬 JSON, 나중에 서버)와 주고받는 값, 클라이언트에서 가공한 값, 지금 고른 지역 같은 현재값을 모아 둔다.
-// GameManager 오브젝트에 붙어 씬이 바뀌어도 남는다(SceneController가 만든다)
+// [Managers] 루트 아래에 있어 씬이 바뀌어도 남는다(SceneController가 Create)
 public class PlayerDataManager : MonoSingleton<PlayerDataManager>
 {
     // [mj] todo) server?
@@ -29,7 +29,7 @@ public class PlayerDataManager : MonoSingleton<PlayerDataManager>
         ClearData();
     }
 
-    // save---
+    // save ---
 
     private void Load(SaveData data)
     {
@@ -70,7 +70,7 @@ public class PlayerDataManager : MonoSingleton<PlayerDataManager>
         return data;
     }
 
-    // virtual---
+    // virtual ---
 
     protected override void OnInit()
     {

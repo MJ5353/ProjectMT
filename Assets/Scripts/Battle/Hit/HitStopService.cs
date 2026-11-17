@@ -1,11 +1,11 @@
 using UnityEngine;
 
 // 전투 중 전체 시간을 잠깐 멈춘다. 겹친 요청은 더 긴 쪽을 따른다.
-public class HitStopManager : MonoSingleton<HitStopManager>
+public sealed class HitStopService : ServiceBase
 {
     private float m_Remain;
 
-    // ==================================================
+    // ------------------------------------------------
 
     public void Request(float duration)
     {
@@ -16,19 +16,19 @@ public class HitStopManager : MonoSingleton<HitStopManager>
         TimeManager.Instance?.SetHitStop(true);
     }
 
-    public void Tick(float unscaledDeltaTime)
+    public override void Tick(float deltaTime)
     {
         if (m_Remain <= 0f)
             return;
 
-        m_Remain -= unscaledDeltaTime;
+        m_Remain -= Time.unscaledDeltaTime;
         if (m_Remain <= 0f)
             TimeManager.Instance?.SetHitStop(false);
     }
 
-    // virtual---
+    // virtual ---
 
-    protected override void OnClear()
+    public override void Clear()
     {
         m_Remain = 0f;
         TimeManager.Instance?.SetHitStop(false);

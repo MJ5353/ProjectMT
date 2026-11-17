@@ -1,6 +1,6 @@
 
 // 토벌 데이터. 로비에서 고른 지역(현재값)과 지역 해금 판정을 맡는다. 클리어 기록은 FlagData에 남긴다.
-// 전투 승리 시 BattleManager가 MarkCleared(SelectedRegion)를 불러 다음 지역을 연다
+// 전투 승리 시 BattleService가 해당 지역의 클리어 플래그를 기록한다.
 public class HuntData : PlayerDataBase
 {
     private readonly FlagData m_Flag;
@@ -8,7 +8,7 @@ public class HuntData : PlayerDataBase
     public RegionDef SelectedRegion { get; private set; }
 
     // ------------------------------------------------
-    
+
     public HuntData(FlagData flag)
     {
         m_Flag = flag;

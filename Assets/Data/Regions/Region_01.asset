@@ -22,3 +22,12 @@ MonoBehaviour:
   m_MapPosition: {x: 0.2, y: 0.3}
   m_ListMushroom:
   - {fileID: 11400000, guid: f5c08f1e51dd52b47b4afe44f988d506, type: 2}
+  m_ListSpawnGroup:
+  - m_Prefab: {fileID: 3209006290765593484, guid: e67e15bf70aafd441998c115905c7e3f, type: 3}
+    m_PointPrefix: Spawn_Buggi
+    m_MaxAlive: 6
+    m_RespawnDelay: 4
+  - m_Prefab: {fileID: 3701865610991526730, guid: 382abb4bd3765ed45b6eb1a1b65305c9, type: 3}
+    m_PointPrefix: Spawn_Bugom
+    m_MaxAlive: 3
+    m_RespawnDelay: 8

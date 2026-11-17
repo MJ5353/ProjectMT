@@ -1,41 +1,48 @@
 using System.Collections.Generic;
 using UnityEngine;
+
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
-// 씬마다 하나 두는 팝업 스택. 마지막에 연 팝업이 맨 위에 오고, 뒤로 가기는 맨 위부터 닫는다
-public class PopupManager : MonoSingleton<PopupManager>
-{
-    [SerializeField] private RectTransform m_Root = null;
+// ==================================================
 
+// 씬마다 하나 두는 팝업 스택. 마지막에 연 팝업이 맨 위에 오고, 뒤로 가기는 맨 위부터 닫는다
+public sealed class PopupService : ServiceBase
+{
+    private RectTransform m_Root;
     private readonly List<Popup> m_ListPopup = new();
 
     public int Count => m_ListPopup.Count;
 
-    // ==================================================
+    // ------------------------------------------------
 
-    protected override void OnInit()
+    public override void Init() => m_Root = RootManager.Instance?.UIRoot;
+
+    public override void Clear()
     {
+        foreach (Popup popup in m_ListPopup)
+        {
+            if (popup != null)
+                Object.Destroy(popup.gameObject);
+        }
 
-        if (m_Root == null)
-            m_Root = (RectTransform)transform;
+        m_ListPopup.Clear();
+        m_Root = null;
     }
 
-    protected override void OnClear() => m_ListPopup.Clear();
-
-    internal void Tick()
+    public override void Tick(float deltaTime)
     {
-        if (IsBackPressed())
+        if (m_ListPopup.Count > 0 && IsBackPressed())
             CloseTop();
     }
 
     public T Open<T>(T prefab) where T : Popup
     {
-        if (prefab == null)
+        if (prefab == null || m_Root == null)
             return null;
 
-        T popup = Instantiate(prefab, m_Root);
+        T popup = Object.Instantiate(prefab, m_Root);
         m_ListPopup.Add(popup);
         popup.OnOpen();
 
@@ -48,7 +55,7 @@ public class PopupManager : MonoSingleton<PopupManager>
             return;
 
         popup.OnClose();
-        Destroy(popup.gameObject);
+        Object.Destroy(popup.gameObject);
     }
 
     public bool CloseTop()
@@ -74,7 +81,4 @@ public class PopupManager : MonoSingleton<PopupManager>
 #endif
     }
 
-#if UNITY_EDITOR
-    public void EditorSetRoot(RectTransform root) => m_Root = root;
-#endif
 }

@@ -27,6 +27,8 @@ public class AttackSpec
     public float HitStop => m_HitStop;
     public float Lunge => m_Lunge;
 
+    // ------------------------------------------------
+
     public AttackSpec() { }
 
     public AttackSpec(string clip, int damage, int hitFrame, float reach, float radius, float height, float knockback, float hitStop, float lunge)

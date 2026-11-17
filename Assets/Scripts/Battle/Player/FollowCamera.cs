@@ -12,11 +12,11 @@ public class FollowCamera : MonoBehaviour
     private Transform m_Target;
     private Vector3 m_Velocity;
 
-    // ==================================================
+    // ------------------------------------------------
 
     private void Start()
     {
-        PlayerController player = GameManager.Instance?.ActiveActors?.Player;
+        PlayerController player = GameManager.Instance?.Actors?.Player;
         if (player != null)
             SetTarget(player.transform);
     }

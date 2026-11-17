@@ -19,9 +19,9 @@ public struct ItemStack
     public string id;
     public int count;
 
-    public ItemStack(string id, int count)
+    public ItemStack(string itemID, int count)
     {
-        this.id = id;
+        id = itemID;
         this.count = count;
     }
 }

@@ -40,3 +40,4 @@ MonoBehaviour:
   m_DashCooldown: 0.5
   m_IsDashInvincible: 1
   m_DashAnimSpeed: 1.6
+  m_Prefab: {fileID: 9078100684901017445, guid: d8bb4bf761c13534280b65af507d428c, type: 3}

@@ -18,9 +18,9 @@ public readonly struct InventoryChanged
     public readonly int Count; // 바뀐 뒤 개수
     public readonly int Delta; // 증감량
 
-    public InventoryChanged(string id, int count, int delta)
+    public InventoryChanged(string itemID, int count, int delta)
     {
-        ID = id;
+        ID = itemID;
         Count = count;
         Delta = delta;
     }

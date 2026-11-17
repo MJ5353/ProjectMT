@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public enum EBattleState
 {
@@ -9,104 +10,87 @@ public enum EBattleState
     Lost,
 }
 
+// ==================================================
+
 // 전투 한 판 진행. 몬스터 스폰·리스폰, 처치 수, 주운 버섯, 승패를 맡는다.
 // 끝나면 주운 버섯을 인벤토리에 넣고 게임 흐름을 결과(Result)로 넘긴다
-public class BattleManager : MonoSingleton<BattleManager>
+public sealed class BattleService : ServiceBase
 {
-    // 한 종류 몬스터을 정해진 지점들에 유지한다(씬의 BattleManager 인스펙터에서 설정)
-    // 지점은 이름 접두사(Spawn_Buggi 등)로 플레이 시작 때 씬에서 찾는다. 맵 FBX를 다시 만들어도 끊기지 않게
-    [Serializable]
-    public class SpawnGroup
-    {
-        [SerializeField] private MonsterController m_Prefab = null;
-        [SerializeField] private string m_PointPrefix = "Spawn_Buggi";   // 스폰 지점 이름 접두사
-        [SerializeField] private int m_MaxAlive = 6;                     // 동시에 살아 있는 최대 수
-        [SerializeField] private float m_RespawnDelay = 4f;              // 빈자리가 생긴 뒤 다시 나오기까지(초)
-
-        public MonsterController Prefab => m_Prefab;
-        public string PointPrefix => m_PointPrefix;
-        public int MaxAlive => m_MaxAlive;
-        public float RespawnDelay => m_RespawnDelay;
-
-        public SpawnGroup(MonsterController prefab, string pointPrefix, int maxAlive, float respawnDelay)
-        {
-            m_Prefab = prefab;
-            m_PointPrefix = pointPrefix;
-            m_MaxAlive = maxAlive;
-            m_RespawnDelay = respawnDelay;
-        }
-    }
-
     // 스폰 그룹 하나의 플레이 중 상태
     private class SpawnState
     {
-        public readonly SpawnGroup Group;
+        public readonly RegionDef.SpawnGroup Group;
         public readonly List<Transform> ListPoint = new();
         public int AliveCount;
         public float RespawnTimer;
 
-        public SpawnState(SpawnGroup group)
+        // ------------------------------------------------
+
+        public SpawnState(RegionDef.SpawnGroup group)
         {
             Group = group;
         }
     }
 
-    public const string TerrainName = "Map_Terrain";
     // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
     public const float SpawnLift = 0.3f;
+
+    public const string TerrainName = "Map_Terrain";
     private const string PlayerSpawnName = "Spawn_Player";   // 시작할 때 플레이어를 옮길 지점 이름
     private const int GoalKillCount = 10;                    // 이만큼 잡으면 승리 (보스가 들어오기 전 임시 조건)
 
-    [SerializeField] private PlayerController m_PlayerPrefab = null;   // 시작할 때 Spawn_Player 지점에 만든다
-    [SerializeField] private List<SpawnGroup> m_ListGroup = new();
+    private const string DefaultPlayerID = "Player";
 
+    private readonly Scene m_Scene;
+    private readonly Dictionary<string, int> m_DicLoot = new();
     private readonly List<SpawnState> m_ListSpawn = new();
     private readonly Dictionary<int, SpawnState> m_DicSpawnByActorID = new();
-    private BattleFlow _flow;
     private PlayerController m_PlayerController;
 
-    public EBattleState State => _flow.State;
-    public int KillCount => _flow.KillCount;
+    public RegionDef Region { get; }
+    public EBattleState State { get; private set; } = EBattleState.Playing;
+    public int KillCount { get; private set; }
     public int KillGoal => GoalKillCount;
-    public float ElapsedTime => _flow.ElapsedTime;
+    public float ElapsedTime { get; private set; }
     public PlayerController Player => m_PlayerController;
-    public IReadOnlyDictionary<string, int> DicLoot => _flow.Loot;
+    public IReadOnlyDictionary<string, int> DicLoot => m_DicLoot;
 
-    // ==================================================
+    // ------------------------------------------------
 
-    public void Init(BattleFlow flow)
+    public BattleService(Scene scene, RegionDef region)
     {
-        if (Instance != null)
-            return;
-
-        _flow = flow;
-        Init();
+        m_Scene = scene;
+        Region = region;
     }
 
-    public void Tick(float deltaTime)
+    public override void Tick(float deltaTime)
     {
         if (State != EBattleState.Playing)
             return;
 
-        _flow.ElapsedTime += deltaTime;
+        ElapsedTime += deltaTime;
         UpdateRespawn(deltaTime);
     }
 
-    // virtual---
+    // virtual ---
 
-    protected override void OnInit()
+    public override void Init()
     {
-        m_DicSpawnByActorID.Clear();
-        m_ListSpawn.Clear();
         SpawnPlayer();
         if (m_PlayerController != null && m_PlayerController.Health != null)
             m_PlayerController.Health.Died += OnPlayerDied;
 
-        _flow.Actors.ActorRemoved += ReleaseSpawnSlot;
-        SEventService.Subscribe<MonsterKilled>(OnMonsterKilled);
-        SEventService.Subscribe<LootPicked>(OnLootPicked);
+        GameManager.Instance.Actors.ActorRemoved += ReleaseSpawnSlot;
+        SEventManager.Subscribe<MonsterKilled>(OnMonsterKilled);
+        SEventManager.Subscribe<LootPicked>(OnLootPicked);
 
-        foreach (SpawnGroup group in m_ListGroup)
+        if (Region == null)
+        {
+            CLogger.Warning("BattleService", "전투에 사용할 지역 데이터가 없습니다.");
+            return;
+        }
+
+        foreach (RegionDef.SpawnGroup group in Region.ListSpawnGroup)
         {
             SpawnState spawn = new(group);
             m_ListSpawn.Add(spawn);
@@ -114,11 +98,11 @@ public class BattleManager : MonoSingleton<BattleManager>
             FindPoints(spawn);
             if (group.Prefab == null || spawn.ListPoint.Count == 0)
             {
-                CLogger.Warning("BattleManager", $"스폰 불가: 프리팹 {(group.Prefab == null ? "없음" : group.Prefab.name)}, '{group.PointPrefix}' 지점 {spawn.ListPoint.Count}개", this);
+                CLogger.Warning("BattleService", $"스폰 불가: 프리팹 {(group.Prefab == null ? "없음" : group.Prefab.name)}, '{group.PointPrefix}' 지점 {spawn.ListPoint.Count}개");
                 continue;
             }
 
-            CLogger.Log("BattleManager", $"{group.Prefab.name} 스폰 지점 {spawn.ListPoint.Count}개");
+            CLogger.Log("BattleService", $"{group.Prefab.name} 스폰 지점 {spawn.ListPoint.Count}개");
             int count = Mathf.Min(group.MaxAlive, spawn.ListPoint.Count);
             for (int k = 0; k < count; k++)
             {
@@ -127,38 +111,39 @@ public class BattleManager : MonoSingleton<BattleManager>
         }
     }
 
-    protected override void OnClear()
+    public override void Clear()
     {
-        _flow.Actors.ActorRemoved -= ReleaseSpawnSlot;
-        SEventService.Unsubscribe<MonsterKilled>(OnMonsterKilled);
-        SEventService.Unsubscribe<LootPicked>(OnLootPicked);
+        GameManager.Instance.Actors.ActorRemoved -= ReleaseSpawnSlot;
+        SEventManager.Unsubscribe<MonsterKilled>(OnMonsterKilled);
+        SEventManager.Unsubscribe<LootPicked>(OnLootPicked);
 
         HealthFeature health = m_PlayerController?.Health;
         if (health != null)
             health.Died -= OnPlayerDied;
+
+        m_DicSpawnByActorID.Clear();
+        m_ListSpawn.Clear();
+        m_DicLoot.Clear();
+        m_PlayerController = null;
     }
 
-    // 다시 하기: 같은 씬을 새로 연다
-    public void Retry() => GameManager.Instance?.FlowService.RetryBattle();
+    public void Retry() => GameManager.Instance?.RetryBattle();
 
-    // 로비 씬이 있을 때만 true
     public bool TryGoLobby()
     {
         GameManager gameM = GameManager.Instance;
         if (gameM == null || Application.CanStreamedLevelBeLoaded(SceneNames.Lobby) == false)
             return false;
 
-        return gameM.FlowService.ChangeState(EGameState.Lobby);
+        return gameM.ChangeState(EGameState.Lobby);
     }
 
-    // ==================================================
-
-    // Spawn_Player 지점(없으면 원점)에 플레이어를 만든다
     private void SpawnPlayer()
     {
-        if (m_PlayerPrefab == null)
+        PlayerDef playerDef = GameManager.Instance.Database?.Get<PlayerDef>(DefaultPlayerID);
+        if (playerDef == null || playerDef.Prefab == null)
         {
-            CLogger.Warning("BattleManager", "플레이어 프리팹이 비어 있습니다. 메뉴 MushTaker/Battle/전투 씬 만들기로 씬을 다시 만드세요.", this);
+            CLogger.Warning("BattleService", "PlayerDef에 플레이어 프리팹을 지정하세요.");
             return;
         }
 
@@ -166,35 +151,36 @@ public class BattleManager : MonoSingleton<BattleManager>
         Vector3 position = spawn != null ? SnapToGround(spawn.transform.position) : Vector3.zero;
         Quaternion rotation = spawn != null ? spawn.transform.rotation : Quaternion.identity;
 
-        m_PlayerController = _flow.Actors.Spawn(m_PlayerPrefab, position, rotation);
+        m_PlayerController = GameManager.Instance.Actors.Spawn(playerDef.Prefab, position, rotation);
     }
 
-    private static void FindPoints(SpawnState spawn)
+    private void FindPoints(SpawnState spawn)
     {
         // 이름 접두사로 스폰 지점을 찾는다
         string prefix = spawn.Group.PointPrefix;
         if (prefix.E_IsNullOrEmpty())
             return;
 
-        Transform[] all = FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        Transform[] all = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
         foreach (Transform t in all)
         {
-            if (t.name.StartsWith(prefix))
+            if (t.gameObject.scene == m_Scene && t.name.StartsWith(prefix, StringComparison.Ordinal))
                 spawn.ListPoint.Add(t);
         }
 
         spawn.ListPoint.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
     }
 
-    // 지점을 땅 위에 세운다. 위에서 아래로 쏴서 지형(Map_Terrain)에 맞은 가장 높은 점을 쓴다(나무·바위 위는 피함)
     public static Vector3 SnapToGround(Vector3 position)
     {
+        // 지점을 땅 위에 세운다. 위에서 아래로 쏴서 지형(Map_Terrain)에 맞은 가장 높은 점을 쓴다(나무·바위 위는 피함)
+        
         Vector3 origin = position + Vector3.up * 50f;
         RaycastHit[] hits = Physics.RaycastAll(origin, Vector3.down, 100f, ~0, QueryTriggerInteraction.Ignore);
 
         bool isFound = false;
         float bestY = float.MinValue;
-        
+
         foreach (RaycastHit hit in hits)
         {
             if (hit.collider.name != TerrainName || hit.point.y <= bestY)
@@ -219,7 +205,7 @@ public class BattleManager : MonoSingleton<BattleManager>
         if (spawn.Group.Prefab == null || point == null)
             return;
 
-        MonsterController controller = _flow.Actors.Spawn(spawn.Group.Prefab, SnapToGround(point.position), point.rotation);
+        MonsterController controller = GameManager.Instance.Actors.Spawn(spawn.Group.Prefab, SnapToGround(point.position), point.rotation);
         if (controller == null)
             return;
 
@@ -251,7 +237,7 @@ public class BattleManager : MonoSingleton<BattleManager>
 
         Transform best = null;
         float bestDistance = -1f;
-        
+
         foreach (Transform point in spawn.ListPoint)
         {
             float distance = Vector3.Distance(point.position, m_PlayerController.transform.position) + UnityEngine.Random.Range(0f, 4f);
@@ -267,11 +253,11 @@ public class BattleManager : MonoSingleton<BattleManager>
 
     private void OnMonsterKilled(MonsterKilled evt)
     {
-        if (State != EBattleState.Playing || evt.Actors != _flow.Actors)
+        if (State != EBattleState.Playing || evt.Actors != GameManager.Instance.Actors)
             return;
 
         ReleaseSpawnSlot(evt.ActorID);
-        _flow.KillCount++;
+        KillCount++;
         if (KillCount >= GoalKillCount)
             End(true);
     }
@@ -284,8 +270,8 @@ public class BattleManager : MonoSingleton<BattleManager>
 
     private void OnLootPicked(LootPicked evt)
     {
-        _flow.Loot.TryGetValue(evt.ItemID, out int count);
-        _flow.Loot[evt.ItemID] = count + evt.Amount;
+        m_DicLoot.TryGetValue(evt.ItemID, out int count);
+        m_DicLoot[evt.ItemID] = count + evt.Amount;
     }
 
     private void OnPlayerDied()
@@ -298,7 +284,7 @@ public class BattleManager : MonoSingleton<BattleManager>
         if (State != EBattleState.Playing)
             return;
 
-        _flow.State = isWin ? EBattleState.Won : EBattleState.Lost;
+        State = isWin ? EBattleState.Won : EBattleState.Lost;
         if (m_PlayerController != null)
             m_PlayerController.Health.Died -= OnPlayerDied;
 
@@ -306,22 +292,22 @@ public class BattleManager : MonoSingleton<BattleManager>
         PlayerDataManager playerDataM = PlayerDataManager.Instance;
         if (playerDataM != null)
         {
-            foreach (var pair in _flow.Loot)
+            foreach (var pair in m_DicLoot)
             {
                 playerDataM.Inventory.Add(pair.Key, pair.Value);
             }
 
             // 이긴 지역을 깬 것으로 표시해 다음 지역을 연다(UI 스레드 토벌 탭)
             if (isWin)
-                playerDataM.Hunt.MarkCleared(playerDataM.Hunt.SelectedRegion);
+                playerDataM.Hunt.MarkCleared(Region);
 
             playerDataM.RunSave();
         }
 
         GameManager gameM = GameManager.Instance;
-        if (gameM != null && gameM.FlowService.Current == EGameState.Battle)
-            gameM.FlowService.ChangeState(EGameState.Result);
+        if (gameM != null && gameM.Current == EGameState.Battle)
+            gameM.ChangeState(EGameState.Result);
 
-        SEventService.Publish(new BattleEnded(isWin));
+        SEventManager.Publish(new BattleEnded(isWin));
     }
 }

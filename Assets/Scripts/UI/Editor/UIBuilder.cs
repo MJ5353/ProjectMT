@@ -42,7 +42,7 @@ public static class UIBuilder
         }
     }
 
-    // root---
+    // root ---
 
     // 화면 하나 = 캔버스 하나. 자식은 SafeArea 아래에 붙인다
     public static RectTransform CreateCanvas(string name, int sortingOrder = 0)
@@ -79,7 +79,7 @@ public static class UIBuilder
 #endif
     }
 
-    // rect---
+    // rect ---
 
     public static RectTransform Rect(string name, Transform parent, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
     {
@@ -109,7 +109,7 @@ public static class UIBuilder
         return rt;
     }
 
-    // graphic---
+    // graphic ---
 
     public static Image Panel(string name, Transform parent, Color color, bool isRaycast = false)
     {
@@ -144,7 +144,7 @@ public static class UIBuilder
         return t;
     }
 
-    // parts---
+    // parts ---
 
     public static Button Button(Transform parent, string name, string text, Vector2 size, Color? color = null)
     {
@@ -185,7 +185,7 @@ public static class UIBuilder
         return slot;
     }
 
-    // build (프리팹 원본)---
+    // build (프리팹 원본) ---
 
     public static Button BuildButton(Transform parent)
     {
@@ -263,7 +263,7 @@ public static class UIBuilder
         return slot;
     }
 
-    // serialize---
+    // serialize ---
 
     // 화면 스크립트의 private 직렬화 필드(m_Xxx)를 채운다. 이름이 틀리면 에러 로그를 남긴다
     public static void SetRef(Object target, string field, Object value)
@@ -280,7 +280,7 @@ public static class UIBuilder
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
-    // prefab---
+    // prefab ---
 
     public static T Spawn<T>(GameObject prefab, Transform parent) where T : Component
     {
