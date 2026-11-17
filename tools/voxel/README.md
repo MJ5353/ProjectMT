@@ -19,10 +19,12 @@ blender -b -P tools/voxel/build_voxel_assets.py -- <출력폴더> [--preview]
 
 `python tools/voxel/build_map.py -- <출력폴더> [--preview]` 하나로 캐릭터·버섯·블록까지 다시 만든 뒤 `Map_Field01.fbx`를 더한다(팔레트 색 위치를 맞추려고 같이 만든다).
 
-- 64m x 64m. 가장자리는 4블록 높이 절벽과 거대 버섯 나무로 막았다.
-- 구역: 남쪽 시작 지점 → 가운데 갈림길 → 서쪽 버끼 초원(꽃·언덕), 동쪽 버곰 숲(균사 땅·버섯 나무), 북쪽 보스 공터(바위 둘레, 남쪽 입구만 열림).
-- 자식: `Map_Terrain`·`Map_Props`(MeshCollider 자동), `Map_Grass`(풀·꽃, 충돌 없음), `Spawn_Player`, `Spawn_Buggi_1~6`, `Spawn_Bugom_1~3`, `Spawn_Bursus`(빈 오브젝트, 위치만 사용).
-- 맵 원점은 남서쪽 모서리, 지면 높이는 2m.
+- 100m x 100m 평탄한 평원, 지면 높이 0. 맵 원점은 남서쪽 모서리.
+- 남쪽 시작 지점 → 가운데 갈림길 → 엘리트 자리 4곳(균사 땅, 둘레에 바위·통나무) → 가장 먼 북쪽 보스 자리(반지름 14m, 균사 고리, 큰 바위 둘레, 남쪽 입구만 열림).
+- 가장자리 7m는 버섯 나무 숲 띠, 그 바깥은 보이지 않는 벽.
+- 소품: 거대 버섯 나무 3종, 쓰러진 통나무, 버섯 군락, 큰 바위, 작은 바위·그루터기, 풀·꽃.
+- 자식: `Map_Terrain`·`Map_Props`·`Map_Bounds`(MeshCollider 자동, Bounds는 렌더러 꺼짐), `Map_Grass`(충돌 없음), `Spawn_Player`, `Spawn_Buggi_1~15`(3마리씩 5무리), `Spawn_Bugom_1~4`(엘리트), `Spawn_Bursus`(보스).
+- 새 지역: 파일 위 `REGION`(바닥 타일, 나무·소품 비율, 씨앗, 이름)만 바꿔서 만든다.
 
 ## 대형 버우르스 (부위 파괴 보스)
 

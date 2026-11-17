@@ -1,7 +1,7 @@
 # MushTaker 전투 필드 맵 생성 (Blender 5.x)
 # 사용: python build_map.py -- <출력 폴더> [--preview]   (blender -b -P 도 가능)
 # 캐릭터·버섯 에셋을 먼저 같은 순서로 다시 만들어 팔레트 색 위치를 유지한 뒤, 맵을 덧붙인다.
-# 결과: Models/Map_Field01.fbx (Map_Terrain·Map_Props는 충돌체, Map_Grass는 장식, Spawn_* 빈 오브젝트)
+# 결과: Models/Map_Field01.fbx (평탄한 평원. Map_Terrain·Map_Props 충돌체, Map_Grass 장식, Map_Bounds 투명 벽, Spawn_*)
 import sys, os, math, random
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy, bmesh
@@ -16,12 +16,24 @@ L.COLORS.update({
     'gill': (210, 192, 166), 'cap_violet': (128, 104, 156), 'cap_violet_dk': (100, 80, 128),
 })
 
-W = H = 64           # 블록 수(1블록 = 1m)
-GROUND = 2           # 기본 지면 높이(블록)
-ZONES = {            # 이름: (중심 x, y, 반지름)
-    'start': (32, 8, 6), 'meadow': (15, 27, 10), 'grove': (49, 28, 10), 'arena': (32, 47, 11.5), 'hub': (32, 26, 4),
+# ---------- 지역 설정: 새 지역은 이 값(바닥·프랍 비율·씨앗)만 바꿔서 만든다 ----------
+REGION = {
+    'name': 'Map_Field01', 'seed': 5, 'size': 100,
+    'ground': 'grass',                                   # 바닥 타일: grass / mycel
+    'trees': {'tree_red': 2, 'tree_brown': 3, 'tree_violet': 2},
+    'small': {'log': 3, 'mush_cluster': 4, 'rock_big': 2, 'Deco_Rock': 3, 'Deco_Stump': 2},
+    'grass_tries': 550,
 }
-PATHS = [('start', 'hub'), ('hub', 'meadow'), ('hub', 'grove'), ('hub', 'arena')]
+
+W = H = REGION['size']   # 블록 수(1블록 = 1m). 지면은 평탄, 높이 0
+GROUND = 1               # 바닥 한 겹(윗면이 z=0이 되도록 내보낼 때 1 내림)
+BORDER = 7               # 가장자리 숲 띠 두께(m), 바깥에 보이지 않는 벽
+ZONES = {                # 이름: (중심 x, y, 반지름)
+    'start': (50, 15, 7), 'hub': (50, 46, 5), 'boss': (50, 85, 14),
+    'elite1': (22, 32, 7), 'elite2': (78, 30, 7), 'elite3': (26, 64, 7), 'elite4': (74, 64, 7),
+}
+GROUPS = [(38, 22), (62, 22), (36, 46), (64, 46), (50, 62)]      # 버끼 무리(3마리씩)
+PATHS = [('start', 'hub'), ('hub', 'boss'), ('hub', 'elite1'), ('hub', 'elite2'), ('hub', 'elite3'), ('hub', 'elite4')]
 
 def zdist(name, x, y):
     cx, cy, r = ZONES[name]
@@ -31,36 +43,27 @@ def seg_dist(px, py, a, b):
     ax, ay, _ = ZONES[a]; bx, by, _ = ZONES[b]
     dx, dy = bx - ax, by - ay
     t = max(0, min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
-    return math.hypot(px - ax - t * dx, py - ay - t * dy)
+    # 길이 살짝 굽이치게
+    wob = 1.4 * math.sin(t * math.pi * 2 + ax * 0.3)
+    return abs(math.hypot(px - ax - t * dx, py - ay - t * dy) - 0) + 0 * wob
+
+def elite_names():
+    return [n for n in ZONES if n.startswith('elite')]
 
 def layout():
-    rnd = random.Random(21)
     hgt, top = {}, {}
-    bumps = [(rnd.uniform(6, 50), rnd.uniform(6, 50), rnd.uniform(2.5, 4.5)) for _ in range(14)]
     for x in range(W):
         for y in range(H):
             px, py = x + .5, y + .5
-            edge = min(x, y, W - 1 - x, H - 1 - y)
-            onpath = min(seg_dist(px, py, a, b) for a, b in PATHS) < 1.6
-            n = GROUND
-            # 테두리 절벽(바깥으로 갈수록 높게, 들쭉날쭉)
-            if edge < 4:
-                n = GROUND + 4 + (1 if edge == 0 and _h(x, y, 1) % 3 == 0 else 0)
-            else:
-                flat = onpath or zdist('start', x, y) < 1 or zdist('arena', x, y) < 1.05 or zdist('hub', x, y) < 1
-                if not flat:
-                    hill = sum(1.2 * math.exp(-((px - bx) ** 2 + (py - by) ** 2) / (2 * r * r)) for bx, by, r in bumps)
-                    n += int(hill + 0.25)
-                # 보스 공터 둘레 둔덕(남쪽 입구는 열어 둠)
-                d = zdist('arena', x, y)
-                if 1.05 <= d < 1.3 and not onpath:
-                    n = max(n, GROUND + 1)
-            t = 'grass'
-            if onpath and edge >= 4:
+            t = REGION['ground']
+            if min(seg_dist(px, py, a, b) for a, b in PATHS) < 1.4 + 0.5 * math.sin(px * 0.4 + py * 0.3):
                 t = 'path'
-            elif zdist('grove', x, y) < 1 and _h(x // 3, y // 3, 5) % 3 == 0:
+            if any(zdist(e, x, y) < 0.55 and _h(x, y, 2) % 4 != 0 for e in elite_names()):
                 t = 'mycel'
-            hgt[(x, y)] = n; top[(x, y)] = t
+            d = zdist('boss', x, y)
+            if 0.55 < d < 0.85 and _h(x // 2, y // 2, 3) % 3 != 0:
+                t = 'mycel'
+            hgt[(x, y)] = GROUND; top[(x, y)] = t
     return hgt, top
 
 SIDE = {'grass': 'grass_side', 'path': 'dirt', 'mycel': 'mycel_side'}
@@ -71,7 +74,7 @@ def terrain_mesh(hgt, top, m):
     verts = {}
     def V(p):
         if p not in verts:
-            verts[p] = bm.verts.new(p)
+            verts[p] = bm.verts.new((p[0], p[1], p[2] - GROUND))
         return verts[p]
     def face(x, y, z, d, quad, tile):
         f = bm.faces.new([V((x + q[0], y + q[1], z + q[2])) for q in quad])
@@ -128,7 +131,30 @@ def rock_big():
     v = {}
     ell(v, (0, 0, 0.5), (3.5, 3.0, 3.4), lambda i, j, k: 'stone_dk' if _h(i, j, k) % 3 == 0 else 'stone', cut=lambda x, y, z: z >= 0)
     return v
-PROPS = {'tree_red': tree_red, 'tree_brown': tree_brown, 'tree_violet': tree_violet, 'rock_big': rock_big}
+def log():
+    """쓰러진 통나무(길이 4.5m) + 위에 난 작은 버섯."""
+    v = {}
+    r = 2.3
+    L._fill(v, ((-9, 9), (-r, r), (0, 2 * r)), lambda x, y, z: -9 <= x <= 9 and y * y + (z - r) ** 2 <= r * r,
+            lambda i, j, k: 'ring' if i in (-9, 8) else ('bark_dk' if (j + k) % 3 == 0 else 'bark'))
+    for x in (-5, 1, 4):
+        top = 2 * r
+        cyl(v, x, 0, 0.6, top, top + 1.5, 'stalk')
+        ell(v, (x, 0, top + 1.5), (1.4, 1.4, 0.9), 'cap_brown', cut=lambda a, b, c, t=top: c >= t + 1.2)
+    return v
+def mush_cluster():
+    """버섯 군락: 크기가 다른 버섯 5~6개."""
+    v = {}
+    rnd = random.Random(13)
+    caps = [('cap_red', 'cap_red_dk'), ('cap_brown', 'cap_brown_dk'), ('songi_cap', 'songi_cap_dk'), ('cap_violet', 'cap_violet_dk')]
+    for n in range(6):
+        ox, oy = rnd.uniform(-4, 4), rnd.uniform(-4, 4)
+        h = rnd.uniform(2, 7); r = h * 0.45 + 0.8
+        a, b = rnd.choice(caps)
+        cyl(v, ox, oy, max(0.6, r * 0.3), 0, h, 'stalk')
+        ell(v, (ox, oy, h), (r, r, r * 0.6), lambda i, j, k, a=a, b=b: b if (i + j) % 3 == 0 else a, cut=lambda x, y, z, h=h: z >= h - 0.2)
+    return v
+PROPS = {'log': log, 'mush_cluster': mush_cluster, 'tree_red': tree_red, 'tree_brown': tree_brown, 'tree_violet': tree_violet, 'rock_big': rock_big}
 
 def merged(name, items, mat):
     """items: [(vox, size, (x,y,z), 회전 0~3)] 를 메시 하나로."""
@@ -160,69 +186,79 @@ def build_map():
     hgt, top = layout()
     tm = L.material('M_Terrain', B.ATLAS_PATH)
     vm = B.mat()
-    root = bpy.data.objects.new('Map_Field01', None); bpy.context.scene.collection.objects.link(root)
+    root = bpy.data.objects.new(REGION['name'], None); bpy.context.scene.collection.objects.link(root)
     terr = terrain_mesh(hgt, top, tm); terr.parent = root
-    rnd = random.Random(5)
-    ground = lambda x, y: hgt[(min(W - 1, max(0, int(x))), min(H - 1, max(0, int(y))))]
-    def clear(x, y):
-        return (min(seg_dist(x, y, a, b) for a, b in PATHS) > 2.5 and zdist('start', x, y) > 1.1 and
-                zdist('arena', x, y) > 1.35 and zdist('hub', x, y) > 1.2)
-    def flat_under(x, y, r=1):
-        hs = {ground(x + dx, y + dy) for dx in (-r, 0, r) for dy in (-r, 0, r)}
-        return len(hs) == 1
-    taken = []
-    props = []
-    # 테두리 숲
-    for x, y in scatter(rnd, 46, lambda x, y: 1.5 < min(x, y, W - x, H - y) < 3.5, taken, 3.0):
-        k = rnd.choice(['tree_red', 'tree_brown', 'tree_brown', 'tree_violet'])
-        props.append((k, x, y))
-    # 버곰 숲(안쪽)
-    for x, y in scatter(rnd, 10, lambda x, y: zdist('grove', x, y) < 1.1 and clear(x, y) and flat_under(x, y), taken, 4.5):
-        props.append((rnd.choice(['tree_red', 'tree_brown', 'tree_violet']), x, y))
-    # 그 밖의 들판에 드문드문
-    for x, y in scatter(rnd, 8, lambda x, y: min(x, y, W - x, H - y) > 6 and clear(x, y) and zdist('meadow', x, y) > 0.8 and flat_under(x, y), taken, 6):
-        props.append((rnd.choice(['tree_red', 'tree_violet']), x, y))
-    # 보스 공터 둘레 큰 바위(남쪽 입구 제외)
-    cx, cy, r = ZONES['arena']
-    for a in range(0, 360, 30):
-        if 240 < a < 300:
+    rnd = random.Random(REGION['seed'])
+    ground = lambda x, y: 0.0
+    inside = lambda x, y: min(x, y, W - x, H - y) > BORDER + 1
+    def clear(x, y, pad=2.5):
+        return (min(seg_dist(x, y, a, b) for a, b in PATHS) > pad and zdist('start', x, y) > 1.1 and
+                zdist('boss', x, y) > 1.1 and zdist('hub', x, y) > 1.2 and
+                all(zdist(e, x, y) > 1.05 for e in elite_names()) and
+                all(math.hypot(x - gx, y - gy) > 5 for gx, gy in GROUPS))
+    def pick(table):
+        ks = list(table); return rnd.choices(ks, weights=[table[k] for k in ks])[0]
+    taken, props, small = [], [], []
+    # 가장자리 숲 띠
+    for x, y in scatter(rnd, 110, lambda x, y: 1 < min(x, y, W - x, H - y) < BORDER and zdist('start', x, y) > 1.2, taken, 3.3):
+        props.append((pick(REGION['trees']), x, y))
+    # 들판의 작은 숲(나무 2~4그루씩)
+    for cx, cy in scatter(rnd, 9, lambda x, y: inside(x, y) and clear(x, y, 6), [], 14):
+        for x, y in scatter(rnd, rnd.randint(2, 4), lambda x, y: math.hypot(x - cx, y - cy) < 5 and clear(x, y), taken, 3.2):
+            props.append((pick(REGION['trees']), x, y))
+    # 흩어진 소품
+    for x, y in scatter(rnd, 60, lambda x, y: inside(x, y) and clear(x, y), taken, 2.6):
+        k = pick(REGION['small'])
+        (props if k in PROPS else small).append((k, x, y))
+    # 엘리트 자리: 둘레에 바위·통나무 3~4개
+    for e in elite_names():
+        cx, cy, r = ZONES[e]
+        for a in rnd.sample(range(0, 360, 45), 4):
+            x, y = cx + math.cos(math.radians(a)) * r * 1.2, cy + math.sin(math.radians(a)) * r * 1.2
+            if min(seg_dist(x, y, p, q) for p, q in PATHS) > 2:
+                props.append((rnd.choice(['rock_big', 'log', 'mush_cluster']), x, y)); taken.append((x, y, 2))
+    # 보스 자리: 큰 바위 둘레(남쪽 입구 제외)
+    cx, cy, r = ZONES['boss']
+    for a in range(0, 360, 24):
+        if 245 < a < 295:
             continue
-        x, y = cx + math.cos(math.radians(a)) * r * 1.15, cy + math.sin(math.radians(a)) * r * 1.15
+        x, y = cx + math.cos(math.radians(a)) * r * 1.12, cy + math.sin(math.radians(a)) * r * 1.12
         props.append(('rock_big', x, y)); taken.append((x, y, 2))
-    # 작은 바위·그루터기
-    small = []
-    for x, y in scatter(rnd, 18, lambda x, y: min(x, y, W - x, H - y) > 4.5 and clear(x, y), taken, 2):
-        small.append((rnd.choice(['Deco_Rock', 'Deco_Stump']), x, y))
     cache = {k: fn() for k, fn in PROPS.items()}
     dcache = {k: fn() for k, fn in B.DECOS.items()}
-    items = [(cache[k], PROP, (x, y, ground(x, y)), rnd.randrange(4)) for k, x, y in props]
-    items += [(dcache[k], B.DECO_SIZE, (x, y, ground(x, y)), rnd.randrange(4)) for k, x, y in small]
+    items = [(cache[k], PROP, (x, y, 0), rnd.randrange(4)) for k, x, y in props]
+    items += [(dcache[k], B.DECO_SIZE * 1.6, (x, y, 0), rnd.randrange(4)) for k, x, y in small]
     merged('Map_Props', items, vm).parent = root
     # 풀·꽃 (충돌 없음)
     grass = []
-    for _ in range(600):
-        x, y = rnd.uniform(4.5, W - 4.5), rnd.uniform(4.5, H - 4.5)
-        if top[(int(x), int(y))] == 'path' or zdist('arena', x, y) < 0.9:
+    for _ in range(REGION['grass_tries']):
+        x, y = rnd.uniform(BORDER - 1, W - BORDER + 1), rnd.uniform(BORDER - 1, H - BORDER + 1)
+        if top[(int(x), int(y))] != 'grass' or zdist('boss', x, y) < 0.9:
             continue
-        dens = 1.0 if zdist('meadow', x, y) < 1.1 else 0.3
-        if rnd.random() > dens:
-            continue
-        k = 'Deco_Flower' if rnd.random() < (0.35 if dens == 1.0 else 0.12) else 'Deco_Grass'
-        grass.append((dcache[k], B.DECO_SIZE, (x, y, ground(x, y)), rnd.randrange(4)))
+        k = 'Deco_Flower' if rnd.random() < 0.18 else 'Deco_Grass'
+        grass.append((dcache[k], B.DECO_SIZE, (x, y, 0), rnd.randrange(4)))
     merged('Map_Grass', grass, vm).parent = root
-    # 스폰 지점 (빈 오브젝트, 위치만 사용)
+    # 보이지 않는 경계 벽(Unity에서 렌더러 꺼짐)
+    wall = {}
+    bm = bmesh.new()
+    for (x0, x1, y0, y1) in [(0, W, -1, 0), (0, W, H, H + 1), (-1, 0, 0, H), (W, W + 1, 0, H)]:
+        bmesh.ops.create_cube(bm, size=1, matrix=Matrix.LocRotScale(Vector(((x0 + x1) / 2, (y0 + y1) / 2, 3)), None, Vector((x1 - x0, y1 - y0, 6))))
+    me = bpy.data.meshes.new('Map_Bounds'); bm.to_mesh(me); bm.free()
+    bo = bpy.data.objects.new('Map_Bounds', me); bpy.context.scene.collection.objects.link(bo); bo.parent = root
+    bo.hide_render = True
+    # 스폰 지점 (빈 오브젝트, 위치만 사용). 엘리트 = 버곰
     spawns = {'Spawn_Player': ZONES['start'][:2]}
-    mx, my, _ = ZONES['meadow']
-    for i, (dx, dy) in enumerate([(-3, -2), (-2, 0), (-4, 0), (3, 3), (4, 5), (2, 5)]):
-        spawns[f'Spawn_Buggi_{i + 1}'] = (mx + dx, my + dy)
-    gx, gy, _ = ZONES['grove']
-    for i, (dx, dy) in enumerate([(-2, -3), (3, 1), (-1, 4)]):
-        spawns[f'Spawn_Bugom_{i + 1}'] = (gx + dx, gy + dy)
-    spawns['Spawn_Bursus'] = ZONES['arena'][:2]
-    for n, (x, y) in spawns.items():
-        e = bpy.data.objects.new(n, None); e.empty_display_type = 'ARROWS'
-        e.location = (x, y, ground(x, y)); e.parent = root
-        bpy.context.scene.collection.objects.link(e)
+    n = 0
+    for gx, gy in GROUPS:
+        for dx, dy in [(-1.5, -1), (1.5, -0.5), (0, 1.5)]:
+            n += 1; spawns[f'Spawn_Buggi_{n}'] = (gx + dx, gy + dy)
+    for i, e in enumerate(elite_names()):
+        spawns[f'Spawn_Bugom_{i + 1}'] = ZONES[e][:2]
+    spawns['Spawn_Bursus'] = ZONES['boss'][:2]
+    for nm, (x, y) in spawns.items():
+        o = bpy.data.objects.new(nm, None); o.empty_display_type = 'ARROWS'
+        o.location = (x, y, 0); o.parent = root
+        bpy.context.scene.collection.objects.link(o)
     return root, spawns, ground
 
 def main():
@@ -231,7 +267,7 @@ def main():
     root, spawns, ground = build_map()
     L.write_palette(B.PAL_PATH)
     bpy.data.images['VoxelPalette.png'].reload()
-    L.export_fbx(os.path.join(B.MOD, 'Map_Field01.fbx'), False)
+    L.export_fbx(os.path.join(B.MOD, REGION['name'] + '.fbx'), False)
     for o in bpy.data.objects:
         if o.type == 'MESH':
             print(o.name, len(o.data.polygons), 'faces')
@@ -255,13 +291,13 @@ def preview(root, spawns, ground):
         for s, (m, sc) in B.PREVIEW_MUSH.get(arm.name.split('.')[0], {}).items():
             B.attach_mush(arm, s, m, sc)
     bpy.data.images['VoxelPalette.png'].reload()
-    L.aim_camera(Vector((W / 2, H / 2 - 2, 2)), 70, view=(-0.55, -1.0, 1.25))
+    L.aim_camera(Vector((W / 2, H / 2 - 2, 0)), 108, view=(-0.55, -1.0, 1.25))
     L.render(os.path.join(B.PRE, 'map.png'))
     # 가까이: 시작 지점에서 북쪽을 본 3인칭 느낌
     cam = bpy.data.objects['Cam']; cam.data.type = 'PERSP'; cam.data.lens = 24
     sx, sy = ZONES['start'][:2]
-    cam.location = (sx, sy - 3, ground(sx, sy) + 2.6)
-    cam.rotation_euler = (Vector((sx, sy + 12, ground(sx, sy) + 0.5)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
+    cam.location = (sx, sy - 4.5, 3.0)
+    cam.rotation_euler = (Vector((sx, sy + 14, 0.5)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
     bpy.context.scene.render.resolution_x = 1400; bpy.context.scene.render.resolution_y = 800
     bpy.context.scene.render.film_transparent = False
     L.render(os.path.join(B.PRE, 'map_tps.png'))

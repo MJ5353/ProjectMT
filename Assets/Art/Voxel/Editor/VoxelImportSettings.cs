@@ -47,14 +47,16 @@ public class VoxelImportSettings : AssetPostprocessor
         mi.clipAnimations = clips;
     }
 
-    // 맵: 지형·소품에 MeshCollider (풀·꽃 Map_Grass는 제외)
+    // 맵: 지형·소품·경계 벽에 MeshCollider (풀·꽃 Map_Grass는 제외), 경계 벽은 렌더러 끔
     void OnPostprocessModel(GameObject g)
     {
         if (!assetPath.StartsWith(Root)) return;
         foreach (var mf in g.GetComponentsInChildren<MeshFilter>())
         {
-            if (mf.name == "Map_Terrain" || mf.name == "Map_Props")
+            if (mf.name == "Map_Terrain" || mf.name == "Map_Props" || mf.name == "Map_Bounds")
                 mf.gameObject.AddComponent<MeshCollider>().sharedMesh = mf.sharedMesh;
+            if (mf.name == "Map_Bounds" && mf.TryGetComponent<MeshRenderer>(out var mr))
+                mr.enabled = false;   // 보이지 않는 경계 벽
         }
     }
 
