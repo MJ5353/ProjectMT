@@ -56,7 +56,7 @@ public class GameManager : MonoBehaviour
     {
         Database = Resources.Load<GameDatabase>(GameDatabase.ResourcePath);
         if (Database == null)
-            Debug.LogError($"[GameManager] Resources/{GameDatabase.ResourcePath} 데이터베이스가 없습니다. 메뉴 MushTaker/Data/데이터베이스 갱신을 실행하세요.");
+            CLogger.Error("GameManager", $"Resources/{GameDatabase.ResourcePath} 데이터베이스가 없습니다. 메뉴 MushTaker/Data/데이터베이스 갱신을 실행하세요.");
         else
             Database.Init();
 

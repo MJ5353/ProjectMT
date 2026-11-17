@@ -29,7 +29,7 @@ public class SaveService
         }
         catch (Exception e)
         {
-            Debug.LogError($"[SaveService] 세이브를 읽지 못해 새로 시작합니다: {e.Message}");
+            CLogger.Error("SaveService", $"세이브를 읽지 못해 새로 시작합니다: {e.Message}");
             File.Copy(m_FilePath, m_FilePath + ".corrupt", true);
             return new SaveData();
         }

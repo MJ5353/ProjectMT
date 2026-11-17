@@ -36,12 +36,12 @@ public static class ProjectSetup
         Directory.CreateDirectory(ScenesDir);
 
         if (File.Exists(LobbyPath))
-            Debug.LogWarning($"[ProjectSetup] {LobbyPath}가 이미 있어 건너뜁니다.");
+            CLogger.Warning("ProjectSetup", $"{LobbyPath}가 이미 있어 건너뜁니다.");
         else
             CreateLobby();
 
         if (File.Exists(BattlePath))
-            Debug.LogWarning($"[ProjectSetup] {BattlePath}가 이미 있어 건너뜁니다.");
+            CLogger.Warning("ProjectSetup", $"{BattlePath}가 이미 있어 건너뜁니다.");
         else
             CreateBattle();
 

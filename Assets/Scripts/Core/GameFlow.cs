@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -64,16 +63,14 @@ public class GameFlow
         if (IsTransitioning || s_DicAllowedTransition.TryGetValue(Current, out EGameState[] targets) == false)
             return false;
 
-        // [mj] todo) common func
-        return Array.IndexOf(targets, next) >= 0;
+        return targets.E_Contains(next);
     }
 
     public bool ChangeState(EGameState next)
     {
         if (CanChange(next) == false)
         {
-            // [mj] todo) log util
-            Debug.LogWarning($"[GameFlow] 허용되지 않은 전환: {Current} → {next}");
+            CLogger.Warning("GameFlow", $"허용되지 않은 전환: {Current} → {next}");
             return false;
         }
 
@@ -86,9 +83,8 @@ public class GameFlow
         IsTransitioning = true;
         EGameState from = Current;
 
-        // [mj] todo) isnulloremtpy
         string sceneName = GetSceneName(next);
-        if (sceneName != null && SceneManager.GetActiveScene().name != sceneName)
+        if (sceneName.E_IsNullOrEmpty() == false && SceneManager.GetActiveScene().name != sceneName)
             yield return SceneLoader.Load(sceneName);
 
         Current = next;

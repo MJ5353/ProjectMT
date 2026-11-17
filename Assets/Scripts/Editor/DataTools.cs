@@ -37,7 +37,7 @@ public static class DataTools
 
         bool isValid = Validate(listDef, isVerbose);
         if (isVerbose && isValid)
-            Debug.Log($"[DataTools] 데이터베이스 갱신 완료: {listDef.Count}개");
+            CLogger.Log("DataTools", $"데이터베이스 갱신 완료: {listDef.Count}개");
 
         return db;
     }
@@ -64,7 +64,7 @@ public static class DataTools
 
         foreach (DataDef def in listDef.Where(d => string.IsNullOrWhiteSpace(d.ID)))
         {
-            Debug.LogError($"[DataTools] ID가 비어 있음: {AssetDatabase.GetAssetPath(def)}", def);
+            CLogger.Error("DataTools", $"ID가 비어 있음: {AssetDatabase.GetAssetPath(def)}", def);
             errorCount++;
         }
 
@@ -76,12 +76,12 @@ public static class DataTools
         {
             string paths = string.Join(", ", group.Select(AssetDatabase.GetAssetPath));
 
-            Debug.LogError($"[DataTools] ID 중복 '{group.Key}': {paths}", group.First());
+            CLogger.Error("DataTools", $"ID 중복 '{group.Key}': {paths}", group.First());
             errorCount++;
         }
 
         if (isVerbose && errorCount == 0)
-            Debug.Log($"[DataTools] 검사 통과: {listDef.Count}개");
+            CLogger.Log("DataTools", $"검사 통과: {listDef.Count}개");
 
         return errorCount == 0;
     }

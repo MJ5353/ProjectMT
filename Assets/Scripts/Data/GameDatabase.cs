@@ -27,7 +27,7 @@ public class GameDatabase : ScriptableObject
                 continue;
 
             if (m_DicDefByID.TryAdd(def.ID, def) == false)
-                Debug.LogError($"[GameDatabase] ID 중복: {def.ID} ({def.name})", def);
+                CLogger.Error("GameDatabase", $"ID 중복: {def.ID} ({def.name})", def);
         }
     }
 
@@ -36,7 +36,7 @@ public class GameDatabase : ScriptableObject
         if (TryGet(id, out T def))
             return def;
 
-        Debug.LogWarning($"[GameDatabase] {typeof(T).Name} '{id}'를 찾지 못했습니다.");
+        CLogger.Warning("GameDatabase", $"{typeof(T).Name} '{id}'를 찾지 못했습니다.");
         return null;
     }
 
