@@ -9,7 +9,7 @@ using UnityEngine.UI;
 // 공용 부품은 프리팹이 있으면 프리팹 인스턴스로 넣어서, 대장이 프리팹을 고치면 모든 화면에 반영된다
 public static class UIBuilder
 {
-    public const string FontDir = "Assets/ThirdParty/Fonts/Galmuri";
+    public const string FontDir = "Assets/Art/Fonts/Galmuri";
     public const string FontPath = FontDir + "/Galmuri11.ttf";
     public const string FontAssetPath = FontDir + "/Galmuri11 SDF.asset";
 
