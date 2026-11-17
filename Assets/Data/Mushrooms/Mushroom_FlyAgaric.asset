@@ -15,6 +15,6 @@ MonoBehaviour:
   m_ID: Mushroom_FlyAgaric
   m_DisplayName: "\uAD11\uB300\uBC84\uC12F"
   m_Description: 
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 21300000, guid: 5798f259469b1374ba4d5505fab57776, type: 3}
   m_Rarity: 0
   m_Tint: {r: 1, g: 1, b: 1, a: 1}
