@@ -14,3 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameDatabase
   m_ListDef:
   - {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+  - {fileID: 11400000, guid: 5c880b59f0cba5044b02df65c38989e5, type: 2}
+  - {fileID: 11400000, guid: c8574fd4a7aa3ae40ae6e81d0e6971d9, type: 2}
+  - {fileID: 11400000, guid: f5c08f1e51dd52b47b4afe44f988d506, type: 2}
