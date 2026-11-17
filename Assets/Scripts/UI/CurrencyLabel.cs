@@ -1,41 +1,54 @@
-using MushTaker.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MushTaker.UI
+// 인벤토리의 특정 ID 개수를 보여 주는 라벨. 이벤트 구독 예시도 겸한다
+[RequireComponent(typeof(Text))]
+public class CurrencyLabel : MonoBehaviour
 {
-    /// 인벤토리의 특정 id 개수를 보여 주는 라벨. 이벤트 구독 예시도 겸한다.
-    [RequireComponent(typeof(Text))]
-    public class CurrencyLabel : MonoBehaviour
+    [SerializeField] private string m_ItemID = "Currency_Gold";
+    [SerializeField] private string m_Format = "Gold {0}";
+
+    private Text m_Text;
+
+    // ==================================================
+
+    private void Awake()
     {
-        [SerializeField] string itemId = "Currency_Gold";
-        [SerializeField] string format = "Gold {0}";
+        m_Text = GetComponent<Text>();
+    }
 
-        Text _text;
+    private void OnEnable()
+    {
+        EventBus.Subscribe<InventoryChanged>(OnInventoryChanged);
+        Refresh();
+    }
 
-        void Awake() => _text = GetComponent<Text>();
+    private void OnDisable()
+    {
+        EventBus.Unsubscribe<InventoryChanged>(OnInventoryChanged);
+    }
 
-        void OnEnable()
-        {
-            EventBus.Subscribe<InventoryChanged>(OnInventoryChanged);
-            Refresh();
-        }
+    private void OnInventoryChanged(InventoryChanged evt)
+    {
+        if (evt.ID != m_ItemID)
+            return;
 
-        void OnDisable() => EventBus.Unsubscribe<InventoryChanged>(OnInventoryChanged);
+        Refresh();
+    }
 
-        void OnInventoryChanged(InventoryChanged e)
-        {
-            if (e.Id == itemId) Refresh();
-        }
+    private void Refresh()
+    {
+        GameManager gameM = GameManager.Instance;
+        int count = gameM != null ? gameM.Player.Inventory.GetCount(m_ItemID) : 0;
 
-        void Refresh()
-        {
-            var gm = GameManager.Instance;
-            _text.text = string.Format(format, gm != null ? gm.Player.Inventory.GetCount(itemId) : 0);
-        }
+        m_Text.text = string.Format(m_Format, count);
+    }
 
 #if UNITY_EDITOR
-        public void EditorSetup(string id, string fmt) { itemId = id; format = fmt; }
-#endif
+    public void EditorSetup(string itemID, string format)
+    {
+        m_ItemID = itemID;
+        m_Format = format;
     }
+#endif
 }

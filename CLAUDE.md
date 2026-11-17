@@ -1,6 +1,6 @@
 # 송이 시즌 작업 규칙
 
-최종 수정: 26.11.16
+최종 수정: 26.11.17
 
 
 ## 저장소
@@ -62,6 +62,21 @@ Assets/
 - LFS 대상인데 LFS 포인터가 아닌 파일
 - 10MB 넘는 파일
 - API 키처럼 보이는 문자열
+
+## 코드 스타일
+
+대장 기존 코드(`portfolio_mjKim/_Unity_Reference`, ProjectR 우선)에서 뽑은 규칙. (26.11.17)
+
+- 네임스페이스는 쓰지 않는다(전역).
+- private/protected 필드는 `m_PascalCase`, static은 `s_PascalCase`, 상수는 `PascalCase`. 컬렉션은 `m_DicXxx`, `m_ListXxx`.
+- 접근 제한자를 항상 쓴다. `[SerializeField] private T m_Xxx = null;`
+- bool 부정은 `x == false`. 가드 구문으로 먼저 return하고, 한 줄 if는 중괄호 없이 다음 줄에 쓴다. 한 줄에 문장 하나.
+- 지역·out 변수는 타입을 명시한다. `var`는 `foreach (var pair ...)` 정도만.
+- 수명 주기는 `Init` / `Reset` / `Clear`, 갱신은 `Update(float deltaTime)`.
+- 클래스 안 필드와 함수 사이는 `// ==================================================`, 가상 함수 묶음은 `// virtual ----`. Unity 이벤트 함수(Awake, Start 등)를 먼저 둔다.
+- 접미사: 전역 싱글턴 `XxxManager`, 하위 시스템 `XxxManagement`, 액터 부품 `XxxFeature`, 모음 `XxxHub`. 약칭 지역 변수 `gameM`, `skillM`.
+- 열거형은 `E` 접두사, 매개변수 묶음은 `readonly struct XxxParams`. ID는 `ID`로 대문자.
+- 주석은 짧은 한글, 경고는 `// !!)`, 대장 메모는 `// [mj] todo)`.
 
 ## AI 협업
 

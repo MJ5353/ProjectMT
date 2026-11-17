@@ -1,20 +1,22 @@
 using System.Collections;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace MushTaker.Core
+public static class SceneNames
 {
-    public static class SceneNames
-    {
-        public const string Lobby = "Lobby";
-        public const string Battle = "Battle";
-    }
+    public const string Lobby = "Lobby";
+    public const string Battle = "Battle";
+}
 
-    public static class SceneLoader
+public static class SceneLoader
+{
+    public static IEnumerator Load(string sceneName)
     {
-        public static IEnumerator Load(string sceneName)
-        {
-            var op = SceneManager.LoadSceneAsync(sceneName);
-            while (op != null && !op.isDone) yield return null;
-        }
+        AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
+        if (op == null)
+            yield break;
+
+        while (op.isDone == false)
+            yield return null;
     }
 }

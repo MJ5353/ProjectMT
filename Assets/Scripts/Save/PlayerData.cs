@@ -1,40 +1,57 @@
 using System.Collections.Generic;
-using MushTaker.Core;
 
-namespace MushTaker.Save
+// 플레이 중 들고 다니는 플레이어 상태. 저장할 때 SaveData로, 불러올 때 SaveData에서 바꾼다.
+// 플래그는 해금, 튜토리얼 완료처럼 켜고 끄는 값에 쓴다
+public class PlayerData
 {
-    /// <summary>
-    /// 플레이 중 들고 다니는 플레이어 상태. 저장할 때 SaveData로, 불러올 때 SaveData에서 바꾼다.
-    /// 플래그는 해금, 튜토리얼 완료처럼 켜고 끄는 값에 쓴다.
-    /// </summary>
-    public class PlayerData
+    private readonly HashSet<string> m_Flags = new();
+
+    public Inventory Inventory { get; } = new();
+
+    // ------------------------------------------------
+
+    public void Clear()
     {
-        public Inventory Inventory { get; } = new();
+        Inventory.Clear();
+        m_Flags.Clear();
+    }
 
-        readonly HashSet<string> _flags = new();
+    public void Load(SaveData data)
+    {
+        Clear();
 
-        public bool HasFlag(string flag) => _flags.Contains(flag);
+        if (data == null)
+            return;
 
-        public void SetFlag(string flag, bool value = true)
+        foreach (ItemStack stack in data.items)
         {
-            var changed = value ? _flags.Add(flag) : _flags.Remove(flag);
-            if (changed) EventBus.Publish(new FlagChanged(flag, value));
+            Inventory.SetRaw(stack.id, stack.count);
         }
 
-        public void LoadFrom(SaveData data)
+        m_Flags.UnionWith(data.flags);
+    }
+
+    public SaveData ToSaveData()
+    {
+        SaveData data = new SaveData();
+
+        foreach (var pair in Inventory.DicCountByID)
         {
-            Inventory.Clear();
-            foreach (var stack in data.items) Inventory.SetRaw(stack.id, stack.count);
-            _flags.Clear();
-            _flags.UnionWith(data.flags);
+            data.items.Add(new ItemStack(pair.Key, pair.Value));
         }
 
-        public SaveData ToSaveData()
-        {
-            var data = new SaveData();
-            foreach (var pair in Inventory.All) data.items.Add(new ItemStack(pair.Key, pair.Value));
-            data.flags.AddRange(_flags);
-            return data;
-        }
+        data.flags.AddRange(m_Flags);
+        return data;
+    }
+
+    public bool HasFlag(string flag) => m_Flags.Contains(flag);
+
+    public void SetFlag(string flag, bool value = true)
+    {
+        bool isChanged = value ? m_Flags.Add(flag) : m_Flags.Remove(flag);
+        if (isChanged == false)
+            return;
+
+        EventBus.Publish(new FlagChanged(flag, value));
     }
 }

@@ -1,19 +1,19 @@
 using UnityEngine;
 
-namespace MushTaker.Data
+public enum ERarity
 {
-    public enum Rarity { Common, Rare, Epic }
+    Common,
+    Rare,
+    Epic,
+}
 
-    /// <summary>
-    /// 버섯 정의. 성질(분해·기생·포자 등)과 전투 효과는 장르가 정해진 뒤 필드를 추가한다.
-    /// </summary>
-    [CreateAssetMenu(menuName = "MushTaker/Data/Mushroom", fileName = "Mushroom_")]
-    public class MushroomDef : DataDef
-    {
-        [SerializeField] Rarity rarity;
-        [SerializeField] Color tint = Color.white;
+// 버섯 정의. 재배 시간, 수확량, 강화치 등은 기획 표가 정해지면 추가한다
+[CreateAssetMenu(menuName = "MushTaker/Data/Mushroom", fileName = "Mushroom_")]
+public class MushroomDef : DataDef
+{
+    [SerializeField] private ERarity m_Rarity = ERarity.Common;
+    [SerializeField] private Color m_Tint = Color.white;
 
-        public Rarity Rarity => rarity;
-        public Color Tint => tint;
-    }
+    public ERarity Rarity => m_Rarity;
+    public Color Tint => m_Tint;
 }

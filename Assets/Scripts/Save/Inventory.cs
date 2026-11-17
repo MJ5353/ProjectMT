@@ -1,44 +1,62 @@
 using System.Collections.Generic;
-using MushTaker.Core;
 
-namespace MushTaker.Save
+// ID → 개수. 버섯, 재화, 재료 등 개수로 세는 것은 모두 여기에 둔다.
+// 바뀔 때마다 InventoryChanged를 발행하므로 UI는 이벤트만 구독하면 된다
+public class Inventory
 {
-    /// <summary>
-    /// id → 개수. 버섯, 재화, 재료 등 개수로 세는 것은 모두 여기에 둔다.
-    /// 바뀔 때마다 InventoryChanged를 발행하므로 UI는 이벤트만 구독하면 된다.
-    /// </summary>
-    public class Inventory
+    private readonly Dictionary<string, int> m_DicCountByID = new();
+
+    public IReadOnlyDictionary<string, int> DicCountByID => m_DicCountByID;
+
+    // ------------------------------------------------
+
+    public void Clear()
     {
-        readonly Dictionary<string, int> _counts = new();
+        m_DicCountByID.Clear();
+    }
 
-        public IReadOnlyDictionary<string, int> All => _counts;
+    public int GetCount(string id)
+    {
+        if (string.IsNullOrEmpty(id))
+            return 0;
 
-        public int GetCount(string id) => _counts.TryGetValue(id, out var c) ? c : 0;
+        return m_DicCountByID.TryGetValue(id, out int count) ? count : 0;
+    }
 
-        public bool Has(string id, int amount = 1) => GetCount(id) >= amount;
+    public bool Has(string id, int amount = 1) => GetCount(id) >= amount;
 
-        public void Add(string id, int amount)
-        {
-            if (string.IsNullOrEmpty(id) || amount <= 0) return;
-            var count = GetCount(id) + amount;
-            _counts[id] = count;
-            EventBus.Publish(new InventoryChanged(id, count, amount));
-        }
+    public void Add(string id, int amount)
+    {
+        if (string.IsNullOrEmpty(id) || amount <= 0)
+            return;
 
-        public bool TryRemove(string id, int amount)
-        {
-            if (amount <= 0 || !Has(id, amount)) return false;
-            var count = GetCount(id) - amount;
-            if (count == 0) _counts.Remove(id);
-            else _counts[id] = count;
-            EventBus.Publish(new InventoryChanged(id, count, -amount));
-            return true;
-        }
+        int count = GetCount(id) + amount;
+        m_DicCountByID[id] = count;
 
-        internal void Clear() => _counts.Clear();
-        internal void SetRaw(string id, int count)
-        {
-            if (count > 0) _counts[id] = count;
-        }
+        EventBus.Publish(new InventoryChanged(id, count, amount));
+    }
+
+    public bool TryRemove(string id, int amount)
+    {
+        if (amount <= 0 || Has(id, amount) == false)
+            return false;
+
+        int count = GetCount(id) - amount;
+        if (count == 0)
+            m_DicCountByID.Remove(id);
+        else
+            m_DicCountByID[id] = count;
+
+        EventBus.Publish(new InventoryChanged(id, count, -amount));
+        return true;
+    }
+
+    // !!) 세이브 불러오기 전용. 이벤트를 발행하지 않는다
+    public void SetRaw(string id, int count)
+    {
+        if (string.IsNullOrEmpty(id) || count <= 0)
+            return;
+
+        m_DicCountByID[id] = count;
     }
 }

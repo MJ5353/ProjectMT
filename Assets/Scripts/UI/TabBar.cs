@@ -1,62 +1,72 @@
 using System;
 using System.Collections.Generic;
-using MushTaker.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MushTaker.UI
+// 하단 탭바. 버튼과 화면을 짝지어 두고 누른 탭의 화면만 켠다. 바뀌면 TabChanged를 발행한다
+public class TabBar : MonoBehaviour
 {
-    /// <summary>
-    /// 하단 탭바. 버튼과 화면을 짝지어 두고 누른 탭의 화면만 켠다. 바뀌면 TabChanged를 발행한다.
-    /// </summary>
-    public class TabBar : MonoBehaviour
+    [Serializable]
+    public class Entry
     {
-        [Serializable]
-        public class Entry
+        public Button button;
+        public TabView view;
+        public GameObject highlight; // 선택 표시(없어도 됨)
+    }
+
+    [SerializeField] private List<Entry> m_ListTab = new();
+    [SerializeField] private int m_DefaultIndex = 0;
+
+    public int CurrentIndex { get; private set; } = -1;
+
+    // ==================================================
+
+    private void Awake()
+    {
+        for (int i = 0; i < m_ListTab.Count; i++)
         {
-            public Button button;
-            public TabView view;
-            public GameObject highlight;  // 선택 표시(없어도 됨)
+            int index = i;
+            Entry entry = m_ListTab[i];
+
+            entry.button.onClick.AddListener(() => Select(index));
+            entry.view.gameObject.SetActive(false);
+            SetHighlight(entry, false);
+        }
+    }
+
+    private void Start()
+    {
+        Select(m_DefaultIndex);
+    }
+
+    public void Select(int index)
+    {
+        if (index == CurrentIndex || index < 0 || index >= m_ListTab.Count)
+            return;
+
+        int from = CurrentIndex;
+        if (from >= 0)
+        {
+            m_ListTab[from].view.SetVisible(false);
+            SetHighlight(m_ListTab[from], false);
         }
 
-        [SerializeField] List<Entry> tabs = new();
-        [SerializeField] int defaultIndex;
+        CurrentIndex = index;
+        m_ListTab[index].view.SetVisible(true);
+        SetHighlight(m_ListTab[index], true);
 
-        public int CurrentIndex { get; private set; } = -1;
+        EventBus.Publish(new TabChanged(from, index));
+    }
 
-        void Awake()
-        {
-            for (int i = 0; i < tabs.Count; i++)
-            {
-                int index = i;
-                tabs[i].button.onClick.AddListener(() => Select(index));
-                tabs[i].view.gameObject.SetActive(false);
-                if (tabs[i].highlight) tabs[i].highlight.SetActive(false);
-            }
-        }
+    private void SetHighlight(Entry entry, bool isOn)
+    {
+        if (entry.highlight == null)
+            return;
 
-        void Start() => Select(defaultIndex);
-
-        public void Select(int index)
-        {
-            if (index == CurrentIndex || index < 0 || index >= tabs.Count) return;
-
-            int from = CurrentIndex;
-            if (from >= 0)
-            {
-                tabs[from].view.SetVisible(false);
-                if (tabs[from].highlight) tabs[from].highlight.SetActive(false);
-            }
-
-            CurrentIndex = index;
-            tabs[index].view.SetVisible(true);
-            if (tabs[index].highlight) tabs[index].highlight.SetActive(true);
-
-            EventBus.Publish(new TabChanged(from, index));
-        }
+        entry.highlight.SetActive(isOn);
+    }
 
 #if UNITY_EDITOR
-        public void EditorSetTabs(List<Entry> entries) => tabs = entries;
+    public void EditorSetTabs(List<Entry> listEntry) => m_ListTab = listEntry;
 #endif
-    }
 }
