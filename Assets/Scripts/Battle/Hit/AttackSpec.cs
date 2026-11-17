@@ -7,15 +7,15 @@ public class AttackSpec
 {
     public const float Fps = 30f;
 
-    [SerializeField] private string m_Clip = "Attack";
+    [SerializeField] private string m_Clip = "Attack";   // 재생할 애니 클립 이름
     [SerializeField] private int m_Damage = 1;
-    [SerializeField, Tooltip("판정 프레임(30fps)")] private int m_HitFrame = 9;
-    [SerializeField, Tooltip("몸 앞쪽으로 판정 중심까지 거리")] private float m_Reach = 1f;
-    [SerializeField] private float m_Radius = 0.9f;
-    [SerializeField, Tooltip("판정 중심 높이")] private float m_Height = 0.6f;
-    [SerializeField] private float m_Knockback = 6f;
-    [SerializeField] private float m_HitStop = 0.06f;
-    [SerializeField, Tooltip("공격 시작 때 앞으로 내딛는 속도")] private float m_Lunge = 0f;
+    [SerializeField] private int m_HitFrame = 9;          // 판정이 나는 프레임(30fps 기준)
+    [SerializeField] private float m_Reach = 1f;          // 몸 앞쪽으로 판정 중심까지 거리
+    [SerializeField] private float m_Radius = 0.9f;       // 판정 구 반지름
+    [SerializeField] private float m_Height = 0.6f;       // 판정 중심 높이
+    [SerializeField] private float m_Knockback = 6f;      // 맞은 쪽을 미는 속도
+    [SerializeField] private float m_HitStop = 0.06f;     // 맞을 때 화면이 멈추는 시간(초)
+    [SerializeField] private float m_Lunge = 0f;          // 공격 시작 때 앞으로 내딛는 속도
 
     public string Clip => m_Clip;
     public int Damage => m_Damage;

@@ -1,6 +1,7 @@
 using UnityEngine;
 
 // 전체 시간을 잠깐 멈추는 관리자. 겹친 요청은 더 긴 쪽을 따른다. 처음 요청할 때 자동 생성된다.
+// !!) 보류: Mono 대신 BattleManager가 매 프레임 갱신하는 일반 클래스로 바꿀지 검토
 public class HitStopManager : MonoBehaviour
 {
     private static HitStopManager s_Instance;

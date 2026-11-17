@@ -1,16 +1,18 @@
 using UnityEngine;
 
 // CharacterController 이동. 주인이 원하는 수평 속도를 넣고, 넉백 같은 순간 속도는 따로 더해 감쇠시킨다.
-[RequireComponent(typeof(CharacterController))]
-public class MoveFeature : MonoBehaviour
+// 주인(UnitController)이 만들고 매 프레임 Tick을 부른다
+public class MoveFeature
 {
     private const float MaxDeltaTime = 1f / 20f;
+    private const float Gravity = -25f;
+    private const float GroundedSpeed = -2f;   // 땅에 붙어 있도록 누르는 속도
+    private const float ImpulseDamping = 9f;   // 넉백이 줄어드는 빠르기
+    private const float TurnSpeed = 900f;      // 초당 회전 각도
 
-    [SerializeField] private float m_Gravity = -25f;
-    [SerializeField, Tooltip("넉백이 줄어드는 빠르기")] private float m_ImpulseDamping = 9f;
-    [SerializeField, Tooltip("초당 회전 각도")] private float m_TurnSpeed = 900f;
+    private readonly CharacterController m_Controller;
+    private readonly Transform m_Transform;
 
-    private CharacterController m_Controller;
     private Vector3 m_Desired;
     private Vector3 m_Impulse;
     private float m_VerticalSpeed;
@@ -20,31 +22,32 @@ public class MoveFeature : MonoBehaviour
 
     // ==================================================
 
-    private void Awake()
+    public MoveFeature(CharacterController controller)
     {
-        m_Controller = GetComponent<CharacterController>();
+        m_Controller = controller;
+        m_Transform = controller.transform;
     }
 
-    private void Update()
+    public void Tick(float deltaTime)
     {
         if (m_Controller.enabled == false)
             return;
 
         // 씬 로드 직후 같은 긴 프레임에 한 번에 크게 떨어지지 않게 자른다
-        float deltaTime = Mathf.Min(Time.deltaTime, MaxDeltaTime);
+        deltaTime = Mathf.Min(deltaTime, MaxDeltaTime);
         if (deltaTime <= 0f)
             return;
 
         if (m_Controller.isGrounded && m_VerticalSpeed < 0f)
-            m_VerticalSpeed = -2f;
+            m_VerticalSpeed = GroundedSpeed;
 
-        m_VerticalSpeed += m_Gravity * deltaTime;
+        m_VerticalSpeed += Gravity * deltaTime;
 
         Vector3 motion = (m_Desired + m_Impulse) * deltaTime;
         motion.y = m_VerticalSpeed * deltaTime;
         m_Controller.Move(motion);
 
-        m_Impulse = Vector3.Lerp(m_Impulse, Vector3.zero, 1f - Mathf.Exp(-m_ImpulseDamping * deltaTime));
+        m_Impulse = Vector3.Lerp(m_Impulse, Vector3.zero, 1f - Mathf.Exp(-ImpulseDamping * deltaTime));
     }
 
     public void SetVelocity(Vector3 velocity)
@@ -76,9 +79,9 @@ public class MoveFeature : MonoBehaviour
             return;
 
         Quaternion target = Quaternion.LookRotation(direction);
-        transform.rotation = instant
+        m_Transform.rotation = instant
             ? target
-            : Quaternion.RotateTowards(transform.rotation, target, m_TurnSpeed * Time.deltaTime);
+            : Quaternion.RotateTowards(m_Transform.rotation, target, TurnSpeed * Time.deltaTime);
     }
 
     public void SetCollision(bool isOn)

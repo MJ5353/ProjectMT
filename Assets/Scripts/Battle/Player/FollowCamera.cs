@@ -1,22 +1,23 @@
 using UnityEngine;
 
-// 3인칭 쿼터뷰 추적 카메라. 각도·거리는 인스펙터에서 정한다
+// 3인칭 쿼터뷰 추적 카메라. 시작할 때 플레이어를 따라간다
 public class FollowCamera : MonoBehaviour
 {
-    [SerializeField] private Transform m_Target = null;
-    [SerializeField] private float m_Distance = 11f;
-    [SerializeField] private float m_Pitch = 50f;
-    [SerializeField] private float m_Yaw = 0f;
-    [SerializeField, Tooltip("바라보는 점 높이")] private float m_LookHeight = 1f;
-    [SerializeField] private float m_SmoothTime = 0.12f;
+    private const float Distance = 11f;     // 바라보는 점에서 카메라까지 거리
+    private const float Pitch = 50f;        // 내려다보는 각도
+    private const float Yaw = 0f;
+    private const float LookHeight = 1f;    // 바라보는 점 높이(발밑 기준)
+    private const float SmoothTime = 0.12f;
 
+    private Transform m_Target;
     private Vector3 m_Velocity;
 
     // ==================================================
 
     private void Start()
     {
-        Init();
+        if (PlayerController.Current != null)
+            SetTarget(PlayerController.Current.transform);
     }
 
     private void LateUpdate()
@@ -24,35 +25,27 @@ public class FollowCamera : MonoBehaviour
         if (m_Target == null)
             return;
 
-        transform.position = Vector3.SmoothDamp(transform.position, GetDesiredPosition(), ref m_Velocity, m_SmoothTime);
+        transform.position = Vector3.SmoothDamp(transform.position, GetDesiredPosition(), ref m_Velocity, SmoothTime);
         transform.rotation = GetRotation();
     }
 
-    public void Init()
+    public void SetTarget(Transform target)
     {
-        if (m_Target == null && PlayerController.Current != null)
-            m_Target = PlayerController.Current.transform;
-
+        m_Target = target;
         if (m_Target == null)
             return;
 
         transform.SetPositionAndRotation(GetDesiredPosition(), GetRotation());
     }
 
-    public void SetTarget(Transform target)
+    private static Quaternion GetRotation()
     {
-        m_Target = target;
-        Init();
-    }
-
-    private Quaternion GetRotation()
-    {
-        return Quaternion.Euler(m_Pitch, m_Yaw, 0f);
+        return Quaternion.Euler(Pitch, Yaw, 0f);
     }
 
     private Vector3 GetDesiredPosition()
     {
-        Vector3 lookPoint = m_Target.position + Vector3.up * m_LookHeight;
-        return lookPoint - GetRotation() * Vector3.forward * m_Distance;
+        Vector3 lookPoint = m_Target.position + Vector3.up * LookHeight;
+        return lookPoint - GetRotation() * Vector3.forward * Distance;
     }
 }

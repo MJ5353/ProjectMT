@@ -8,7 +8,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // 전투 1단계 시험 환경을 만드는 메뉴.
-// 애니메이터(상태 이름 = 클립 이름), 프리팹(채집꾼·버끼·송이 줍기), 버끼 데이터, Battle 씬(Map_Field01 + 스폰 지점)을 만든다.
+// 애니메이터(상태 이름 = 클립 이름), 프리팹(채집꾼·버끼·버곰·버섯 줍기), 데이터(플레이어·몹), Battle 씬(Map_Field01 + 스폰 지점)을 만든다.
+// 프리팹의 참조(Def·CharacterController·Animator·몸 렌더러)는 여기서 채워서, 런타임에는 GetComponent를 쓰지 않는다
 // !!) 데이터·프리팹은 이미 있으면 건드리지 않는다(대장이 고친 값 보호). 다시 만들려면 "프리팹 다시 만들기"
 public static class BattleSetup
 {
@@ -28,6 +29,8 @@ public static class BattleSetup
     private const string CloudPickupPath = PrefabDir + "Pickup_Cloud.prefab";
     private const string BugomDefPath = MobDataDir + "Mob_Bugom.asset";
     private const string MushroomDataDir = "Assets/Data/Mushrooms/";
+    private const string PlayerDataDir = "Assets/Data/Player/";
+    private const string PlayerDefPath = PlayerDataDir + "Player.asset";
 
     // ==================================================
 
@@ -57,6 +60,7 @@ public static class BattleSetup
         Directory.CreateDirectory(AnimatorDir);
         Directory.CreateDirectory(MobDataDir);
         Directory.CreateDirectory(MushroomDataDir);
+        Directory.CreateDirectory(PlayerDataDir);
 
         BuildMushroomDef("Mushroom_Songi", "송이");
         BuildMushroomDef("Mushroom_Cloud", "구름버섯");
@@ -69,7 +73,8 @@ public static class BattleSetup
         MobDef bugomDef = BuildBugomDef(cloudPickup);
         BuildBugom(bugomDef, isForce);
 
-        BuildPlayer(isForce);
+        PlayerDef playerDef = BuildPlayerDef();
+        BuildPlayer(playerDef, isForce);
 
         AssetDatabase.SaveAssets();
         DataTools.RefreshDatabase(false);
@@ -97,28 +102,69 @@ public static class BattleSetup
     private static MobDef BuildBuggiDef(MushroomPickup songiPickup)
     {
         MobDef def = AssetDatabase.LoadAssetAtPath<MobDef>(BuggiDefPath);
+        if (def == null)
+        {
+            def = ScriptableObject.CreateInstance<MobDef>();
+            AssetDatabase.CreateAsset(def, BuggiDefPath);
+            SetString(def, "m_ID", "Mob_Buggi");
+            SetString(def, "m_DisplayName", "버끼");
+
+            List<MobDef.DropEntry> listDrop = new()
+            {
+                new MobDef.DropEntry(songiPickup, 1, 2, 1f),
+            };
+
+            // 박치기: 13프레임 판정, 앞으로 튀어나감
+            AttackSpec headbutt = new("Attack", 1, 13, 0.7f, 0.7f, 0.4f, 6f, 0.05f, 5f);
+            def.EditorSetup(headbutt, 1.2f, listDrop);
+        }
+
+        // 새로 만들 때, 또는 버섯 모델 칸이 비었을 때만(이전 형식 데이터) 채운다. 조각 색도 이때 같이
+        if (HasEmptyMushroom(def))
+        {
+            Renderer songi = LoadMushroom("Mush_Songi");
+            def.EditorSetMushrooms(new List<MobDef.MushroomSocket>
+            {
+                new("Socket_Head", songi, 0.8f),
+                new("Socket_Back", songi, 0.6f),
+            });
+            SetColor(def, "m_ChunkColor", new Color(0.95f, 0.9f, 0.8f));
+        }
+
+        EditorUtility.SetDirty(def);
+        return def;
+    }
+
+    private static bool HasEmptyMushroom(MobDef def)
+    {
+        return def.ListMushroom.Count == 0 || def.ListMushroom.Any(socket => socket.Model == null);
+    }
+
+    // 버섯 FBX는 메시 하나라서 렌더러를 바로 꽂는다
+    private static Renderer LoadMushroom(string modelName)
+    {
+        GameObject model = LoadModel(modelName);
+        return model != null ? model.GetComponentInChildren<Renderer>() : null;
+    }
+
+    // 채집꾼 수치. 나머지는 PlayerDef 기본값
+    private static PlayerDef BuildPlayerDef()
+    {
+        PlayerDef def = AssetDatabase.LoadAssetAtPath<PlayerDef>(PlayerDefPath);
         if (def != null)
             return def;
 
-        def = ScriptableObject.CreateInstance<MobDef>();
-        AssetDatabase.CreateAsset(def, BuggiDefPath);
-        SetString(def, "m_ID", "Mob_Buggi");
-        SetString(def, "m_DisplayName", "버끼");
+        def = ScriptableObject.CreateInstance<PlayerDef>();
+        AssetDatabase.CreateAsset(def, PlayerDefPath);
+        SetString(def, "m_ID", "Player");
+        SetString(def, "m_DisplayName", "채집꾼");
+        SetInt(def, "m_MaxHp", 5);
+        SetFloat(def, "m_HitStunTime", 0.3f);
+        SetFloat(def, "m_InvincibleTime", 0.6f);
+        SetColor(def, "m_ChunkColor", new Color(0.9f, 0.3f, 0.3f));
 
-        GameObject songiModel = LoadModel("Mush_Songi");
-        List<MobDef.MushroomSocket> listMushroom = new()
-        {
-            new MobDef.MushroomSocket("Socket_Head", songiModel, 0.8f),
-            new MobDef.MushroomSocket("Socket_Back", songiModel, 0.6f),
-        };
-        List<MobDef.DropEntry> listDrop = new()
-        {
-            new MobDef.DropEntry(songiPickup, 1, 2, 1f),
-        };
-
-        // 박치기: 13프레임 판정, 앞으로 튀어나감
-        AttackSpec headbutt = new("Attack", 1, 13, 0.7f, 0.7f, 0.4f, 6f, 0.05f, 5f);
-        def.EditorSetup(headbutt, 1.2f, listMushroom, listDrop);
+        // 내려치기: 9프레임 판정, 살짝 내딛음
+        def.EditorSetAttack(new AttackSpec("Attack", 1, 9, 1.1f, 1f, 0.7f, 7f, 0.07f, 2f));
         EditorUtility.SetDirty(def);
         return def;
     }
@@ -139,38 +185,45 @@ public static class BattleSetup
     private static MobDef BuildBugomDef(MushroomPickup cloudPickup)
     {
         MobDef def = AssetDatabase.LoadAssetAtPath<MobDef>(BugomDefPath);
-        if (def != null)
-            return def;
-
-        def = ScriptableObject.CreateInstance<MobDef>();
-        AssetDatabase.CreateAsset(def, BugomDefPath);
-        SetString(def, "m_ID", "Mob_Bugom");
-        SetString(def, "m_DisplayName", "버곰");
-        SetInt(def, "m_MaxHp", 7);
-        SetFloat(def, "m_MoveSpeed", 2.2f);
-        SetFloat(def, "m_WanderSpeed", 0.9f);
-        SetFloat(def, "m_KnockbackScale", 0.35f);
-        SetFloat(def, "m_SightRange", 8f);
-        SetFloat(def, "m_AttackRange", 2.2f);
-        SetFloat(def, "m_WindupTime", 0.7f);
-        SetFloat(def, "m_AttackCooldown", 1.8f);
-        SetFloat(def, "m_HitStunTime", 0.2f);
-
-        GameObject cloudModel = LoadModel("Mush_Cloud");
-        List<MobDef.MushroomSocket> listMushroom = new()
+        if (def == null)
         {
-            new MobDef.MushroomSocket("Socket_Back1", cloudModel, 1.5f),
-            new MobDef.MushroomSocket("Socket_Back2", cloudModel, 1.3f),
-            new MobDef.MushroomSocket("Socket_Head", cloudModel, 0.8f),
-        };
-        List<MobDef.DropEntry> listDrop = new()
-        {
-            new MobDef.DropEntry(cloudPickup, 2, 3, 1f),
-        };
+            def = ScriptableObject.CreateInstance<MobDef>();
+            AssetDatabase.CreateAsset(def, BugomDefPath);
+            SetString(def, "m_ID", "Mob_Bugom");
+            SetString(def, "m_DisplayName", "버곰");
+            SetInt(def, "m_MaxHp", 7);
+            SetFloat(def, "m_MoveSpeed", 2.2f);
+            SetFloat(def, "m_WanderSpeed", 0.9f);
+            SetFloat(def, "m_KnockbackScale", 0.35f);
+            SetFloat(def, "m_SightRange", 8f);
+            SetFloat(def, "m_AttackRange", 2.2f);
+            SetFloat(def, "m_WindupTime", 0.7f);
+            SetFloat(def, "m_AttackCooldown", 1.8f);
+            SetFloat(def, "m_HitStunTime", 0.2f);
 
-        // 일어서서 내려찍기: 19프레임 판정, 앞쪽 넓게
-        AttackSpec slam = new("Attack", 2, 19, 1.5f, 1.3f, 0.5f, 10f, 0.09f, 0f);
-        def.EditorSetup(slam, 0f, listMushroom, listDrop);
+            List<MobDef.DropEntry> listDrop = new()
+            {
+                new MobDef.DropEntry(cloudPickup, 2, 3, 1f),
+            };
+
+            // 일어서서 내려찍기: 19프레임 판정, 앞쪽 넓게
+            AttackSpec slam = new("Attack", 2, 19, 1.5f, 1.3f, 0.5f, 10f, 0.09f, 0f);
+            def.EditorSetup(slam, 0f, listDrop);
+        }
+
+        // 새로 만들 때, 또는 버섯 모델 칸이 비었을 때만(이전 형식 데이터) 채운다. 조각 색도 이때 같이
+        if (HasEmptyMushroom(def))
+        {
+            Renderer cloud = LoadMushroom("Mush_Cloud");
+            def.EditorSetMushrooms(new List<MobDef.MushroomSocket>
+            {
+                new("Socket_Back1", cloud, 1.5f),
+                new("Socket_Back2", cloud, 1.3f),
+                new("Socket_Head", cloud, 0.8f),
+            });
+            SetColor(def, "m_ChunkColor", new Color(0.55f, 0.4f, 0.3f));
+        }
+
         EditorUtility.SetDirty(def);
         return def;
     }
@@ -180,10 +233,7 @@ public static class BattleSetup
         if (File.Exists(BugomPrefabPath) && isForce == false)
             return;
 
-        GameObject root = BuildUnit("Mob_Bugom", "Bugom", 1.6f, 0.75f, ETeam.Mob, 0f, def.MaxHp, new Color(0.55f, 0.4f, 0.3f));
-        MobController mob = root.AddComponent<MobController>();
-        SetObject(mob, "m_Def", def);
-        SetObject(mob, "m_VisualRoot", root.transform.Find("Model"));
+        GameObject root = BuildUnit<MobController>("Mob_Bugom", "Bugom", 1.6f, 0.75f, def);
 
         PrefabUtility.SaveAsPrefabAsset(root, BugomPrefabPath);
         Object.DestroyImmediate(root);
@@ -194,44 +244,43 @@ public static class BattleSetup
         if (File.Exists(BuggiPrefabPath) && isForce == false)
             return;
 
-        GameObject root = BuildUnit("Mob_Buggi", "Buggi", 0.9f, 0.35f, ETeam.Mob, 0f, def.MaxHp, new Color(0.95f, 0.9f, 0.8f));
-        MobController mob = root.AddComponent<MobController>();
-        SetObject(mob, "m_Def", def);
-        SetObject(mob, "m_VisualRoot", root.transform.Find("Model"));
+        GameObject root = BuildUnit<MobController>("Mob_Buggi", "Buggi", 0.9f, 0.35f, def);
 
         PrefabUtility.SaveAsPrefabAsset(root, BuggiPrefabPath);
         Object.DestroyImmediate(root);
     }
 
-    private static void BuildPlayer(bool isForce)
+    private static void BuildPlayer(PlayerDef def, bool isForce)
     {
         if (File.Exists(PlayerPrefabPath) && isForce == false)
             return;
 
-        GameObject root = BuildUnit("Player", "Player", 1.7f, 0.35f, ETeam.Player, 0.6f, 5, new Color(0.9f, 0.3f, 0.3f));
-        root.AddComponent<PlayerController>();
+        GameObject root = BuildUnit<PlayerController>("Player", "Player", 1.7f, 0.35f, def);
 
         PrefabUtility.SaveAsPrefabAsset(root, PlayerPrefabPath);
         Object.DestroyImmediate(root);
     }
 
-    // 몹·플레이어 공통 몸: 모델 + 이동 + 애니 + 피격 부품 조합
-    private static GameObject BuildUnit(string name, string modelName, float height, float radius, ETeam team, float invincibleTime, int maxHp, Color chunkColor)
+    // 몹·플레이어 공통 몸: 모델 + CharacterController + 컨트롤러. 컨트롤러의 참조를 여기서 채운다
+    private static GameObject BuildUnit<TController>(string name, string modelName, float height, float radius, UnitDef def) where TController : Component
     {
         GameObject root = new GameObject(name);
 
+        Animator animator = null;
+        List<Renderer> listRenderer = new();
         GameObject model = InstantiateModel(modelName, root.transform);
         if (model != null)
         {
             model.name = "Model";
             // 복셀 FBX는 앞이 -Z라서 Unity 앞(+Z)에 맞게 돌린다
             model.transform.localRotation = Quaternion.Euler(0f, ModelYaw, 0f);
-            Animator animator = model.GetComponent<Animator>();
+            animator = model.GetComponent<Animator>();
             if (animator == null)
                 animator = model.AddComponent<Animator>();
 
             animator.runtimeAnimatorController = BuildController(modelName);
             animator.applyRootMotion = false;
+            listRenderer.AddRange(model.GetComponentsInChildren<Renderer>(true).Where(r => r is ParticleSystemRenderer == false));
         }
 
         CharacterController controller = root.AddComponent<CharacterController>();
@@ -240,26 +289,19 @@ public static class BattleSetup
         controller.center = new Vector3(0f, height * 0.5f, 0f);
         controller.stepOffset = Mathf.Min(0.4f, height * 0.4f);
 
-        root.AddComponent<MoveFeature>();
-        AnimFeature anim = root.AddComponent<AnimFeature>();
-        if (model != null)
-            SetObject(anim, "m_Animator", model.GetComponent<Animator>());
+        TController unit = root.AddComponent<TController>();
+        SerializedObject so = new SerializedObject(unit);
+        so.FindProperty("m_Def").objectReferenceValue = def;
+        so.FindProperty("m_CharacterController").objectReferenceValue = controller;
+        so.FindProperty("m_Animator").objectReferenceValue = animator;
+        SerializedProperty listBody = so.FindProperty("m_ListBodyRenderer");
+        listBody.arraySize = listRenderer.Count;
+        for (int i = 0; i < listRenderer.Count; i++)
+        {
+            listBody.GetArrayElementAtIndex(i).objectReferenceValue = listRenderer[i];
+        }
 
-        HealthFeature health = root.AddComponent<HealthFeature>();
-        SetInt(health, "m_MaxHp", maxHp);
-
-        HitFeature hitFeature = root.AddComponent<HitFeature>();
-        SetEnum(hitFeature, "m_Team", (int)team);
-        SetFloat(hitFeature, "m_InvincibleTime", invincibleTime);
-
-        root.AddComponent<KnockbackFeature>();
-        root.AddComponent<FlashFeature>();
-        root.AddComponent<HitStopFeature>();
-        ChunkBurstFeature chunk = root.AddComponent<ChunkBurstFeature>();
-        SetColor(chunk, "m_Color", chunkColor);
-
-        MeleeAttackFeature melee = root.AddComponent<MeleeAttackFeature>();
-        SetEnum(melee, "m_Team", (int)team);
+        so.ApplyModifiedPropertiesWithoutUndo();
         return root;
     }
 
@@ -309,8 +351,7 @@ public static class BattleSetup
         Camera cam = Object.FindAnyObjectByType<Camera>();
         if (cam != null)
         {
-            FollowCamera follow = cam.gameObject.AddComponent<FollowCamera>();
-            SetObject(follow, "m_Target", player.transform);
+            cam.gameObject.AddComponent<FollowCamera>();
             cam.farClipPlane = 200f;
         }
 
@@ -319,7 +360,6 @@ public static class BattleSetup
         battle.AddComponent<BattleHud>();
 
         SerializedObject so = new SerializedObject(battleM);
-        so.FindProperty("m_Player").objectReferenceValue = player.GetComponent<PlayerController>();
         SerializedProperty listGroup = so.FindProperty("m_ListGroup");
         listGroup.arraySize = 2;
         SetGroup(listGroup.GetArrayElementAtIndex(0), BuggiPrefabPath, "Spawn_Buggi", 6, 4f);
@@ -341,7 +381,6 @@ public static class BattleSetup
     {
         group.FindPropertyRelative("m_Prefab").objectReferenceValue = AssetDatabase.LoadAssetAtPath<MobController>(prefabPath);
         group.FindPropertyRelative("m_PointPrefix").stringValue = pointPrefix;
-        group.FindPropertyRelative("m_ListPoint").arraySize = 0;
         group.FindPropertyRelative("m_MaxAlive").intValue = maxAlive;
         group.FindPropertyRelative("m_RespawnDelay").floatValue = respawnDelay;
     }
@@ -433,24 +472,10 @@ public static class BattleSetup
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
-    private static void SetEnum(Object target, string propertyName, int index)
-    {
-        SerializedObject so = new SerializedObject(target);
-        so.FindProperty(propertyName).enumValueIndex = index;
-        so.ApplyModifiedPropertiesWithoutUndo();
-    }
-
     private static void SetColor(Object target, string propertyName, Color value)
     {
         SerializedObject so = new SerializedObject(target);
         so.FindProperty(propertyName).colorValue = value;
-        so.ApplyModifiedPropertiesWithoutUndo();
-    }
-
-    private static void SetObject(Object target, string propertyName, Object value)
-    {
-        SerializedObject so = new SerializedObject(target);
-        so.FindProperty(propertyName).objectReferenceValue = value;
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 }

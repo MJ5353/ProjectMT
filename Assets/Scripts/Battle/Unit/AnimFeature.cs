@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 클립 이름으로 애니를 트는 얇은 래퍼. 애니메이터 컨트롤러는 상태 이름 = 클립 이름으로 만든다(BattleSetup 메뉴).
-public class AnimFeature : MonoBehaviour
+public class AnimFeature
 {
-    [SerializeField] private Animator m_Animator = null;
-    [SerializeField] private float m_DefaultFade = 0.08f;
+    private const float DefaultFade = 0.08f;
+    private const float UnknownLength = 0.5f;   // 클립이 없을 때 돌려주는 길이
 
+    private readonly Animator m_Animator;
     private readonly Dictionary<string, float> m_DicLength = new();
     private string m_Current;
 
@@ -14,18 +15,9 @@ public class AnimFeature : MonoBehaviour
 
     // ==================================================
 
-    private void Awake()
+    public AnimFeature(Animator animator)
     {
-        Init();
-    }
-
-    public void Init()
-    {
-        if (m_Animator == null)
-            m_Animator = GetComponentInChildren<Animator>();
-
-        m_DicLength.Clear();
-        m_Current = null;
+        m_Animator = animator;
         if (m_Animator == null || m_Animator.runtimeAnimatorController == null)
             return;
 
@@ -55,12 +47,12 @@ public class AnimFeature : MonoBehaviour
             return;
         }
 
-        m_Animator.CrossFadeInFixedTime(hash, fade < 0f ? m_DefaultFade : fade, 0);
+        m_Animator.CrossFadeInFixedTime(hash, fade < 0f ? DefaultFade : fade, 0);
     }
 
     public float GetLength(string clip)
     {
-        return m_DicLength.TryGetValue(clip, out float length) ? length : 0.5f;
+        return m_DicLength.TryGetValue(clip, out float length) ? length : UnknownLength;
     }
 
     public void SetSpeed(float speed)

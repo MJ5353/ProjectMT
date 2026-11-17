@@ -128,8 +128,7 @@ public class MobWindupState : MobState
     {
         m_Mob.Move.Stop();
         m_Mob.Anim.Play("Idle");
-        if (m_Mob.VisualRoot != null)
-            m_BaseScale = m_Mob.VisualRoot.localScale;
+        m_BaseScale = m_Mob.VisualRoot.localScale;
     }
 
     public override void Update(float deltaTime)
@@ -137,8 +136,7 @@ public class MobWindupState : MobState
         m_Mob.Move.FaceTo(m_Mob.GetTargetDirection());
 
         float t = Def.WindupTime > 0f ? Mathf.Clamp01(TimeInState / Def.WindupTime) : 1f;
-        if (m_Mob.VisualRoot != null)
-            m_Mob.VisualRoot.localScale = Vector3.Scale(m_BaseScale, Vector3.Lerp(Vector3.one, SquashScale, t));
+        m_Mob.VisualRoot.localScale = Vector3.Scale(m_BaseScale, Vector3.Lerp(Vector3.one, SquashScale, t));
 
         if (t >= 1f)
             m_Mob.ChangeState(EMobState.Attack);
@@ -146,8 +144,7 @@ public class MobWindupState : MobState
 
     public override void Exit()
     {
-        if (m_Mob.VisualRoot != null)
-            m_Mob.VisualRoot.localScale = m_BaseScale;
+        m_Mob.VisualRoot.localScale = m_BaseScale;
     }
 }
 
@@ -178,8 +175,7 @@ public class MobAttackState : MobState
         if (m_IsHitDone == false && TimeInState >= attack.HitTime)
         {
             m_IsHitDone = true;
-            if (m_Mob.Melee != null)
-                m_Mob.Melee.Perform(attack);
+            m_Mob.Melee.Perform(attack);
         }
 
         if (TimeInState >= m_Length)
