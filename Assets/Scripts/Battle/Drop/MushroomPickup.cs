@@ -85,7 +85,7 @@ public class MushroomPickup : MonoBehaviour
 
     private void UpdateMagnet(float deltaTime)
     {
-        PlayerController player = GameManager.Instance?.Actors?.Player;
+        PlayerController player = GameManager.Instance?.ActiveActors?.Player;
         if (player == null)
         {
             m_IsMagnet = false;
@@ -102,7 +102,7 @@ public class MushroomPickup : MonoBehaviour
 
     private bool IsPlayerNear()
     {
-        PlayerController player = GameManager.Instance?.Actors?.Player;
+        PlayerController player = GameManager.Instance?.ActiveActors?.Player;
         if (player == null || player.IsValid() == false)
             return false;
 
@@ -111,7 +111,7 @@ public class MushroomPickup : MonoBehaviour
 
     private void Collect()
     {
-        EventBus.Publish(new LootPicked(m_ItemID, m_Amount));
+        SEventService.Publish(new LootPicked(m_ItemID, m_Amount));
         Destroy(gameObject);
     }
 }

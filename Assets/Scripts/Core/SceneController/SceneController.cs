@@ -7,7 +7,7 @@ public sealed class SceneController : MonoBehaviour
     [SerializeField] private PopupManager m_PopupManager = null;
 
     private HitStopManager m_HitStopManager;
-    private BattleSession m_BattleSession;
+    private BattleFlow _battleFlow;
 
     // ==================================================
 
@@ -34,7 +34,7 @@ public sealed class SceneController : MonoBehaviour
 
         if (m_BattleManager != null)
         {
-            m_BattleSession = gameM.Flow.BeginBattle(gameObject.scene);
+            _battleFlow = gameM.FlowService.BeginBattle(gameObject.scene);
             m_HitStopManager = gameObject.AddComponent<HitStopManager>();
             m_HitStopManager.Init();
         }
@@ -43,12 +43,12 @@ public sealed class SceneController : MonoBehaviour
     private void Start()
     {
         // 플레이어의 Awake에서 체력과 피격 부품을 만든 뒤 전투를 초기화한다.
-        if (m_BattleSession != null)
-            m_BattleManager.Init(m_BattleSession);
+        if (_battleFlow != null)
+            m_BattleManager.Init(_battleFlow);
 
-        GameFlow flow = GameManager.Instance?.Flow;
-        if (flow != null && flow.Current == EGameState.None && flow.IsTransitioning == false)
-            flow.ChangeState(GameFlow.GetStateByScene(gameObject.scene.name));
+        FlowService flowService = GameManager.Instance?.FlowService;
+        if (flowService != null && flowService.Current == EGameState.None && flowService.IsTransitioning == false)
+            flowService.ChangeState(FlowService.GetStateByScene(gameObject.scene.name));
     }
 
     private void Update()
@@ -59,7 +59,7 @@ public sealed class SceneController : MonoBehaviour
         if (m_HitStopManager != null)
             m_HitStopManager.Tick(Time.unscaledDeltaTime);
 
-        m_BattleSession?.Chunks.Tick(Time.deltaTime);
+        _battleFlow?.Chunks.Tick(Time.deltaTime);
 
         if (m_PopupManager != null)
             m_PopupManager.Tick();
@@ -70,8 +70,8 @@ public sealed class SceneController : MonoBehaviour
         m_BattleManager?.Clear();
         m_HitStopManager?.Clear();
         m_PopupManager?.Clear();
-        m_BattleSession?.Chunks.Clear();
-        GameManager.Instance?.Flow.EndBattle(m_BattleSession);
+        _battleFlow?.Chunks.Clear();
+        GameManager.Instance?.FlowService.EndBattle(_battleFlow);
     }
 
     private void OnApplicationPause(bool isPaused)

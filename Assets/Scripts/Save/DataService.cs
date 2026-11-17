@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 // 플레이 중 들고 다니는 플레이어 상태. 저장할 때 SaveData로, 불러올 때 SaveData에서 바꾼다.
 // 플래그는 해금, 튜토리얼 완료처럼 켜고 끄는 값에 쓴다
-public class PlayerData
+public class DataService
 {
     private readonly HashSet<string> m_Flags = new();
 
@@ -52,6 +52,6 @@ public class PlayerData
         if (isChanged == false)
             return;
 
-        EventBus.Publish(new FlagChanged(flag, value));
+        SEventService.Publish(new FlagChanged(flag, value));
     }
 }

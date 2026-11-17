@@ -3,20 +3,19 @@ using UnityEngine;
 // 로비와 전투에서 공유하는 게임 상태. SceneController가 초기화한다.
 // 데이터베이스, 플레이어 데이터, 세이브, 게임 흐름을 들고 있는다
 
+// ==================================================
+
 public class GameManager : MonoSingleton<GameManager>
 {
+    public DataService Player { get; private set; }
     public GameDatabase Database { get; private set; }
-    public GameFlow Flow { get; private set; }
-    public PlayerData Player { get; private set; }
 
-    // 진행 중인 전투. 전투 씬이 아니면 null
-    public BattleSession Battle => Flow?.ActiveBattle;
-    public ActorManagement Actors => Battle?.Actors;
+    public FlowService FlowService { get; private set; }
+    public BattleFlow ActiveBattle => FlowService?.ActiveBattle;
+    public ActorManagement ActiveActors => ActiveBattle?.Actors;
 
     // [mj] todo) server?
     private SaveService m_SaveService;
-
-    // ==================================================
 
     // virtual---
 
@@ -28,14 +27,16 @@ public class GameManager : MonoSingleton<GameManager>
         else
             Database.Init();
 
+        DontDestroyOnLoad(gameObject);
+        
+        // save
         m_SaveService = new SaveService();
-
-        Player = new PlayerData();
+        Player = new DataService();
         Player.Load(m_SaveService.Load());
 
-        Flow = new GameFlow(this);
-        DontDestroyOnLoad(gameObject);
-
+        // flow
+        FlowService = new FlowService(this);
+        
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (TryGetComponent<DebugPanel>(out _) == false)
             gameObject.AddComponent<DebugPanel>();

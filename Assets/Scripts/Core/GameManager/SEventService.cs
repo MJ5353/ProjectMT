@@ -4,7 +4,7 @@ using UnityEngine;
 
 // 타입별 전역 이벤트 버스. 시스템끼리 직접 참조하지 않고 이벤트 구조체로만 소식을 주고받는다.
 // !!) 구독한 쪽은 OnDisable/OnDestroy에서 반드시 Unsubscribe 할 것
-public static class EventBus
+public static class SEventService
 {
     private static readonly List<Action> s_ListClearer = new();
 

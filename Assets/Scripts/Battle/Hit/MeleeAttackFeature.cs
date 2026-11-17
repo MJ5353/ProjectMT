@@ -18,7 +18,7 @@ public class MeleeAttackFeature : UnitFeature
     public int Perform(AttackSpec spec)
     {
         Transform owner = Owner.transform;
-        ActorManagement actors = GameManager.Instance?.Actors;
+        ActorManagement actors = GameManager.Instance?.ActiveActors;
         if (actors == null)
             return 0;
 

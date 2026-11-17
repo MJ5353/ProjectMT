@@ -155,6 +155,6 @@ public class HuntTabView : TabView
             return;
 
         HuntContext.Select(m_Selected);
-        gameM.Flow.ChangeState(EGameState.Battle);
+        gameM.FlowService.ChangeState(EGameState.Battle);
     }
 }

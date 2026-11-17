@@ -106,7 +106,7 @@ public class MonsterController : UnitController<MonsterDef>
     // 노릴 수 있는 플레이어. 없거나 PlayerController.IsValid()가 false면 null
     public PlayerController GetValidPlayer()
     {
-        PlayerController player = GameManager.Instance?.Actors?.Player;
+        PlayerController player = GameManager.Instance?.ActiveActors?.Player;
         if (player == null || player.IsValid() == false)
             return null;
 
@@ -116,7 +116,7 @@ public class MonsterController : UnitController<MonsterDef>
     // 죽은 뒤 사라질 때. 등록돼 있으면 ActorManagement가 지운다
     public void Despawn()
     {
-        ActorManagement actors = GameManager.Instance?.Actors;
+        ActorManagement actors = GameManager.Instance?.ActiveActors;
         if (actors != null && ActorID != 0)
         {
             actors.Despawn(ActorID);

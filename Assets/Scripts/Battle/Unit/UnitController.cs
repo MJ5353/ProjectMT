@@ -80,7 +80,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         }
 
         // 승패가 나면 입력·AI를 멈추고 제자리에 세운다. 중력만 계속 받는다
-        BattleSession battle = GameManager.Instance?.Battle;
+        BattleFlow battle = GameManager.Instance?.ActiveBattle;
         if (m_IsBattleOver == false && battle != null && battle.State != EBattleState.Playing)
         {
             m_IsBattleOver = true;

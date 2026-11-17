@@ -62,24 +62,24 @@ public class BattleManager : MonoSingleton<BattleManager>
 
     private readonly List<SpawnState> m_ListSpawn = new();
     private readonly Dictionary<int, SpawnState> m_DicSpawnByActorID = new();
-    private BattleSession m_Session;
+    private BattleFlow _flow;
     private PlayerController m_PlayerController;
 
-    public EBattleState State => m_Session.State;
-    public int KillCount => m_Session.KillCount;
+    public EBattleState State => _flow.State;
+    public int KillCount => _flow.KillCount;
     public int KillGoal => GoalKillCount;
-    public float ElapsedTime => m_Session.ElapsedTime;
+    public float ElapsedTime => _flow.ElapsedTime;
     public PlayerController Player => m_PlayerController;
-    public IReadOnlyDictionary<string, int> DicLoot => m_Session.Loot;
+    public IReadOnlyDictionary<string, int> DicLoot => _flow.Loot;
 
     // ==================================================
 
-    public void Init(BattleSession session)
+    public void Init(BattleFlow flow)
     {
         if (Instance != null)
             return;
 
-        m_Session = session;
+        _flow = flow;
         Init();
     }
 
@@ -88,7 +88,7 @@ public class BattleManager : MonoSingleton<BattleManager>
         if (State != EBattleState.Playing)
             return;
 
-        m_Session.ElapsedTime += deltaTime;
+        _flow.ElapsedTime += deltaTime;
         UpdateRespawn(deltaTime);
     }
 
@@ -102,9 +102,9 @@ public class BattleManager : MonoSingleton<BattleManager>
         if (m_PlayerController != null && m_PlayerController.Health != null)
             m_PlayerController.Health.Died += OnPlayerDied;
 
-        m_Session.Actors.ActorRemoved += ReleaseSpawnSlot;
-        EventBus.Subscribe<MonsterKilled>(OnMonsterKilled);
-        EventBus.Subscribe<LootPicked>(OnLootPicked);
+        _flow.Actors.ActorRemoved += ReleaseSpawnSlot;
+        SEventService.Subscribe<MonsterKilled>(OnMonsterKilled);
+        SEventService.Subscribe<LootPicked>(OnLootPicked);
 
         foreach (SpawnGroup group in m_ListGroup)
         {
@@ -129,9 +129,9 @@ public class BattleManager : MonoSingleton<BattleManager>
 
     protected override void OnClear()
     {
-        m_Session.Actors.ActorRemoved -= ReleaseSpawnSlot;
-        EventBus.Unsubscribe<MonsterKilled>(OnMonsterKilled);
-        EventBus.Unsubscribe<LootPicked>(OnLootPicked);
+        _flow.Actors.ActorRemoved -= ReleaseSpawnSlot;
+        SEventService.Unsubscribe<MonsterKilled>(OnMonsterKilled);
+        SEventService.Unsubscribe<LootPicked>(OnLootPicked);
 
         HealthFeature health = m_PlayerController?.Health;
         if (health != null)
@@ -139,7 +139,7 @@ public class BattleManager : MonoSingleton<BattleManager>
     }
 
     // 다시 하기: 같은 씬을 새로 연다
-    public void Retry() => GameManager.Instance?.Flow.RetryBattle();
+    public void Retry() => GameManager.Instance?.FlowService.RetryBattle();
 
     // 로비 씬이 있을 때만 true
     public bool TryGoLobby()
@@ -148,7 +148,7 @@ public class BattleManager : MonoSingleton<BattleManager>
         if (gameM == null || Application.CanStreamedLevelBeLoaded(SceneNames.Lobby) == false)
             return false;
 
-        return gameM.Flow.ChangeState(EGameState.Lobby);
+        return gameM.FlowService.ChangeState(EGameState.Lobby);
     }
 
     // ==================================================
@@ -166,7 +166,7 @@ public class BattleManager : MonoSingleton<BattleManager>
         Vector3 position = spawn != null ? SnapToGround(spawn.transform.position) : Vector3.zero;
         Quaternion rotation = spawn != null ? spawn.transform.rotation : Quaternion.identity;
 
-        m_PlayerController = m_Session.Actors.Spawn(m_PlayerPrefab, position, rotation);
+        m_PlayerController = _flow.Actors.Spawn(m_PlayerPrefab, position, rotation);
     }
 
     private static void FindPoints(SpawnState spawn)
@@ -219,7 +219,7 @@ public class BattleManager : MonoSingleton<BattleManager>
         if (spawn.Group.Prefab == null || point == null)
             return;
 
-        MonsterController controller = m_Session.Actors.Spawn(spawn.Group.Prefab, SnapToGround(point.position), point.rotation);
+        MonsterController controller = _flow.Actors.Spawn(spawn.Group.Prefab, SnapToGround(point.position), point.rotation);
         if (controller == null)
             return;
 
@@ -267,11 +267,11 @@ public class BattleManager : MonoSingleton<BattleManager>
 
     private void OnMonsterKilled(MonsterKilled evt)
     {
-        if (State != EBattleState.Playing || evt.Actors != m_Session.Actors)
+        if (State != EBattleState.Playing || evt.Actors != _flow.Actors)
             return;
 
         ReleaseSpawnSlot(evt.ActorID);
-        m_Session.KillCount++;
+        _flow.KillCount++;
         if (KillCount >= GoalKillCount)
             End(true);
     }
@@ -284,8 +284,8 @@ public class BattleManager : MonoSingleton<BattleManager>
 
     private void OnLootPicked(LootPicked evt)
     {
-        m_Session.Loot.TryGetValue(evt.ItemID, out int count);
-        m_Session.Loot[evt.ItemID] = count + evt.Amount;
+        _flow.Loot.TryGetValue(evt.ItemID, out int count);
+        _flow.Loot[evt.ItemID] = count + evt.Amount;
     }
 
     private void OnPlayerDied()
@@ -298,7 +298,7 @@ public class BattleManager : MonoSingleton<BattleManager>
         if (State != EBattleState.Playing)
             return;
 
-        m_Session.State = isWin ? EBattleState.Won : EBattleState.Lost;
+        _flow.State = isWin ? EBattleState.Won : EBattleState.Lost;
         if (m_PlayerController != null)
             m_PlayerController.Health.Died -= OnPlayerDied;
 
@@ -306,7 +306,7 @@ public class BattleManager : MonoSingleton<BattleManager>
         GameManager gameM = GameManager.Instance;
         if (gameM != null)
         {
-            foreach (var pair in m_Session.Loot)
+            foreach (var pair in _flow.Loot)
             {
                 gameM.Player.Inventory.Add(pair.Key, pair.Value);
             }
@@ -316,10 +316,10 @@ public class BattleManager : MonoSingleton<BattleManager>
                 HuntContext.MarkCleared(HuntContext.SelectedRegion);
 
             gameM.RunSave();
-            if (gameM.Flow.Current == EGameState.Battle)
-                gameM.Flow.ChangeState(EGameState.Result);
+            if (gameM.FlowService.Current == EGameState.Battle)
+                gameM.FlowService.ChangeState(EGameState.Result);
         }
 
-        EventBus.Publish(new BattleEnded(isWin));
+        SEventService.Publish(new BattleEnded(isWin));
     }
 }

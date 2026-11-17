@@ -253,9 +253,9 @@ public class MonsterDeadState : MonsterState
         m_Controller.Anim.Play("Death", true);
 
         SpawnDrops();
-        ActorManagement actors = GameManager.Instance?.Actors;
+        ActorManagement actors = GameManager.Instance?.ActiveActors;
         if (actors != null)
-            EventBus.Publish(new MonsterKilled(actors, m_Controller.ActorID, Def, m_Controller.transform.position));
+            SEventService.Publish(new MonsterKilled(actors, m_Controller.ActorID, Def, m_Controller.transform.position));
     }
 
     public override void Update(float deltaTime)

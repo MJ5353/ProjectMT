@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
 // 결과 화면까지 유지되는 전투 한 판의 상태.
-public sealed class BattleSession
+public sealed class BattleFlow
 {
     public EBattleState State { get; set; } = EBattleState.Playing;
     public float ElapsedTime { get; set; }
@@ -15,7 +15,7 @@ public sealed class BattleSession
     public Scene Scene { get; }
     public Dictionary<string, int> Loot { get; } = new();
 
-    public BattleSession(Scene scene)
+    public BattleFlow(Scene scene)
     {
         Scene = scene;
     }

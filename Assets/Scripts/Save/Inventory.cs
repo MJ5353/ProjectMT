@@ -23,7 +23,7 @@ public class Inventory
         int count = GetCount(id) + amount;
         m_DicCountByID[id] = count;
 
-        EventBus.Publish(new InventoryChanged(id, count, amount));
+        SEventService.Publish(new InventoryChanged(id, count, amount));
     }
     
     // !!) 세이브 불러오기 전용. 이벤트를 발행하지 않는다
@@ -48,7 +48,7 @@ public class Inventory
         else
             m_DicCountByID[id] = count;
 
-        EventBus.Publish(new InventoryChanged(id, count, -amount));
+        SEventService.Publish(new InventoryChanged(id, count, -amount));
         return true;
     }
     

@@ -16,7 +16,7 @@ public class FollowCamera : MonoBehaviour
 
     private void Start()
     {
-        PlayerController player = GameManager.Instance?.Actors?.Player;
+        PlayerController player = GameManager.Instance?.ActiveActors?.Player;
         if (player != null)
             SetTarget(player.transform);
     }

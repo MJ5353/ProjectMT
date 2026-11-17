@@ -46,14 +46,14 @@ public class DebugPanel : MonoBehaviour
 
     private void DrawFlow(GameManager gameM)
     {
-        GUILayout.Label($"상태: {gameM.Flow.Current}");
+        GUILayout.Label($"상태: {gameM.FlowService.Current}");
         GUILayout.BeginHorizontal();
 
         foreach (EGameState state in s_MoveStates)
         {
-            GUI.enabled = gameM.Flow.CanChange(state);
+            GUI.enabled = gameM.FlowService.CanChange(state);
             if (GUILayout.Button(state.ToString()))
-                gameM.Flow.ChangeState(state);
+                gameM.FlowService.ChangeState(state);
         }
 
         GUI.enabled = true;

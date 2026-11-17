@@ -66,7 +66,7 @@ public class TabBar : MonoBehaviour
         m_ListTab[index].View.SetVisible(true);
         SetHighlight(m_ListTab[index], true);
 
-        EventBus.Publish(new TabChanged(from, index));
+        SEventService.Publish(new TabChanged(from, index));
     }
 
     private void SetHighlight(Entry entry, bool isOn)

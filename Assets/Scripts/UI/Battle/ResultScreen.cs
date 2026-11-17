@@ -40,12 +40,12 @@ public class ResultScreen : MonoBehaviour
 
     private void OnEnable()
     {
-        EventBus.Subscribe<BattleEnded>(OnBattleEnded);
+        SEventService.Subscribe<BattleEnded>(OnBattleEnded);
     }
 
     private void OnDisable()
     {
-        EventBus.Unsubscribe<BattleEnded>(OnBattleEnded);
+        SEventService.Unsubscribe<BattleEnded>(OnBattleEnded);
     }
 
     private void OnDestroy()

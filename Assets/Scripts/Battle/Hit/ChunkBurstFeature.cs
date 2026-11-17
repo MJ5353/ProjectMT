@@ -18,7 +18,7 @@ public class ChunkBurstFeature : UnitFeature, IHitReaction
     // 전투 씬이 아니면 조각을 튀기지 않는다
     public void OnHit(in HitParams hit)
     {
-        ChunkBurstManagement management = GameManager.Instance?.Battle?.Chunks;
+        ChunkBurstManagement management = GameManager.Instance?.ActiveBattle?.Chunks;
         if (management == null)
             return;
 
