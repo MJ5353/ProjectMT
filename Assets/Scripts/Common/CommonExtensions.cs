@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public static class CommonExtensions
 {
     // Unity 오브젝트가 Destroy된 경우에도 null을 돌려줘서 ?. 연산자를 안전하게 쓸 수 있게 한다
-    // 예) GameManager.Instance.E_Alive()?.SaveNow();
+    // 예) GameManager.SInstance.E_Alive()?.SaveNow();
     public static T E_Alive<T>(this T obj) where T : UnityEngine.Object
     {
         return obj != null ? obj : null;

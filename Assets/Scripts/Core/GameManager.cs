@@ -5,54 +5,40 @@ using UnityEngine.SceneManagement;
 // 데이터베이스, 플레이어 데이터, 세이브, 게임 흐름을 들고 있는다
 
 [DefaultExecutionOrder(-1000)]
-public class GameManager : MonoBehaviour
+public class GameManager : MonoSingleton<GameManager>
 {
-    public static GameManager Instance { get; private set; }
-
     public GameDatabase Database { get; private set; }
     public GameFlow Flow { get; private set; }
     public PlayerData Player { get; private set; }
 
+    // [mj] todo) server?
     private SaveService m_SaveService;
 
     // ==================================================
 
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-
-        Init();
-    }
-
     private void Start()
     {
+        if (Flow == null)
+            return;
+
         Flow.ChangeState(GameFlow.GetStateByScene(SceneManager.GetActiveScene().name));
     }
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void Bootstrap()
+    private void OnApplicationPause(bool isPaused)
     {
-        if (Instance != null)
-            return;
-
-        GameObject go = new GameObject("[GameManager]");
-        go.AddComponent<GameManager>();
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        go.AddComponent<DebugPanel>();
-#endif
+        if (isPaused && Player != null)
+            SaveNow();
     }
-    
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void Bootstrap() => _ = Instance;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetStatics() => Instance = null;
-    
-    private void Init()
+    private static void ResetStatics() => ResetSingleton();
+
+    // virtual ----
+
+    protected override void Init()
     {
         Database = Resources.Load<GameDatabase>(GameDatabase.ResourcePath);
         if (Database == null)
@@ -66,7 +52,14 @@ public class GameManager : MonoBehaviour
         Player.Load(m_SaveService.Load());
 
         Flow = new GameFlow(this);
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (TryGetComponent<DebugPanel>(out _) == false)
+            gameObject.AddComponent<DebugPanel>();
+#endif
     }
+
+    protected override void OnQuit() => SaveNow();
 
     // save
 
@@ -77,14 +70,4 @@ public class GameManager : MonoBehaviour
         m_SaveService.Delete();
         Player.Clear();
     }
-
-    // ApplicationEvent
-
-    private void OnApplicationPause(bool isPaused)
-    {
-        if (isPaused)
-            SaveNow();
-    }
-
-    private void OnApplicationQuit() => SaveNow();
 }
