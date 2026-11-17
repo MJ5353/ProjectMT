@@ -115,6 +115,7 @@ public class BattleManager : MonoBehaviour
 
         if (m_Player == null)
             m_Player = PlayerController.Current;
+
         if (m_Player != null)
         {
             m_Player.Health.Died += OnPlayerDied;
@@ -167,7 +168,7 @@ public class BattleManager : MonoBehaviour
 
     private void PlacePlayer()
     {
-        GameObject spawn = string.IsNullOrEmpty(m_PlayerSpawnName) ? null : GameObject.Find(m_PlayerSpawnName);
+        GameObject spawn = m_PlayerSpawnName.E_IsNullOrEmpty() ? null : GameObject.Find(m_PlayerSpawnName);
         if (spawn == null)
             return;
 
@@ -175,6 +176,7 @@ public class BattleManager : MonoBehaviour
         CharacterController controller = m_Player.GetComponent<CharacterController>();
         if (controller != null)
             controller.enabled = false;
+
         m_Player.transform.SetPositionAndRotation(SnapToGround(spawn.transform.position), spawn.transform.rotation);
         if (controller != null)
             controller.enabled = true;
@@ -184,7 +186,7 @@ public class BattleManager : MonoBehaviour
     private void ResolvePoints(SpawnGroup group)
     {
         group.ListPoint.RemoveAll(point => point == null);
-        if (group.ListPoint.Count > 0 || string.IsNullOrEmpty(group.PointPrefix))
+        if (group.ListPoint.Count > 0 || group.PointPrefix.E_IsNullOrEmpty())
             return;
 
         Transform[] all = FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
@@ -295,8 +297,8 @@ public class BattleManager : MonoBehaviour
 
     private void OnLootPicked(LootPicked evt)
     {
-        m_DicLoot.TryGetValue(evt.ItemId, out int count);
-        m_DicLoot[evt.ItemId] = count + evt.Amount;
+        m_DicLoot.TryGetValue(evt.ItemID, out int count);
+        m_DicLoot[evt.ItemID] = count + evt.Amount;
     }
 
     private void OnPlayerDied()

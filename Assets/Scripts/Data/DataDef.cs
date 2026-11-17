@@ -11,7 +11,7 @@ public abstract class DataDef : ScriptableObject
     [SerializeField] private Sprite m_Icon = null;
 
     public string ID => m_ID;
-    public string DisplayName => string.IsNullOrEmpty(m_DisplayName) ? m_ID : m_DisplayName;
+    public string DisplayName => m_DisplayName.E_IsNullOrEmpty() ? m_ID : m_DisplayName;
     public string Description => m_Description;
     public Sprite Icon => m_Icon;
 

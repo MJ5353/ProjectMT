@@ -9,9 +9,20 @@ public class TabBar : MonoBehaviour
     [Serializable]
     public class Entry
     {
-        public Button button;
-        public TabView view;
-        public GameObject highlight; // 선택 표시(없어도 됨)
+        [SerializeField] private Button m_Button = null;
+        [SerializeField] private TabView m_View = null;
+        [SerializeField, Tooltip("선택 표시(없어도 됨)")] private GameObject m_Highlight = null;
+
+        public Button Button => m_Button;
+        public TabView View => m_View;
+        public GameObject Highlight => m_Highlight;
+
+        public Entry(Button button, TabView view, GameObject highlight)
+        {
+            m_Button = button;
+            m_View = view;
+            m_Highlight = highlight;
+        }
     }
 
     [SerializeField] private List<Entry> m_ListTab = new();
@@ -28,8 +39,8 @@ public class TabBar : MonoBehaviour
             int index = i;
             Entry entry = m_ListTab[i];
 
-            entry.button.onClick.AddListener(() => Select(index));
-            entry.view.gameObject.SetActive(false);
+            entry.Button.onClick.AddListener(() => Select(index));
+            entry.View.gameObject.SetActive(false);
             SetHighlight(entry, false);
         }
     }
@@ -47,12 +58,12 @@ public class TabBar : MonoBehaviour
         int from = CurrentIndex;
         if (from >= 0)
         {
-            m_ListTab[from].view.SetVisible(false);
+            m_ListTab[from].View.SetVisible(false);
             SetHighlight(m_ListTab[from], false);
         }
 
         CurrentIndex = index;
-        m_ListTab[index].view.SetVisible(true);
+        m_ListTab[index].View.SetVisible(true);
         SetHighlight(m_ListTab[index], true);
 
         EventBus.Publish(new TabChanged(from, index));
@@ -60,10 +71,10 @@ public class TabBar : MonoBehaviour
 
     private void SetHighlight(Entry entry, bool isOn)
     {
-        if (entry.highlight == null)
+        if (entry.Highlight == null)
             return;
 
-        entry.highlight.SetActive(isOn);
+        entry.Highlight.SetActive(isOn);
     }
 
 #if UNITY_EDITOR

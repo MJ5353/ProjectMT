@@ -107,6 +107,7 @@ public class MobChaseState : MobState
 
             if (m_Mob.CooldownRemain <= 0f)
                 m_Mob.ChangeState(EMobState.Windup);
+
             return;
         }
 

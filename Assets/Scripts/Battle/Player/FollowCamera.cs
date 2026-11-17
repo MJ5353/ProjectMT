@@ -32,6 +32,7 @@ public class FollowCamera : MonoBehaviour
     {
         if (m_Target == null && PlayerController.Current != null)
             m_Target = PlayerController.Current.transform;
+
         if (m_Target == null)
             return;
 

@@ -41,13 +41,9 @@ public class ChunkBurstFeature : MonoBehaviour, IHitReaction
 
     private static Material GetMaterial()
     {
-        if (s_Material != null)
-            return s_Material;
+        if (s_Material == null)
+            s_Material = HitMaterials.CreateUnlit("Chunk (Runtime)", Color.white);
 
-        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-        if (shader == null)
-            shader = Shader.Find("Unlit/Color");
-        s_Material = new Material(shader) { name = "Chunk (Runtime)", enableInstancing = true };
         return s_Material;
     }
 

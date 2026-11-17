@@ -4,7 +4,7 @@ using UnityEngine;
 // 클립 이름으로 애니를 트는 얇은 래퍼. 애니메이터 컨트롤러는 상태 이름 = 클립 이름으로 만든다(BattleSetup 메뉴).
 public class AnimFeature : MonoBehaviour
 {
-    [SerializeField] private Animator m_Animator;
+    [SerializeField] private Animator m_Animator = null;
     [SerializeField] private float m_DefaultFade = 0.08f;
 
     private readonly Dictionary<string, float> m_DicLength = new();
@@ -40,6 +40,7 @@ public class AnimFeature : MonoBehaviour
     {
         if (m_Animator == null)
             return;
+
         if (restart == false && m_Current == clip)
             return;
 
@@ -66,6 +67,7 @@ public class AnimFeature : MonoBehaviour
     {
         if (m_Animator == null)
             return;
+
         m_Animator.speed = speed;
     }
 }

@@ -53,6 +53,7 @@ public class HitFeature : MonoBehaviour
     {
         if (hit.Team == m_Team)
             return false;
+
         if (IsDead || IsInvincible)
             return false;
 

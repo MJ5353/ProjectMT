@@ -36,6 +36,7 @@ public static class BattleSetup
     {
         if (File.Exists(ScenePath) && EditorUtility.DisplayDialog("전투 씬", $"{ScenePath}가 이미 있습니다. 새로 만들까요?", "새로 만들기", "취소") == false)
             return;
+
         if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo() == false)
             return;
 
@@ -228,6 +229,7 @@ public static class BattleSetup
             Animator animator = model.GetComponent<Animator>();
             if (animator == null)
                 animator = model.AddComponent<Animator>();
+
             animator.runtimeAnimatorController = BuildController(modelName);
             animator.applyRootMotion = false;
         }
@@ -298,7 +300,7 @@ public static class BattleSetup
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
 
         Transform map = BuildMap();
-        Transform playerSpawn = FindDeep(map, "Spawn_Player");
+        Transform playerSpawn = map.E_FindDeep("Spawn_Player");
 
         GameObject player = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath));
         if (playerSpawn != null)
@@ -349,10 +351,7 @@ public static class BattleSetup
     {
         GameObject mapModel = LoadModel(MapName);
         if (mapModel != null)
-        {
-            GameObject mapInstance = (GameObject)PrefabUtility.InstantiatePrefab(mapModel);
-            return mapInstance.transform;
-        }
+            return ((GameObject)PrefabUtility.InstantiatePrefab(mapModel)).transform;
 
         CLogger.Warning("BattleSetup", $"{MapName}.fbx가 없어 평지로 만듭니다.");
         GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -401,21 +400,6 @@ public static class BattleSetup
         GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(asset);
         instance.transform.SetParent(parent, false);
         return instance;
-    }
-
-    private static Transform FindDeep(Transform parent, string targetName)
-    {
-        if (parent.name == targetName)
-            return parent;
-
-        foreach (Transform child in parent)
-        {
-            Transform found = FindDeep(child, targetName);
-            if (found != null)
-                return found;
-        }
-
-        return null;
     }
 
     private static List<Transform> FindAllByPrefix(Transform parent, string prefix)

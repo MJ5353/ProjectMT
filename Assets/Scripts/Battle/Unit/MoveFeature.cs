@@ -31,19 +31,20 @@ public class MoveFeature : MonoBehaviour
             return;
 
         // 씬 로드 직후 같은 긴 프레임에 한 번에 크게 떨어지지 않게 자른다
-        float dt = Mathf.Min(Time.deltaTime, MaxDeltaTime);
-        if (dt <= 0f)
+        float deltaTime = Mathf.Min(Time.deltaTime, MaxDeltaTime);
+        if (deltaTime <= 0f)
             return;
 
         if (m_Controller.isGrounded && m_VerticalSpeed < 0f)
             m_VerticalSpeed = -2f;
-        m_VerticalSpeed += m_Gravity * dt;
 
-        Vector3 motion = (m_Desired + m_Impulse) * dt;
-        motion.y = m_VerticalSpeed * dt;
+        m_VerticalSpeed += m_Gravity * deltaTime;
+
+        Vector3 motion = (m_Desired + m_Impulse) * deltaTime;
+        motion.y = m_VerticalSpeed * deltaTime;
         m_Controller.Move(motion);
 
-        m_Impulse = Vector3.Lerp(m_Impulse, Vector3.zero, 1f - Mathf.Exp(-m_ImpulseDamping * dt));
+        m_Impulse = Vector3.Lerp(m_Impulse, Vector3.zero, 1f - Mathf.Exp(-m_ImpulseDamping * deltaTime));
     }
 
     public void SetVelocity(Vector3 velocity)

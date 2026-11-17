@@ -17,7 +17,7 @@ public class Inventory
 
     public int GetCount(string id)
     {
-        if (string.IsNullOrEmpty(id))
+        if (id.E_IsNullOrEmpty())
             return 0;
 
         return m_DicCountByID.TryGetValue(id, out int count) ? count : 0;
@@ -27,7 +27,7 @@ public class Inventory
 
     public void Add(string id, int amount)
     {
-        if (string.IsNullOrEmpty(id) || amount <= 0)
+        if (id.E_IsNullOrEmpty() || amount <= 0)
             return;
 
         int count = GetCount(id) + amount;
@@ -54,7 +54,7 @@ public class Inventory
     // !!) 세이브 불러오기 전용. 이벤트를 발행하지 않는다
     public void SetRaw(string id, int count)
     {
-        if (string.IsNullOrEmpty(id) || count <= 0)
+        if (id.E_IsNullOrEmpty() || count <= 0)
             return;
 
         m_DicCountByID[id] = count;

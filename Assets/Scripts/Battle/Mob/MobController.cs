@@ -155,6 +155,7 @@ public class MobController : MonoBehaviour
     {
         if (Target == null)
             return false;
+
         if (PlayerController.Current != null && PlayerController.Current.IsDead)
             return false;
 
@@ -177,7 +178,7 @@ public class MobController : MonoBehaviour
             if (socket.Prefab == null)
                 continue;
 
-            Transform bone = FindDeep(transform, socket.SocketName);
+            Transform bone = transform.E_FindDeep(socket.SocketName);
             if (bone == null)
             {
                 CLogger.Warning("MobController", $"소켓을 찾지 못함: {socket.SocketName} ({name})", this);
@@ -189,21 +190,6 @@ public class MobController : MonoBehaviour
             mushroom.transform.localRotation = Quaternion.Euler(socket.Euler);
             mushroom.transform.localScale = Vector3.one * socket.Scale;
         }
-    }
-
-    private static Transform FindDeep(Transform parent, string targetName)
-    {
-        if (parent.name == targetName)
-            return parent;
-
-        foreach (Transform child in parent)
-        {
-            Transform found = FindDeep(child, targetName);
-            if (found != null)
-                return found;
-        }
-
-        return null;
     }
 
     private void OnHit(HitParams hit)

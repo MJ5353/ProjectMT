@@ -46,7 +46,7 @@ public class GameDatabase : ScriptableObject
             Init();
 
         result = null;
-        if (string.IsNullOrEmpty(id))
+        if (id.E_IsNullOrEmpty())
             return false;
 
         if (m_DicDefByID.TryGetValue(id, out DataDef def) == false)

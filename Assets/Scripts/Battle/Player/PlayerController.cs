@@ -136,6 +136,7 @@ public class PlayerController : MonoBehaviour
             case EPlayerState.Hit:
                 if (m_TimeInState >= m_HitStunTime)
                     ChangeState(EPlayerState.Move);
+
                 break;
         }
     }
@@ -144,6 +145,7 @@ public class PlayerController : MonoBehaviour
     {
         if (Camera.main != null)
             m_CameraTransform = Camera.main.transform;
+
         if (m_Melee != null)
         {
             m_Melee.Init(ETeam.Player);

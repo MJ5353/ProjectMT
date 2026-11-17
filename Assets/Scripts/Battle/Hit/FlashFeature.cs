@@ -7,7 +7,7 @@ using UnityEngine;
 public class FlashFeature : MonoBehaviour, IHitReaction
 {
     [SerializeField] private float m_Duration = 0.08f;
-    [SerializeField, Tooltip("비우면 URP Unlit 흰색을 만들어 쓴다")] private Material m_FlashMaterial;
+    [SerializeField, Tooltip("비우면 URP Unlit 흰색을 만들어 쓴다")] private Material m_FlashMaterial = null;
 
     private static Material s_DefaultFlash;
 
@@ -31,12 +31,13 @@ public class FlashFeature : MonoBehaviour, IHitReaction
         m_ListRenderer.Clear();
         m_ListOriginal.Clear();
 
-        foreach (Renderer r in GetComponentsInChildren<Renderer>(true))
+        foreach (Renderer meshRenderer in GetComponentsInChildren<Renderer>(true))
         {
-            if (r is ParticleSystemRenderer)
+            if (meshRenderer is ParticleSystemRenderer)
                 continue;
-            m_ListRenderer.Add(r);
-            m_ListOriginal.Add(r.sharedMaterials);
+
+            m_ListRenderer.Add(meshRenderer);
+            m_ListOriginal.Add(meshRenderer.sharedMaterials);
         }
     }
 
@@ -47,6 +48,7 @@ public class FlashFeature : MonoBehaviour, IHitReaction
 
         if (m_Routine != null)
             StopCoroutine(m_Routine);
+
         m_Routine = StartCoroutine(FlashRoutine());
     }
 
@@ -57,12 +59,14 @@ public class FlashFeature : MonoBehaviour, IHitReaction
         {
             if (m_ListRenderer[i] == null)
                 continue;
-            Material[] mats = new Material[m_ListOriginal[i].Length];
-            for (int k = 0; k < mats.Length; k++)
+
+            Material[] flashMaterials = new Material[m_ListOriginal[i].Length];
+            for (int k = 0; k < flashMaterials.Length; k++)
             {
-                mats[k] = flash;
+                flashMaterials[k] = flash;
             }
-            m_ListRenderer[i].sharedMaterials = mats;
+
+            m_ListRenderer[i].sharedMaterials = flashMaterials;
         }
 
         yield return new WaitForSecondsRealtime(m_Duration);
@@ -76,21 +80,16 @@ public class FlashFeature : MonoBehaviour, IHitReaction
         {
             if (m_ListRenderer[i] == null)
                 continue;
+
             m_ListRenderer[i].sharedMaterials = m_ListOriginal[i];
         }
     }
 
     private static Material GetDefaultFlash()
     {
-        if (s_DefaultFlash != null)
-            return s_DefaultFlash;
+        if (s_DefaultFlash == null)
+            s_DefaultFlash = HitMaterials.CreateUnlit("HitFlash (Runtime)", Color.white);
 
-        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-        if (shader == null)
-            shader = Shader.Find("Unlit/Color");
-
-        s_DefaultFlash = new Material(shader) { name = "HitFlash (Runtime)" };
-        s_DefaultFlash.color = Color.white;
         return s_DefaultFlash;
     }
 }

@@ -1,7 +1,7 @@
 using UnityEngine;
 
-// 토벌 입장 정보와 지역 해금 판정. 로비에서 고른 지역을 전투 씬이 읽을 수 있게 static으로 둔다
-// [mj] todo) 전투 승리 시 전투 쪽에서 MarkCleared(SelectedRegion)를 불러야 다음 지역이 열린다
+// 토벌 입장 정보와 지역 해금 판정. 로비에서 고른 지역을 전투 씬이 읽을 수 있게 static으로 둔다.
+// 전투 승리 시 BattleManager가 MarkCleared(SelectedRegion)를 불러 다음 지역을 연다
 public static class HuntContext
 {
     public static RegionDef SelectedRegion { get; private set; }
