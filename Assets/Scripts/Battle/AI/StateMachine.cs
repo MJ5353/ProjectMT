@@ -44,6 +44,13 @@ public class StateMachine<TKey>
         m_CurrentState.Update(deltaTime);
     }
 
+    // 지금 상태를 Exit로 정리하고 멈춘다. 등록한 상태는 남겨서 다시 Change할 수 있다
+    public void Stop()
+    {
+        m_CurrentState?.Exit();
+        m_CurrentState = null;
+    }
+
     public void Clear()
     {
         m_CurrentState?.Exit();

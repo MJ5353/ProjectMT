@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 // 체력 반응. 피격 반응 중 가장 먼저 넣는다
-public class HealthFeature : IHitReaction
+public class HealthFeature : UnitFeature, IHitReaction
 {
     private readonly int m_MaxHp;
 
@@ -14,10 +14,15 @@ public class HealthFeature : IHitReaction
 
     // ==================================================
 
-    public HealthFeature(int maxHp)
+    public HealthFeature(IActor owner, int maxHp) : base(owner)
     {
         m_MaxHp = maxHp;
         Current = maxHp;
+    }
+
+    public override void Reset()
+    {
+        Current = m_MaxHp;
     }
 
     public void OnHit(in HitParams hit)

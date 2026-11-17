@@ -47,9 +47,12 @@ public class MonsterController : UnitController<MonsterDef>
         m_Fsm.Add(EMonsterState.Dead, new MonsterDeadState(this));
     }
 
-    private void Start()
+    protected override void OnSpawned()
     {
         HomePosition = transform.position;
+        Target = null;
+        LastHitDirection = Vector3.zero;
+        CooldownRemain = 0f;
         m_Fsm.Change(EMonsterState.Idle);
     }
 
@@ -158,7 +161,7 @@ public class MonsterController : UnitController<MonsterDef>
     // 진행 중인 상태를 Exit로 정리(움츠림 크기·애니 배속 복구)하고 AI를 끈다
     protected override void OnBattleEnded()
     {
-        m_Fsm.Clear();
+        m_Fsm.Stop();
         base.OnBattleEnded();
     }
 

@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 하얀 번쩍 반응. 잠깐 몸 렌더러의 머티리얼을 흰색 단색으로 바꿨다가 되돌린다.
-// 히트스톱 중에도 끝나도록 주인이 실제 시간(unscaled)으로 Tick을 부른다
-public class FlashFeature : IHitReaction
+// 히트스톱 중에도 끝나도록 실제 시간(unscaled)으로 Tick을 받는다
+public class FlashFeature : UnitFeature, IHitReaction
 {
     private const float Duration = 0.08f;
 
@@ -11,9 +11,11 @@ public class FlashFeature : IHitReaction
     private readonly List<Material[]> m_ListOriginal = new();
     private float m_Remain;
 
+    public override bool IsUnscaledTime => true;
+
     // ==================================================
 
-    public FlashFeature(List<Renderer> listRenderer)
+    public FlashFeature(IActor owner, List<Renderer> listRenderer) : base(owner)
     {
         foreach (Renderer meshRenderer in listRenderer)
         {
@@ -54,7 +56,7 @@ public class FlashFeature : IHitReaction
         m_Remain = Duration;
     }
 
-    public void Tick(float unscaledDeltaTime)
+    public override void Tick(float unscaledDeltaTime)
     {
         if (m_Remain <= 0f)
             return;
@@ -62,6 +64,16 @@ public class FlashFeature : IHitReaction
         m_Remain -= unscaledDeltaTime;
         if (m_Remain <= 0f)
             Restore();
+    }
+
+    public override void Reset()
+    {
+        Restore();
+    }
+
+    public override void Clear()
+    {
+        Restore();
     }
 
     public void Restore()

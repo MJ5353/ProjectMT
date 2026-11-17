@@ -1,8 +1,8 @@
 using UnityEngine;
 
 // CharacterController 이동. 주인이 원하는 수평 속도를 넣고, 넉백 같은 순간 속도는 따로 더해 감쇠시킨다.
-// 주인(UnitController)이 만들고 매 프레임 Tick을 부른다
-public class MoveFeature
+// 주인의 판단(입력·AI)이 정한 속도로 움직여야 해서 LateTick에서 이동한다
+public class MoveFeature : UnitFeature
 {
     private const float MaxDeltaTime = 1f / 20f;
     private const float Gravity = -25f;
@@ -22,13 +22,22 @@ public class MoveFeature
 
     // ==================================================
 
-    public MoveFeature(CharacterController controller)
+    public MoveFeature(IActor owner, CharacterController controller) : base(owner)
     {
         m_Controller = controller;
-        m_Transform = controller.transform;
+        m_Transform = owner.transform;
     }
 
-    public void Tick(float deltaTime)
+    // 풀에서 다시 꺼낼 때. 속도를 비우고 충돌을 다시 켠다
+    public override void Reset()
+    {
+        m_Desired = Vector3.zero;
+        m_Impulse = Vector3.zero;
+        m_VerticalSpeed = 0f;
+        m_Controller.enabled = true;
+    }
+
+    public override void LateTick(float deltaTime)
     {
         if (m_Controller.enabled == false)
             return;
@@ -48,6 +57,12 @@ public class MoveFeature
         m_Controller.Move(motion);
 
         m_Impulse = Vector3.Lerp(m_Impulse, Vector3.zero, 1f - Mathf.Exp(-ImpulseDamping * deltaTime));
+    }
+
+    // 풀로 돌아갈 때 멈춘다
+    public override void Clear()
+    {
+        Stop();
     }
 
     public void SetVelocity(Vector3 velocity)

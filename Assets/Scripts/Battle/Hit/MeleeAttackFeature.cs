@@ -2,17 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 공격 프레임에 공격 구체와 후보 액터의 몸을 비교한다.
-public class MeleeAttackFeature
+public class MeleeAttackFeature : UnitFeature
 {
-    private readonly IHitTarget m_Owner;
     private readonly List<ActorHitCandidate> m_ListCandidate = new();
 
     // ==================================================
 
-    public MeleeAttackFeature(IHitTarget owner)
-    {
-        m_Owner = owner;
-    }
+    public MeleeAttackFeature(IActor owner) : base(owner) { }
 
     public static Vector3 GetCenter(Transform owner, AttackSpec spec)
     {
@@ -21,13 +17,13 @@ public class MeleeAttackFeature
 
     public int Perform(AttackSpec spec)
     {
-        Transform owner = m_Owner.transform;
+        Transform owner = Owner.transform;
         ActorManagement actors = GameManager.Instance?.Actors;
         if (actors == null)
             return 0;
 
         Vector3 center = GetCenter(owner, spec);
-        ETeam team = m_Owner.HitFeature.Team;
+        ETeam team = Owner.HitFeature.Team;
         actors.CollectNearbyEnemies(center, spec.Radius, team, m_ListCandidate);
 
         int hitCount = 0;

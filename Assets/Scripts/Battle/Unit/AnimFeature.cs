@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 클립 이름으로 애니를 트는 얇은 래퍼. 애니메이터 컨트롤러는 상태 이름 = 클립 이름으로 만든다(BattleSetup 메뉴).
-public class AnimFeature
+public class AnimFeature : UnitFeature
 {
     private const float DefaultFade = 0.08f;
     private const float UnknownLength = 0.5f;   // 클립이 없을 때 돌려주는 길이
@@ -15,7 +15,7 @@ public class AnimFeature
 
     // ==================================================
 
-    public AnimFeature(Animator animator)
+    public AnimFeature(IActor owner, Animator animator) : base(owner)
     {
         m_Animator = animator;
         if (m_Animator == null || m_Animator.runtimeAnimatorController == null)
@@ -25,6 +25,12 @@ public class AnimFeature
         {
             m_DicLength[clip.name] = clip.length;
         }
+    }
+
+    public override void Reset()
+    {
+        m_Current = null;
+        SetSpeed(1f);
     }
 
     // 같은 클립이 이미 재생 중이면 무시. restart면 처음부터 다시

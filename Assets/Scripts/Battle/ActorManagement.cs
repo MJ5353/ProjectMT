@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// 액터가 공통으로 가져야 하는 것. ActorManagement가 만들 때 ID를 넣어 준다
+// 액터가 공통으로 가져야 하는 것. ActorFactory가 풀에서 꺼낸 뒤 OnSpawn, 돌려보내기 전에 OnDespawn을 부른다
 public interface IActor : IHitTarget
 {
     int ActorID { get; }
-    void SetActorID(int actorID);
+    void OnSpawn(int actorID);
+    void OnDespawn();
 }
 
-// 전투 한 판의 액터(플레이어·몬스터) 목록. 생성·삭제는 여기서만 한다(ActorFactory 소유)
+// 전투 한 판의 액터(플레이어·몬스터) 목록. 생성·삭제는 여기서만 한다(ActorFactory → ResourceManager 풀)
 public sealed class ActorManagement
 {
     private readonly ActorFactory m_Factory = new();
@@ -23,14 +24,16 @@ public sealed class ActorManagement
 
     // ==================================================
 
-    public T Spawn<T>(T prefab, Vector3 position, Quaternion rotation) where T : Component, IActor
+    public T Spawn<T>(T prefab, Vector3 position, Quaternion rotation) where T : PoolableMono, IActor
     {
         if (prefab == null)
             return null;
 
-        T actor = m_Factory.Create(prefab, position, rotation);
         int actorID = ++m_LastActorID;
-        actor.SetActorID(actorID);
+        T actor = m_Factory.Create(prefab, position, rotation, actorID);
+        if (actor == null)
+            return null;
+
         m_DicActor.Add(actorID, actor);
         m_DicActorID.Add(actor.transform, actorID);
 
@@ -52,10 +55,10 @@ public sealed class ActorManagement
             Player = null;
 
         ActorRemoved?.Invoke(actorID);
-        m_Factory.Release(actor as Component);
+        m_Factory.Release(actor);
     }
 
-    // 씬이 닫히며 액터가 함께 지워지므로 목록만 비운다
+    // 씬이 닫히며 남은 액터가 함께 지워지므로 목록만 비운다
     public void Clear()
     {
         m_DicActor.Clear();

@@ -4,7 +4,7 @@ using UnityEngine;
 
 // 맞는 쪽 입구. 팀·무적·사망을 거른 뒤, 넣어 둔 IHitReaction들을 넣은 순서대로 실행한다.
 // 새 반응(갓 파괴, 포자 등)은 이 파일을 고치지 않고 AddReaction으로 더한다
-public class HitFeature
+public class HitFeature : UnitFeature
 {
     private readonly ETeam m_Team;
     private readonly float m_InvincibleTime;   // 맞은 뒤 무적 시간(초)
@@ -21,7 +21,7 @@ public class HitFeature
 
     // ==================================================
 
-    public HitFeature(ETeam team, float invincibleTime, HealthFeature health)
+    public HitFeature(IActor owner, ETeam team, float invincibleTime, HealthFeature health) : base(owner)
     {
         m_Team = team;
         m_InvincibleTime = invincibleTime;
@@ -33,7 +33,12 @@ public class HitFeature
         m_ListReaction.Add(reaction);
     }
 
-    public void Tick(float deltaTime)
+    public override void Reset()
+    {
+        m_InvincibleRemain = 0f;
+    }
+
+    public override void Tick(float deltaTime)
     {
         if (m_InvincibleRemain > 0f)
             m_InvincibleRemain -= deltaTime;

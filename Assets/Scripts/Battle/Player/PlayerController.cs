@@ -47,10 +47,6 @@ public class PlayerController : UnitController<PlayerDef>
         base.Awake();
     }
 
-    private void Start()
-    {
-        Init();
-    }
 
     protected override void OnUpdate(float deltaTime)
     {
@@ -94,6 +90,13 @@ public class PlayerController : UnitController<PlayerDef>
     public bool IsValid()
     {
         return IsDead == false;
+    }
+
+    protected override void OnSpawned()
+    {
+        m_DashCooldownRemain = 0f;
+        m_IsAttackQueued = false;
+        Init();
     }
 
     public void Init()
