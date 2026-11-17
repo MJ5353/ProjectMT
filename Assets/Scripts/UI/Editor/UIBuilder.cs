@@ -26,8 +26,17 @@ public static class UIBuilder
     {
         get
         {
-            if (s_Font == null)
-                s_Font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontAssetPath);
+            if (s_Font != null)
+                return s_Font;
+
+            s_Font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontAssetPath);
+            if (s_Font != null)
+                return s_Font;
+
+            // 폴더를 옮겨도 찾을 수 있게 이름으로 한 번 더 찾는다
+            string[] guids = AssetDatabase.FindAssets("Galmuri11 SDF t:TMP_FontAsset");
+            if (guids.E_IsNullOrEmpty() == false)
+                s_Font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(AssetDatabase.GUIDToAssetPath(guids[0]));
 
             return s_Font;
         }

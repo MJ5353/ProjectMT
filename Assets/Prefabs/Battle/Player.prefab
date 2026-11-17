@@ -10,15 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6424861190710238542}
   - component: {fileID: 3413719962110073397}
-  - component: {fileID: 2022039289006937255}
-  - component: {fileID: 8640989605502427193}
-  - component: {fileID: 5111296767415688258}
-  - component: {fileID: 7138947039670376369}
-  - component: {fileID: 8139238730128943312}
-  - component: {fileID: 1558052566314156304}
-  - component: {fileID: 1132963595069184044}
-  - component: {fileID: 9005081496376243558}
-  - component: {fileID: 3697333915115315942}
   - component: {fileID: 9078100684901017445}
   m_Layer: 0
   m_Name: Player
@@ -68,144 +59,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.85, z: 0}
---- !u!114 &2022039289006937255
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 624180727510312146}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f6b775720d57b7c40993d1888691e3e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoveFeature
-  m_Gravity: -25
-  m_ImpulseDamping: 9
-  m_TurnSpeed: 900
-  m_FallLimitY: -10
---- !u!114 &8640989605502427193
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 624180727510312146}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2427bb1bfe4c44743b6fffc1f7f385a7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AnimFeature
-  m_Animator: {fileID: 387653541879651787}
-  m_DefaultFade: 0.08
---- !u!114 &5111296767415688258
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 624180727510312146}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c709725783b5e414f8a0038531b57561, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HealthFeature
-  m_MaxHp: 5
---- !u!114 &7138947039670376369
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 624180727510312146}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a36708b4fa521684eb3db79c4c152b2f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HitFeature
-  m_Team: 0
-  m_InvincibleTime: 0.6
---- !u!114 &8139238730128943312
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 624180727510312146}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 99005934433332446848ff56d946aba3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::KnockbackFeature
-  m_Scale: 1
-  m_Lift: 0
---- !u!114 &1558052566314156304
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 624180727510312146}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a55b7a80aaf3274eb981c71bdc71883, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FlashFeature
-  m_Duration: 0.08
-  m_FlashMaterial: {fileID: 0}
---- !u!114 &1132963595069184044
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 624180727510312146}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9073d629ab528c14fa0a8d0189693104, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HitStopFeature
-  m_Scale: 1
---- !u!114 &9005081496376243558
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 624180727510312146}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3153f06822c4be648ad3631e8785afb9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ChunkBurstFeature
-  m_Count: 6
-  m_Color: {r: 0.9, g: 0.3, b: 0.3, a: 1}
-  m_Size: 0.12
-  m_Speed: 4
-  m_Height: 0.5
---- !u!114 &3697333915115315942
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 624180727510312146}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5c7b292008660c409066a502c08e9f2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MeleeAttackFeature
-  m_Team: 0
-  m_GizmoSpec:
-    m_Clip: Attack
-    m_Damage: 1
-    m_HitFrame: 9
-    m_Reach: 1
-    m_Radius: 0.9
-    m_Height: 0.6
-    m_Knockback: 6
-    m_HitStop: 0.06
-    m_Lunge: 0
 --- !u!114 &9078100684901017445
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -218,26 +71,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f808a82db33db04aa113196a25e6516, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  m_MoveSpeed: 5
-  m_RunThreshold: 0.6
-  m_Attack:
-    m_Clip: Attack
-    m_Damage: 1
-    m_HitFrame: 9
-    m_Reach: 1.1
-    m_Radius: 1
-    m_Height: 0.7
-    m_Knockback: 7
-    m_HitStop: 0.07
-    m_Lunge: 2
-  m_AutoAimRange: 3.5
-  m_CancelDelay: 0.12
-  m_DashSpeed: 16
-  m_DashTime: 0.18
-  m_DashCooldown: 0.5
-  m_IsDashInvincible: 1
-  m_DashAnimSpeed: 1.6
-  m_HitStunTime: 0.3
+  m_Def: {fileID: 11400000, guid: d1057f26622bc494e8f0166e20b8f821, type: 2}
+  m_CharacterController: {fileID: 3413719962110073397}
+  m_Animator: {fileID: 387653541879651787}
+  m_ListBodyRenderer:
+  - {fileID: 41865396072069927}
+  - {fileID: 9013342732603956841}
+  - {fileID: 1905432987355084849}
 --- !u!1001 &2698903623492880471
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -298,6 +138,16 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 387653541879651787}
   m_SourcePrefab: {fileID: 100100000, guid: 671fcd00b0a7ede4b9fddec7b75b742f, type: 3}
+--- !u!137 &41865396072069927 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2729413168405115760, guid: 671fcd00b0a7ede4b9fddec7b75b742f, type: 3}
+  m_PrefabInstance: {fileID: 2698903623492880471}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &1905432987355084849 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -4682305729559613338, guid: 671fcd00b0a7ede4b9fddec7b75b742f, type: 3}
+  m_PrefabInstance: {fileID: 2698903623492880471}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2521690295887966140 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 671fcd00b0a7ede4b9fddec7b75b742f, type: 3}
@@ -330,3 +180,8 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!137 &9013342732603956841 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6368580247620408894, guid: 671fcd00b0a7ede4b9fddec7b75b742f, type: 3}
+  m_PrefabInstance: {fileID: 2698903623492880471}
+  m_PrefabAsset: {fileID: 0}
