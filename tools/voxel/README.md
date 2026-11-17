@@ -19,10 +19,31 @@ blender -b -P tools/voxel/build_voxel_assets.py -- <출력폴더> [--preview]
 
 `python tools/voxel/build_map.py -- <출력폴더> [--preview]` 하나로 캐릭터·버섯·블록까지 다시 만든 뒤 `Map_Field01.fbx`를 더한다(팔레트 색 위치를 맞추려고 같이 만든다).
 
-- 56m x 56m. 가장자리는 4블록 높이 절벽과 거대 버섯 나무로 막았다.
+- 64m x 64m. 가장자리는 4블록 높이 절벽과 거대 버섯 나무로 막았다.
 - 구역: 남쪽 시작 지점 → 가운데 갈림길 → 서쪽 버끼 초원(꽃·언덕), 동쪽 버곰 숲(균사 땅·버섯 나무), 북쪽 보스 공터(바위 둘레, 남쪽 입구만 열림).
 - 자식: `Map_Terrain`·`Map_Props`(MeshCollider 자동), `Map_Grass`(풀·꽃, 충돌 없음), `Spawn_Player`, `Spawn_Buggi_1~6`, `Spawn_Bugom_1~3`, `Spawn_Bursus`(빈 오브젝트, 위치만 사용).
 - 맵 원점은 남서쪽 모서리, 지면 높이는 2m.
+
+## 대형 버우르스 (부위 파괴 보스)
+
+`python tools/voxel/build_boss.py -- <출력폴더> [--preview]` → `Bursus_Boss.fbx`, `Mush_*_Broken.fbx`(앞 단계 에셋·맵도 같이 다시 만든다).
+
+- 키 5.8m, 길이 16m(플레이어 키의 약 3.1배). 턱·목·꼬리 3마디가 따로 움직인다.
+- 파괴 부위 소켓 8곳: `Socket_Head`, `Socket_Back1~3`, `Socket_ForelegL/R`(앞다리 바깥), `Socket_Tail1`, `Socket_TailTip`(꼬리 곤봉). 소켓 위치에 히트박스를 두면 된다.
+- 몸통 히트박스 기준점: `Hitbox_Head, Hitbox_Neck, Hitbox_Body, Hitbox_Tail, Hitbox_LegFL/FR/BL/BR`. 권장 반지름(m): 머리 1.0, 목 1.0, 몸 1.8(캡슐 길이 6), 꼬리 0.8, 다리 0.9.
+- 깨진 버섯: 부위가 깨지면 소켓의 버섯을 `Mush_*_Broken`(꺾인 밑동)으로 바꾸고, 다시 자라면 원래 버섯으로 돌린다.
+
+| 클립 | 길이 | 예비 동작 → 판정 |
+|---|---|---|
+| Idle, Walk, Run | 반복 | Run은 돌진 중 반복용 |
+| Roar | 70 | 0~20 고개 젖힘 → 20~56 포효(경직·넉백) |
+| Bite | 48 | 0~12 고개 젖히며 입 벌림 → 21 물기(앞으로 0.9m) |
+| Stomp | 54 | 0~16 앞발 들기 → 22 내려찍기(충격파·포자) |
+| TailSwipe | 50 | 0~14 몸 비틀기 → 22~26 꼬리 휩쓸기 |
+| Charge | 70 | 0~20 웅크림 → 20~55 질주(이동은 코드) → 55~70 제동 |
+| PartBreak | 60 | 부위 파괴 시 휘청·주저앉음, 52에 회복 |
+| Down | 120 | 24~84 엎드림(약점 노출), 84~110 일어남 |
+| Hit, Death | 18, 90 | Death는 마지막 자세 유지 |
 
 ## 에셋 목록
 

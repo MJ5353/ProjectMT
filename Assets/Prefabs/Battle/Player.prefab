@@ -218,8 +218,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   m_MoveSpeed: 5
-  m_SprintMultiplier: 1.7
-  m_SprintAnimSpeed: 1.3
   m_RunThreshold: 0.6
   m_Attack:
     m_Clip: Attack
@@ -233,6 +231,11 @@ MonoBehaviour:
     m_Lunge: 2
   m_AutoAimRange: 3.5
   m_CancelDelay: 0.12
+  m_DashSpeed: 16
+  m_DashTime: 0.18
+  m_DashCooldown: 0.5
+  m_IsDashInvincible: 1
+  m_DashAnimSpeed: 1.6
   m_HitStunTime: 0.3
 --- !u!1001 &2698903623492880471
 PrefabInstance:

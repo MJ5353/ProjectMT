@@ -16,10 +16,10 @@ L.COLORS.update({
     'gill': (210, 192, 166), 'cap_violet': (128, 104, 156), 'cap_violet_dk': (100, 80, 128),
 })
 
-W = H = 56           # 블록 수(1블록 = 1m)
+W = H = 64           # 블록 수(1블록 = 1m)
 GROUND = 2           # 기본 지면 높이(블록)
 ZONES = {            # 이름: (중심 x, y, 반지름)
-    'start': (28, 8, 6), 'meadow': (14, 25, 10), 'grove': (42, 26, 10), 'arena': (28, 45, 9), 'hub': (28, 25, 4),
+    'start': (32, 8, 6), 'meadow': (15, 27, 10), 'grove': (49, 28, 10), 'arena': (32, 47, 11.5), 'hub': (32, 26, 4),
 }
 PATHS = [('start', 'hub'), ('hub', 'meadow'), ('hub', 'grove'), ('hub', 'arena')]
 
@@ -255,7 +255,7 @@ def preview(root, spawns, ground):
         for s, (m, sc) in B.PREVIEW_MUSH.get(arm.name.split('.')[0], {}).items():
             B.attach_mush(arm, s, m, sc)
     bpy.data.images['VoxelPalette.png'].reload()
-    L.aim_camera(Vector((W / 2, H / 2 - 2, 2)), 62, view=(-0.55, -1.0, 1.25))
+    L.aim_camera(Vector((W / 2, H / 2 - 2, 2)), 70, view=(-0.55, -1.0, 1.25))
     L.render(os.path.join(B.PRE, 'map.png'))
     # 가까이: 시작 지점에서 북쪽을 본 3인칭 느낌
     cam = bpy.data.objects['Cam']; cam.data.type = 'PERSP'; cam.data.lens = 24
