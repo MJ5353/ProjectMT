@@ -9,7 +9,7 @@ public class PlayerDef : UnitDef
     [SerializeField] private float m_RunThreshold = 0.6f;    // 입력 세기가 이 값 이상이면 Run 애니
 
     // 공격 보조---
-    [SerializeField] private float m_AutoAimRange = 3.5f;    // 이 거리 안의 몹 쪽으로 자동 회전
+    [SerializeField] private float m_AutoAimRange = 3.5f;    // 이 거리 안의 몬스터 쪽으로 자동 회전
     [SerializeField] private float m_CancelDelay = 0.12f;    // 판정 뒤 이 시간이 지나면 다음 공격으로 끊을 수 있음
 
     // 대시---

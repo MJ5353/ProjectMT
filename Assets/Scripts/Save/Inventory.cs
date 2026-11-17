@@ -8,19 +8,9 @@ public class Inventory
 
     public IReadOnlyDictionary<string, int> DicCountByID => m_DicCountByID;
 
-    // 아이템 수량 관리---
-
     public void Clear()
     {
         m_DicCountByID.Clear();
-    }
-
-    public int GetCount(string id)
-    {
-        if (id.E_IsNullOrEmpty())
-            return 0;
-
-        return m_DicCountByID.TryGetValue(id, out int count) ? count : 0;
     }
 
     public bool Has(string id, int amount = 1) => GetCount(id) >= amount;
@@ -35,7 +25,18 @@ public class Inventory
 
         EventBus.Publish(new InventoryChanged(id, count, amount));
     }
+    
+    // !!) 세이브 불러오기 전용. 이벤트를 발행하지 않는다
+    public void SetRaw(string id, int count)
+    {
+        if (id.E_IsNullOrEmpty() || count <= 0)
+            return;
 
+        m_DicCountByID[id] = count;
+    }
+
+    // get ---
+    
     public bool TryRemove(string id, int amount)
     {
         if (amount <= 0 || Has(id, amount) == false)
@@ -50,13 +51,12 @@ public class Inventory
         EventBus.Publish(new InventoryChanged(id, count, -amount));
         return true;
     }
-
-    // !!) 세이브 불러오기 전용. 이벤트를 발행하지 않는다
-    public void SetRaw(string id, int count)
+    
+    public int GetCount(string id)
     {
-        if (id.E_IsNullOrEmpty() || count <= 0)
-            return;
+        if (id.E_IsNullOrEmpty())
+            return 0;
 
-        m_DicCountByID[id] = count;
+        return m_DicCountByID.TryGetValue(id, out int count) ? count : 0;
     }
 }

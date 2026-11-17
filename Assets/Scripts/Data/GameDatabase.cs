@@ -8,14 +8,11 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "MushTaker/Data/Game Database", fileName = "GameDatabase")]
 public class GameDatabase : ScriptableObject
 {
-    public const string ResourcePath = "GameDatabase";
-
-    [SerializeField] private List<DataDef> m_ListDef = new();               // 에디터 메뉴가 채워 에셋에 저장한다(readonly면 저장되지 않음)
-    private readonly Dictionary<string, DataDef> m_DicDefByID = new();    // 런타임 조회용. Init에서 채운다
-
     public IReadOnlyList<DataDef> ListDef => m_ListDef;
 
-    // 데이터 초기화와 조회---
+    [SerializeField] private List<DataDef> m_ListDef = new();               // 에디터 메뉴가 채워 에셋에 저장한다(readonly면 저장되지 않음)
+    private readonly Dictionary<string, DataDef> m_DicDefByID = new();      // 런타임 조회용. Init에서 채운다
+    internal const string ResourcePath = "GameDatabase";
 
     public void Init()
     {
@@ -39,6 +36,8 @@ public class GameDatabase : ScriptableObject
         return null;
     }
 
+    public IEnumerable<T> GetAll<T>() where T : DataDef => m_ListDef.OfType<T>();
+
     public bool TryGet<T>(string id, out T result) where T : DataDef
     {
         if (m_DicDefByID.Count == 0)
@@ -46,17 +45,12 @@ public class GameDatabase : ScriptableObject
 
         result = null;
         
-        if (id.E_IsNullOrEmpty())
-            return false;
-
-        if (m_DicDefByID.TryGetValue(id, out DataDef def) == false)
+        if (id.E_IsNullOrEmpty() || m_DicDefByID.TryGetValue(id, out DataDef def) == false)
             return false;
 
         result = def as T;
         return result != null;
     }
-
-    public IEnumerable<T> GetAll<T>() where T : DataDef => m_ListDef.OfType<T>();
 
 #if UNITY_EDITOR
     // DataTools 메뉴 전용. 모은 목록으로 통째로 바꾼다

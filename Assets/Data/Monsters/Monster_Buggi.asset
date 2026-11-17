@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54ec08d147a321a4fbf388a99b460ef2, type: 3}
-  m_Name: Mob_Buggi
-  m_EditorClassIdentifier: Assembly-CSharp::MobDef
+  m_Name: Monster_Buggi
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterDef
   m_ID: Mob_Buggi
   m_DisplayName: "\uBC84\uB07C"
   m_Description: 

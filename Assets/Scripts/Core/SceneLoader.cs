@@ -2,11 +2,16 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+// ==================================================
+
+// [mj] todo) data로 scene name 연결
 public static class SceneNames
 {
     public const string Lobby = "Lobby";
     public const string Battle = "Battle";
 }
+
+// ==================================================
 
 public static class SceneLoader
 {

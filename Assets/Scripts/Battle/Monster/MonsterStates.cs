@@ -1,0 +1,291 @@
+using UnityEngine;
+
+// 몬스터 FSM 상태들. 수치는 전부 MonsterDef에서 읽는다
+// 흐름: 대기 ↔ 배회 → (발견) 추적 → 움츠림 → 공격 → 추적 / 맞으면 피격 → (도망) → 추적 / 사망
+
+public abstract class MonsterState : IState
+{
+    protected readonly MonsterController m_Monster;
+
+    protected MonsterDef Def => m_Monster.Def;
+    protected float TimeInState => m_Monster.TimeInState;
+
+    protected MonsterState(MonsterController monster)
+    {
+        m_Monster = monster;
+    }
+
+    // ==================================================
+
+    // virtual---
+
+    public virtual void Enter() { }
+    public virtual void Update(float deltaTime) { }
+    public virtual void Exit() { }
+}
+
+public class MonsterIdleState : MonsterState
+{
+    private float m_Duration;
+
+    public MonsterIdleState(MonsterController monster) : base(monster) { }
+
+    public override void Enter()
+    {
+        m_Monster.Move.Stop();
+        m_Monster.Anim.Play("Idle");
+        m_Duration = Random.Range(1f, 2.5f);
+    }
+
+    public override void Update(float deltaTime)
+    {
+        if (m_Monster.CanSeeTarget())
+        {
+            m_Monster.ChangeState(EMonsterState.Chase);
+            return;
+        }
+
+        if (TimeInState >= m_Duration)
+            m_Monster.ChangeState(EMonsterState.Wander);
+    }
+}
+
+public class MonsterWanderState : MonsterState
+{
+    private const float MaxDuration = 3f;
+    private Vector3 m_Destination;
+
+    public MonsterWanderState(MonsterController monster) : base(monster) { }
+
+    public override void Enter()
+    {
+        Vector2 offset = Random.insideUnitCircle * Def.WanderRadius;
+        m_Destination = m_Monster.HomePosition + new Vector3(offset.x, 0f, offset.y);
+        m_Monster.Anim.Play("Walk");
+    }
+
+    public override void Update(float deltaTime)
+    {
+        if (m_Monster.CanSeeTarget())
+        {
+            m_Monster.ChangeState(EMonsterState.Chase);
+            return;
+        }
+
+        Vector3 diff = m_Destination - m_Monster.transform.position;
+        diff.y = 0f;
+        if (diff.magnitude < 0.3f || TimeInState >= MaxDuration)
+        {
+            m_Monster.ChangeState(EMonsterState.Idle);
+            return;
+        }
+
+        m_Monster.MoveTo(diff, Def.WanderSpeed);
+    }
+}
+
+public class MonsterChaseState : MonsterState
+{
+    public MonsterChaseState(MonsterController monster) : base(monster) { }
+
+    public override void Update(float deltaTime)
+    {
+        float distance = m_Monster.GetTargetDistance();
+        PlayerController player = m_Monster.Actors?.Player;
+        bool isTargetGone = player == null || player.IsDead;
+        if (isTargetGone || distance > Def.LoseRange)
+        {
+            m_Monster.ChangeState(EMonsterState.Idle);
+            return;
+        }
+
+        // 사거리 안: 쿨이 돌면 공격, 아니면 마주 보고 대기
+        if (distance <= Def.AttackRange)
+        {
+            m_Monster.Move.Stop();
+            m_Monster.Move.FaceTo(m_Monster.GetTargetDirection());
+            m_Monster.Anim.Play("Idle");
+
+            if (m_Monster.CooldownRemain <= 0f)
+                m_Monster.ChangeState(EMonsterState.Windup);
+
+            return;
+        }
+
+        m_Monster.Anim.Play("Walk");
+        m_Monster.MoveTo(m_Monster.GetTargetDirection(), Def.MoveSpeed);
+    }
+}
+
+// 공격 예고. 몸을 납작하게 움츠려서 플레이어가 보고 빠질 수 있게 한다
+public class MonsterWindupState : MonsterState
+{
+    private static readonly Vector3 SquashScale = new(1.15f, 0.8f, 1.15f);
+    private Vector3 m_BaseScale;
+
+    public MonsterWindupState(MonsterController monster) : base(monster) { }
+
+    public override void Enter()
+    {
+        m_Monster.Move.Stop();
+        m_Monster.Anim.Play("Idle");
+        m_BaseScale = m_Monster.VisualRoot.localScale;
+    }
+
+    public override void Update(float deltaTime)
+    {
+        m_Monster.Move.FaceTo(m_Monster.GetTargetDirection());
+
+        float t = Def.WindupTime > 0f ? Mathf.Clamp01(TimeInState / Def.WindupTime) : 1f;
+        m_Monster.VisualRoot.localScale = Vector3.Scale(m_BaseScale, Vector3.Lerp(Vector3.one, SquashScale, t));
+
+        if (t >= 1f)
+            m_Monster.ChangeState(EMonsterState.Attack);
+    }
+
+    public override void Exit()
+    {
+        m_Monster.VisualRoot.localScale = m_BaseScale;
+    }
+}
+
+public class MonsterAttackState : MonsterState
+{
+    private bool m_IsHitDone;
+    private float m_Length;
+
+    public MonsterAttackState(MonsterController monster) : base(monster) { }
+
+    public override void Enter()
+    {
+        AttackSpec attack = Def.Attack;
+        m_IsHitDone = false;
+        m_Length = m_Monster.Anim.GetLength(attack.Clip);
+
+        m_Monster.Move.Stop();
+        m_Monster.Move.FaceTo(m_Monster.GetTargetDirection(), true);
+        m_Monster.Anim.Play(attack.Clip, true);
+
+        if (attack.Lunge > 0f)
+            m_Monster.Move.AddImpulse(m_Monster.transform.forward * attack.Lunge);
+    }
+
+    public override void Update(float deltaTime)
+    {
+        AttackSpec attack = Def.Attack;
+        if (m_IsHitDone == false && TimeInState >= attack.HitTime)
+        {
+            m_IsHitDone = true;
+            m_Monster.Melee.Perform(attack);
+        }
+
+        if (TimeInState >= m_Length)
+            m_Monster.ChangeState(EMonsterState.Chase);
+    }
+
+    public override void Exit()
+    {
+        m_Monster.CooldownRemain = Def.AttackCooldown;
+    }
+}
+
+public class MonsterHitState : MonsterState
+{
+    public MonsterHitState(MonsterController monster) : base(monster) { }
+
+    public override void Enter()
+    {
+        m_Monster.Move.Stop();
+        m_Monster.Anim.Play("Hit", true);
+    }
+
+    public override void Update(float deltaTime)
+    {
+        if (TimeInState < Def.HitStunTime)
+            return;
+
+        m_Monster.ChangeState(Def.FleeTime > 0f ? EMonsterState.Flee : EMonsterState.Chase);
+    }
+}
+
+// 버끼처럼 겁 많은 몬스터: 맞으면 반대로 달아났다가 다시 덤빈다
+public class MonsterFleeState : MonsterState
+{
+    public MonsterFleeState(MonsterController monster) : base(monster) { }
+
+    public override void Enter()
+    {
+        m_Monster.Anim.Play("Walk");
+        m_Monster.Anim.SetSpeed(1.6f);
+    }
+
+    public override void Update(float deltaTime)
+    {
+        if (TimeInState >= Def.FleeTime)
+        {
+            m_Monster.ChangeState(EMonsterState.Chase);
+            return;
+        }
+
+        Vector3 away = -m_Monster.GetTargetDirection();
+        m_Monster.MoveTo(away, Def.FleeSpeed);
+    }
+
+    public override void Exit()
+    {
+        m_Monster.Anim.SetSpeed(1f);
+    }
+}
+
+public class MonsterDeadState : MonsterState
+{
+    private const float CollisionOffTime = 0.4f;
+    private const float DestroyTime = 2f;
+
+    private bool m_IsCollisionOff;
+
+    public MonsterDeadState(MonsterController monster) : base(monster) { }
+
+    public override void Enter()
+    {
+        m_IsCollisionOff = false;
+        m_Monster.Move.Stop();
+        m_Monster.Anim.SetSpeed(1f);
+        m_Monster.Anim.Play("Death", true);
+
+        SpawnDrops();
+        if (m_Monster.Actors != null)
+            EventBus.Publish(new MonsterKilled(m_Monster.Actors, m_Monster.ActorID, Def, m_Monster.transform.position));
+    }
+
+    public override void Update(float deltaTime)
+    {
+        // 넉백으로 밀려난 뒤 충돌을 끈다
+        if (m_IsCollisionOff == false && TimeInState >= CollisionOffTime)
+        {
+            m_IsCollisionOff = true;
+            m_Monster.Move.SetCollision(false);
+        }
+
+        if (TimeInState >= DestroyTime)
+            Object.Destroy(m_Monster.gameObject);
+    }
+
+    private void SpawnDrops()
+    {
+        Vector3 origin = m_Monster.transform.position + Vector3.up * 0.6f;
+        foreach (MonsterDef.DropEntry drop in Def.ListDrop)
+        {
+            if (drop.Pickup == null || Random.value > drop.Chance)
+                continue;
+
+            int count = Random.Range(drop.Min, drop.Max + 1);
+            for (int i = 0; i < count; i++)
+            {
+                MushroomPickup pickup = Object.Instantiate(drop.Pickup, origin, Quaternion.identity);
+                Vector2 spread = Random.insideUnitCircle * 2f;
+                pickup.Launch(new Vector3(spread.x, 5f, spread.y));
+            }
+        }
+    }
+}

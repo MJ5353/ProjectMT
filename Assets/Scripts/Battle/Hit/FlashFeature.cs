@@ -7,8 +7,6 @@ public class FlashFeature : IHitReaction
 {
     private const float Duration = 0.08f;
 
-    private static Material s_FlashMaterial;
-
     private readonly List<Renderer> m_ListRenderer = new();
     private readonly List<Material[]> m_ListOriginal = new();
     private float m_Remain;
@@ -35,7 +33,10 @@ public class FlashFeature : IHitReaction
 
     public void OnHit(in HitParams hit)
     {
-        Material flash = GetFlashMaterial();
+        Material flash = HitMaterials.Flash;
+        if (flash == null)
+            return;
+
         for (int i = 0; i < m_ListRenderer.Count; i++)
         {
             if (m_ListRenderer[i] == null)
@@ -73,13 +74,5 @@ public class FlashFeature : IHitReaction
 
             m_ListRenderer[i].sharedMaterials = m_ListOriginal[i];
         }
-    }
-
-    private static Material GetFlashMaterial()
-    {
-        if (s_FlashMaterial == null)
-            s_FlashMaterial = HitMaterials.CreateUnlit("HitFlash (Runtime)", Color.white);
-
-        return s_FlashMaterial;
     }
 }

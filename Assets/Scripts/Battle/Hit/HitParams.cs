@@ -3,7 +3,7 @@ using UnityEngine;
 public enum ETeam
 {
     Player,
-    Mob,
+    Monster,
 }
 
 // 한 번의 타격 정보. 공격하는 쪽이 만들고, 맞는 쪽 HitFeature가 반응 부품들에 그대로 넘긴다.
@@ -36,9 +36,10 @@ public interface IHitReaction
     void OnHit(in HitParams hit);
 }
 
-// 맞을 수 있는 대상. 근접 공격이 맞힌 콜라이더에서 이것을 찾는다
+// 액터 검색과 근접 공격에 필요한 피격 정보.
 public interface IHitTarget
 {
     Transform transform { get; }
     HitFeature HitFeature { get; }
+    CharacterController HurtBody { get; }
 }

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// 플레이어와 몹이 같이 쓰는 몸 수치. 몹은 MobDef, 플레이어는 PlayerDef가 이어받는다
+// 플레이어와 몬스터이 같이 쓰는 몸 수치. 몬스터은 MonsterDef, 플레이어는 PlayerDef가 이어받는다
 public abstract class UnitDef : DataDef
 {
     // 몸---

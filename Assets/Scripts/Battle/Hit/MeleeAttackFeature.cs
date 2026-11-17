@@ -1,21 +1,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// 판정 프레임에 한 번 구 판정을 해서 맞힌 대상의 HitFeature에 타격을 넘긴다. 한 번에 같은 대상은 한 번만 맞는다.
+// 공격 프레임에 공격 구체와 후보 액터의 몸을 비교한다.
 public class MeleeAttackFeature
 {
-    private static readonly Collider[] s_Buffer = new Collider[32];
-
     private readonly IHitTarget m_Owner;
-    private readonly ETeam m_Team;
-    private readonly List<IHitTarget> m_ListHitTarget = new();
+    private readonly ActorManagement m_Actors;
+    private readonly List<ActorHitCandidate> m_ListCandidate = new();
 
     // ==================================================
 
-    public MeleeAttackFeature(IHitTarget owner, ETeam team)
+    public MeleeAttackFeature(IHitTarget owner, ActorManagement actors)
     {
         m_Owner = owner;
-        m_Team = team;
+        m_Actors = actors;
     }
 
     public static Vector3 GetCenter(Transform owner, AttackSpec spec)
@@ -23,33 +21,36 @@ public class MeleeAttackFeature
         return owner.position + Vector3.up * spec.Height + owner.forward * spec.Reach;
     }
 
-    // 맞힌 수를 돌려준다
     public int Perform(AttackSpec spec)
     {
+        if (m_Actors == null)
+            return 0;
+
         Transform owner = m_Owner.transform;
         Vector3 center = GetCenter(owner, spec);
-        int count = Physics.OverlapSphereNonAlloc(center, spec.Radius, s_Buffer, ~0, QueryTriggerInteraction.Collide);
+        ETeam team = m_Owner.HitFeature.Team;
+        m_Actors.CollectNearbyEnemies(center, spec.Radius, team, m_ListCandidate);
 
-        m_ListHitTarget.Clear();
-        for (int i = 0; i < count; i++)
+        int hitCount = 0;
+        foreach (ActorHitCandidate candidate in m_ListCandidate)
         {
-            // !!) 보류: 콜라이더에서 대상 찾기(GetComponentInParent). 액터 관리 + 좌표 탐색으로 바꿀지 검토
-            IHitTarget target = s_Buffer[i].GetComponentInParent<IHitTarget>();
-            if (target == null || target.HitFeature == null || target == m_Owner || m_ListHitTarget.Contains(target))
+            CharacterController body = candidate.Actor.HurtBody;
+            if (body == null || body.enabled == false || body.gameObject.activeInHierarchy == false)
                 continue;
 
-            m_ListHitTarget.Add(target);
+            if (candidate.OverlapsSphere(center, spec.Radius, out Vector3 point) == false)
+                continue;
 
-            Vector3 dir = target.transform.position - owner.position;
-            dir.y = 0f;
-            dir = dir.sqrMagnitude > 0.0001f ? dir.normalized : owner.forward;
+            Vector3 direction = candidate.Actor.transform.position - owner.position;
+            direction.y = 0f;
+            direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : owner.forward;
 
-            Vector3 point = s_Buffer[i].ClosestPoint(center);
-            HitParams hit = new(owner.gameObject, m_Team, spec.Damage, dir, spec.Knockback, spec.HitStop, point);
-            if (target.HitFeature.Receive(hit) == false)
-                m_ListHitTarget.Remove(target);
+            HitParams hit = new(owner.gameObject, team, spec.Damage, direction, spec.Knockback, spec.HitStop, point);
+            if (candidate.Actor.HitFeature.Receive(hit))
+                hitCount++;
         }
 
-        return m_ListHitTarget.Count;
+        m_ListCandidate.Clear();
+        return hitCount;
     }
 }

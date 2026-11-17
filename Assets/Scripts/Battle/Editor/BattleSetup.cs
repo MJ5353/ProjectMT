@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // 전투 1단계 시험 환경을 만드는 메뉴.
-// 애니메이터(상태 이름 = 클립 이름), 프리팹(채집꾼·버끼·버곰·버섯 줍기), 데이터(플레이어·몹), Battle 씬(Map_Field01 + 스폰 지점)을 만든다.
+// 애니메이터(상태 이름 = 클립 이름), 프리팹(채집꾼·버끼·버곰·버섯 줍기), 데이터(플레이어·몬스터), Battle 씬(Map_Field01 + 스폰 지점)을 만든다.
 // 프리팹의 참조(Def·CharacterController·Animator·몸 렌더러)는 여기서 채워서, 런타임에는 GetComponent를 쓰지 않는다
 // !!) 데이터·프리팹은 이미 있으면 건드리지 않는다(대장이 고친 값 보호). 다시 만들려면 "프리팹 다시 만들기"
 public static class BattleSetup
@@ -16,21 +16,22 @@ public static class BattleSetup
     private const string ModelDir = "Assets/Art/Voxel/Models/";
     private const string PrefabDir = "Assets/Prefabs/Battle/";
     private const string AnimatorDir = "Assets/Prefabs/Battle/Animators/";
-    private const string MobDataDir = "Assets/Data/Mobs/";
+    private const string MonsterDataDir = "Assets/Data/Monsters/";
     private const string ScenePath = "Assets/Scenes/Battle.unity";
     private const string MapName = "Map_Field01";
     private const float ModelYaw = 180f;
 
     private const string PlayerPrefabPath = PrefabDir + "Player.prefab";
-    private const string BuggiPrefabPath = PrefabDir + "Mob_Buggi.prefab";
+    private const string BuggiPrefabPath = PrefabDir + "Monster_Buggi.prefab";
     private const string SongiPickupPath = PrefabDir + "Pickup_Songi.prefab";
-    private const string BuggiDefPath = MobDataDir + "Mob_Buggi.asset";
-    private const string BugomPrefabPath = PrefabDir + "Mob_Bugom.prefab";
+    private const string BuggiDefPath = MonsterDataDir + "Monster_Buggi.asset";
+    private const string BugomPrefabPath = PrefabDir + "Monster_Bugom.prefab";
     private const string CloudPickupPath = PrefabDir + "Pickup_Cloud.prefab";
-    private const string BugomDefPath = MobDataDir + "Mob_Bugom.asset";
+    private const string BugomDefPath = MonsterDataDir + "Monster_Bugom.asset";
     private const string MushroomDataDir = "Assets/Data/Mushrooms/";
     private const string PlayerDataDir = "Assets/Data/Player/";
     private const string PlayerDefPath = PlayerDataDir + "Player.asset";
+    private const string HitMaterialDir = "Assets/Resources/" + HitMaterials.ResourceDir;
 
     // ==================================================
 
@@ -58,19 +59,23 @@ public static class BattleSetup
     private static void BuildAssets(bool isForce)
     {
         Directory.CreateDirectory(AnimatorDir);
-        Directory.CreateDirectory(MobDataDir);
+        Directory.CreateDirectory(MonsterDataDir);
         Directory.CreateDirectory(MushroomDataDir);
         Directory.CreateDirectory(PlayerDataDir);
+        Directory.CreateDirectory(HitMaterialDir);
+
+        BuildHitMaterial(HitMaterials.FlashName);
+        BuildHitMaterial(HitMaterials.ChunkName);
 
         BuildMushroomDef("Mushroom_Songi", "송이");
         BuildMushroomDef("Mushroom_Cloud", "구름버섯");
 
         MushroomPickup songiPickup = BuildPickup(SongiPickupPath, "Mush_Songi", "Mushroom_Songi", isForce);
-        MobDef buggiDef = BuildBuggiDef(songiPickup);
+        MonsterDef buggiDef = BuildBuggiDef(songiPickup);
         BuildBuggi(buggiDef, isForce);
 
         MushroomPickup cloudPickup = BuildPickup(CloudPickupPath, "Mush_Cloud", "Mushroom_Cloud", isForce);
-        MobDef bugomDef = BuildBugomDef(cloudPickup);
+        MonsterDef bugomDef = BuildBugomDef(cloudPickup);
         BuildBugom(bugomDef, isForce);
 
         PlayerDef playerDef = BuildPlayerDef();
@@ -99,19 +104,19 @@ public static class BattleSetup
         return saved.GetComponent<MushroomPickup>();
     }
 
-    private static MobDef BuildBuggiDef(MushroomPickup songiPickup)
+    private static MonsterDef BuildBuggiDef(MushroomPickup songiPickup)
     {
-        MobDef def = AssetDatabase.LoadAssetAtPath<MobDef>(BuggiDefPath);
+        MonsterDef def = AssetDatabase.LoadAssetAtPath<MonsterDef>(BuggiDefPath);
         if (def == null)
         {
-            def = ScriptableObject.CreateInstance<MobDef>();
+            def = ScriptableObject.CreateInstance<MonsterDef>();
             AssetDatabase.CreateAsset(def, BuggiDefPath);
             SetString(def, "m_ID", "Mob_Buggi");
             SetString(def, "m_DisplayName", "버끼");
 
-            List<MobDef.DropEntry> listDrop = new()
+            List<MonsterDef.DropEntry> listDrop = new()
             {
-                new MobDef.DropEntry(songiPickup, 1, 2, 1f),
+                new MonsterDef.DropEntry(songiPickup, 1, 2, 1f),
             };
 
             // 박치기: 13프레임 판정, 앞으로 튀어나감
@@ -123,7 +128,7 @@ public static class BattleSetup
         if (HasEmptyMushroom(def))
         {
             Renderer songi = LoadMushroom("Mush_Songi");
-            def.EditorSetMushrooms(new List<MobDef.MushroomSocket>
+            def.EditorSetMushrooms(new List<MonsterDef.MushroomSocket>
             {
                 new("Socket_Head", songi, 0.8f),
                 new("Socket_Back", songi, 0.6f),
@@ -135,7 +140,7 @@ public static class BattleSetup
         return def;
     }
 
-    private static bool HasEmptyMushroom(MobDef def)
+    private static bool HasEmptyMushroom(MonsterDef def)
     {
         return def.ListMushroom.Count == 0 || def.ListMushroom.Any(socket => socket.Model == null);
     }
@@ -169,6 +174,25 @@ public static class BattleSetup
         return def;
     }
 
+    // 피격 연출용 흰색 Unlit 머티리얼. 조각 색은 MaterialPropertyBlock으로 바꾸므로 인스턴싱을 켠다
+    private static void BuildHitMaterial(string materialName)
+    {
+        string path = $"{HitMaterialDir}{materialName}.mat";
+        if (File.Exists(path))
+            return;
+
+        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
+        if (shader == null)
+        {
+            CLogger.Error("BattleSetup", "URP Unlit 셰이더를 찾지 못했습니다.");
+            return;
+        }
+
+        Material material = new Material(shader) { enableInstancing = true };
+        material.color = Color.white;
+        AssetDatabase.CreateAsset(material, path);
+    }
+
     private static void BuildMushroomDef(string id, string displayName)
     {
         string path = $"{MushroomDataDir}{id}.asset";
@@ -182,12 +206,12 @@ public static class BattleSetup
     }
 
     // 버곰: 느리고 단단하다. 넉백이 덜 먹고, 예비 동작이 길고, 한 방이 세다
-    private static MobDef BuildBugomDef(MushroomPickup cloudPickup)
+    private static MonsterDef BuildBugomDef(MushroomPickup cloudPickup)
     {
-        MobDef def = AssetDatabase.LoadAssetAtPath<MobDef>(BugomDefPath);
+        MonsterDef def = AssetDatabase.LoadAssetAtPath<MonsterDef>(BugomDefPath);
         if (def == null)
         {
-            def = ScriptableObject.CreateInstance<MobDef>();
+            def = ScriptableObject.CreateInstance<MonsterDef>();
             AssetDatabase.CreateAsset(def, BugomDefPath);
             SetString(def, "m_ID", "Mob_Bugom");
             SetString(def, "m_DisplayName", "버곰");
@@ -201,9 +225,9 @@ public static class BattleSetup
             SetFloat(def, "m_AttackCooldown", 1.8f);
             SetFloat(def, "m_HitStunTime", 0.2f);
 
-            List<MobDef.DropEntry> listDrop = new()
+            List<MonsterDef.DropEntry> listDrop = new()
             {
-                new MobDef.DropEntry(cloudPickup, 2, 3, 1f),
+                new MonsterDef.DropEntry(cloudPickup, 2, 3, 1f),
             };
 
             // 일어서서 내려찍기: 19프레임 판정, 앞쪽 넓게
@@ -215,7 +239,7 @@ public static class BattleSetup
         if (HasEmptyMushroom(def))
         {
             Renderer cloud = LoadMushroom("Mush_Cloud");
-            def.EditorSetMushrooms(new List<MobDef.MushroomSocket>
+            def.EditorSetMushrooms(new List<MonsterDef.MushroomSocket>
             {
                 new("Socket_Back1", cloud, 1.5f),
                 new("Socket_Back2", cloud, 1.3f),
@@ -228,23 +252,23 @@ public static class BattleSetup
         return def;
     }
 
-    private static void BuildBugom(MobDef def, bool isForce)
+    private static void BuildBugom(MonsterDef def, bool isForce)
     {
         if (File.Exists(BugomPrefabPath) && isForce == false)
             return;
 
-        GameObject root = BuildUnit<MobController>("Mob_Bugom", "Bugom", 1.6f, 0.75f, def);
+        GameObject root = BuildUnit<MonsterController>("Monster_Bugom", "Bugom", 1.6f, 0.75f, def);
 
         PrefabUtility.SaveAsPrefabAsset(root, BugomPrefabPath);
         Object.DestroyImmediate(root);
     }
 
-    private static void BuildBuggi(MobDef def, bool isForce)
+    private static void BuildBuggi(MonsterDef def, bool isForce)
     {
         if (File.Exists(BuggiPrefabPath) && isForce == false)
             return;
 
-        GameObject root = BuildUnit<MobController>("Mob_Buggi", "Buggi", 0.9f, 0.35f, def);
+        GameObject root = BuildUnit<MonsterController>("Monster_Buggi", "Buggi", 0.9f, 0.35f, def);
 
         PrefabUtility.SaveAsPrefabAsset(root, BuggiPrefabPath);
         Object.DestroyImmediate(root);
@@ -261,7 +285,7 @@ public static class BattleSetup
         Object.DestroyImmediate(root);
     }
 
-    // 몹·플레이어 공통 몸: 모델 + CharacterController + 컨트롤러. 컨트롤러의 참조를 여기서 채운다
+    // 몬스터·플레이어 공통 몸: 모델 + CharacterController + 컨트롤러. 컨트롤러의 참조를 여기서 채운다
     private static GameObject BuildUnit<TController>(string name, string modelName, float height, float radius, UnitDef def) where TController : Component
     {
         GameObject root = new GameObject(name);
@@ -381,7 +405,7 @@ public static class BattleSetup
     // 지점은 플레이 때 이름 접두사로 찾는다(맵을 다시 만들어도 끊기지 않게)
     private static void SetGroup(SerializedProperty group, string prefabPath, string pointPrefix, int maxAlive, float respawnDelay)
     {
-        group.FindPropertyRelative("m_Prefab").objectReferenceValue = AssetDatabase.LoadAssetAtPath<MobController>(prefabPath);
+        group.FindPropertyRelative("m_Prefab").objectReferenceValue = AssetDatabase.LoadAssetAtPath<MonsterController>(prefabPath);
         group.FindPropertyRelative("m_PointPrefix").stringValue = pointPrefix;
         group.FindPropertyRelative("m_MaxAlive").intValue = maxAlive;
         group.FindPropertyRelative("m_RespawnDelay").floatValue = respawnDelay;

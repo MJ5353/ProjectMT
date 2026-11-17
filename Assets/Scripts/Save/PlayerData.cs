@@ -8,8 +8,6 @@ public class PlayerData
 
     public Inventory Inventory { get; } = new();
 
-    // 플레이어 데이터 관리---
-
     public void Clear()
     {
         Inventory.Clear();
@@ -44,6 +42,8 @@ public class PlayerData
         return data;
     }
 
+    // flag
+    
     public bool HasFlag(string flag) => m_Flags.Contains(flag);
 
     public void SetFlag(string flag, bool value = true)

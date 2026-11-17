@@ -1,17 +1,31 @@
 using UnityEngine;
 
-// 피격 연출용 런타임 머티리얼(번쩍, 조각)
-// !!) 빌드에서 셰이더가 빠질 수 있다. 실제 빌드 전에는 머티리얼 에셋을 만들어 연결할 것
+// 피격 연출용 머티리얼(번쩍, 조각). Resources/Materials 아래 에셋을 쓴다.
+// 에셋은 에디터 메뉴(MushTaker/Battle/프리팹 다시 만들기)가 URP Unlit 흰색으로 만든다.
+// Resources에 있는 머티리얼은 빌드에 셰이더와 함께 들어간다
 public static class HitMaterials
 {
-    public static Material CreateUnlit(string materialName, Color color)
-    {
-        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-        if (shader == null)
-            shader = Shader.Find("Unlit/Color");
+    public const string ResourceDir = "Materials/";
+    public const string FlashName = "HitFlash";
+    public const string ChunkName = "HitChunk";
 
-        Material material = new Material(shader) { name = materialName, enableInstancing = true };
-        material.color = color;
-        return material;
+    private static Material s_Flash;
+    private static Material s_Chunk;
+
+    public static Material Flash => Load(ref s_Flash, FlashName);
+    public static Material Chunk => Load(ref s_Chunk, ChunkName);
+
+    // ==================================================
+
+    private static Material Load(ref Material cache, string materialName)
+    {
+        if (cache != null)
+            return cache;
+
+        cache = Resources.Load<Material>(ResourceDir + materialName);
+        if (cache == null)
+            CLogger.Error("HitMaterials", $"Resources/{ResourceDir}{materialName} 머티리얼이 없습니다. 메뉴 MushTaker/Battle/프리팹 다시 만들기를 실행하세요.");
+
+        return cache;
     }
 }

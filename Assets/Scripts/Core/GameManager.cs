@@ -40,7 +40,10 @@ public class GameManager : MonoSingleton<GameManager>
 
     // save
 
-    public void SaveNow() => m_SaveService.Save(Player.ToSaveData());
+    public void RunSave()
+    {
+        m_SaveService.Save(Player.ToSaveData());
+    }
 
     public void ResetSave()
     {

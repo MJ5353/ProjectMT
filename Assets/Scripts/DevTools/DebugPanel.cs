@@ -90,7 +90,7 @@ public class DebugPanel : MonoBehaviour
         GUILayout.BeginHorizontal();
 
         if (GUILayout.Button("저장"))
-            gameM.SaveNow();
+            gameM.RunSave();
 
         if (GUILayout.Button("세이브 삭제"))
             gameM.ResetSave();

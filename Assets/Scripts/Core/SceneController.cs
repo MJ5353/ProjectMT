@@ -7,6 +7,7 @@ public sealed class SceneController : MonoBehaviour
     [SerializeField] private PopupManager m_PopupManager = null;
 
     private HitStopManager m_HitStopManager;
+    private BattleSession m_BattleSession;
 
     // ==================================================
 
@@ -27,6 +28,7 @@ public sealed class SceneController : MonoBehaviour
 
         if (m_BattleManager != null)
         {
+            m_BattleSession = gameM.Flow.BeginBattle(gameObject.scene);
             m_HitStopManager = gameObject.AddComponent<HitStopManager>();
             m_HitStopManager.Init();
         }
@@ -35,8 +37,8 @@ public sealed class SceneController : MonoBehaviour
     private void Start()
     {
         // 플레이어의 Awake에서 체력과 피격 부품을 만든 뒤 전투를 초기화한다.
-        if (m_BattleManager != null)
-            m_BattleManager.Init();
+        if (m_BattleSession != null)
+            m_BattleManager.Init(m_BattleSession);
 
         GameFlow flow = GameManager.Instance?.Flow;
         if (flow != null && flow.Current == EGameState.None && flow.IsTransitioning == false)
@@ -51,6 +53,8 @@ public sealed class SceneController : MonoBehaviour
         if (m_HitStopManager != null)
             m_HitStopManager.Tick(Time.unscaledDeltaTime);
 
+        m_BattleSession?.Chunks.Tick(Time.deltaTime);
+
         if (m_PopupManager != null)
             m_PopupManager.Tick();
     }
@@ -60,20 +64,23 @@ public sealed class SceneController : MonoBehaviour
         m_BattleManager?.Clear();
         m_HitStopManager?.Clear();
         m_PopupManager?.Clear();
+        m_BattleSession?.Chunks.Clear();
+        GameManager.Instance?.Flow.EndBattle(m_BattleSession);
     }
 
     private void OnApplicationPause(bool isPaused)
     {
         if (isPaused)
-            GameManager.Instance?.SaveNow();
+            GameManager.Instance?.RunSave();
     }
 
-    private void OnApplicationQuit() => GameManager.Instance?.SaveNow();
+    private void OnApplicationQuit() => GameManager.Instance?.RunSave();
 
     // 도메인 리로드를 끈 상태에서도 새 플레이마다 등록을 초기화한다.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetSingletons()
     {
+        GameTime.Reset();
         GameManager.ResetSingleton();
         BattleManager.ResetSingleton();
         HitStopManager.ResetSingleton();

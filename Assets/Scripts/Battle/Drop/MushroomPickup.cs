@@ -85,7 +85,7 @@ public class MushroomPickup : MonoBehaviour
 
     private void UpdateMagnet(float deltaTime)
     {
-        PlayerController player = PlayerController.Current;
+        PlayerController player = GameManager.Instance?.Flow.GetBattle(gameObject.scene)?.Actors.Player;
         if (player == null)
         {
             m_IsMagnet = false;
@@ -102,7 +102,7 @@ public class MushroomPickup : MonoBehaviour
 
     private bool IsPlayerNear()
     {
-        PlayerController player = PlayerController.Current;
+        PlayerController player = GameManager.Instance?.Flow.GetBattle(gameObject.scene)?.Actors.Player;
         if (player == null || player.IsDead)
             return false;
 

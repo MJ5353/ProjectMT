@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// 몹 정의. 몸 수치(UnitDef)에 이동·AI 거리·몸에 꽂는 버섯·드랍을 더한다.
-// 새 몹은 이 에셋 한 장 + 프리팹으로 늘린다
-[CreateAssetMenu(menuName = "MushTaker/Data/Mob", fileName = "Mob_")]
-public class MobDef : UnitDef
+// 몬스터 정의. 몸 수치(UnitDef)에 이동·AI 거리·몸에 꽂는 버섯·드랍을 더한다.
+// 새 몬스터은 이 에셋 한 장 + 프리팹으로 늘린다
+[CreateAssetMenu(menuName = "MushTaker/Data/Monster", fileName = "Monster_")]
+public class MonsterDef : UnitDef
 {
     // 몸의 Socket_* 뼈에 꽂는 버섯
     [Serializable]

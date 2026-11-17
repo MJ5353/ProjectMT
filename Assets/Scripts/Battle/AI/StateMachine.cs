@@ -7,7 +7,7 @@ public interface IState
     void Exit();
 }
 
-// 키(보통 enum)로 상태를 바꾸는 작은 FSM. 몹 AI가 쓴다. 보스처럼 패턴이 많아지면 BT로 갈 자리.
+// 키(보통 enum)로 상태를 바꾸는 작은 FSM. 몬스터 AI가 쓴다. 보스처럼 패턴이 많아지면 BT로 갈 자리.
 public class StateMachine<TKey>
 {
     private readonly Dictionary<TKey, IState> m_DicState = new();

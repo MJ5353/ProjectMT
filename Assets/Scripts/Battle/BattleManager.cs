@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public enum EBattleState
 {
@@ -10,26 +9,26 @@ public enum EBattleState
     Lost,
 }
 
-// 전투 한 판 진행. 몹 스폰·리스폰, 처치 수, 주운 버섯, 승패를 맡는다.
+// 전투 한 판 진행. 몬스터 스폰·리스폰, 처치 수, 주운 버섯, 승패를 맡는다.
 // 끝나면 주운 버섯을 인벤토리에 넣고 게임 흐름을 결과(Result)로 넘긴다
 public class BattleManager : MonoSingleton<BattleManager>
 {
-    // 한 종류 몹을 정해진 지점들에 유지한다(씬의 BattleManager 인스펙터에서 설정)
+    // 한 종류 몬스터을 정해진 지점들에 유지한다(씬의 BattleManager 인스펙터에서 설정)
     // 지점은 이름 접두사(Spawn_Buggi 등)로 플레이 시작 때 씬에서 찾는다. 맵 FBX를 다시 만들어도 끊기지 않게
     [Serializable]
     public class SpawnGroup
     {
-        [SerializeField] private MobController m_Prefab = null;
+        [SerializeField] private MonsterController m_Prefab = null;
         [SerializeField] private string m_PointPrefix = "Spawn_Buggi";   // 스폰 지점 이름 접두사
         [SerializeField] private int m_MaxAlive = 6;                     // 동시에 살아 있는 최대 수
         [SerializeField] private float m_RespawnDelay = 4f;              // 빈자리가 생긴 뒤 다시 나오기까지(초)
 
-        public MobController Prefab => m_Prefab;
+        public MonsterController Prefab => m_Prefab;
         public string PointPrefix => m_PointPrefix;
         public int MaxAlive => m_MaxAlive;
         public float RespawnDelay => m_RespawnDelay;
 
-        public SpawnGroup(MobController prefab, string pointPrefix, int maxAlive, float respawnDelay)
+        public SpawnGroup(MonsterController prefab, string pointPrefix, int maxAlive, float respawnDelay)
         {
             m_Prefab = prefab;
             m_PointPrefix = pointPrefix;
@@ -60,26 +59,35 @@ public class BattleManager : MonoSingleton<BattleManager>
 
     [SerializeField] private List<SpawnGroup> m_ListGroup = new();
 
-    private readonly Dictionary<string, int> m_DicLoot = new();
     private readonly List<SpawnState> m_ListSpawn = new();
-    private readonly Dictionary<MobController, SpawnState> m_DicSpawnByMob = new();
+    private readonly Dictionary<int, SpawnState> m_DicSpawnByActorID = new();
+    private BattleSession m_Session;
     private PlayerController m_Player;
 
-    public EBattleState State { get; private set; }
-    public int KillCount { get; private set; }
+    public EBattleState State => m_Session.State;
+    public int KillCount => m_Session.KillCount;
     public int KillGoal => GoalKillCount;
-    public float ElapsedTime { get; private set; }
+    public float ElapsedTime => m_Session.ElapsedTime;
     public PlayerController Player => m_Player;
-    public IReadOnlyDictionary<string, int> DicLoot => m_DicLoot;
+    public IReadOnlyDictionary<string, int> DicLoot => m_Session.Loot;
 
     // ==================================================
+
+    internal void Init(BattleSession session)
+    {
+        if (Instance != null)
+            return;
+
+        m_Session = session;
+        Init();
+    }
 
     internal void Tick(float deltaTime)
     {
         if (State != EBattleState.Playing)
             return;
 
-        ElapsedTime += deltaTime;
+        m_Session.ElapsedTime += deltaTime;
         UpdateRespawn(deltaTime);
     }
 
@@ -87,14 +95,9 @@ public class BattleManager : MonoSingleton<BattleManager>
 
     protected override void OnInit()
     {
-        State = EBattleState.Playing;
-        KillCount = 0;
-        ElapsedTime = 0f;
-        m_DicLoot.Clear();
-        m_DicSpawnByMob.Clear();
+        m_DicSpawnByActorID.Clear();
         m_ListSpawn.Clear();
-
-        m_Player = PlayerController.Current;
+        m_Player = m_Session.Actors.Player;
 
         if (m_Player != null && m_Player.Health != null)
         {
@@ -102,7 +105,8 @@ public class BattleManager : MonoSingleton<BattleManager>
             PlacePlayer();
         }
 
-        EventBus.Subscribe<MobKilled>(OnMobKilled);
+        m_Session.Actors.ActorRemoved += ReleaseSpawnSlot;
+        EventBus.Subscribe<MonsterKilled>(OnMonsterKilled);
         EventBus.Subscribe<LootPicked>(OnLootPicked);
 
         foreach (SpawnGroup group in m_ListGroup)
@@ -128,7 +132,8 @@ public class BattleManager : MonoSingleton<BattleManager>
 
     protected override void OnClear()
     {
-        EventBus.Unsubscribe<MobKilled>(OnMobKilled);
+        m_Session.Actors.ActorRemoved -= ReleaseSpawnSlot;
+        EventBus.Unsubscribe<MonsterKilled>(OnMonsterKilled);
         EventBus.Unsubscribe<LootPicked>(OnLootPicked);
 
         HealthFeature health = m_Player?.Health;
@@ -137,14 +142,7 @@ public class BattleManager : MonoSingleton<BattleManager>
     }
 
     // 다시 하기: 같은 씬을 새로 연다
-    public void Retry()
-    {
-        GameManager gameM = GameManager.Instance;
-        if (gameM != null && gameM.Flow.Current == EGameState.Result)
-            gameM.Flow.ChangeState(EGameState.Battle);
-
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
+    public void Retry() => GameManager.Instance?.Flow.RetryBattle();
 
     // 로비 씬이 있을 때만 true
     public bool TryGoLobby()
@@ -175,9 +173,9 @@ public class BattleManager : MonoSingleton<BattleManager>
             controller.enabled = true;
     }
 
-    // 이름 접두사로 스폰 지점을 찾는다
     private static void FindPoints(SpawnState spawn)
     {
+        // 이름 접두사로 스폰 지점을 찾는다
         string prefix = spawn.Group.PointPrefix;
         if (prefix.E_IsNullOrEmpty())
             return;
@@ -200,6 +198,7 @@ public class BattleManager : MonoSingleton<BattleManager>
 
         bool isFound = false;
         float bestY = float.MinValue;
+        
         foreach (RaycastHit hit in hits)
         {
             if (hit.collider.name != TerrainName || hit.point.y <= bestY)
@@ -224,8 +223,14 @@ public class BattleManager : MonoSingleton<BattleManager>
         if (spawn.Group.Prefab == null || point == null)
             return;
 
-        MobController mob = Instantiate(spawn.Group.Prefab, SnapToGround(point.position), point.rotation);
-        m_DicSpawnByMob[mob] = spawn;
+        MonsterController monster = Instantiate(spawn.Group.Prefab, SnapToGround(point.position), point.rotation);
+        if (monster.ActorID == 0)
+        {
+            Destroy(monster.gameObject);
+            return;
+        }
+
+        m_DicSpawnByActorID.Add(monster.ActorID, spawn);
         spawn.AliveCount++;
     }
 
@@ -245,14 +250,15 @@ public class BattleManager : MonoSingleton<BattleManager>
         }
     }
 
-    // 플레이어 눈앞에 갑자기 생기지 않게 가장 먼 지점 근처에서 고른다
     private Transform PickFarPoint(SpawnState spawn)
     {
+        // 플레이어 눈앞에 갑자기 생기지 않게 가장 먼 지점 근처에서 고른다
         if (m_Player == null)
             return spawn.ListPoint[UnityEngine.Random.Range(0, spawn.ListPoint.Count)];
 
         Transform best = null;
         float bestDistance = -1f;
+        
         foreach (Transform point in spawn.ListPoint)
         {
             float distance = Vector3.Distance(point.position, m_Player.transform.position) + UnityEngine.Random.Range(0f, 4f);
@@ -266,30 +272,27 @@ public class BattleManager : MonoSingleton<BattleManager>
         return best;
     }
 
-    private void OnMobKilled(MobKilled evt)
+    private void OnMonsterKilled(MonsterKilled evt)
     {
-        if (State != EBattleState.Playing)
+        if (State != EBattleState.Playing || evt.Actors != m_Session.Actors)
             return;
 
-        KillCount++;
-        foreach (var pair in m_DicSpawnByMob)
-        {
-            if (pair.Key != null && pair.Key.IsDead == false)
-                continue;
-
-            pair.Value.AliveCount = Mathf.Max(0, pair.Value.AliveCount - 1);
-            m_DicSpawnByMob.Remove(pair.Key);
-            break;
-        }
-
+        ReleaseSpawnSlot(evt.ActorID);
+        m_Session.KillCount++;
         if (KillCount >= GoalKillCount)
             End(true);
     }
 
+    private void ReleaseSpawnSlot(int actorID)
+    {
+        if (m_DicSpawnByActorID.Remove(actorID, out SpawnState spawn))
+            spawn.AliveCount--;
+    }
+
     private void OnLootPicked(LootPicked evt)
     {
-        m_DicLoot.TryGetValue(evt.ItemID, out int count);
-        m_DicLoot[evt.ItemID] = count + evt.Amount;
+        m_Session.Loot.TryGetValue(evt.ItemID, out int count);
+        m_Session.Loot[evt.ItemID] = count + evt.Amount;
     }
 
     private void OnPlayerDied()
@@ -302,15 +305,15 @@ public class BattleManager : MonoSingleton<BattleManager>
         if (State != EBattleState.Playing)
             return;
 
-        State = isWin ? EBattleState.Won : EBattleState.Lost;
+        m_Session.State = isWin ? EBattleState.Won : EBattleState.Lost;
         if (m_Player != null)
             m_Player.Health.Died -= OnPlayerDied;
 
-        // [mj] todo) 패배 시 보상 규칙 미정. 지금은 주운 것을 그대로 준다
+        // [mj] todo) 패배 시 보상 규칙. 지금은 주운 것을 그대로 준다
         GameManager gameM = GameManager.Instance;
         if (gameM != null)
         {
-            foreach (var pair in m_DicLoot)
+            foreach (var pair in m_Session.Loot)
             {
                 gameM.Player.Inventory.Add(pair.Key, pair.Value);
             }
@@ -319,7 +322,7 @@ public class BattleManager : MonoSingleton<BattleManager>
             if (isWin)
                 HuntContext.MarkCleared(HuntContext.SelectedRegion);
 
-            gameM.SaveNow();
+            gameM.RunSave();
             if (gameM.Flow.Current == EGameState.Battle)
                 gameM.Flow.ChangeState(EGameState.Result);
         }

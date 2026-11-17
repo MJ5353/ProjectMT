@@ -15,6 +15,7 @@ public enum EGameState
 // 허용된 전환만 통과시키고, 상태에 맞는 씬이 다르면 씬을 바꾼 뒤 GameStateChanged를 발행한다
 public class GameFlow
 {
+    // fsm st
     private static readonly Dictionary<EGameState, EGameState[]> s_DicAllowedTransition = new()
     {
         { EGameState.None, new[] { EGameState.Lobby, EGameState.Battle } },
@@ -27,6 +28,7 @@ public class GameFlow
 
     public EGameState Current { get; private set; } = EGameState.None;
     public bool IsTransitioning { get; private set; }
+    public BattleSession ActiveBattle { get; private set; }
 
     public GameFlow(MonoBehaviour runner)
     {
@@ -74,21 +76,81 @@ public class GameFlow
             return false;
         }
 
-        m_Runner.StartCoroutine(Transition(next));
+        return StartTransition(next, Current == EGameState.Result && next == EGameState.Battle);
+    }
+
+    public bool RetryBattle()
+    {
+        if (Current == EGameState.Result)
+            return ChangeState(EGameState.Battle);
+        if (Current != EGameState.Battle || IsTransitioning)
+            return false;
+
+        return StartTransition(EGameState.Battle, true);
+    }
+
+    internal BattleSession GetBattle(Scene scene)
+    {
+        return ActiveBattle != null && ActiveBattle.Scene == scene ? ActiveBattle : null;
+    }
+
+    internal BattleSession BeginBattle(Scene scene)
+    {
+        BattleSession existing = GetBattle(scene);
+        if (existing != null)
+            return existing;
+
+        ActiveBattle?.Actors.Clear();
+        ActiveBattle = new BattleSession(scene);
+        return ActiveBattle;
+    }
+
+    internal void EndBattle(BattleSession session)
+    {
+        if (session == null || session != ActiveBattle)
+            return;
+
+        session.Actors.Clear();
+        ActiveBattle = null;
+    }
+
+    private bool StartTransition(EGameState next, bool reloadScene)
+    {
+        string sceneName = GetSceneName(next);
+        bool shouldLoad = sceneName != null && (reloadScene || SceneManager.GetActiveScene().name != sceneName);
+        if (shouldLoad && Application.CanStreamedLevelBeLoaded(sceneName) == false)
+        {
+            CLogger.Warning("GameFlow", $"씬을 로드할 수 없습니다: {sceneName}");
+            return false;
+        }
+
+        m_Runner.StartCoroutine(Transition(next, shouldLoad ? sceneName : null));
         return true;
     }
 
-    private IEnumerator Transition(EGameState next)
+    private IEnumerator Transition(EGameState next, string sceneName)
     {
         IsTransitioning = true;
         EGameState from = Current;
 
-        string sceneName = GetSceneName(next);
-        if (sceneName.E_IsNullOrEmpty() == false && SceneManager.GetActiveScene().name != sceneName)
-            yield return SceneLoader.Load(sceneName);
+        try
+        {
+            if (sceneName != null)
+            {
+                Scene previousScene = SceneManager.GetActiveScene();
+                yield return SceneLoader.Load(sceneName);
+                Scene loadedScene = SceneManager.GetActiveScene();
+                if (loadedScene == previousScene || loadedScene.name != sceneName)
+                    yield break;
+            }
 
-        Current = next;
-        IsTransitioning = false;
+            Current = next;
+        }
+        finally
+        {
+            IsTransitioning = false;
+        }
+
         EventBus.Publish(new GameStateChanged(from, next));
     }
 }

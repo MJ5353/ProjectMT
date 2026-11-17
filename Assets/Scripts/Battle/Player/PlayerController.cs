@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 public enum EPlayerState
@@ -10,10 +11,16 @@ public enum EPlayerState
     Dead,
 }
 
-// 채집꾼 조작. 이동(WASD·방향키·왼스틱), 공격(클릭·스페이스·J·패드 A), 대시(Shift·패드 B).
-// 공격 버튼을 누르면 가까운 몹 쪽으로 자동으로 돌아서 내려친다(모바일 대비). 수치는 PlayerDef
+// 채집꾼 조작. 입력은 프로젝트 입력 에셋(Assets/InputSystem_Actions)의 Player 맵 Move·Attack·Dash를 쓴다.
+// 키 배치는 에셋에서 바꾼다(기본: 이동 WASD·방향키·왼스틱, 공격 클릭·스페이스·J·패드 A/X, 대시 Shift·패드 B).
+// 공격 버튼을 누르면 가까운 몬스터 쪽으로 자동으로 돌아서 내려친다(모바일 대비). 수치는 PlayerDef
 public class PlayerController : UnitController<PlayerDef>
 {
+    private const string PlayerMapName = "Player";
+    private const string MoveActionName = "Player/Move";
+    private const string AttackActionName = "Player/Attack";
+    private const string DashActionName = "Player/Dash";
+
     private Transform m_CameraTransform;
 
     private InputAction m_MoveAction;
@@ -28,8 +35,6 @@ public class PlayerController : UnitController<PlayerDef>
     private Vector3 m_DashDirection;
     private float m_DashCooldownRemain;
 
-    public static PlayerController Current { get; private set; }
-
     public EPlayerState State => m_State;
 
     protected override ETeam Team => ETeam.Player;
@@ -38,7 +43,6 @@ public class PlayerController : UnitController<PlayerDef>
 
     protected override void Awake()
     {
-        Current = this;
         InitInput();
         base.Awake();
     }
@@ -46,30 +50,6 @@ public class PlayerController : UnitController<PlayerDef>
     private void Start()
     {
         Init();
-    }
-
-    private void OnEnable()
-    {
-        m_MoveAction.Enable();
-        m_AttackAction.Enable();
-        m_DashAction.Enable();
-    }
-
-    protected override void OnDisable()
-    {
-        base.OnDisable();
-        m_MoveAction.Disable();
-        m_AttackAction.Disable();
-        m_DashAction.Disable();
-    }
-
-    private void OnDestroy()
-    {
-        m_MoveAction.Dispose();
-        m_AttackAction.Dispose();
-        m_DashAction.Dispose();
-        if (Current == this)
-            Current = null;
     }
 
     protected override void OnUpdate(float deltaTime)
@@ -81,7 +61,10 @@ public class PlayerController : UnitController<PlayerDef>
         if (m_DashCooldownRemain > 0f)
             m_DashCooldownRemain -= deltaTime;
 
-        bool isAttackPressed = m_AttackAction.WasPressedThisFrame();
+        if (m_MoveAction == null)
+            return;
+
+        bool isAttackPressed = m_AttackAction.WasPressedThisFrame() && IsClickOnUI() == false;
         if (m_DashAction.WasPressedThisFrame() && CanDash())
         {
             ChangeState(EPlayerState.Dash);
@@ -117,32 +100,30 @@ public class PlayerController : UnitController<PlayerDef>
 
     // ==================================================
 
+    // 프로젝트 입력 에셋(Project Settings > Input System Package)의 액션을 찾는다. 여러 곳이 같이 쓰므로 끄거나 지우지 않는다
     private void InitInput()
     {
-        m_MoveAction = new InputAction("Move", InputActionType.Value);
-        m_MoveAction.AddCompositeBinding("2DVector")
-            .With("Up", "<Keyboard>/w")
-            .With("Down", "<Keyboard>/s")
-            .With("Left", "<Keyboard>/a")
-            .With("Right", "<Keyboard>/d");
-        m_MoveAction.AddCompositeBinding("2DVector")
-            .With("Up", "<Keyboard>/upArrow")
-            .With("Down", "<Keyboard>/downArrow")
-            .With("Left", "<Keyboard>/leftArrow")
-            .With("Right", "<Keyboard>/rightArrow");
-        // 모바일 조이스틱(OnScreenStick)도 이 경로로 들어온다
-        m_MoveAction.AddBinding("<Gamepad>/leftStick");
+        InputActionAsset actions = InputSystem.actions;
+        if (actions == null)
+        {
+            CLogger.Error("PlayerController", "프로젝트 입력 에셋이 지정되지 않았습니다. Project Settings > Input System Package에서 InputSystem_Actions를 지정하세요.", this);
+            return;
+        }
 
-        m_AttackAction = new InputAction("Attack", InputActionType.Button);
-        m_AttackAction.AddBinding("<Mouse>/leftButton");
-        m_AttackAction.AddBinding("<Keyboard>/space");
-        m_AttackAction.AddBinding("<Keyboard>/j");
-        m_AttackAction.AddBinding("<Gamepad>/buttonSouth");
+        m_MoveAction = actions.FindAction(MoveActionName, true);
+        m_AttackAction = actions.FindAction(AttackActionName, true);
+        m_DashAction = actions.FindAction(DashActionName, true);
+        actions.FindActionMap(PlayerMapName, true).Enable();
+    }
 
-        m_DashAction = new InputAction("Dash", InputActionType.Button);
-        m_DashAction.AddBinding("<Keyboard>/leftShift");
-        m_DashAction.AddBinding("<Keyboard>/rightShift");
-        m_DashAction.AddBinding("<Gamepad>/buttonEast");
+    // 결과 화면 버튼 같은 UI를 마우스로 누른 것이면 공격으로 치지 않는다
+    private bool IsClickOnUI()
+    {
+        if (m_AttackAction.activeControl?.device is not Mouse)
+            return false;
+
+        EventSystem eventSystem = EventSystem.current;
+        return eventSystem != null && eventSystem.IsPointerOverGameObject();
     }
 
     private void ChangeState(EPlayerState next)
@@ -288,24 +269,10 @@ public class PlayerController : UnitController<PlayerDef>
         return forward * raw.y + right * raw.x;
     }
 
-    // 가까운 몹이 있으면 그쪽, 없으면 입력 방향, 그것도 없으면 지금 앞
+    // 가까운 몬스터이 있으면 그쪽, 없으면 입력 방향, 그것도 없으면 지금 앞
     private Vector3 FindAimDirection()
     {
-        MobController nearest = null;
-        float nearestDistance = Def.AutoAimRange;
-        foreach (MobController mob in MobController.ListActive)
-        {
-            if (mob.IsDead)
-                continue;
-
-            float distance = Vector3.Distance(mob.transform.position, transform.position);
-            if (distance >= nearestDistance)
-                continue;
-
-            nearest = mob;
-            nearestDistance = distance;
-        }
-
+        IHitTarget nearest = Actors?.FindNearestEnemy(transform.position, Def.AutoAimRange, Team);
         if (nearest != null)
             return nearest.transform.position - transform.position;
 
