@@ -14,7 +14,7 @@ public class GameManager : MonoSingleton<GameManager>
 
     // ==================================================
 
-    // virtual ----
+    // virtual---
 
     protected override void OnInit()
     {

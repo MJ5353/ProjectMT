@@ -34,7 +34,7 @@ public class HuntTabView : TabView
         m_EnterButton.onClick.AddListener(OnClickEnter);
     }
 
-    // virtual ------------------------------------------------
+    // virtual---
 
     protected override void OnOpen()
     {

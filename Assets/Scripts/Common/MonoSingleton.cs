@@ -28,7 +28,7 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T
 
     internal static void ResetSingleton() => s_Instance = null;
 
-    // virtual ----
+    // virtual---
 
     protected virtual void OnInit() { }
     protected virtual void OnClear() { }

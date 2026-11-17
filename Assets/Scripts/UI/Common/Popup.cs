@@ -8,7 +8,7 @@ public class Popup : MonoBehaviour
 
     public void Close() => PopupManager.Instance?.Close(this);
 
-    // virtual ------------------------------------------------
+    // virtual---
 
     public virtual void OnOpen() { }
 

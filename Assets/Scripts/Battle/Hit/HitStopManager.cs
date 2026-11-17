@@ -26,7 +26,7 @@ public class HitStopManager : MonoSingleton<HitStopManager>
             Time.timeScale = 1f;
     }
 
-    // virtual ---
+    // virtual---
 
     protected override void OnClear()
     {

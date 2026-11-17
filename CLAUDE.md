@@ -73,7 +73,7 @@ Assets/
 - bool 부정은 `x == false`. 가드 구문으로 먼저 return하고, 한 줄 if는 중괄호 없이 다음 줄에 쓴다. 한 줄에 문장 하나.
 - 지역·out 변수는 타입을 명시한다. `var`는 `foreach (var pair ...)` 정도만.
 - 수명 주기는 `Init` / `Reset` / `Clear`, 갱신은 `Update(float deltaTime)`.
-- 클래스 안 필드와 함수 사이는 `// ==================================================`, 가상 함수 묶음은 `// virtual ----`. Unity 이벤트 함수(Awake, Start 등)를 먼저 둔다.
+- 클래스 안 필드와 함수 사이는 `// ==================================================`로 구분한다. 하이픈 구분선은 `// 제목---` 형식으로 쓴다. 가상 함수 묶음은 `// virtual---`로 표시한다. Unity 이벤트 함수(Awake, Start 등)를 먼저 둔다.
 - 접미사: 전역 싱글턴 `XxxManager`, 하위 시스템 `XxxManagement`, 액터 부품 `XxxFeature`, 모음 `XxxHub`. 약칭 지역 변수 `gameM`, `skillM`.
 - 열거형은 `E` 접두사, 매개변수 묶음은 `readonly struct XxxParams`. ID는 `ID`로 대문자.
 - 주석은 짧은 한글, 경고는 `// !!)`, 대장 메모는 `// [mj] todo)`.

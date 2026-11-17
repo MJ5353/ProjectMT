@@ -15,7 +15,7 @@ public class GameDatabase : ScriptableObject
 
     public IReadOnlyList<DataDef> ListDef => m_ListDef;
 
-    // ------------------------------------------------
+    // 데이터 초기화와 조회---
 
     public void Init()
     {

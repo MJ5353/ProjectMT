@@ -83,7 +83,7 @@ public class BattleManager : MonoSingleton<BattleManager>
         UpdateRespawn(deltaTime);
     }
 
-    // virtual ----
+    // virtual---
 
     protected override void OnInit()
     {

@@ -52,11 +52,11 @@ public class MobDef : UnitDef
         }
     }
 
-    // ---- 이동
+    // 이동---
     [SerializeField] private float m_MoveSpeed = 3f;       // 추적 속도
     [SerializeField] private float m_WanderSpeed = 1.2f;   // 배회 속도
 
-    // ---- AI
+    // AI---
     [SerializeField] private float m_SightRange = 7f;      // 플레이어를 알아채는 거리
     [SerializeField] private float m_LoseRange = 12f;      // 추적을 포기하는 거리
     [SerializeField] private float m_WanderRadius = 4f;    // 처음 자리에서 배회하는 반경
@@ -66,7 +66,7 @@ public class MobDef : UnitDef
     [SerializeField] private float m_FleeTime = 0f;        // 맞은 뒤 도망치는 시간. 0이면 바로 반격
     [SerializeField] private float m_FleeSpeed = 4f;
 
-    // ---- 버섯·드랍
+    // 버섯·드랍---
     [SerializeField] private List<MushroomSocket> m_ListMushroom = new();
     [SerializeField] private List<DropEntry> m_ListDrop = new();
 

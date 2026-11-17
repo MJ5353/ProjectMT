@@ -15,7 +15,7 @@ public class SaveService
         m_FilePath = Path.Combine(Application.persistentDataPath, fileName);
     }
 
-    // ------------------------------------------------
+    // 세이브 파일 관리---
 
     public SaveData Load()
     {

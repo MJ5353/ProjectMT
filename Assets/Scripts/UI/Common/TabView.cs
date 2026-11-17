@@ -16,7 +16,7 @@ public class TabView : MonoBehaviour
             OnClose();
     }
 
-    // virtual ------------------------------------------------
+    // virtual---
 
     protected virtual void OnOpen() { }
 

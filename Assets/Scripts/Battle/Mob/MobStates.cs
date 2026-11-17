@@ -17,7 +17,7 @@ public abstract class MobState : IState
 
     // ==================================================
 
-    // virtual ----
+    // virtual---
 
     public virtual void Enter() { }
     public virtual void Update(float deltaTime) { }

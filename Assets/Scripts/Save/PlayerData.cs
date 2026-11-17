@@ -8,7 +8,7 @@ public class PlayerData
 
     public Inventory Inventory { get; } = new();
 
-    // ------------------------------------------------
+    // 플레이어 데이터 관리---
 
     public void Clear()
     {

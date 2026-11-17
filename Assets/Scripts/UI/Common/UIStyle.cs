@@ -7,14 +7,14 @@ public static class UIStyle
     // 기준 해상도(가로 고정)
     public static readonly Vector2 RefResolution = new Vector2(1920, 1080);
 
-    // font size ------------------------------------------------
+    // font size---
 
     public const int FontSmall = 22;
     public const int FontNormal = 33;
     public const int FontLarge = 44;
     public const int FontTitle = 66;
 
-    // color ------------------------------------------------
+    // color---
 
     public static readonly Color Background = Hex(0x1E2A22);
     public static readonly Color Panel = Hex(0x2C3B30);

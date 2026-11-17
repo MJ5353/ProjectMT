@@ -8,7 +8,7 @@ public class Inventory
 
     public IReadOnlyDictionary<string, int> DicCountByID => m_DicCountByID;
 
-    // ------------------------------------------------
+    // 아이템 수량 관리---
 
     public void Clear()
     {

@@ -78,7 +78,7 @@ public abstract class UnitController<TDef> : MonoBehaviour, IHitTarget where TDe
 
     // ==================================================
 
-    // virtual ----
+    // virtual---
 
     protected abstract void OnUpdate(float deltaTime);
     protected abstract void OnHit(HitParams hit);
