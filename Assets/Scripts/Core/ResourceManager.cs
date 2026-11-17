@@ -36,6 +36,7 @@ public class ResourceManager : MonoSingleton<ResourceManager>
             // 보관 중에는 [Managers](DontDestroyOnLoad) 아래에 있으니 지금 씬으로 다시 옮긴다
             instance.transform.SetParent(null);
             SceneManager.MoveGameObjectToScene(instance.gameObject, SceneManager.GetActiveScene());
+            
             instance.transform.SetPositionAndRotation(position, rotation);
             instance.gameObject.SetActive(true);
         }
@@ -105,6 +106,7 @@ public class ResourceManager : MonoSingleton<ResourceManager>
         }
 
         m_DicPool.Clear();
+        
         if (m_PoolRoot != null)
             Destroy(m_PoolRoot.gameObject);
     }

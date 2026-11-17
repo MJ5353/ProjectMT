@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+// ==================================================
+
 public enum EBattleState
 {
     Playing,
@@ -32,19 +34,20 @@ public sealed class BattleService : ServiceBase
         }
     }
 
-    // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
-    public const float SpawnLift = 0.3f;
-
+    public const float SpawnLift = 0.3f; // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
     public const string TerrainName = "Map_Terrain";
-    private const string PlayerSpawnName = "Spawn_Player";   // 시작할 때 플레이어를 옮길 지점 이름
-    private const int GoalKillCount = 10;                    // 이만큼 잡으면 승리 (보스가 들어오기 전 임시 조건)
-
+    private const string PlayerSpawnName = "Spawn_Player"; // 시작할 때 플레이어를 옮길 지점 이름
+    private const int GoalKillCount = 10; // 이만큼 잡으면 승리 (보스가 들어오기 전 임시 조건)
     private const string DefaultPlayerID = "Player";
 
     private readonly Scene m_Scene;
     private readonly Dictionary<string, int> m_DicLoot = new();
     private readonly List<SpawnState> m_ListSpawn = new();
+
+    public IReadOnlyDictionary<string, int> DicLoot => m_DicLoot;
     private readonly Dictionary<int, SpawnState> m_DicSpawnByActorID = new();
+
+    public PlayerController Player => m_PlayerController;
     private PlayerController m_PlayerController;
 
     public RegionDef Region { get; }
@@ -52,8 +55,6 @@ public sealed class BattleService : ServiceBase
     public int KillCount { get; private set; }
     public int KillGoal => GoalKillCount;
     public float ElapsedTime { get; private set; }
-    public PlayerController Player => m_PlayerController;
-    public IReadOnlyDictionary<string, int> DicLoot => m_DicLoot;
 
     // ------------------------------------------------
 
@@ -138,6 +139,8 @@ public sealed class BattleService : ServiceBase
         return gameM.ChangeState(EGameState.Lobby);
     }
 
+    #region Spawn
+    
     private void SpawnPlayer()
     {
         PlayerDef playerDef = GameManager.Instance.Database?.Get<PlayerDef>(DefaultPlayerID);
@@ -229,6 +232,12 @@ public sealed class BattleService : ServiceBase
         }
     }
 
+    private void ReleaseSpawnSlot(int actorID)
+    {
+        if (m_DicSpawnByActorID.Remove(actorID, out SpawnState spawn))
+            spawn.AliveCount--;
+    }
+
     private Transform PickFarPoint(SpawnState spawn)
     {
         // 플레이어 눈앞에 갑자기 생기지 않게 가장 먼 지점 근처에서 고른다
@@ -250,6 +259,8 @@ public sealed class BattleService : ServiceBase
 
         return best;
     }
+    
+    #endregion
 
     private void OnMonsterKilled(MonsterKilled evt)
     {
@@ -262,12 +273,6 @@ public sealed class BattleService : ServiceBase
             End(true);
     }
 
-    private void ReleaseSpawnSlot(int actorID)
-    {
-        if (m_DicSpawnByActorID.Remove(actorID, out SpawnState spawn))
-            spawn.AliveCount--;
-    }
-
     private void OnLootPicked(LootPicked evt)
     {
         m_DicLoot.TryGetValue(evt.ItemID, out int count);
@@ -278,7 +283,7 @@ public sealed class BattleService : ServiceBase
     {
         End(false);
     }
-
+    
     private void End(bool isWin)
     {
         if (State != EBattleState.Playing)

@@ -2,13 +2,14 @@ using System;
 using System.IO;
 using UnityEngine;
 
+// ==================================================
+
 // JSON 파일 세이브. 임시 파일에 먼저 쓰고 바꿔 끼워서 저장 중 꺼져도 기존 파일이 깨지지 않게 한다.
 // 읽기에 실패하면 깨진 파일을 .corrupt로 옮겨 두고 새 데이터로 시작한다
 public class SaveService
 {
-    private readonly string m_FilePath;
-
     public string FilePath => m_FilePath;
+    private readonly string m_FilePath;
 
     // ------------------------------------------------
 

@@ -1,5 +1,7 @@
 using UnityEngine;
 
+// ==================================================
+
 // 전투 이벤트 모음. 전역 이벤트(GameEvents)와 섞지 않고 전투 안에서만 쓴다.
 
 public readonly struct MonsterKilled

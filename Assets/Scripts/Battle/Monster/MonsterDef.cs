@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 // 몬스터 정의. 몸 수치(UnitDef)에 이동·AI 거리·몸에 꽂는 버섯·드랍을 더한다.
 // 새 몬스터은 이 에셋 한 장 + 프리팹으로 늘린다
@@ -11,23 +12,25 @@ public class MonsterDef : UnitDef
     [Serializable]
     public class MushroomSocket
     {
-        [SerializeField] private string m_SocketName = "Socket_Head";   // 꽂을 뼈 이름
-        [SerializeField] private Renderer m_Model = null;               // 버섯 모델(Mush_*.fbx)
-        [SerializeField] private float m_Scale = 1f;
-        [SerializeField] private Vector3 m_Euler = Vector3.zero;        // 버섯이 눕는다면 여기서 돌린다
+        [field: SerializeField, FormerlySerializedAs("m_SocketName")]
+        public string SocketName { get; private set; } = "Socket_Head";   // 꽂을 뼈 이름
 
-        public string SocketName => m_SocketName;
-        public Renderer Model => m_Model;
-        public float Scale => m_Scale;
-        public Vector3 Euler => m_Euler;
+        [field: SerializeField, FormerlySerializedAs("m_Model")]
+        public Renderer Model { get; private set; } = null;               // 버섯 모델(Mush_*.fbx)
+
+        [field: SerializeField, FormerlySerializedAs("m_Scale")]
+        public float Scale { get; private set; } = 1f;
+
+        [field: SerializeField, FormerlySerializedAs("m_Euler")]
+        public Vector3 Euler { get; private set; } = Vector3.zero;        // 버섯이 눕는다면 여기서 돌린다
 
         // ------------------------------------------------
 
         public MushroomSocket(string socketName, Renderer model, float scale)
         {
-            m_SocketName = socketName;
-            m_Model = model;
-            m_Scale = scale;
+            SocketName = socketName;
+            Model = model;
+            Scale = scale;
         }
     }
 
@@ -35,63 +38,76 @@ public class MonsterDef : UnitDef
     [Serializable]
     public class DropEntry
     {
-        [SerializeField] private MushroomPickup m_Pickup = null;
-        [SerializeField] private int m_Min = 1;                      // 최소 개수
-        [SerializeField] private int m_Max = 1;                      // 최대 개수
-        [SerializeField, Range(0f, 1f)] private float m_Chance = 1f; // 떨굴 확률
+        [field: SerializeField, FormerlySerializedAs("m_Pickup")]
+        public MushroomPickup Pickup { get; private set; } = null;
 
-        public MushroomPickup Pickup => m_Pickup;
-        public int Min => m_Min;
-        public int Max => m_Max;
-        public float Chance => m_Chance;
+        [field: SerializeField, FormerlySerializedAs("m_Min")]
+        public int Min { get; private set; } = 1;                      // 최소 개수
+
+        [field: SerializeField, FormerlySerializedAs("m_Max")]
+        public int Max { get; private set; } = 1;                      // 최대 개수
+
+        [field: SerializeField, Range(0f, 1f), FormerlySerializedAs("m_Chance")]
+        public float Chance { get; private set; } = 1f; // 떨굴 확률
 
         // ------------------------------------------------
 
         public DropEntry(MushroomPickup pickup, int min, int max, float chance)
         {
-            m_Pickup = pickup;
-            m_Min = min;
-            m_Max = max;
-            m_Chance = chance;
+            Pickup = pickup;
+            Min = min;
+            Max = max;
+            Chance = chance;
         }
     }
 
     // 이동 ---
-    [SerializeField] private float m_MoveSpeed = 3f;       // 추적 속도
-    [SerializeField] private float m_WanderSpeed = 1.2f;   // 배회 속도
+    [field: SerializeField, FormerlySerializedAs("m_MoveSpeed")]
+    public float MoveSpeed { get; private set; } = 3f;       // 추적 속도
+
+    [field: SerializeField, FormerlySerializedAs("m_WanderSpeed")]
+    public float WanderSpeed { get; private set; } = 1.2f;   // 배회 속도
 
     // AI ---
-    [SerializeField] private float m_SightRange = 7f;      // 플레이어를 알아채는 거리
-    [SerializeField] private float m_LoseRange = 12f;      // 추적을 포기하는 거리
-    [SerializeField] private float m_WanderRadius = 4f;    // 처음 자리에서 배회하는 반경
-    [SerializeField] private float m_AttackRange = 1.4f;   // 이 거리 안이면 공격을 시작
-    [SerializeField] private float m_WindupTime = 0.45f;   // 공격 전에 움츠리는 시간(예고)
-    [SerializeField] private float m_AttackCooldown = 1.2f;
-    [SerializeField] private float m_FleeTime = 0f;        // 맞은 뒤 도망치는 시간. 0이면 바로 반격
-    [SerializeField] private float m_FleeSpeed = 4f;
+    [field: SerializeField, FormerlySerializedAs("m_SightRange")]
+    public float SightRange { get; private set; } = 7f;      // 플레이어를 알아채는 거리
+
+    [field: SerializeField, FormerlySerializedAs("m_LoseRange")]
+    public float LoseRange { get; private set; } = 12f;      // 추적을 포기하는 거리
+
+    [field: SerializeField, FormerlySerializedAs("m_WanderRadius")]
+    public float WanderRadius { get; private set; } = 4f;    // 처음 자리에서 배회하는 반경
+
+    [field: SerializeField, FormerlySerializedAs("m_AttackRange")]
+    public float AttackRange { get; private set; } = 1.4f;   // 이 거리 안이면 공격을 시작
+
+    [field: SerializeField, FormerlySerializedAs("m_WindupTime")]
+    public float WindupTime { get; private set; } = 0.45f;   // 공격 전에 움츠리는 시간(예고)
+
+    [field: SerializeField, FormerlySerializedAs("m_AttackCooldown")]
+    public float AttackCooldown { get; private set; } = 1.2f;
+
+    [field: SerializeField, FormerlySerializedAs("m_FleeTime")]
+    public float FleeTime { get; private set; } = 0f;        // 맞은 뒤 도망치는 시간. 0이면 바로 반격
+
+    [field: SerializeField, FormerlySerializedAs("m_FleeSpeed")]
+    public float FleeSpeed { get; private set; } = 4f;
 
     // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽는다
-    [SerializeField] private string m_ModelName = null;    // Art/Voxel/Models 아래 FBX 이름. 비면 에셋 이름(Monster_Xxx)의 Xxx
-    [SerializeField] private float m_BodyHeight = 0f;      // 캡슐 높이. 0이면 모델 크기로 자동 계산해 채운다
-    [SerializeField] private float m_BodyRadius = 0f;      // 캡슐 반지름. 0이면 모델 크기로 자동 계산해 채운다
+    [field: SerializeField, FormerlySerializedAs("m_ModelName")]
+    public string ModelName { get; private set; } = null;    // Art/Voxel/Models 아래 FBX 이름. 비면 에셋 이름(Monster_Xxx)의 Xxx
+
+    [field: SerializeField, FormerlySerializedAs("m_BodyHeight")]
+    public float BodyHeight { get; private set; } = 0f;      // 캡슐 높이. 0이면 모델 크기로 자동 계산해 채운다
+
+    [field: SerializeField, FormerlySerializedAs("m_BodyRadius")]
+    public float BodyRadius { get; private set; } = 0f;      // 캡슐 반지름. 0이면 모델 크기로 자동 계산해 채운다
 
     // 버섯·드랍 ---
     [SerializeField] private List<MushroomSocket> m_ListMushroom = new();
+
     [SerializeField] private List<DropEntry> m_ListDrop = new();
 
-    public float MoveSpeed => m_MoveSpeed;
-    public float WanderSpeed => m_WanderSpeed;
-    public float SightRange => m_SightRange;
-    public float LoseRange => m_LoseRange;
-    public float WanderRadius => m_WanderRadius;
-    public float AttackRange => m_AttackRange;
-    public float WindupTime => m_WindupTime;
-    public float AttackCooldown => m_AttackCooldown;
-    public float FleeTime => m_FleeTime;
-    public float FleeSpeed => m_FleeSpeed;
-    public string ModelName => m_ModelName;
-    public float BodyHeight => m_BodyHeight;
-    public float BodyRadius => m_BodyRadius;
     public IReadOnlyList<MushroomSocket> ListMushroom => m_ListMushroom;
     public IReadOnlyList<DropEntry> ListDrop => m_ListDrop;
 
@@ -102,7 +118,7 @@ public class MonsterDef : UnitDef
     public void EditorSetup(AttackSpec attack, float fleeTime, List<DropEntry> listDrop)
     {
         EditorSetAttack(attack);
-        m_FleeTime = fleeTime;
+        FleeTime = fleeTime;
         m_ListDrop = listDrop;
     }
 

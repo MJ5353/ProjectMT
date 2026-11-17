@@ -2,23 +2,26 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+// ==================================================
+
 // 모든 DataDef를 모아 ID로 찾는 데이터베이스. Assets/Resources/GameDatabase.asset 한 개만 둔다.
 // !!) 목록은 에디터 메뉴(또는 플레이 시작 시 자동)로 채우므로 직접 수정하지 말 것
 
 [CreateAssetMenu(menuName = "MushTaker/Data/Game Database", fileName = "GameDatabase")]
 public class GameDatabase : ScriptableObject
 {
-    public IReadOnlyList<DataDef> ListDef => m_ListDef;
-
-    [SerializeField] private List<DataDef> m_ListDef = new();               // 에디터 메뉴가 채워 에셋에 저장한다(readonly면 저장되지 않음)
+    public const string ResourcePath = "GameDatabase";
     private readonly Dictionary<string, DataDef> m_DicDefByID = new();      // 런타임 조회용. Init에서 채운다
-    internal const string ResourcePath = "GameDatabase";
+    
+    public IReadOnlyList<DataDef> ListDef => m_ListDef;
+    [SerializeField] private List<DataDef> m_ListDef = new();               // 에디터 메뉴가 채워 에셋에 저장한다(readonly면 저장되지 않음)
 
     // ------------------------------------------------
 
     public void Init()
     {
         m_DicDefByID.Clear();
+        
         foreach (DataDef def in m_ListDef)
         {
             if (def == null)

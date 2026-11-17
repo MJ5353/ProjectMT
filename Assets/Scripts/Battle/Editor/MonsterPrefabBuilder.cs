@@ -176,9 +176,8 @@ public static class MonsterPrefabBuilder
 
         def = ScriptableObject.CreateInstance<MonsterDef>();
         AssetDatabase.CreateAsset(def, path);
-        BattleSetup.SetString(def, "m_ID", def.name);
-        BattleSetup.SetString(def, "m_DisplayName", model.name);
-        BattleSetup.SetString(def, "m_ModelName", model.name);
+        def.EditorSetIdentity(def.name, model.name);
+        BattleSetup.SetString(def, nameof(MonsterDef.ModelName), model.name);
 
         // 버섯 모델은 비워 둔다. 빈 칸은 붙이지 않으니 Def에서 골라 넣으면 된다
         List<MonsterDef.MushroomSocket> listSocket = model.GetComponentsInChildren<Transform>(true)

@@ -28,11 +28,7 @@ public static class ProjectSetup
         Directory.CreateDirectory(dir);
 
         T def = ScriptableObject.CreateInstance<T>();
+        def.EditorSetIdentity(dataID, displayName);
         AssetDatabase.CreateAsset(def, path);
-
-        SerializedObject so = new SerializedObject(def);
-        so.FindProperty("m_ID").stringValue = dataID;
-        so.FindProperty("m_DisplayName").stringValue = displayName;
-        so.ApplyModifiedPropertiesWithoutUndo();
     }
 }

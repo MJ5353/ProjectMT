@@ -1,4 +1,7 @@
 using UnityEngine;
+using UnityEngine.Serialization;
+
+// ==================================================
 
 public enum ERarity
 {
@@ -7,13 +10,16 @@ public enum ERarity
     Epic,
 }
 
+// ==================================================
+
 // 버섯 정의. 재배 시간, 수확량, 강화치 등은 기획 표가 정해지면 추가한다
 [CreateAssetMenu(menuName = "MushTaker/Data/Mushroom", fileName = "Mushroom_")]
 public class MushroomDef : DataDef
 {
-    [SerializeField] private ERarity m_Rarity = ERarity.Common;
-    [SerializeField] private Color m_Tint = Color.white;
+    [field: SerializeField, FormerlySerializedAs("m_Rarity")]
+    public ERarity Rarity { get; private set; } = ERarity.Common;
 
-    public ERarity Rarity => m_Rarity;
-    public Color Tint => m_Tint;
+    [field: SerializeField, FormerlySerializedAs("m_Tint")]
+    public Color Tint { get; private set; } = Color.white;
+
 }

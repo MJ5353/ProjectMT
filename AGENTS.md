@@ -11,6 +11,7 @@
 
 - 네임스페이스 없이 전역 타입으로 둔다. 선언에 접근 제한자를 명시하고, C# 문법상 제한자를 붙일 수 없는 선언은 언어 규칙을 따른다.
 - private·protected 인스턴스 필드는 `m_PascalCase`, 정적 필드는 `s_PascalCase`, 상수는 `PascalCase`로 쓴다. 목록은 `m_ListXxx`, 딕셔너리는 `m_DicXxx` 형태를 쓰고 정적 컬렉션에는 `s_`를 적용한다. 직렬화 참조는 `[SerializeField] private T m_Xxx = null;` 형태를 따른다.
+- `Def`의 단순 저장 값은 `[field: SerializeField] public T Xxx { get; private set; }`로 선언한다. 기존 필드를 옮길 때는 `[field: FormerlySerializedAs("m_Xxx")]`로 에셋 값을 이어받는다.
 - 지역 변수·`out` 변수·일반 `foreach` 변수의 타입을 명시한다. 딕셔너리 순회의 `foreach (var pair in ...)`는 기존 관례대로 쓸 수 있다.
 - bool 부정은 `== false`로 쓴다. 가드 조건에서 먼저 반환하고, 한 문장짜리 `if` 본문은 중괄호 없이 다음 줄에 쓴다. 한 줄에 문장 하나를 둔다.
 - `for`와 `foreach`는 본문이 한 문장이어도 중괄호 `{}`로 감싼다.

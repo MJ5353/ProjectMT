@@ -71,15 +71,10 @@ public static class LobbyUISetup
         Directory.CreateDirectory(RegionDir);
 
         RegionDef def = ScriptableObject.CreateInstance<RegionDef>();
+        def.EditorSetIdentity(regionID, displayName, description);
         def.EditorSetup(order, require, mapPosition, mushrooms.Where(m => m != null).ToList());
         def.EditorSetSpawnGroups(BattleSetup.CreateDefaultSpawnGroups());
         AssetDatabase.CreateAsset(def, path);
-
-        SerializedObject so = new SerializedObject(def);
-        so.FindProperty("m_ID").stringValue = regionID;
-        so.FindProperty("m_DisplayName").stringValue = displayName;
-        so.FindProperty("m_Description").stringValue = description;
-        so.ApplyModifiedPropertiesWithoutUndo();
 
         return def;
     }

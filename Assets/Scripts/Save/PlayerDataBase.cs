@@ -1,7 +1,9 @@
+
 // ==================================================
 
 // 플레이어 데이터(InventoryData, FlagData, HuntData 등)의 기반.
 // PlayerDataManager가 만들어 등록하고 Init, Clear, 세이브 읽기·쓰기를 순회로 한 번에 돌린다
+
 public abstract class PlayerDataBase
 {
     // virtual ---

@@ -70,6 +70,7 @@ Assets/
 - 네임스페이스는 쓰지 않는다(전역).
 - private/protected 필드는 `m_PascalCase`, static은 `s_PascalCase`, 상수는 `PascalCase`. 컬렉션은 `m_DicXxx`, `m_ListXxx`.
 - 접근 제한자를 항상 쓴다. `[SerializeField] private T m_Xxx = null;`
+- `Def`의 단순 저장 값은 `[field: SerializeField] public T Xxx { get; private set; }`로 선언한다. 기존 필드를 옮길 때는 `[field: FormerlySerializedAs("m_Xxx")]`로 에셋 값을 이어받는다.
 - bool 부정은 `x == false`. 가드 구문으로 먼저 return하고, 한 줄 if는 중괄호 없이 다음 줄에 쓴다. 한 줄에 문장 하나.
 - 지역·out 변수는 타입을 명시한다. `var`는 `foreach (var pair ...)` 정도만.
 - `for`와 `foreach`는 본문이 한 문장이어도 중괄호 `{}`로 감싼다.

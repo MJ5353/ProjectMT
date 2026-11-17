@@ -132,9 +132,8 @@ public static class BattleSetup
         if (def == null)
         {
             def = ScriptableObject.CreateInstance<MonsterDef>();
+            def.EditorSetIdentity("Mob_Buggi", "버끼");
             AssetDatabase.CreateAsset(def, BuggiDefPath);
-            SetString(def, "m_ID", "Mob_Buggi");
-            SetString(def, "m_DisplayName", "버끼");
 
             List<MonsterDef.DropEntry> listDrop = new()
             {
@@ -155,7 +154,7 @@ public static class BattleSetup
                 new("Socket_Head", songi, 0.8f),
                 new("Socket_Back", songi, 0.6f),
             });
-            SetColor(def, "m_ChunkColor", new Color(0.95f, 0.9f, 0.8f));
+            SetColor(def, nameof(UnitDef.ChunkColor), new Color(0.95f, 0.9f, 0.8f));
         }
 
         // 몸 크기가 비었으면(이전 형식 데이터) 원래 쓰던 캡슐 크기로 채운다
@@ -186,13 +185,12 @@ public static class BattleSetup
             return def;
 
         def = ScriptableObject.CreateInstance<PlayerDef>();
+        def.EditorSetIdentity("Player", "채집꾼");
         AssetDatabase.CreateAsset(def, PlayerDefPath);
-        SetString(def, "m_ID", "Player");
-        SetString(def, "m_DisplayName", "채집꾼");
-        SetInt(def, "m_MaxHp", 5);
-        SetFloat(def, "m_HitStunTime", 0.3f);
-        SetFloat(def, "m_InvincibleTime", 0.6f);
-        SetColor(def, "m_ChunkColor", new Color(0.9f, 0.3f, 0.3f));
+        SetInt(def, nameof(UnitDef.MaxHp), 5);
+        SetFloat(def, nameof(UnitDef.HitStunTime), 0.3f);
+        SetFloat(def, nameof(UnitDef.InvincibleTime), 0.6f);
+        SetColor(def, nameof(UnitDef.ChunkColor), new Color(0.9f, 0.3f, 0.3f));
 
         // 내려치기: 9프레임 판정, 살짝 내딛음
         def.EditorSetAttack(new AttackSpec("Attack", 1, 9, 1.1f, 1f, 0.7f, 7f, 0.07f, 2f));
@@ -226,9 +224,8 @@ public static class BattleSetup
             return;
 
         MushroomDef def = ScriptableObject.CreateInstance<MushroomDef>();
+        def.EditorSetIdentity(mushroomID, displayName);
         AssetDatabase.CreateAsset(def, path);
-        SetString(def, "m_ID", mushroomID);
-        SetString(def, "m_DisplayName", displayName);
     }
 
     // 버곰: 느리고 단단하다. 넉백이 덜 먹고, 예비 동작이 길고, 한 방이 세다
@@ -238,18 +235,17 @@ public static class BattleSetup
         if (def == null)
         {
             def = ScriptableObject.CreateInstance<MonsterDef>();
+            def.EditorSetIdentity("Mob_Bugom", "버곰");
             AssetDatabase.CreateAsset(def, BugomDefPath);
-            SetString(def, "m_ID", "Mob_Bugom");
-            SetString(def, "m_DisplayName", "버곰");
-            SetInt(def, "m_MaxHp", 7);
-            SetFloat(def, "m_MoveSpeed", 2.2f);
-            SetFloat(def, "m_WanderSpeed", 0.9f);
-            SetFloat(def, "m_KnockbackScale", 0.35f);
-            SetFloat(def, "m_SightRange", 8f);
-            SetFloat(def, "m_AttackRange", 2.2f);
-            SetFloat(def, "m_WindupTime", 0.7f);
-            SetFloat(def, "m_AttackCooldown", 1.8f);
-            SetFloat(def, "m_HitStunTime", 0.2f);
+            SetInt(def, nameof(UnitDef.MaxHp), 7);
+            SetFloat(def, nameof(MonsterDef.MoveSpeed), 2.2f);
+            SetFloat(def, nameof(MonsterDef.WanderSpeed), 0.9f);
+            SetFloat(def, nameof(UnitDef.KnockbackScale), 0.35f);
+            SetFloat(def, nameof(MonsterDef.SightRange), 8f);
+            SetFloat(def, nameof(MonsterDef.AttackRange), 2.2f);
+            SetFloat(def, nameof(MonsterDef.WindupTime), 0.7f);
+            SetFloat(def, nameof(MonsterDef.AttackCooldown), 1.8f);
+            SetFloat(def, nameof(UnitDef.HitStunTime), 0.2f);
 
             List<MonsterDef.DropEntry> listDrop = new()
             {
@@ -271,7 +267,7 @@ public static class BattleSetup
                 new("Socket_Back2", cloud, 1.3f),
                 new("Socket_Head", cloud, 0.8f),
             });
-            SetColor(def, "m_ChunkColor", new Color(0.55f, 0.4f, 0.3f));
+            SetColor(def, nameof(UnitDef.ChunkColor), new Color(0.55f, 0.4f, 0.3f));
         }
 
         if (def.BodyHeight <= 0f)
@@ -283,8 +279,8 @@ public static class BattleSetup
 
     internal static void SetBodySize(MonsterDef def, float height, float radius)
     {
-        SetFloat(def, "m_BodyHeight", height);
-        SetFloat(def, "m_BodyRadius", radius);
+        SetFloat(def, nameof(MonsterDef.BodyHeight), height);
+        SetFloat(def, nameof(MonsterDef.BodyRadius), radius);
     }
 
     private static void BuildPlayer(PlayerDef def, bool isForce)
@@ -503,28 +499,33 @@ public static class BattleSetup
     internal static void SetString(Object target, string propertyName, string value)
     {
         SerializedObject so = new SerializedObject(target);
-        so.FindProperty(propertyName).stringValue = value;
+        FindSerializedField(so, propertyName).stringValue = value;
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
     private static void SetInt(Object target, string propertyName, int value)
     {
         SerializedObject so = new SerializedObject(target);
-        so.FindProperty(propertyName).intValue = value;
+        FindSerializedField(so, propertyName).intValue = value;
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
     private static void SetFloat(Object target, string propertyName, float value)
     {
         SerializedObject so = new SerializedObject(target);
-        so.FindProperty(propertyName).floatValue = value;
+        FindSerializedField(so, propertyName).floatValue = value;
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
     private static void SetColor(Object target, string propertyName, Color value)
     {
         SerializedObject so = new SerializedObject(target);
-        so.FindProperty(propertyName).colorValue = value;
+        FindSerializedField(so, propertyName).colorValue = value;
         so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static SerializedProperty FindSerializedField(SerializedObject target, string name)
+    {
+        return target.FindProperty(name) ?? target.FindProperty($"<{name}>k__BackingField");
     }
 }

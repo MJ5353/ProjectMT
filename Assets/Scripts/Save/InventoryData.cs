@@ -4,11 +4,11 @@ using System.Collections.Generic;
 
 // ID → 개수. 버섯, 재화, 재료 등 개수로 세는 것은 모두 여기에 둔다.
 // 바뀔 때마다 InventoryChanged를 발행하므로 UI는 이벤트만 구독하면 된다
+
 public class InventoryData : PlayerDataBase
 {
-    private readonly Dictionary<string, int> m_DicCountByID = new();
-
     public IReadOnlyDictionary<string, int> DicCountByID => m_DicCountByID;
+    private readonly Dictionary<string, int> m_DicCountByID = new();
 
     // ------------------------------------------------
     

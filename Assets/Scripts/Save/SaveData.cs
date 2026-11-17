@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 
+// ==================================================
+
 // 디스크에 저장되는 형태. JsonUtility가 Dictionary를 못 쓰므로 리스트로 둔다.
 // !!) 구조를 바꾸면 CurrentVersion을 올리고 SaveService.Migrate에 변환을 추가할 것
+
 [Serializable]
 public class SaveData
 {
@@ -12,6 +15,8 @@ public class SaveData
     public List<ItemStack> items = new();
     public List<string> flags = new();
 }
+
+// ==================================================
 
 [Serializable]
 public struct ItemStack
