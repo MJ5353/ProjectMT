@@ -13,7 +13,7 @@ public class HitStopManager : MonoSingleton<HitStopManager>
             return;
 
         m_Remain = Mathf.Max(m_Remain, duration);
-        GameTime.SetHitStop(true);
+        TimeManager.Instance?.SetHitStop(true);
     }
 
     internal void Tick(float unscaledDeltaTime)
@@ -23,7 +23,7 @@ public class HitStopManager : MonoSingleton<HitStopManager>
 
         m_Remain -= unscaledDeltaTime;
         if (m_Remain <= 0f)
-            GameTime.SetHitStop(false);
+            TimeManager.Instance?.SetHitStop(false);
     }
 
     // virtual---
@@ -31,6 +31,6 @@ public class HitStopManager : MonoSingleton<HitStopManager>
     protected override void OnClear()
     {
         m_Remain = 0f;
-        GameTime.SetHitStop(false);
+        TimeManager.Instance?.SetHitStop(false);
     }
 }

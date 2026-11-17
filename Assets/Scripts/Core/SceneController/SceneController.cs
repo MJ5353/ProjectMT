@@ -23,6 +23,9 @@ public sealed class SceneController : MonoBehaviour
             gameM.Init();
         }
 
+        if (TimeManager.Instance == null)
+            gameM.gameObject.AddComponent<TimeManager>().Init();
+
         if (m_PopupManager != null)
             m_PopupManager.Init();
 
@@ -80,8 +83,8 @@ public sealed class SceneController : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetSingletons()
     {
-        GameTime.Reset();
         GameManager.ResetSingleton();
+        TimeManager.ResetSingleton();
         BattleManager.ResetSingleton();
         HitStopManager.ResetSingleton();
         PopupManager.ResetSingleton();
