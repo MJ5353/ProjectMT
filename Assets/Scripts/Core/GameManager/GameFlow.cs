@@ -89,12 +89,12 @@ public class GameFlow
         return StartTransition(EGameState.Battle, true);
     }
 
-    internal BattleSession GetBattle(Scene scene)
+    public BattleSession GetBattle(Scene scene)
     {
         return ActiveBattle != null && ActiveBattle.Scene == scene ? ActiveBattle : null;
     }
 
-    internal BattleSession BeginBattle(Scene scene)
+    public BattleSession BeginBattle(Scene scene)
     {
         BattleSession existing = GetBattle(scene);
         if (existing != null)
@@ -105,7 +105,7 @@ public class GameFlow
         return ActiveBattle;
     }
 
-    internal void EndBattle(BattleSession session)
+    public void EndBattle(BattleSession session)
     {
         if (session == null || session != ActiveBattle)
             return;

@@ -9,6 +9,10 @@ public class GameManager : MonoSingleton<GameManager>
     public GameFlow Flow { get; private set; }
     public PlayerData Player { get; private set; }
 
+    // 진행 중인 전투. 전투 씬이 아니면 null
+    public BattleSession Battle => Flow?.ActiveBattle;
+    public ActorManagement Actors => Battle?.Actors;
+
     // [mj] todo) server?
     private SaveService m_SaveService;
 

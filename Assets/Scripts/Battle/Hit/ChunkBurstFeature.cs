@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// 복셀 조각 튀김 반응. 맞은 방향으로 조각을 흩뿌려 달라고 ChunkBurstManagement에 요청만 한다.
+// 복셀 조각 튀김 반응. 맞은 방향으로 조각을 흩뿌려 달라고 진행 중인 전투의 ChunkBurstManagement에 요청만 한다.
 // 조각 움직임·그리기·재사용은 ChunkBurstManagement가 맡는다(게임 오브젝트 생성 없음)
 public class ChunkBurstFeature : IHitReaction
 {
@@ -8,8 +8,6 @@ public class ChunkBurstFeature : IHitReaction
 
     private readonly Transform m_Owner;
     private readonly Color m_Color;
-
-    private ChunkBurstManagement m_Management;
 
     // ==================================================
 
@@ -19,17 +17,13 @@ public class ChunkBurstFeature : IHitReaction
         m_Color = color;
     }
 
-    // 전투 씬이 아니면 null. 그때는 조각을 튀기지 않는다
-    public void SetManagement(ChunkBurstManagement management)
-    {
-        m_Management = management;
-    }
-
+    // 전투 씬이 아니면 조각을 튀기지 않는다
     public void OnHit(in HitParams hit)
     {
-        if (m_Management == null)
+        ChunkBurstManagement management = GameManager.Instance?.Battle?.Chunks;
+        if (management == null)
             return;
 
-        m_Management.Burst(m_Owner.position + Vector3.up * Height, hit.Direction, m_Color);
+        management.Burst(m_Owner.position + Vector3.up * Height, hit.Direction, m_Color);
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 // 플레이어와 몬스터이 같이 쓰는 몸. 이동·애니·체력·피격 부품을 직접 만들고 매 프레임 갱신한다.
 // 직렬화 참조 네 개는 에디터 메뉴(BattleSetup)가 프리팹을 만들 때 채운다
-public abstract class UnitController<TDef> : MonoBehaviour, IHitTarget where TDef : UnitDef
+public abstract class UnitController<TDef> : MonoBehaviour, IActor where TDef : UnitDef
 {
     [SerializeField] private TDef m_Def = null;                                  // 수치 데이터
     [SerializeField] private CharacterController m_CharacterController = null;   // 이동·충돌
@@ -20,14 +20,11 @@ public abstract class UnitController<TDef> : MonoBehaviour, IHitTarget where TDe
     public MeleeAttackFeature Melee { get; private set; }
     public bool IsDead => Health.IsDead;
 
-    internal ActorManagement Actors { get; private set; }
-    internal int ActorID { get; private set; }
+    public int ActorID { get; private set; }   // ActorManagement가 만들 때 넣어 준다. 0이면 등록 안 됨
 
     protected FlashFeature Flash { get; private set; }
     protected abstract ETeam Team { get; }
 
-    private ChunkBurstFeature m_ChunkBurst;
-    private BattleSession m_Session;
     private bool m_IsBattleOver;
 
     // ==================================================
@@ -52,35 +49,15 @@ public abstract class UnitController<TDef> : MonoBehaviour, IHitTarget where TDe
         HitFeature.AddReaction(new KnockbackFeature(Move, m_Def.KnockbackScale));
         HitFeature.AddReaction(Flash);
         HitFeature.AddReaction(new HitStopFeature());
-        m_ChunkBurst = new ChunkBurstFeature(transform, m_Def.ChunkColor);
-        HitFeature.AddReaction(m_ChunkBurst);
+        HitFeature.AddReaction(new ChunkBurstFeature(transform, m_Def.ChunkColor));
+        Melee = new MeleeAttackFeature(this);
 
         HitFeature.Hit += OnHit;
         Health.Died += OnDied;
     }
 
-    protected virtual void OnEnable()
-    {
-        if (HitFeature == null)
-            return;
-
-        BattleSession battle = GameManager.Instance?.Flow.GetBattle(gameObject.scene);
-        m_Session = battle;
-        Actors = battle?.Actors;
-        m_ChunkBurst.SetManagement(battle?.Chunks);
-        if (Actors != null)
-            ActorID = Actors.Register(this);
-
-        Melee = new MeleeAttackFeature(this, Actors);
-    }
-
     protected virtual void OnDisable()
     {
-        Actors?.Unregister(ActorID, transform);
-        m_Session = null;
-        Actors = null;
-        ActorID = 0;
-        m_ChunkBurst?.SetManagement(null);
         Flash?.Restore();
     }
 
@@ -91,7 +68,8 @@ public abstract class UnitController<TDef> : MonoBehaviour, IHitTarget where TDe
         Flash.Tick(Time.unscaledDeltaTime);
 
         // 승패가 나면 입력·AI를 멈추고 제자리에 세운다. 중력만 계속 받는다
-        if (m_IsBattleOver == false && m_Session != null && m_Session.State != EBattleState.Playing)
+        BattleSession battle = GameManager.Instance?.Battle;
+        if (m_IsBattleOver == false && battle != null && battle.State != EBattleState.Playing)
         {
             m_IsBattleOver = true;
             Move.Stop();
@@ -112,6 +90,11 @@ public abstract class UnitController<TDef> : MonoBehaviour, IHitTarget where TDe
 
         Gizmos.color = new Color(1f, 0.3f, 0.2f, 0.6f);
         Gizmos.DrawWireSphere(MeleeAttackFeature.GetCenter(transform, m_Def.Attack), m_Def.Attack.Radius);
+    }
+
+    public void SetActorID(int actorID)
+    {
+        ActorID = actorID;
     }
 
     // ==================================================

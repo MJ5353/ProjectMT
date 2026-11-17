@@ -5,15 +5,13 @@ using UnityEngine;
 public class MeleeAttackFeature
 {
     private readonly IHitTarget m_Owner;
-    private readonly ActorManagement m_Actors;
     private readonly List<ActorHitCandidate> m_ListCandidate = new();
 
     // ==================================================
 
-    public MeleeAttackFeature(IHitTarget owner, ActorManagement actors)
+    public MeleeAttackFeature(IHitTarget owner)
     {
         m_Owner = owner;
-        m_Actors = actors;
     }
 
     public static Vector3 GetCenter(Transform owner, AttackSpec spec)
@@ -23,13 +21,14 @@ public class MeleeAttackFeature
 
     public int Perform(AttackSpec spec)
     {
-        if (m_Actors == null)
+        Transform owner = m_Owner.transform;
+        ActorManagement actors = GameManager.Instance?.Actors;
+        if (actors == null)
             return 0;
 
-        Transform owner = m_Owner.transform;
         Vector3 center = GetCenter(owner, spec);
         ETeam team = m_Owner.HitFeature.Team;
-        m_Actors.CollectNearbyEnemies(center, spec.Radius, team, m_ListCandidate);
+        actors.CollectNearbyEnemies(center, spec.Radius, team, m_ListCandidate);
 
         int hitCount = 0;
         foreach (ActorHitCandidate candidate in m_ListCandidate)

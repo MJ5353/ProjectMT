@@ -2,43 +2,66 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+// 액터가 공통으로 가져야 하는 것. ActorManagement가 만들 때 ID를 넣어 준다
+public interface IActor : IHitTarget
+{
+    int ActorID { get; }
+    void SetActorID(int actorID);
+}
+
+// 전투 한 판의 액터(플레이어·몬스터) 목록. 생성·삭제는 여기서만 한다(ActorFactory 소유)
 public sealed class ActorManagement
 {
-    private readonly Dictionary<int, IHitTarget> m_DicActor = new();
+    private readonly ActorFactory m_Factory = new();
+    private readonly Dictionary<int, IActor> m_DicActor = new();
     private readonly Dictionary<Transform, int> m_DicActorID = new();
     private int m_LastActorID;
 
     public PlayerController Player { get; private set; }
 
-    internal event Action<int> ActorRemoved;
+    public event Action<int> ActorRemoved;
 
     // ==================================================
 
-    internal int Register(IHitTarget actor)
+    public T Spawn<T>(T prefab, Vector3 position, Quaternion rotation) where T : Component, IActor
     {
-        Transform actorTransform = actor.transform;
-        if (m_DicActorID.TryGetValue(actorTransform, out int actorID))
-            return actorID;
+        if (prefab == null)
+            return null;
 
-        actorID = ++m_LastActorID;
+        T actor = m_Factory.Create(prefab, position, rotation);
+        int actorID = ++m_LastActorID;
+        actor.SetActorID(actorID);
         m_DicActor.Add(actorID, actor);
-        m_DicActorID.Add(actorTransform, actorID);
+        m_DicActorID.Add(actor.transform, actorID);
+
         if (actor is PlayerController player)
             Player = player;
 
-        return actorID;
+        return actor;
     }
 
-    internal void Unregister(int actorID, Transform actorTransform)
+    public void Despawn(int actorID)
     {
-        if (m_DicActor.Remove(actorID, out IHitTarget actor) == false)
+        if (m_DicActor.Remove(actorID, out IActor actor) == false)
             return;
 
-        m_DicActorID.Remove(actorTransform);
+        if (actor is Component component && component != null)
+            m_DicActorID.Remove(component.transform);
+
         if (ReferenceEquals(Player, actor))
             Player = null;
 
         ActorRemoved?.Invoke(actorID);
+        m_Factory.Release(actor as Component);
+    }
+
+    // 씬이 닫히며 액터가 함께 지워지므로 목록만 비운다
+    public void Clear()
+    {
+        m_DicActor.Clear();
+        m_DicActorID.Clear();
+        Player = null;
+        ActorRemoved = null;
     }
 
     public bool TryGetActorID(Transform actorTransform, out int actorID)
@@ -47,21 +70,13 @@ public sealed class ActorManagement
         return actorTransform != null && m_DicActorID.TryGetValue(actorTransform, out actorID);
     }
 
-    internal void Clear()
-    {
-        m_DicActor.Clear();
-        m_DicActorID.Clear();
-        Player = null;
-        ActorRemoved = null;
-    }
-
     // 주변 액터 검색---
 
     public IHitTarget FindNearestEnemy(Vector3 position, float range, ETeam team)
     {
         IHitTarget nearest = null;
         float nearestDistanceSq = range * range;
-        foreach (IHitTarget actor in m_DicActor.Values)
+        foreach (IActor actor in m_DicActor.Values)
         {
             if (IsEnemy(actor, team) == false)
                 continue;
@@ -77,10 +92,10 @@ public sealed class ActorManagement
         return nearest;
     }
 
-    internal void CollectNearbyEnemies(Vector3 center, float radius, ETeam team, List<ActorHitCandidate> results)
+    public void CollectNearbyEnemies(Vector3 center, float radius, ETeam team, List<ActorHitCandidate> results)
     {
         results.Clear();
-        foreach (IHitTarget actor in m_DicActor.Values)
+        foreach (IActor actor in m_DicActor.Values)
         {
             CharacterController body = actor.HurtBody;
             if (IsEnemy(actor, team) == false || body == null || body.enabled == false)
@@ -102,7 +117,7 @@ public sealed class ActorManagement
     }
 }
 
-internal readonly struct ActorHitCandidate
+public readonly struct ActorHitCandidate
 {
     public readonly IHitTarget Actor;
     public readonly Vector3 Center;

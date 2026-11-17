@@ -90,6 +90,12 @@ public class PlayerController : UnitController<PlayerDef>
         }
     }
 
+    // 몬스터가 노리거나 버섯이 빨려 들 수 있는 상태인지. 판단 기준은 여기서만 정한다
+    public bool IsValid()
+    {
+        return IsDead == false;
+    }
+
     public void Init()
     {
         if (Camera.main != null)
@@ -272,7 +278,7 @@ public class PlayerController : UnitController<PlayerDef>
     // 가까운 몬스터이 있으면 그쪽, 없으면 입력 방향, 그것도 없으면 지금 앞
     private Vector3 FindAimDirection()
     {
-        IHitTarget nearest = Actors?.FindNearestEnemy(transform.position, Def.AutoAimRange, Team);
+        IHitTarget nearest = GameManager.Instance?.Actors?.FindNearestEnemy(transform.position, Def.AutoAimRange, Team);
         if (nearest != null)
             return nearest.transform.position - transform.position;
 

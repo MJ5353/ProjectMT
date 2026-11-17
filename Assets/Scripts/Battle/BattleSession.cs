@@ -4,18 +4,18 @@ using UnityEngine.SceneManagement;
 // 결과 화면까지 유지되는 전투 한 판의 상태.
 public sealed class BattleSession
 {
-    public EBattleState State { get; internal set; } = EBattleState.Playing;
-    public float ElapsedTime { get; internal set; }
-    public int KillCount { get; internal set; }
+    public EBattleState State { get; set; } = EBattleState.Playing;
+    public float ElapsedTime { get; set; }
+    public int KillCount { get; set; }
     
     // management
     public ActorManagement Actors { get; } = new();
     public ChunkBurstManagement Chunks { get; } = new();   // 피격 조각 연출(씬이 닫힐 때 SceneController가 Clear)
 
-    internal Scene Scene { get; }
-    internal Dictionary<string, int> Loot { get; } = new();
+    public Scene Scene { get; }
+    public Dictionary<string, int> Loot { get; } = new();
 
-    internal BattleSession(Scene scene)
+    public BattleSession(Scene scene)
     {
         Scene = scene;
     }

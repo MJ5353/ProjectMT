@@ -5,14 +5,14 @@ using UnityEngine;
 
 public abstract class MonsterState : IState
 {
-    protected readonly MonsterController m_Monster;
+    protected readonly MonsterController m_Controller;
 
-    protected MonsterDef Def => m_Monster.Def;
-    protected float TimeInState => m_Monster.TimeInState;
+    protected MonsterDef Def => m_Controller.Def;
+    protected float TimeInState => m_Controller.TimeInState;
 
-    protected MonsterState(MonsterController monster)
+    protected MonsterState(MonsterController controller)
     {
-        m_Monster = monster;
+        m_Controller = controller;
     }
 
     // ==================================================
@@ -28,25 +28,25 @@ public class MonsterIdleState : MonsterState
 {
     private float m_Duration;
 
-    public MonsterIdleState(MonsterController monster) : base(monster) { }
+    public MonsterIdleState(MonsterController controller) : base(controller) { }
 
     public override void Enter()
     {
-        m_Monster.Move.Stop();
-        m_Monster.Anim.Play("Idle");
+        m_Controller.Move.Stop();
+        m_Controller.Anim.Play("Idle");
         m_Duration = Random.Range(1f, 2.5f);
     }
 
     public override void Update(float deltaTime)
     {
-        if (m_Monster.CanSeeTarget())
+        if (m_Controller.CanSeeTarget())
         {
-            m_Monster.ChangeState(EMonsterState.Chase);
+            m_Controller.ChangeState(EMonsterState.Chase);
             return;
         }
 
         if (TimeInState >= m_Duration)
-            m_Monster.ChangeState(EMonsterState.Wander);
+            m_Controller.ChangeState(EMonsterState.Wander);
     }
 }
 
@@ -55,65 +55,64 @@ public class MonsterWanderState : MonsterState
     private const float MaxDuration = 3f;
     private Vector3 m_Destination;
 
-    public MonsterWanderState(MonsterController monster) : base(monster) { }
+    public MonsterWanderState(MonsterController controller) : base(controller) { }
 
     public override void Enter()
     {
         Vector2 offset = Random.insideUnitCircle * Def.WanderRadius;
-        m_Destination = m_Monster.HomePosition + new Vector3(offset.x, 0f, offset.y);
-        m_Monster.Anim.Play("Walk");
+        m_Destination = m_Controller.HomePosition + new Vector3(offset.x, 0f, offset.y);
+        m_Controller.Anim.Play("Walk");
     }
 
     public override void Update(float deltaTime)
     {
-        if (m_Monster.CanSeeTarget())
+        if (m_Controller.CanSeeTarget())
         {
-            m_Monster.ChangeState(EMonsterState.Chase);
+            m_Controller.ChangeState(EMonsterState.Chase);
             return;
         }
 
-        Vector3 diff = m_Destination - m_Monster.transform.position;
+        Vector3 diff = m_Destination - m_Controller.transform.position;
         diff.y = 0f;
         if (diff.magnitude < 0.3f || TimeInState >= MaxDuration)
         {
-            m_Monster.ChangeState(EMonsterState.Idle);
+            m_Controller.ChangeState(EMonsterState.Idle);
             return;
         }
 
-        m_Monster.MoveTo(diff, Def.WanderSpeed);
+        m_Controller.MoveTo(diff, Def.WanderSpeed);
     }
 }
 
 public class MonsterChaseState : MonsterState
 {
-    public MonsterChaseState(MonsterController monster) : base(monster) { }
+    public MonsterChaseState(MonsterController controller) : base(controller) { }
 
     public override void Update(float deltaTime)
     {
-        float distance = m_Monster.GetTargetDistance();
-        PlayerController player = m_Monster.Actors?.Player;
-        bool isTargetGone = player == null || player.IsDead;
+        float distance = m_Controller.GetTargetDistance();
+        bool isTargetGone = m_Controller.GetValidPlayer() == null;
         if (isTargetGone || distance > Def.LoseRange)
         {
-            m_Monster.ChangeState(EMonsterState.Idle);
+            m_Controller.ChangeState(EMonsterState.Idle);
             return;
         }
 
         // 사거리 안: 쿨이 돌면 공격, 아니면 마주 보고 대기
         if (distance <= Def.AttackRange)
         {
-            m_Monster.Move.Stop();
-            m_Monster.Move.FaceTo(m_Monster.GetTargetDirection());
-            m_Monster.Anim.Play("Idle");
+            m_Controller.Move.Stop();
+            m_Controller.Move.FaceTo(m_Controller.GetTargetDirection());
+            m_Controller.Anim.Play("Idle");
 
-            if (m_Monster.CooldownRemain <= 0f)
-                m_Monster.ChangeState(EMonsterState.Windup);
+            if (m_Controller.CooldownRemain <= 0f)
+                m_Controller.ChangeState(EMonsterState.Windup);
 
             return;
         }
 
-        m_Monster.Anim.Play("Walk");
-        m_Monster.MoveTo(m_Monster.GetTargetDirection(), Def.MoveSpeed);
+        m_Controller.Anim.Play("Walk");
+        m_Controller.MoveTo(m_Controller.GetTargetDirection(), Def.MoveSpeed);
     }
 }
 
@@ -123,29 +122,29 @@ public class MonsterWindupState : MonsterState
     private static readonly Vector3 SquashScale = new(1.15f, 0.8f, 1.15f);
     private Vector3 m_BaseScale;
 
-    public MonsterWindupState(MonsterController monster) : base(monster) { }
+    public MonsterWindupState(MonsterController controller) : base(controller) { }
 
     public override void Enter()
     {
-        m_Monster.Move.Stop();
-        m_Monster.Anim.Play("Idle");
-        m_BaseScale = m_Monster.VisualRoot.localScale;
+        m_Controller.Move.Stop();
+        m_Controller.Anim.Play("Idle");
+        m_BaseScale = m_Controller.VisualRoot.localScale;
     }
 
     public override void Update(float deltaTime)
     {
-        m_Monster.Move.FaceTo(m_Monster.GetTargetDirection());
+        m_Controller.Move.FaceTo(m_Controller.GetTargetDirection());
 
         float t = Def.WindupTime > 0f ? Mathf.Clamp01(TimeInState / Def.WindupTime) : 1f;
-        m_Monster.VisualRoot.localScale = Vector3.Scale(m_BaseScale, Vector3.Lerp(Vector3.one, SquashScale, t));
+        m_Controller.VisualRoot.localScale = Vector3.Scale(m_BaseScale, Vector3.Lerp(Vector3.one, SquashScale, t));
 
         if (t >= 1f)
-            m_Monster.ChangeState(EMonsterState.Attack);
+            m_Controller.ChangeState(EMonsterState.Attack);
     }
 
     public override void Exit()
     {
-        m_Monster.VisualRoot.localScale = m_BaseScale;
+        m_Controller.VisualRoot.localScale = m_BaseScale;
     }
 }
 
@@ -154,20 +153,20 @@ public class MonsterAttackState : MonsterState
     private bool m_IsHitDone;
     private float m_Length;
 
-    public MonsterAttackState(MonsterController monster) : base(monster) { }
+    public MonsterAttackState(MonsterController controller) : base(controller) { }
 
     public override void Enter()
     {
         AttackSpec attack = Def.Attack;
         m_IsHitDone = false;
-        m_Length = m_Monster.Anim.GetLength(attack.Clip);
+        m_Length = m_Controller.Anim.GetLength(attack.Clip);
 
-        m_Monster.Move.Stop();
-        m_Monster.Move.FaceTo(m_Monster.GetTargetDirection(), true);
-        m_Monster.Anim.Play(attack.Clip, true);
+        m_Controller.Move.Stop();
+        m_Controller.Move.FaceTo(m_Controller.GetTargetDirection(), true);
+        m_Controller.Anim.Play(attack.Clip, true);
 
         if (attack.Lunge > 0f)
-            m_Monster.Move.AddImpulse(m_Monster.transform.forward * attack.Lunge);
+            m_Controller.Move.AddImpulse(m_Controller.transform.forward * attack.Lunge);
     }
 
     public override void Update(float deltaTime)
@@ -176,27 +175,27 @@ public class MonsterAttackState : MonsterState
         if (m_IsHitDone == false && TimeInState >= attack.HitTime)
         {
             m_IsHitDone = true;
-            m_Monster.Melee.Perform(attack);
+            m_Controller.Melee.Perform(attack);
         }
 
         if (TimeInState >= m_Length)
-            m_Monster.ChangeState(EMonsterState.Chase);
+            m_Controller.ChangeState(EMonsterState.Chase);
     }
 
     public override void Exit()
     {
-        m_Monster.CooldownRemain = Def.AttackCooldown;
+        m_Controller.CooldownRemain = Def.AttackCooldown;
     }
 }
 
 public class MonsterHitState : MonsterState
 {
-    public MonsterHitState(MonsterController monster) : base(monster) { }
+    public MonsterHitState(MonsterController controller) : base(controller) { }
 
     public override void Enter()
     {
-        m_Monster.Move.Stop();
-        m_Monster.Anim.Play("Hit", true);
+        m_Controller.Move.Stop();
+        m_Controller.Anim.Play("Hit", true);
     }
 
     public override void Update(float deltaTime)
@@ -204,36 +203,36 @@ public class MonsterHitState : MonsterState
         if (TimeInState < Def.HitStunTime)
             return;
 
-        m_Monster.ChangeState(Def.FleeTime > 0f ? EMonsterState.Flee : EMonsterState.Chase);
+        m_Controller.ChangeState(Def.FleeTime > 0f ? EMonsterState.Flee : EMonsterState.Chase);
     }
 }
 
 // 버끼처럼 겁 많은 몬스터: 맞으면 반대로 달아났다가 다시 덤빈다
 public class MonsterFleeState : MonsterState
 {
-    public MonsterFleeState(MonsterController monster) : base(monster) { }
+    public MonsterFleeState(MonsterController controller) : base(controller) { }
 
     public override void Enter()
     {
-        m_Monster.Anim.Play("Walk");
-        m_Monster.Anim.SetSpeed(1.6f);
+        m_Controller.Anim.Play("Walk");
+        m_Controller.Anim.SetSpeed(1.6f);
     }
 
     public override void Update(float deltaTime)
     {
         if (TimeInState >= Def.FleeTime)
         {
-            m_Monster.ChangeState(EMonsterState.Chase);
+            m_Controller.ChangeState(EMonsterState.Chase);
             return;
         }
 
-        Vector3 away = -m_Monster.GetTargetDirection();
-        m_Monster.MoveTo(away, Def.FleeSpeed);
+        Vector3 away = -m_Controller.GetTargetDirection();
+        m_Controller.MoveTo(away, Def.FleeSpeed);
     }
 
     public override void Exit()
     {
-        m_Monster.Anim.SetSpeed(1f);
+        m_Controller.Anim.SetSpeed(1f);
     }
 }
 
@@ -244,18 +243,19 @@ public class MonsterDeadState : MonsterState
 
     private bool m_IsCollisionOff;
 
-    public MonsterDeadState(MonsterController monster) : base(monster) { }
+    public MonsterDeadState(MonsterController controller) : base(controller) { }
 
     public override void Enter()
     {
         m_IsCollisionOff = false;
-        m_Monster.Move.Stop();
-        m_Monster.Anim.SetSpeed(1f);
-        m_Monster.Anim.Play("Death", true);
+        m_Controller.Move.Stop();
+        m_Controller.Anim.SetSpeed(1f);
+        m_Controller.Anim.Play("Death", true);
 
         SpawnDrops();
-        if (m_Monster.Actors != null)
-            EventBus.Publish(new MonsterKilled(m_Monster.Actors, m_Monster.ActorID, Def, m_Monster.transform.position));
+        ActorManagement actors = GameManager.Instance?.Actors;
+        if (actors != null)
+            EventBus.Publish(new MonsterKilled(actors, m_Controller.ActorID, Def, m_Controller.transform.position));
     }
 
     public override void Update(float deltaTime)
@@ -264,16 +264,16 @@ public class MonsterDeadState : MonsterState
         if (m_IsCollisionOff == false && TimeInState >= CollisionOffTime)
         {
             m_IsCollisionOff = true;
-            m_Monster.Move.SetCollision(false);
+            m_Controller.Move.SetCollision(false);
         }
 
         if (TimeInState >= DestroyTime)
-            Object.Destroy(m_Monster.gameObject);
+            m_Controller.Despawn();
     }
 
     private void SpawnDrops()
     {
-        Vector3 origin = m_Monster.transform.position + Vector3.up * 0.6f;
+        Vector3 origin = m_Controller.transform.position + Vector3.up * 0.6f;
         foreach (MonsterDef.DropEntry drop in Def.ListDrop)
         {
             if (drop.Pickup == null || Random.value > drop.Chance)

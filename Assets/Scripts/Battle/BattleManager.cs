@@ -57,23 +57,24 @@ public class BattleManager : MonoSingleton<BattleManager>
     private const string PlayerSpawnName = "Spawn_Player";   // 시작할 때 플레이어를 옮길 지점 이름
     private const int GoalKillCount = 10;                    // 이만큼 잡으면 승리 (보스가 들어오기 전 임시 조건)
 
+    [SerializeField] private PlayerController m_PlayerPrefab = null;   // 시작할 때 Spawn_Player 지점에 만든다
     [SerializeField] private List<SpawnGroup> m_ListGroup = new();
 
     private readonly List<SpawnState> m_ListSpawn = new();
     private readonly Dictionary<int, SpawnState> m_DicSpawnByActorID = new();
     private BattleSession m_Session;
-    private PlayerController m_Player;
+    private PlayerController m_PlayerController;
 
     public EBattleState State => m_Session.State;
     public int KillCount => m_Session.KillCount;
     public int KillGoal => GoalKillCount;
     public float ElapsedTime => m_Session.ElapsedTime;
-    public PlayerController Player => m_Player;
+    public PlayerController Player => m_PlayerController;
     public IReadOnlyDictionary<string, int> DicLoot => m_Session.Loot;
 
     // ==================================================
 
-    internal void Init(BattleSession session)
+    public void Init(BattleSession session)
     {
         if (Instance != null)
             return;
@@ -82,7 +83,7 @@ public class BattleManager : MonoSingleton<BattleManager>
         Init();
     }
 
-    internal void Tick(float deltaTime)
+    public void Tick(float deltaTime)
     {
         if (State != EBattleState.Playing)
             return;
@@ -97,13 +98,9 @@ public class BattleManager : MonoSingleton<BattleManager>
     {
         m_DicSpawnByActorID.Clear();
         m_ListSpawn.Clear();
-        m_Player = m_Session.Actors.Player;
-
-        if (m_Player != null && m_Player.Health != null)
-        {
-            m_Player.Health.Died += OnPlayerDied;
-            PlacePlayer();
-        }
+        SpawnPlayer();
+        if (m_PlayerController != null && m_PlayerController.Health != null)
+            m_PlayerController.Health.Died += OnPlayerDied;
 
         m_Session.Actors.ActorRemoved += ReleaseSpawnSlot;
         EventBus.Subscribe<MonsterKilled>(OnMonsterKilled);
@@ -136,7 +133,7 @@ public class BattleManager : MonoSingleton<BattleManager>
         EventBus.Unsubscribe<MonsterKilled>(OnMonsterKilled);
         EventBus.Unsubscribe<LootPicked>(OnLootPicked);
 
-        HealthFeature health = m_Player?.Health;
+        HealthFeature health = m_PlayerController?.Health;
         if (health != null)
             health.Died -= OnPlayerDied;
     }
@@ -156,21 +153,20 @@ public class BattleManager : MonoSingleton<BattleManager>
 
     // ==================================================
 
-    private void PlacePlayer()
+    // Spawn_Player 지점(없으면 원점)에 플레이어를 만든다
+    private void SpawnPlayer()
     {
-        GameObject spawn = GameObject.Find(PlayerSpawnName);
-        if (spawn == null)
+        if (m_PlayerPrefab == null)
+        {
+            CLogger.Warning("BattleManager", "플레이어 프리팹이 비어 있습니다. 메뉴 MushTaker/Battle/전투 씬 만들기로 씬을 다시 만드세요.", this);
             return;
+        }
 
-        // CharacterController가 켜져 있으면 위치를 덮어써 버려서 잠깐 끈다
-        // !!) 보류: GetComponent 대신 PlayerController.Teleport()로 바꿀지 검토
-        CharacterController controller = m_Player.GetComponent<CharacterController>();
-        if (controller != null)
-            controller.enabled = false;
+        GameObject spawn = GameObject.Find(PlayerSpawnName);
+        Vector3 position = spawn != null ? SnapToGround(spawn.transform.position) : Vector3.zero;
+        Quaternion rotation = spawn != null ? spawn.transform.rotation : Quaternion.identity;
 
-        m_Player.transform.SetPositionAndRotation(SnapToGround(spawn.transform.position), spawn.transform.rotation);
-        if (controller != null)
-            controller.enabled = true;
+        m_PlayerController = m_Session.Actors.Spawn(m_PlayerPrefab, position, rotation);
     }
 
     private static void FindPoints(SpawnState spawn)
@@ -223,14 +219,11 @@ public class BattleManager : MonoSingleton<BattleManager>
         if (spawn.Group.Prefab == null || point == null)
             return;
 
-        MonsterController monster = Instantiate(spawn.Group.Prefab, SnapToGround(point.position), point.rotation);
-        if (monster.ActorID == 0)
-        {
-            Destroy(monster.gameObject);
+        MonsterController controller = m_Session.Actors.Spawn(spawn.Group.Prefab, SnapToGround(point.position), point.rotation);
+        if (controller == null)
             return;
-        }
 
-        m_DicSpawnByActorID.Add(monster.ActorID, spawn);
+        m_DicSpawnByActorID.Add(controller.ActorID, spawn);
         spawn.AliveCount++;
     }
 
@@ -253,7 +246,7 @@ public class BattleManager : MonoSingleton<BattleManager>
     private Transform PickFarPoint(SpawnState spawn)
     {
         // 플레이어 눈앞에 갑자기 생기지 않게 가장 먼 지점 근처에서 고른다
-        if (m_Player == null)
+        if (m_PlayerController == null)
             return spawn.ListPoint[UnityEngine.Random.Range(0, spawn.ListPoint.Count)];
 
         Transform best = null;
@@ -261,7 +254,7 @@ public class BattleManager : MonoSingleton<BattleManager>
         
         foreach (Transform point in spawn.ListPoint)
         {
-            float distance = Vector3.Distance(point.position, m_Player.transform.position) + UnityEngine.Random.Range(0f, 4f);
+            float distance = Vector3.Distance(point.position, m_PlayerController.transform.position) + UnityEngine.Random.Range(0f, 4f);
             if (distance <= bestDistance)
                 continue;
 
@@ -306,8 +299,8 @@ public class BattleManager : MonoSingleton<BattleManager>
             return;
 
         m_Session.State = isWin ? EBattleState.Won : EBattleState.Lost;
-        if (m_Player != null)
-            m_Player.Health.Died -= OnPlayerDied;
+        if (m_PlayerController != null)
+            m_PlayerController.Health.Died -= OnPlayerDied;
 
         // [mj] todo) 패배 시 보상 규칙. 지금은 주운 것을 그대로 준다
         GameManager gameM = GameManager.Instance;

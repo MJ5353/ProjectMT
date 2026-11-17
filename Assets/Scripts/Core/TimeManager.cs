@@ -18,7 +18,7 @@ public class TimeManager : MonoSingleton<TimeManager>
         Apply();
     }
 
-    internal void SetHitStop(bool isHitStop)
+    public void SetHitStop(bool isHitStop)
     {
         m_IsHitStop = isHitStop;
         Apply();

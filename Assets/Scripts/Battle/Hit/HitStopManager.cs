@@ -16,7 +16,7 @@ public class HitStopManager : MonoSingleton<HitStopManager>
         TimeManager.Instance?.SetHitStop(true);
     }
 
-    internal void Tick(float unscaledDeltaTime)
+    public void Tick(float unscaledDeltaTime)
     {
         if (m_Remain <= 0f)
             return;

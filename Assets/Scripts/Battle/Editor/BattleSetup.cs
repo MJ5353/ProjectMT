@@ -359,12 +359,8 @@ public static class BattleSetup
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
         SceneController sceneController = new GameObject(nameof(SceneController)).AddComponent<SceneController>();
 
+        // 플레이어는 씬에 두지 않고 플레이 때 BattleManager가 ActorManagement로 만든다
         Transform map = BuildMap();
-        Transform playerSpawn = map.E_FindDeep("Spawn_Player");
-
-        GameObject player = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath));
-        if (playerSpawn != null)
-            player.transform.SetPositionAndRotation(playerSpawn.position + Vector3.up * 0.1f, playerSpawn.rotation);
 
         Camera cam = Object.FindAnyObjectByType<Camera>();
         if (cam != null)
@@ -379,6 +375,7 @@ public static class BattleSetup
         battle.AddComponent<BattleHud>();
 
         SerializedObject so = new SerializedObject(battleM);
+        so.FindProperty("m_PlayerPrefab").objectReferenceValue = AssetDatabase.LoadAssetAtPath<PlayerController>(PlayerPrefabPath);
         SerializedProperty listGroup = so.FindProperty("m_ListGroup");
         listGroup.arraySize = 2;
         SetGroup(listGroup.GetArrayElementAtIndex(0), BuggiPrefabPath, "Spawn_Buggi", 6, 4f);

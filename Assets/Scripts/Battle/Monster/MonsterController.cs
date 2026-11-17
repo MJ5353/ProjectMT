@@ -58,7 +58,7 @@ public class MonsterController : UnitController<MonsterDef>
         if (CooldownRemain > 0f)
             CooldownRemain -= deltaTime;
 
-        PlayerController player = Actors?.Player;
+        PlayerController player = GetValidPlayer();
         if (Target == null && player != null)
             Target = player.transform;
 
@@ -94,14 +94,33 @@ public class MonsterController : UnitController<MonsterDef>
 
     public bool CanSeeTarget()
     {
-        if (Target == null)
-            return false;
-
-        PlayerController player = Actors?.Player;
-        if (player != null && player.IsDead)
+        if (Target == null || GetValidPlayer() == null)
             return false;
 
         return GetTargetDistance() <= Def.SightRange;
+    }
+
+    // 노릴 수 있는 플레이어. 없거나 PlayerController.IsValid()가 false면 null
+    public PlayerController GetValidPlayer()
+    {
+        PlayerController player = GameManager.Instance?.Actors?.Player;
+        if (player == null || player.IsValid() == false)
+            return null;
+
+        return player;
+    }
+
+    // 죽은 뒤 사라질 때. 등록돼 있으면 ActorManagement가 지운다
+    public void Despawn()
+    {
+        ActorManagement actors = GameManager.Instance?.Actors;
+        if (actors != null && ActorID != 0)
+        {
+            actors.Despawn(ActorID);
+            return;
+        }
+
+        Destroy(gameObject);
     }
 
     public void MoveTo(Vector3 direction, float speed)

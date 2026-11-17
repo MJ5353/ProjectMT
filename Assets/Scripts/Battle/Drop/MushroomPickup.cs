@@ -85,7 +85,7 @@ public class MushroomPickup : MonoBehaviour
 
     private void UpdateMagnet(float deltaTime)
     {
-        PlayerController player = GameManager.Instance?.Flow.GetBattle(gameObject.scene)?.Actors.Player;
+        PlayerController player = GameManager.Instance?.Actors?.Player;
         if (player == null)
         {
             m_IsMagnet = false;
@@ -102,8 +102,8 @@ public class MushroomPickup : MonoBehaviour
 
     private bool IsPlayerNear()
     {
-        PlayerController player = GameManager.Instance?.Flow.GetBattle(gameObject.scene)?.Actors.Player;
-        if (player == null || player.IsDead)
+        PlayerController player = GameManager.Instance?.Actors?.Player;
+        if (player == null || player.IsValid() == false)
             return false;
 
         return Vector3.Distance(player.transform.position, transform.position) <= PickupRadius;

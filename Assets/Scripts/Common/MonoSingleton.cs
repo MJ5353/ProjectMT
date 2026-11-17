@@ -8,7 +8,7 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T
 
     // ==================================================
 
-    internal void Init()
+    public void Init()
     {
         if (Instance != null)
             return;
@@ -17,7 +17,7 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T
         s_Instance = (T)this;
     }
 
-    internal void Clear()
+    public void Clear()
     {
         if (s_Instance != this)
             return;
@@ -26,7 +26,7 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T
         OnClear();
     }
 
-    internal static void ResetSingleton() => s_Instance = null;
+    public static void ResetSingleton() => s_Instance = null;
 
     // virtual---
 
