@@ -41,6 +41,9 @@ MonoBehaviour:
   m_AttackCooldown: 1.8
   m_FleeTime: 0
   m_FleeSpeed: 4
+  m_ModelName: 
+  m_BodyHeight: 1.6
+  m_BodyRadius: 0.5
   m_ListMushroom:
   - m_SocketName: Socket_Back1
     m_Model: {fileID: -7511558181221131132, guid: 5c727db25668ad34b8c2f8c390596016, type: 3}

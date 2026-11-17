@@ -72,7 +72,7 @@ public sealed class ChunkBurstManagement
             {
                 Position = origin + Random.insideUnitSphere * 0.2f,
                 Rotation = Random.rotation,
-                Velocity = dir * Speed * Random.Range(0.6f, 1.2f),
+                Velocity = dir * (Speed * Random.Range(0.6f, 1.2f)),
                 Age = 0f,
             };
             batch.Count++;

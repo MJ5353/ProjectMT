@@ -47,6 +47,26 @@ blender -b -P tools/voxel/build_voxel_assets.py -- <출력폴더> [--preview]
 | Down | 120 | 24~84 엎드림(약점 노출), 84~110 일어남 |
 | Hit, Death | 18, 90 | Death는 마지막 자세 유지 |
 
+## 나무 보스 (기생 버섯 나무)
+
+`python tools/voxel/build_boss_tree.py -- <출력폴더> [--preview]` → `Boss_Tree.fbx` (앞 단계 에셋·맵·버우르스도 같이 다시 만든다).
+
+- 키 약 7m(머리 가지 포함), 뿌리 다리 4개로 걷는 고목. 얼굴은 파인 눈 구멍에 빛나는 심지.
+- 기생 버섯 소켓 9곳: `Socket_Crown`, `Socket_ShoulderL/R`, `Socket_TrunkL/R`(줄기 옆, 선반 버섯용), `Socket_Back`, `Socket_ForearmL/R`, `Socket_RootBL`.
+- 히트박스 기준점: `Hitbox_Trunk, Hitbox_Face, Hitbox_ArmL/R, Hitbox_RootFL/FR/BL/BR`. 권장 반지름(m): 줄기 1.3(캡슐 길이 4), 얼굴 0.8, 팔 0.5, 뿌리 0.5.
+
+| 클립 | 길이 | 예비 동작 → 판정 |
+|---|---|---|
+| Idle, Walk | 반복 | |
+| Roar | 75 | 0~18 몸 젖히며 팔 벌림 → 20~60 떨림(넉백·경직) |
+| Slam | 60 | 0~18 두 팔을 머리 위로 → 24 지면 강타 |
+| Sweep | 54 | 0~16 몸 비틀며 오른팔 뒤로 → 22~28 앞 휩쓸기 |
+| RootStrike | 60 | 0~20 웅크리며 뿌리 박기 → 24 앞쪽 뿌리 솟음(위치·판정은 코드) |
+| SporeBurst | 66 | 0~24 웅크리고 부르르 → 30 버섯마다 포자 폭발 |
+| PartBreak | 60 | 휘청이며 팔 늘어뜨림, 52 회복 |
+| Down | 120 | 26~84 주저앉아 팔로 땅 짚음(얼굴·등 노출), 84~110 일어남 |
+| Hit, Death | 18, 96 | Death는 나무처럼 앞으로 쓰러져 유지 |
+
 ## 에셋 목록
 
 | 파일 | 내용 | 크기 |

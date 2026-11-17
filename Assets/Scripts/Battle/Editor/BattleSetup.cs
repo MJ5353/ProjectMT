@@ -8,15 +8,16 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // 전투 1단계 시험 환경을 만드는 메뉴.
-// 애니메이터(상태 이름 = 클립 이름), 프리팹(채집꾼·버끼·버곰·버섯 줍기), 데이터(플레이어·몬스터), Battle 씬(Map_Field01 + 스폰 지점)을 만든다.
+// 애니메이터(상태 이름 = 클립 이름), 프리팹(채집꾼·버섯 줍기, 몬스터는 MonsterPrefabBuilder), 데이터(플레이어·몬스터), Battle 씬(Map_Field01 + 스폰 지점)을 만든다.
 // 프리팹의 참조(Def·CharacterController·Animator·몸 렌더러)는 여기서 채워서, 런타임에는 GetComponent를 쓰지 않는다
 // !!) 데이터·프리팹은 이미 있으면 건드리지 않는다(대장이 고친 값 보호). 다시 만들려면 "프리팹 다시 만들기"
 public static class BattleSetup
 {
-    private const string ModelDir = "Assets/Art/Voxel/Models/";
-    private const string PrefabDir = "Assets/Prefabs/Battle/";
-    private const string AnimatorDir = "Assets/Prefabs/Battle/Animators/";
-    private const string MonsterDataDir = "Assets/Data/Monsters/";
+    internal const string ModelDir = "Assets/Art/Voxel/Models/";              // 하위 폴더(Actor·Mushroom·Map 등)까지 이름으로 찾는다
+    internal const string MonsterModelDir = ModelDir + "Actor/Monster/";
+    internal const string PrefabDir = "Assets/Prefabs/Actor/";
+    private const string AnimatorDir = PrefabDir + "Animators/";
+    internal const string MonsterDataDir = "Assets/Data/Monsters/";
     private const string ScenePath = "Assets/Scenes/Battle.unity";
     private const string MapName = "Map_Field01";
     private const float ModelYaw = 180f;
@@ -71,12 +72,13 @@ public static class BattleSetup
         BuildMushroomDef("Mushroom_Cloud", "구름버섯");
 
         MushroomPickup songiPickup = BuildPickup(SongiPickupPath, "Mush_Songi", "Mushroom_Songi", isForce);
-        MonsterDef buggiDef = BuildBuggiDef(songiPickup);
-        BuildBuggi(buggiDef, isForce);
+        BuildBuggiDef(songiPickup);
 
         MushroomPickup cloudPickup = BuildPickup(CloudPickupPath, "Mush_Cloud", "Mushroom_Cloud", isForce);
-        MonsterDef bugomDef = BuildBugomDef(cloudPickup);
-        BuildBugom(bugomDef, isForce);
+        BuildBugomDef(cloudPickup);
+
+        // 몬스터 프리팹은 Data/Monsters의 MonsterDef 전부를 한 번에 굽는다(새 몬스터도 같이)
+        MonsterPrefabBuilder.BuildAll(isForce);
 
         PlayerDef playerDef = BuildPlayerDef();
         BuildPlayer(playerDef, isForce);
@@ -135,6 +137,10 @@ public static class BattleSetup
             });
             SetColor(def, "m_ChunkColor", new Color(0.95f, 0.9f, 0.8f));
         }
+
+        // 몸 크기가 비었으면(이전 형식 데이터) 원래 쓰던 캡슐 크기로 채운다
+        if (def.BodyHeight <= 0f)
+            SetBodySize(def, 0.9f, 0.35f);
 
         EditorUtility.SetDirty(def);
         return def;
@@ -248,30 +254,17 @@ public static class BattleSetup
             SetColor(def, "m_ChunkColor", new Color(0.55f, 0.4f, 0.3f));
         }
 
+        if (def.BodyHeight <= 0f)
+            SetBodySize(def, 1.6f, 0.75f);
+
         EditorUtility.SetDirty(def);
         return def;
     }
 
-    private static void BuildBugom(MonsterDef def, bool isForce)
+    internal static void SetBodySize(MonsterDef def, float height, float radius)
     {
-        if (File.Exists(BugomPrefabPath) && isForce == false)
-            return;
-
-        GameObject root = BuildUnit<MonsterController>("Monster_Bugom", "Bugom", 1.6f, 0.75f, def);
-
-        PrefabUtility.SaveAsPrefabAsset(root, BugomPrefabPath);
-        Object.DestroyImmediate(root);
-    }
-
-    private static void BuildBuggi(MonsterDef def, bool isForce)
-    {
-        if (File.Exists(BuggiPrefabPath) && isForce == false)
-            return;
-
-        GameObject root = BuildUnit<MonsterController>("Monster_Buggi", "Buggi", 0.9f, 0.35f, def);
-
-        PrefabUtility.SaveAsPrefabAsset(root, BuggiPrefabPath);
-        Object.DestroyImmediate(root);
+        SetFloat(def, "m_BodyHeight", height);
+        SetFloat(def, "m_BodyRadius", radius);
     }
 
     private static void BuildPlayer(PlayerDef def, bool isForce)
@@ -279,20 +272,20 @@ public static class BattleSetup
         if (File.Exists(PlayerPrefabPath) && isForce == false)
             return;
 
-        GameObject root = BuildUnit<PlayerController>("Player", "Player", 1.7f, 0.35f, def);
+        GameObject root = BuildUnit<PlayerController>("Player", LoadModel("Player"), 1.7f, 0.35f, def);
 
         PrefabUtility.SaveAsPrefabAsset(root, PlayerPrefabPath);
         Object.DestroyImmediate(root);
     }
 
     // 몬스터·플레이어 공통 몸: 모델 + CharacterController + 컨트롤러. 컨트롤러의 참조를 여기서 채운다
-    private static GameObject BuildUnit<TController>(string name, string modelName, float height, float radius, UnitDef def) where TController : Component
+    internal static GameObject BuildUnit<TController>(string name, GameObject modelAsset, float height, float radius, UnitDef def) where TController : Component
     {
         GameObject root = new GameObject(name);
 
         Animator animator = null;
         List<Renderer> listRenderer = new();
-        GameObject model = InstantiateModel(modelName, root.transform);
+        GameObject model = InstantiateModel(modelAsset, root.transform);
         if (model != null)
         {
             model.name = "Model";
@@ -302,7 +295,7 @@ public static class BattleSetup
             if (animator == null)
                 animator = model.AddComponent<Animator>();
 
-            animator.runtimeAnimatorController = BuildController(modelName);
+            animator.runtimeAnimatorController = BuildController(modelAsset);
             animator.applyRootMotion = false;
             listRenderer.AddRange(model.GetComponentsInChildren<Renderer>(true).Where(r => r is ParticleSystemRenderer == false));
         }
@@ -330,9 +323,9 @@ public static class BattleSetup
     }
 
     // 상태 이름 = 클립 이름, 기본 상태 Idle. 전이 없이 코드에서 CrossFade로 부른다
-    private static AnimatorController BuildController(string modelName)
+    private static AnimatorController BuildController(GameObject modelAsset)
     {
-        string path = $"{AnimatorDir}{modelName}.controller";
+        string path = $"{AnimatorDir}{modelAsset.name}.controller";
         AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
         if (controller == null)
             controller = AnimatorController.CreateAnimatorControllerAtPath(path);
@@ -343,7 +336,7 @@ public static class BattleSetup
             stateMachine.RemoveState(child.state);
         }
 
-        IEnumerable<AnimationClip> clips = AssetDatabase.LoadAllAssetsAtPath($"{ModelDir}{modelName}.fbx")
+        IEnumerable<AnimationClip> clips = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(modelAsset))
             .OfType<AnimationClip>()
             .Where(c => c.name.StartsWith("__preview__") == false);
 
@@ -448,9 +441,14 @@ public static class BattleSetup
 
     // ==================================================
 
-    private static GameObject LoadModel(string modelName)
+    // 모델 폴더 아래 어디에 있든 파일 이름(확장자 제외)이 같은 FBX
+    internal static GameObject LoadModel(string modelName)
     {
-        return AssetDatabase.LoadAssetAtPath<GameObject>($"{ModelDir}{modelName}.fbx");
+        string path = AssetDatabase.FindAssets($"{modelName} t:Model", new[] { ModelDir.TrimEnd('/') })
+            .Select(AssetDatabase.GUIDToAssetPath)
+            .FirstOrDefault(p => Path.GetFileNameWithoutExtension(p) == modelName && p.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase));
+
+        return path != null ? AssetDatabase.LoadAssetAtPath<GameObject>(path) : null;
     }
 
     private static GameObject InstantiateModel(string modelName, Transform parent)
@@ -458,7 +456,18 @@ public static class BattleSetup
         GameObject asset = LoadModel(modelName);
         if (asset == null)
         {
-            CLogger.Error("BattleSetup", $"모델이 없습니다: {ModelDir}{modelName}.fbx");
+            CLogger.Error("BattleSetup", $"모델이 없습니다: {ModelDir} 아래 {modelName}.fbx");
+            return null;
+        }
+
+        return InstantiateModel(asset, parent);
+    }
+
+    private static GameObject InstantiateModel(GameObject asset, Transform parent)
+    {
+        if (asset == null)
+        {
+            CLogger.Error("BattleSetup", "모델이 비어 있습니다.");
             return null;
         }
 
@@ -477,7 +486,7 @@ public static class BattleSetup
 
     // 직렬화 필드 쓰기 (private 필드라 SerializedObject로)
 
-    private static void SetString(Object target, string propertyName, string value)
+    internal static void SetString(Object target, string propertyName, string value)
     {
         SerializedObject so = new SerializedObject(target);
         so.FindProperty(propertyName).stringValue = value;

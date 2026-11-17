@@ -66,6 +66,11 @@ public class MonsterDef : UnitDef
     [SerializeField] private float m_FleeTime = 0f;        // 맞은 뒤 도망치는 시간. 0이면 바로 반격
     [SerializeField] private float m_FleeSpeed = 4f;
 
+    // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽는다
+    [SerializeField] private string m_ModelName = null;    // Art/Voxel/Models 아래 FBX 이름. 비면 에셋 이름(Monster_Xxx)의 Xxx
+    [SerializeField] private float m_BodyHeight = 0f;      // 캡슐 높이. 0이면 모델 크기로 자동 계산해 채운다
+    [SerializeField] private float m_BodyRadius = 0f;      // 캡슐 반지름. 0이면 모델 크기로 자동 계산해 채운다
+
     // 버섯·드랍---
     [SerializeField] private List<MushroomSocket> m_ListMushroom = new();
     [SerializeField] private List<DropEntry> m_ListDrop = new();
@@ -80,6 +85,9 @@ public class MonsterDef : UnitDef
     public float AttackCooldown => m_AttackCooldown;
     public float FleeTime => m_FleeTime;
     public float FleeSpeed => m_FleeSpeed;
+    public string ModelName => m_ModelName;
+    public float BodyHeight => m_BodyHeight;
+    public float BodyRadius => m_BodyRadius;
     public IReadOnlyList<MushroomSocket> ListMushroom => m_ListMushroom;
     public IReadOnlyList<DropEntry> ListDrop => m_ListDrop;
 
