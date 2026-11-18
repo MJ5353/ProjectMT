@@ -4,12 +4,14 @@ using UnityEngine;
 
 // ==================================================
 
-// 액터가 공통으로 가져야 하는 것. ActorFactory가 풀에서 꺼낸 뒤 OnSpawn, 돌려보내기 전에 OnDespawn을 부른다
+// 액터가 공통으로 가져야 하는 것. ActorFactory가 풀에서 꺼낸 뒤 OnSpawn, 돌려보내기 전에 OnDespawn을 부른다.
+// 매 프레임 갱신은 ActorService.Tick이 Tick으로 부른다(유닛마다 Unity Update를 쓰지 않는다)
 public interface IActor : IHitTarget
 {
     int ActorID { get; }
     void OnSpawn(int actorID);
     void OnDespawn();
+    void Tick(float deltaTime, float unscaledDeltaTime);
 }
 
 // ==================================================
@@ -18,8 +20,16 @@ public interface IActor : IHitTarget
 public sealed class ActorService : ServiceBase
 {
     private readonly ActorFactory m_Factory = new();
+    
+    // 조회용
     private readonly Dictionary<int, IActor> m_DicActor = new();
     private readonly Dictionary<Transform, int> m_DicActorID = new();
+    
+    // 순회용
+    private readonly List<IActor> m_ListActor = new();
+    private readonly List<int> m_ListToRemove = new();
+    
+    private bool m_IsTicking;
     private int m_LastActorID;
 
     public PlayerController Player { get; private set; }
@@ -34,12 +44,14 @@ public sealed class ActorService : ServiceBase
             return null;
 
         int actorID = ++m_LastActorID;
+        
         T actor = m_Factory.Create(prefab, position, rotation, actorID);
         if (actor == null)
             return null;
 
         m_DicActor.Add(actorID, actor);
         m_DicActorID.Add(actor.transform, actorID);
+        m_ListActor.Add(actor);
 
         if (actor is PlayerController player)
             Player = player;
@@ -47,10 +59,41 @@ public sealed class ActorService : ServiceBase
         return actor;
     }
 
+    // 순회 도중 스폰은 목록 뒤에 붙어 이번 프레임엔 돌지 않고, 삭제는 모았다가 순회 뒤 처리한다
+    public override void Tick(float deltaTime)
+    {
+        float unscaledDeltaTime = Time.unscaledDeltaTime;
+
+        m_IsTicking = true;
+        int count = m_ListActor.Count;
+
+        for (int i = 0; i < count; ++i)
+        {
+            m_ListActor[i].Tick(deltaTime, unscaledDeltaTime);
+        }
+
+        m_IsTicking = false;
+        
+        foreach (int actorID in m_ListToRemove)
+        {
+            Despawn(actorID);
+        }
+
+        m_ListToRemove.Clear();
+    }
+
     public void Despawn(int actorID)
     {
+        if (m_IsTicking)
+        {
+            m_ListToRemove.Add(actorID);
+            return;
+        }
+
         if (m_DicActor.Remove(actorID, out IActor actor) == false)
             return;
+
+        m_ListActor.Remove(actor);
 
         if (actor is Component component && component != null)
             m_DicActorID.Remove(component.transform);
@@ -67,6 +110,9 @@ public sealed class ActorService : ServiceBase
     {
         m_DicActor.Clear();
         m_DicActorID.Clear();
+        m_ListActor.Clear();
+        m_ListToRemove.Clear();
+        
         Player = null;
         ActorRemoved = null;
     }
@@ -197,6 +243,7 @@ public readonly struct ActorHitCandidate
             return true;
 
         partIndex = -1;
+        
         if (HasBodyShape())
             return false;
 
@@ -208,6 +255,7 @@ public readonly struct ActorHitCandidate
     {
         point = default;
         partIndex = -1;
+        
         bool isHit = false;
         float nearest = float.MaxValue;
 
@@ -217,6 +265,7 @@ public readonly struct ActorHitCandidate
                 continue;
 
             shape.GetSegment(out Vector3 start, out Vector3 end);
+            
             if (HitMath.SphereVsCapsule(start, end, shape.Radius, center, radius, out Vector3 shapePoint, out float distanceSq) == false)
                 continue;
 

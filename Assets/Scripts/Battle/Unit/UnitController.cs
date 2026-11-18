@@ -75,12 +75,12 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         HitFeature?.RestoreFlash();
     }
 
-    // [mj] todo) 이거 왜 update 이벤트 그대로 쓰고있지? 개편 필요
-    private void Update()
+    // ActorService.Tick이 매 프레임 부른다. Def가 비어 꺼진 유닛은 돌지 않는다
+    public void Tick(float deltaTime, float unscaledDeltaTime)
     {
-        float deltaTime = Time.deltaTime;
-        float unscaledDeltaTime = Time.unscaledDeltaTime;
-        
+        if (enabled == false)
+            return;
+
         for (int i = 0; i < m_ListFeature.Count; ++i)
         {
             UnitFeature feature = m_ListFeature[i];
