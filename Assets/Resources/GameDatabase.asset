@@ -14,6 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameDatabase
   m_ListDef:
   - {fileID: 11400000, guid: 7abfb2b0c24077349a36160522db8891, type: 2}
+  - {fileID: 11400000, guid: c4d21274ae7bcaf4ca8e7b650ad32b20, type: 2}
+  - {fileID: 11400000, guid: 42cb1a2f4fed08945bb932f6a330a98f, type: 2}
+  - {fileID: 11400000, guid: 9707896f19aae5149ab2a53582632c5e, type: 2}
+  - {fileID: 11400000, guid: 4fddcb5bab12fb64197abc41cc66968b, type: 2}
+  - {fileID: 11400000, guid: f150fc24e89ab06429d0c9ef7a061f99, type: 2}
+  - {fileID: 11400000, guid: 8a4dfed4853d4ed4696105fa99b1bc24, type: 2}
+  - {fileID: 11400000, guid: d6717aadc3388a04fbefbd04c6584a46, type: 2}
   - {fileID: 11400000, guid: 833fbd8d4ed871349b64a3836b08a8c7, type: 2}
   - {fileID: 11400000, guid: 3af473a3d8a41fe48b33b2a5d91539f1, type: 2}
   - {fileID: 11400000, guid: 81673e65080abe6418896e247baac8a6, type: 2}
@@ -38,6 +45,3 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0632adb5f8ca8234c9e5716a915c646c, type: 2}
   - {fileID: 11400000, guid: 1713f512f009ed24e91b93941acb9808, type: 2}
   - {fileID: 11400000, guid: d1057f26622bc494e8f0166e20b8f821, type: 2}
-  - {fileID: 11400000, guid: f150fc24e89ab06429d0c9ef7a061f99, type: 2}
-  - {fileID: 11400000, guid: 8a4dfed4853d4ed4696105fa99b1bc24, type: 2}
-  - {fileID: 11400000, guid: d6717aadc3388a04fbefbd04c6584a46, type: 2}

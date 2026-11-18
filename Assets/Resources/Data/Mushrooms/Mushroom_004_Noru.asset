@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DisplayName: "\uB178\uB8E8\uAD81\uB385\uC774\uBC84\uC12F"
   <ID>k__BackingField: Mushroom_004_Noru
   <Description>k__BackingField: 
-  <Icon>k__BackingField: {fileID: 0}
+  <Icon>k__BackingField: {fileID: 21300000, guid: 142ba2f7c72daa1488c941caf455aaa2, type: 3}
   <DexNo>k__BackingField: 4
   <Rarity>k__BackingField: 0
   <Tint>k__BackingField: {r: 1, g: 1, b: 1, a: 1}

@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DisplayName: "\uD33D\uC774\uBC84\uC12F"
   <ID>k__BackingField: Mushroom_006_Paengi
   <Description>k__BackingField: 
-  <Icon>k__BackingField: {fileID: 0}
+  <Icon>k__BackingField: {fileID: 21300000, guid: 08802cbc04200524a826e3887d722874, type: 3}
   <DexNo>k__BackingField: 6
   <Rarity>k__BackingField: 0
   <Tint>k__BackingField: {r: 1, g: 1, b: 1, a: 1}

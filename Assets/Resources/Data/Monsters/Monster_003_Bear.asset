@@ -18,7 +18,7 @@ MonoBehaviour:
   <Icon>k__BackingField: {fileID: 0}
   <MaxHp>k__BackingField: 8
   <HitStunTime>k__BackingField: 0.2
-  <Hit>k__BackingField: {fileID: 0}
+  <Hit>k__BackingField: {fileID: 11400000, guid: 42cb1a2f4fed08945bb932f6a330a98f, type: 2}
   <Attack>k__BackingField:
     <Clip>k__BackingField: Attack
     <Damage>k__BackingField: 2

@@ -17,10 +17,8 @@ MonoBehaviour:
   <Description>k__BackingField: 
   <Icon>k__BackingField: {fileID: 0}
   <MaxHp>k__BackingField: 5
-  <KnockbackScale>k__BackingField: 1
   <HitStunTime>k__BackingField: 0.3
-  <InvincibleTime>k__BackingField: 0.6
-  <ChunkColor>k__BackingField: {r: 0.9, g: 0.3, b: 0.3, a: 1}
+  <Hit>k__BackingField: {fileID: 11400000, guid: 4fddcb5bab12fb64197abc41cc66968b, type: 2}
   <Attack>k__BackingField:
     <Clip>k__BackingField: Attack
     <Damage>k__BackingField: 1
