@@ -20,10 +20,10 @@ MonoBehaviour:
   <HitStunTime>k__BackingField: 0.1
   <Hit>k__BackingField: {fileID: 11400000, guid: c4d21274ae7bcaf4ca8e7b650ad32b20, type: 2}
   <ListAttack>k__BackingField:
-  - <Clip>k__BackingField: Attack
+  - <Clip>k__BackingField: Slam
     <Damage>k__BackingField: 2
-    m_HitFrame: 9
-    <Reach>k__BackingField: 1
+    m_HitFrame: 24
+    <Reach>k__BackingField: 2.5
     <Radius>k__BackingField: 0.9
     <Height>k__BackingField: 0.6
     <Knockback>k__BackingField: 6

@@ -34,7 +34,7 @@ public readonly struct HitShape
     public readonly float Radius;
     public readonly float Length;
     public readonly EHitAxis Axis;
-    public readonly int PartIndex; // -1이면 몸, 0 이상은 부위 번호(4번 단계)
+    public readonly int PartIndex; // -1이면 몸, 0 이상은 부위 번호(MonsterDef.ListMushroom 칸)
 
     // ------------------------------------------------
 
@@ -44,6 +44,16 @@ public readonly struct HitShape
         Radius = def.Radius;
         Length = def.Length;
         Axis = def.Axis;
+        PartIndex = partIndex;
+    }
+
+    // 부위(버섯) 판정 구
+    public HitShape(Transform bone, float radius, int partIndex)
+    {
+        Bone = bone;
+        Radius = radius;
+        Length = 0f;
+        Axis = EHitAxis.Y;
         PartIndex = partIndex;
     }
 

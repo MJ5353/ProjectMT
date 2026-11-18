@@ -144,33 +144,52 @@ public readonly struct ActorHitCandidate
         HalfHeight = Mathf.Max(Radius, body.height * Mathf.Abs(scale.y) * 0.5f);
     }
 
-    // 대충 가까운지. 뼈 모양이 있으면 감싸는 반지름, 없으면 CharacterController 캡슐 기준
+    // 대충 가까운지. 뼈 모양이 있으면 감싸는 반지름, 없으면 CharacterController 캡슐 기준(부위만 있는 몹은 둘 다)
     public bool IsNear(Vector3 center, float radius)
     {
-        bool hasShape = Actor.ListHitShape.Count > 0;
-        Vector3 bodyCenter = hasShape ? Actor.transform.position : Center;
-        
-        float range = radius + (hasShape ? Actor.HitBoundRadius : HalfHeight);
-        return (bodyCenter - center).sqrMagnitude <= range * range;
+        float capsuleRange = radius + HalfHeight;
+        if ((Center - center).sqrMagnitude <= capsuleRange * capsuleRange)
+            return true;
+
+        if (Actor.ListHitShape.Count == 0)
+            return false;
+
+        float shapeRange = radius + Actor.HitBoundRadius;
+        return (Actor.transform.position - center).sqrMagnitude <= shapeRange * shapeRange;
     }
 
-    // 공격 구와 겹치는지. 뼈 모양이 있으면 겹친 것 중 구 중심에 가장 가까운 모양, 없으면 CharacterController 캡슐
+    // 공격 구와 겹치는지. 부위 → 몸 순서로 보고, 겹친 것 중 표면이 구 중심에 가장 가까운 모양.
+    // 몸 뼈 모양이 없으면(일반 몹) 몸은 CharacterController 캡슐
     public bool OverlapsSphere(Vector3 center, float radius, out Vector3 point, out int partIndex)
     {
-        IReadOnlyList<HitShape> listShape = Actor.ListHitShape;
-        partIndex = -1;
-        if (listShape.Count == 0)
-        {
-            float halfAxis = HalfHeight - Radius;
-            return HitMath.SphereVsCapsule(Center - Axis * halfAxis, Center + Axis * halfAxis, Radius, center, radius, out point, out float _);
-        }
+        if (TryOverlapShapes(center, radius, true, out point, out partIndex))
+            return true;
 
+        if (TryOverlapShapes(center, radius, false, out point, out partIndex))
+            return true;
+
+        partIndex = -1;
+        if (HasBodyShape())
+            return false;
+
+        float halfAxis = HalfHeight - Radius;
+        return HitMath.SphereVsCapsule(Center - Axis * halfAxis, Center + Axis * halfAxis, Radius, center, radius, out point, out float _);
+    }
+
+    // ==================================================
+
+    private bool TryOverlapShapes(Vector3 center, float radius, bool isPart, out Vector3 point, out int partIndex)
+    {
         point = default;
+        partIndex = -1;
         bool isHit = false;
         float nearest = float.MaxValue;
-        
-        foreach (HitShape shape in listShape)
+
+        foreach (HitShape shape in Actor.ListHitShape)
         {
+            if ((shape.PartIndex >= 0) != isPart)
+                continue;
+
             shape.GetSegment(out Vector3 start, out Vector3 end);
             if (HitMath.SphereVsCapsule(start, end, shape.Radius, center, radius, out Vector3 shapePoint, out float distanceSq) == false)
                 continue;
@@ -187,5 +206,16 @@ public readonly struct ActorHitCandidate
         }
 
         return isHit;
+    }
+
+    private bool HasBodyShape()
+    {
+        foreach (HitShape shape in Actor.ListHitShape)
+        {
+            if (shape.PartIndex < 0)
+                return true;
+        }
+
+        return false;
     }
 }

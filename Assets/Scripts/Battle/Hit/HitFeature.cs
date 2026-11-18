@@ -5,7 +5,7 @@ using UnityEngine;
 // ==================================================
 
 // 맞는 쪽 입구이자 피격 반응 처리. 팀·무적·사망을 거른 뒤 체력을 깎고, HitDef에서 켠 반응을 정해진 순서로 처리한다.
-// 순서: 체력 → 넉백 → 번쩍 → 히트스톱 → 조각
+// 순서: 부위 → 체력 → 넉백 → 번쩍 → 히트스톱 → 조각
 // 번쩍이 히트스톱 중에도 끝나야 해서 실제 시간(unscaled)으로 돌고, 무적 시간만 게임 시간으로 바꿔 깎는다
 
 public class HitFeature : UnitFeature
@@ -21,6 +21,10 @@ public class HitFeature : UnitFeature
     private readonly List<Renderer> m_ListFlashRenderer = new();
     private readonly List<Material[]> m_ListOriginalMaterial = new();
     private readonly List<Material[]> m_ListFlashMaterial = new();
+    private readonly List<int> m_ListFlashPart = new(); // 렌더러마다 부위 번호. -1이면 몸
+
+    // 부위 --- [i] = MonsterDef.ListMushroom 칸. 부위가 없는 칸은 null
+    private IReadOnlyList<PartFeature> m_ListPart = null;
 
     // flag
     private float m_InvincibleRemain;
@@ -88,7 +92,16 @@ public class HitFeature : UnitFeature
         if (IsDead || IsInvincible)
             return false;
 
-        m_Health.TakeDamage(hit.Damage);
+        // 부위를 맞으면 부위 내구도와 본체 체력이 함께 깎인다. 본체 쪽은 부위의 몸 피해 배율을 곱한다
+        int bodyDamage = hit.Damage;
+        PartFeature part = GetPart(hit.PartIndex);
+        if (part != null)
+        {
+            part.TakeDamage(hit.Damage);
+            bodyDamage = Mathf.RoundToInt(hit.Damage * part.Socket.BodyDamageRate);
+        }
+
+        m_Health.TakeDamage(bodyDamage);
         ApplyReactions(hit);
 
         if (m_HitDef != null)
@@ -99,10 +112,15 @@ public class HitFeature : UnitFeature
         return true;
     }
 
+    public void SetParts(IReadOnlyList<PartFeature> listPart)
+    {
+        m_ListPart = listPart;
+    }
+
     // 번쩍 렌더러---
 
-    // 몸에 꽂은 버섯처럼 나중에 붙인 렌더러를 더한다
-    public void AddFlashRenderer(Renderer meshRenderer)
+    // 몸에 꽂은 버섯처럼 나중에 붙인 렌더러를 더한다. 부위 렌더러는 그 부위를 맞았을 때만 번쩍인다
+    public void AddFlashRenderer(Renderer meshRenderer, int partIndex = -1)
     {
         if (meshRenderer == null)
             return;
@@ -110,35 +128,7 @@ public class HitFeature : UnitFeature
         m_ListFlashRenderer.Add(meshRenderer);
         m_ListOriginalMaterial.Add(meshRenderer.sharedMaterials);
         m_ListFlashMaterial.Add(CreateFlashMaterials(meshRenderer.sharedMaterials.Length));
-    }
-
-    // 버섯이 깨진 모델로 바뀔 때처럼 렌더러를 갈아 끼운다. 번쩍 중이면 새 렌더러도 바로 번쩍인다
-    public void ReplaceFlashRenderer(Renderer oldRenderer, Renderer newRenderer)
-    {
-        int index = m_ListFlashRenderer.IndexOf(oldRenderer);
-        if (index < 0)
-        {
-            AddFlashRenderer(newRenderer);
-            return;
-        }
-
-        if (m_FlashRemain > 0f && oldRenderer != null)
-            oldRenderer.sharedMaterials = m_ListOriginalMaterial[index];
-
-        if (newRenderer == null)
-        {
-            m_ListFlashRenderer.RemoveAt(index);
-            m_ListOriginalMaterial.RemoveAt(index);
-            m_ListFlashMaterial.RemoveAt(index);
-            return;
-        }
-
-        m_ListFlashRenderer[index] = newRenderer;
-        m_ListOriginalMaterial[index] = newRenderer.sharedMaterials;
-        m_ListFlashMaterial[index] = CreateFlashMaterials(newRenderer.sharedMaterials.Length);
-
-        if (m_FlashRemain > 0f)
-            newRenderer.sharedMaterials = m_ListFlashMaterial[index];
+        m_ListFlashPart.Add(partIndex);
     }
 
     public void RestoreFlash()
@@ -166,7 +156,7 @@ public class HitFeature : UnitFeature
             ApplyKnockback(hit);
 
         if (m_HitDef.Has(EHitReaction.Flash))
-            ApplyFlash();
+            ApplyFlash(hit.PartIndex);
 
         if (m_HitDef.Has(EHitReaction.HitStop))
             ApplyHitStop(hit);
@@ -183,20 +173,30 @@ public class HitFeature : UnitFeature
         m_Move.AddImpulse(hit.Direction * (hit.Knockback * m_HitDef.KnockbackScale));
     }
 
-    private void ApplyFlash()
+    // 몸을 맞으면 몸 렌더러만, 부위를 맞으면 그 부위 버섯만 번쩍인다
+    private void ApplyFlash(int partIndex)
     {
         if (HitMaterials.Flash == null)
             return;
 
+        RestoreFlash(); // 다른 부위가 번쩍이던 중이면 먼저 되돌린다
         for (int i = 0; i < m_ListFlashRenderer.Count; i++)
         {
-            if (m_ListFlashRenderer[i] == null)
+            if (m_ListFlashRenderer[i] == null || m_ListFlashPart[i] != partIndex)
                 continue;
 
             m_ListFlashRenderer[i].sharedMaterials = m_ListFlashMaterial[i];
         }
 
         m_FlashRemain = m_HitDef.FlashTime;
+    }
+
+    private PartFeature GetPart(int partIndex)
+    {
+        if (m_ListPart == null || partIndex < 0 || partIndex >= m_ListPart.Count)
+            return null;
+
+        return m_ListPart[partIndex];
     }
 
     private void ApplyHitStop(in HitParams hit)

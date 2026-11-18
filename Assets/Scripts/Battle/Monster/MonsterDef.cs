@@ -24,6 +24,30 @@ public class MonsterDef : UnitDef
         [field: SerializeField, FormerlySerializedAs("m_Euler")]
         public Vector3 Euler { get; private set; } = Vector3.zero;        // 버섯이 눕는다면 여기서 돌린다
 
+        // 부위 파괴 ---
+        [field: SerializeField]
+        public Renderer BrokenModel { get; private set; } = null;         // 깨진 버섯 모델(Mush_*_Broken.fbx). 비면 깨지면 사라진다
+
+        [field: SerializeField]
+        public int Durability { get; private set; } = 0;                  // 부위 내구도. 0이면 안 깨지는 장식
+
+        [field: SerializeField]
+        public float HitRadius { get; private set; } = 0f;                // 부위 판정 구 반지름(m). 0이면 판정 없음
+
+        [field: SerializeField]
+        public float BodyDamageScale { get; private set; } = 1f;          // 이 부위를 때릴 때 본체에 들어가는 피해 배율(구름 갑옷은 1 미만). 0 이하면 1
+
+        // !!) 기존 에셋에 새로 생긴 칸은 0으로 들어온다. 0을 1로 봐야 본체 피해가 사라지지 않는다
+        public float BodyDamageRate => BodyDamageScale > 0f ? BodyDamageScale : 1f;
+
+        [field: SerializeField]
+        public float RegenTime { get; private set; } = 0f;                // 깨진 뒤 다시 돋기까지(초). 0이면 재생 안 함
+
+        [field: SerializeField]
+        public MushroomPickup Drop { get; private set; } = null;          // 깨질 때 확정으로 떨구는 버섯
+
+        public bool IsBreakable => Durability > 0;
+
         // ------------------------------------------------
 
         public MushroomSocket(EMushroomPartType part, Renderer model, float scale)

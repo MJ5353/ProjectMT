@@ -51,9 +51,9 @@ public class MonsterDeadState : MonsterState
             int count = Random.Range(drop.Min, drop.Max + 1);
             for (int i = 0; i < count; i++)
             {
-                MushroomPickup pickup = Object.Instantiate(drop.Pickup, origin, Quaternion.identity);
+                MushroomPickup pickup = ResourceManager.Instance.Spawn(drop.Pickup, origin, Quaternion.identity);
                 Vector2 spread = Random.insideUnitCircle * 2f;
-                pickup.Launch(new Vector3(spread.x, 5f, spread.y));
+                pickup.Launch(new Vector3(spread.x, 5f, spread.y), EFreshness.Low);
             }
         }
     }

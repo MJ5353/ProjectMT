@@ -19,6 +19,10 @@ public class MonsterController : UnitController<MonsterDef>
 {
     private readonly StateMachine<EMonsterState> m_Fsm = new();
     private readonly List<float> m_ListAttackCooldown = new(); // Def.ListAttack 칸마다 남은 개별 쿨
+    private readonly List<PartFeature> m_ListPart = new();      // [i] = Def.ListMushroom 칸. 버섯이 없는 칸은 null
+
+    private const float PartDropUpSpeed = 5f;     // 부위 버섯이 튀어 오르는 속도
+    private const float PartDropSpread = 2f;      // 부위 버섯이 옆으로 퍼지는 속도
 
     public Transform Target { get; private set; }
     public Vector3 HomePosition { get; private set; }
@@ -28,6 +32,7 @@ public class MonsterController : UnitController<MonsterDef>
     
     public EMonsterState State => m_Fsm.Current;
     public float TimeInState => m_Fsm.TimeInState;
+    public IReadOnlyList<PartFeature> ListPart => m_ListPart;
     protected override ETeam Team => ETeam.Monster;
 
     // ------------------------------------------------
@@ -102,9 +107,11 @@ public class MonsterController : UnitController<MonsterDef>
         if (Target == null)
             return float.MaxValue;
 
+        // 내 캡슐 표면부터 잰다. 피벗 기준이면 반지름이 MaxRange보다 큰 몬스터(보스)가 공격 거리에 못 들어온다
         Vector3 diff = Target.position - transform.position;
         diff.y = 0f;
-        return diff.magnitude;
+        float bodyRadius = HurtBody != null ? HurtBody.radius : 0f;
+        return Mathf.Max(0f, diff.magnitude - bodyRadius);
     }
 
     public Vector3 GetTargetDirection()
@@ -226,12 +233,14 @@ public class MonsterController : UnitController<MonsterDef>
         }
     }
 
-    // 씬 뷰에 몸 판정 모양(구·캡슐)을 그린다. 선이 뼈 축 방향
+    // 씬 뷰에 몸 판정 모양(구·캡슐)과 부위 판정 구를 그린다. 선이 뼈 축 방향
     protected override void OnDrawGizmosSelected()
     {
         base.OnDrawGizmosSelected();
         if (Def == null)
             return;
+
+        DrawPartGizmos();
 
         Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.8f);
         foreach (HitShapeDef shapeDef in Def.ListBodyShape)
@@ -247,27 +256,91 @@ public class MonsterController : UnitController<MonsterDef>
         }
     }
 
-    // 버섯을 소켓 뼈에 꽂고, 맞을 때 같이 번쩍이도록 렌더러를 넘긴다
+    // 버섯을 소켓 뼈에 꽂고 부위로 만든다. 일반·깨진 모델을 둘 다 붙여 두고, 맞은 부위만 번쩍이도록 부위 번호와 함께 렌더러를 넘긴다
     private void AttachMushrooms()
     {
-        foreach (MonsterDef.MushroomSocket socket in Def.ListMushroom)
+        IReadOnlyList<MonsterDef.MushroomSocket> listSocket = Def.ListMushroom;
+        for (int i = 0; i < listSocket.Count; i++)
         {
-            if (socket.Model == null)
-                continue;
-
-            Transform bone = GetMushroomBone(socket.Part);
-            if (bone == null)
-            {
-                CLogger.Warning("MonsterController", $"버섯 자리 뼈가 프리팹에 없음: {socket.Part} ({name})", this);
-                continue;
-            }
-
-            Renderer mushroom = Instantiate(socket.Model, bone);
-            mushroom.transform.localPosition = Vector3.zero;
-            mushroom.transform.localRotation = Quaternion.Euler(socket.Euler);
-            mushroom.transform.localScale = Vector3.one * socket.Scale;
-            HitFeature.AddFlashRenderer(mushroom);
+            m_ListPart.Add(CreatePart(i, listSocket[i]));
         }
+
+        HitFeature.SetParts(m_ListPart);
+    }
+
+    private PartFeature CreatePart(int index, MonsterDef.MushroomSocket socket)
+    {
+        if (socket.Model == null)
+            return null;
+
+        Transform bone = GetMushroomBone(socket.Part);
+        if (bone == null)
+        {
+            CLogger.Warning("MonsterController", $"버섯 자리 뼈가 프리팹에 없음: {socket.Part} ({name})", this);
+            return null;
+        }
+
+        Renderer normal = AttachModel(socket.Model, bone, socket);
+        Renderer broken = socket.BrokenModel != null ? AttachModel(socket.BrokenModel, bone, socket) : null;
+        HitFeature.AddFlashRenderer(normal, index);
+        HitFeature.AddFlashRenderer(broken, index);
+
+        if (socket.HitRadius > 0f)
+            AddHitShape(new HitShape(bone, socket.HitRadius, index));
+
+        PartFeature part = AddFeature(new PartFeature(this, index, socket, bone, normal, broken));
+        part.Broken += OnPartBroken;
+        return part;
+    }
+
+    private static Renderer AttachModel(Renderer model, Transform bone, MonsterDef.MushroomSocket socket)
+    {
+        Renderer instance = Instantiate(model, bone);
+        instance.transform.localPosition = Vector3.zero;
+        instance.transform.localRotation = Quaternion.Euler(socket.Euler);
+        instance.transform.localScale = Vector3.one * socket.Scale;
+        return instance;
+    }
+
+    // 살아 있을 때 깬 버섯은 상급으로 확정 드랍. 휘청·다운 전환은 보스 상태(6번)에서 붙인다
+    private void OnPartBroken(PartFeature part)
+    {
+        if (part.Socket.Drop == null)
+            return;
+
+        MushroomPickup pickup = ResourceManager.Instance.Spawn(part.Socket.Drop, part.Bone.position, Quaternion.identity);
+        Vector2 spread = Random.insideUnitCircle * PartDropSpread;
+        pickup.Launch(new Vector3(spread.x, PartDropUpSpeed, spread.y), IsDead ? EFreshness.Low : EFreshness.High);
+    }
+
+    // 부위 판정 구. 플레이 중이면 상태별 색(초록 멀쩡, 빨강 깨짐, 회색 장식)과 남은 내구도
+    private void DrawPartGizmos()
+    {
+        IReadOnlyList<MonsterDef.MushroomSocket> listSocket = Def.ListMushroom;
+        for (int i = 0; i < listSocket.Count; i++)
+        {
+            MonsterDef.MushroomSocket socket = listSocket[i];
+            Transform bone = GetMushroomBone(socket.Part);
+            if (bone == null || socket.HitRadius <= 0f)
+                continue;
+
+            PartFeature part = i < m_ListPart.Count ? m_ListPart[i] : null;
+            Gizmos.color = GetPartGizmoColor(socket, part);
+            Gizmos.DrawWireSphere(bone.position, socket.HitRadius);
+
+#if UNITY_EDITOR
+            string durability = part != null ? $"{part.Durability}/{socket.Durability}" : $"{socket.Durability}";
+            UnityEditor.Handles.Label(bone.position + Vector3.up * socket.HitRadius, $"{i}:{socket.Part} {durability}");
+#endif
+        }
+    }
+
+    private static Color GetPartGizmoColor(MonsterDef.MushroomSocket socket, PartFeature part)
+    {
+        if (socket.IsBreakable == false)
+            return Color.gray;
+
+        return part != null && part.IsBroken ? Color.red : Color.green;
     }
 
     // 진행 중인 상태를 Exit로 정리(움츠림 크기·애니 배속 복구)하고 AI를 끈다

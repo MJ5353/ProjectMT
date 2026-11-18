@@ -67,12 +67,13 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
 
         HitFeature.Hit += OnHit;
         Health.Died += OnDied;
-        
-        T AddFeature<T>(T feature) where T : UnitFeature
-        {
-            m_ListFeature.Add(feature);
-            return feature;
-        }
+    }
+
+    // 수명 주기를 함께 돌릴 부품 등록. 등록 순서대로 실행
+    protected T AddFeature<T>(T feature) where T : UnitFeature
+    {
+        m_ListFeature.Add(feature);
+        return feature;
     }
 
     protected virtual void OnDisable()
