@@ -378,6 +378,36 @@ def body_player():
         'Attack': (18, False, [K(5, 'ArmR', pitch=-165), K(5, 'Body', pitch=-8, yaw=10),
                                K(9, 'ArmR', pitch=-45), K(9, 'Body', pitch=12, yaw=-10),
                                K(12, 'ArmR', pitch=-50), K(12, 'Body', pitch=10)]),
+        # 아래 공격들: 무기 뼈 pitch로 팔 pitch를 상쇄해 칼날을 수평으로 눕힌다. yaw+ = 캐릭터 왼쪽
+        # 위로베기. 판정 프레임 7
+        'Attack_Up': (18, False, [K(4, 'ArmR', pitch=40), K(4, 'Body', pitch=10), K(4, 'Root', up=-0.05),
+                                  K(7, 'ArmR', pitch=-150), K(7, 'Body', pitch=-12), K(7, 'Root', up=0.05),
+                                  K(12, 'ArmR', pitch=-140), K(12, 'Body', pitch=-10)]),
+        # 좌로베기(오른쪽 → 왼쪽 가로베기). 판정 프레임 8
+        'Attack_SlashL': (20, False, [K(4, 'Body', yaw=-40), K(4, 'ArmR', pitch=-70, yaw=-50), K(4, 'Weapon', pitch=70),
+                                      K(8, 'Body', yaw=35), K(8, 'ArmR', pitch=-75, yaw=70), K(8, 'Weapon', pitch=70),
+                                      K(13, 'Body', yaw=30), K(13, 'ArmR', pitch=-60, yaw=60), K(13, 'Weapon', pitch=60)]),
+        # 우로베기(왼쪽 → 오른쪽 역베기). 판정 프레임 8
+        'Attack_SlashR': (20, False, [K(4, 'Body', yaw=40), K(4, 'ArmR', pitch=-70, yaw=80), K(4, 'Weapon', pitch=70),
+                                      K(8, 'Body', yaw=-40), K(8, 'ArmR', pitch=-75, yaw=-60), K(8, 'Weapon', pitch=70),
+                                      K(13, 'Body', yaw=-35), K(13, 'ArmR', pitch=-65, yaw=-50), K(13, 'Weapon', pitch=60)]),
+        # 막타: 웅크렸다 뛰어올라 내려찍기. 판정 프레임 17
+        'Attack_Finish': (30, False, [K(6, 'Root', up=-0.08), K(6, 'Body', pitch=-15), K(6, 'ArmR', pitch=-175),
+                                      K(11, 'Root', up=0.35), K(11, 'Body', pitch=-18), K(11, 'ArmR', pitch=-180),
+                                      K(17, 'Root', up=-0.05), K(17, 'Body', pitch=25), K(17, 'ArmR', pitch=-30), K(17, 'Head', pitch=10),
+                                      K(24, 'Root', up=-0.04), K(24, 'Body', pitch=22), K(24, 'ArmR', pitch=-35)]),
+        # 휠윈드: 팔을 옆으로 뻗고 두 바퀴. 판정 8~26
+        'Attack_Whirlwind': (32, False, [K(4, 'Root', yaw=-30, up=-0.03),
+                                         *[K(f, 'Root', yaw=y, up=-0.03) for f, y in ((8, 90), (12, 210), (16, 330), (20, 450), (24, 570), (28, 690))],
+                                         K(32, 'Root', yaw=720),
+                                         *[K(f, b, **kw) for f in (4, 28) for b, kw in
+                                           (('ArmR', dict(roll=-90)), ('Weapon', dict(pitch=90)), ('ArmL', dict(roll=70)), ('Body', dict(pitch=8)))]]),
+        # 달리다가 베기: 달리는 자세로 대각선 내려베기. 판정 프레임 7
+        'Attack_RunSlash': (20, False, [K(2, 'LegL', pitch=-40), K(2, 'LegR', pitch=40), K(2, 'Body', pitch=20),
+                                        K(2, 'ArmR', pitch=-160, yaw=-20), K(2, 'ArmL', pitch=40),
+                                        K(7, 'LegL', pitch=30), K(7, 'LegR', pitch=-30), K(7, 'Body', pitch=30, yaw=20),
+                                        K(7, 'ArmR', pitch=-20, yaw=40), K(7, 'ArmL', pitch=-30), K(7, 'Root', up=-0.05, fwd=0.1),
+                                        K(12, 'Body', pitch=25, yaw=15), K(12, 'ArmR', pitch=-25, yaw=35), K(12, 'Root', up=-0.03, fwd=0.1)]),
         'Hit': (12, False, [K(3, 'Body', pitch=-15), K(3, 'Head', pitch=-12), K(3, 'Root', fwd=-0.08)]),
         'Death': (40, False, [K(10, 'Body', pitch=-10), K(10, 'Head', pitch=-10), K(22, 'Root', pitch=88, up=0.3),
                               K(26, 'Root', pitch=80, up=0.33), K(40, 'Root', pitch=88, up=0.3), K(40, 'ArmL', pitch=-20)]),

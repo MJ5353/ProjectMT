@@ -51,6 +51,9 @@
 | 26.11.18 | 송이 시즌 작업 규칙의 참고 문서 표 링크 수정 | `_Else/Rule` 기준으로 맞추라고 지시 | 없는 `참고/` 폴더 링크를 같은 폴더 파일로 바꾸고, 표시는 `_Else/Rule/파일명`으로 적어 에이전트가 루트 기준 경로를 알게 함. |
 | 26.11.18 | Claude 실행 배치파일(ponytail 적용) 작성 | 작성 지시 | ponytail은 전역 settings.json의 `enabledPlugins`(ponytail@ponytail)와 SessionStart 훅으로 이미 켜지므로 별도 플래그 없이 `claude`만 실행하고, README의 `PONYTAIL_DEFAULT_MODE=full`로 레벨만 명시. `tools/claude_start.bat`. |
 | 26.11.18 | 올라타기 수정 검토 → Actor·Terrain 레이어, 맵 프리팹·런타임 생성(MapRoot·MapPrefabBuilder·MapDef.Prefab), 겹침 쿼리를 ActorService.IsBodyNear 거리 비교로 교체, TodoNext 작성 | 레이어 추가, 맵 래핑·생성 구조 결정, 사각형 범위 검색 제안, 버퍼 제거 방식 선택, 커밋 | OverlapCapsule은 기하 연산이 아니라 물리 쿼리이고, 마스크 ~0으로 지형까지 걸려 16칸 버퍼가 차면 옆 캐릭터를 놓칠 수 있었음. 자기 콜라이더를 거르려고 버퍼가 필요해 쿼리째 액터 목록 거리 비교로 바꿈. 맵이 씬에 박혀 있어 고른 지역과 다른 맵이 나올 구조라 BattleService가 MapDef.Prefab으로 생성하게 함. 사각형 검색은 격자 없이는 원 비교와 비용이 같아 보류. 컴파일·플레이 확인 안 함. |
+| 26.11.18 | 플레이어 공격 클립 6종(위로베기·좌/우로베기·막타·휠윈드·달리다가 베기) 키프레임을 생성 스크립트에 추가 | 동작 목록 지시, FBX는 클라우드 스레드에서 뽑기로 결정 | 이 PC엔 Blender가 없어 키프레임만 넣고 Player.fbx는 클라우드에서 뽑게 넘김. 가로베기는 무기 뼈 pitch로 팔 pitch를 상쇄해 칼날을 수평으로 둠. 각도는 뼈 축 계산으로만 잡아 미리보기 확인 전. 입력·콤보 연결은 아직 안 함. |
+| 26.11.18 | 공격 클립 6종이 들어간 Player.fbx를 클라우드 Blender(bpy)로 뽑아 PC에 덮어쓰기, 미리보기 시트 렌더 | PC에 Blender가 없어 클라우드에서 뽑기로 결정, Player.fbx만 갱신 지시 | 전체 main() 대신 build_character(body_player)+export_fbx만 돌려 다른 FBX는 그대로 둠. 팔레트 색 추가 없음(475칸 동일)이라 VoxelPalette.png는 안 바꿈. 미리보기(tools/voxel/Preview/anim_Player.png)에 12클립 모두 나오고 좌/우베기 방향은 이름대로 끝남. Unity 임포트·플레이 확인 안 함. |
+| 26.11.18 | 보스 Hitbox_* 뼈 방향 벡터 반영해 보스 3종 FBX(Mon_005_Boss_Tree·Mon_010_Boss_PolarBear·Mon_015_Boss_Saurus) 재출력 | 방향 벡터 수정, 보스만 다시 뽑기 지시 | 체인 main() 대신 보스 build_character+export만 돌려 다른 FBX는 그대로 둠. 출력 뼈 축이 지정 방향과 일치하고 팔레트 색 추가 없음(475칸). Unity 임포트 확인 안 함. |
 
 ## 4. 결정된 사안
 

@@ -98,7 +98,7 @@ blender -b -P tools/voxel/build_voxel_assets.py -- <출력폴더> [--preview]
 | Buggi | Idle, Walk(깡충), Attack(박치기), Hit, Death | Attack 13 |
 | Bugom | Idle, Walk, Attack(일어서서 내려찍기), Hit, Death | Attack 19 |
 | Bursus | Idle, Walk, Attack(꼬리치기), Stomp(내려찍기·포자), Hit, Death | Attack 18, Stomp 20 |
-| Player | Idle, Walk, Run, Attack(내려치기), Hit, Death | Attack 9 |
+| Player | Idle, Walk, Run, Attack(내려치기), Attack_Up(위로베기), Attack_SlashL(좌로베기), Attack_SlashR(우로베기), Attack_Finish(막타 내려찍기), Attack_Whirlwind(두 바퀴), Attack_RunSlash(달리다가 베기), Hit, Death | Attack 9, Up 7, SlashL 8, SlashR 8, Finish 17, Whirlwind 8~26, RunSlash 7 |
 
 Death는 마지막 자세를 유지하고, 나머지 단발 클립은 끝에서 기본 자세로 돌아온다. 이동은 제자리 애니(루트 모션 없음).
 
