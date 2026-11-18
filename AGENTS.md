@@ -1,13 +1,23 @@
 # MushTaker Codex 작업 규칙
 
-## 작업 전과 완료 확인
+## 1. 다음 단위 작업
+
+다음 작업을 시작하기 전에 `CLAUDE.md`와 현재 작업 트리 변경을 확인한다. 완료할 때 수정 코드의 호출부·씬·프리팹·데이터 참조와 Unity 관련 검증 결과를 보고한다.
+
+## 2. 전체 작업 TODO 및 진행상황
+
+이 파일은 기능별 완료표가 아니라 반복 적용할 작업 규칙이다. 다음 작업마다 아래 항목을 확인한다.
+
+### 반복 점검 항목
 
 - 작업 전에 `CLAUDE.md`의 저장소·Unity·코드 규약과 현재 작업 트리의 변경을 확인한다. 사용자가 이후에 확정한 규칙을 해당 작업에 적용한다.
 - 이미 작성된 사용자 변경을 보존한다. 요청 범위에서 기존 코드와 에셋을 재사용하고, 동작과 저장 형식을 바꾸는 결정은 작업 결과에 적는다.
 - 수정한 코드의 호출부와 씬·프리팹·데이터 참조를 확인한다. Unity 6000.3.25f1에서 관련 컴파일을 확인하고, 수명 주기나 직렬화가 바뀌면 관련 씬 동작도 확인한다. 실행하지 못한 검증은 완료 보고에서 밝힌다.
-- 타격감·회피·카메라 수치는 사용자가 정한다. AI 작업 기록은 `docs/AI_실험_로그.md`에 맡긴 일, 직접 작업한 일, 판단을 남기는 저장소 규칙을 따른다.
+- 타격감·회피·카메라 수치는 사용자가 정한다. AI 작업 기록은 `_Else/AI_실험_로그.md`에 맡긴 일, 직접 작업한 일, 판단을 남기는 저장소 규칙을 따른다.
 
-## C# 스타일
+## 3. 상세 정보
+
+### C# 스타일
 
 - 네임스페이스 없이 전역 타입으로 둔다. 선언에 접근 제한자를 명시하고, C# 문법상 제한자를 붙일 수 없는 선언은 언어 규칙을 따른다.
 - private·protected 인스턴스 필드는 `m_PascalCase`, 정적 필드는 `s_PascalCase`, 상수는 `PascalCase`로 쓴다. 목록은 `m_ListXxx`, 딕셔너리는 `m_DicXxx` 형태를 쓰고 정적 컬렉션에는 `s_`를 적용한다. 직렬화 참조는 `[SerializeField] private T m_Xxx = null;` 형태를 따른다.
@@ -19,28 +29,24 @@
 - 열거형에는 `E` 접두사, 매개변수 묶음에는 `readonly struct XxxParams` 형식을 쓴다. 식별자 이름에서 ID는 `ActorID`, `itemID`처럼 대문자로 쓴다. 기존 세이브의 JSON 키와 Unity 직렬화 필드는 데이터 호환 규칙에 따라 취급한다.
 - 주석은 짧은 한글로 쓴다. 주의는 `// !!)`, 사용자의 메모는 `// [mj] todo)`를 사용한다.
 
-## 런타임 구조
+### 런타임 구조
 
 - 전역 싱글턴에 `Manager`, 하위 관리 시스템에 `Management`, 액터 부품에 `Feature`, 모음에 `Hub`를 쓴다. 런타임 매니저는 `[Managers]`에 모으고, 정적 이벤트 버스는 `SEventManager`를 사용한다.
 - 씬 `Service`는 `ServiceBase`를 상속한다. `GameManager`가 `Init`, `Tick(float deltaTime)`, `Clear`를 호출하고, 호출부는 `GameManager.Instance`의 서비스 프로퍼티를 사용한다. `SceneController`는 씬 시작과 종료를 전달하고 `RootManager`에 그 씬의 UI 루트를 연결한다.
 - 일반 수명 주기는 `Init`, `Reset`, `Clear`, 일반 갱신은 `Update(float deltaTime)` 관례를 따른다. 씬 서비스의 `Tick`과 액터 부품의 `Tick`·`LateTick`은 각 기반 타입의 계약을 따른다. 이벤트를 구독하는 곳에서 같은 수명 주기의 정리 시점에 구독도 해제한다.
 
-## Unity 에셋과 Git
+### Unity 에셋과 Git
 
 - 프로젝트 에셋은 `Assets/` 아래 기존 구조에 두고, 이동·이름 변경 시 `.meta`를 함께 옮겨 GUID를 보존한다. 씬·프리팹·애니메이션은 텍스트로 유지하고, 바이너리 에셋의 Git LFS 규칙은 `.gitattributes`와 `CLAUDE.md`를 따른다.
 - 외부 에셋은 `Assets/ThirdParty/`에 둔다. Unity 생성물, 빌드 산출물, 계정·API 키는 저장소에서 제외한다.
 - 기능 단위 브랜치와 PR 흐름을 따르고, 커밋·푸시는 사용자가 요청할 때 수행한다. 커밋 제목은 한국어 한 줄 요약으로 쓰고, PR 리뷰 지적에 대한 수용 여부와 이유를 기록한다.
 
-## graphify
+## 4. 결정된 사안
 
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+### 문서와 AI 기록
 
-When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
+- 작업 문서는 **1. 다음 단위 작업 → 2. 전체 작업 TODO 및 진행상황 → 3. 상세 정보 → 4. 결정된 사안** 순으로 정리한다. 완료·미완료·미정을 구분하고 기존 내용과 날짜를 보존한다.
+- 승인된 전투 부위 파괴 계획서 형식을 나머지 Markdown에도 적용한다.
+- AI 실험 로그는 `_Else/AI_실험_로그.md` 한 파일에 기록한다.
 
-Rules:
-- When graphify-out/graph.json exists, run `graphify query "<question>"` before your first grep, search or source-file read for a codebase question, and put this rule in every subagent prompt that explores code. Read raw files only for lines the graph or an earlier read already located. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. When the answer is under a Markdown heading, `graphify section "<heading>"` prints that section's text, so the .md need not be opened. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
-- Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
-- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
-- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
-- A committed graphify-out/graph.json is rewritten whole on every build, so a large diff to it in a pull request is expected. Do not flag it as churn or suggest skipping the graph rebuild or its hooks.
+- 기존 사용자 변경과 저장 형식의 호환성을 보존한다. 기능 단위 브랜치와 PR 흐름, 사용자 요청 시 커밋·푸시 규칙을 따른다.
