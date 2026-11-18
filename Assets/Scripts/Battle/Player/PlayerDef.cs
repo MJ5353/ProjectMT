@@ -2,6 +2,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 
+// ==================================================
+
 // 채집꾼 수치. 몸 수치(UnitDef)에 이동·공격 보조·대시를 더한다
 [CreateAssetMenu(menuName = "MushTaker/Data/Player", fileName = "Player")]
 public class PlayerDef : UnitDef
@@ -40,6 +42,8 @@ public class PlayerDef : UnitDef
     public float DashAnimSpeed { get; private set; } = 1.6f;   // 대시 중 Run 애니 배속
 
     // 콤보 ---
+    // [mj] todo) 이거 monster에서도 쓸 수 있게 일반화 필요. 
+    
     [field: SerializeField]
     public List<SkillDef> ListCombo { get; private set; } = new();  // 공격 연타 순서(좌 → 우 → 막타). 비면 기본 공격 하나
 

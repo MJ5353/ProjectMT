@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// ==================================================
+
 public enum EMonsterState
 {
     Idle,
@@ -13,15 +15,16 @@ public enum EMonsterState
     Dead,
 }
 
+// ==================================================
+
 // 몬스터 하나의 두뇌. 몸(UnitController)에 FSM과 몸에 꽂는 버섯을 더한다.
 // 상태 클래스는 State/ 폴더(상태마다 파일 하나), 수치는 MonsterDef
 public class MonsterController : UnitController<MonsterDef>
 {
     private readonly StateMachine<EMonsterState> m_Fsm = new();
     private readonly List<AttackSpec> m_ListAttackChoice = new(); // 고를 수 있는 공격: 이전 목록(Def.ListAttack) + Def.ListSkill
-    private readonly List<float> m_ListAttackCooldown = new(); // m_ListAttackChoice 칸마다 남은 개별 쿨
+    private readonly List<float> m_ListAttackCooldown = new();  // m_ListAttackChoice 칸마다 남은 개별 쿨
     private readonly List<PartFeature> m_ListPart = new();      // [i] = Def.ListMushroom 칸. 버섯이 없는 칸은 null
-
     private const float PartDropUpSpeed = 5f;     // 부위 버섯이 튀어 오르는 속도
     private const float PartDropSpread = 2f;      // 부위 버섯이 옆으로 퍼지는 속도
 
@@ -96,52 +99,37 @@ public class MonsterController : UnitController<MonsterDef>
 
         m_Fsm.Update(deltaTime);
     }
+    
+    // 진행 중인 상태를 Exit로 정리(움츠림 크기·애니 배속 복구)하고 AI를 끈다
+    protected override void OnBattleEnded()
+    {
+        m_Fsm.Stop();
+        base.OnBattleEnded();
+    }
 
+    protected override void OnHit(HitParams hit)
+    {
+        if (IsDead)
+            return;
+
+        LastHitDirection = hit.Direction;
+        if (hit.Attacker != null)
+            Target = hit.Attacker.transform;
+
+        // [mj] todo) 더 나은 대안...? 
+        m_Fsm.Change(EMonsterState.Hit);
+    }
+
+    protected override void OnDied()
+    {
+        m_Fsm.Change(EMonsterState.Dead);
+    }
+    
+    // ---
+    
     public void ChangeState(EMonsterState next)
     {
         m_Fsm.Change(next);
-    }
-
-    // 상태들이 같이 쓰는 판단
-
-    public float GetTargetDistance()
-    {
-        if (Target == null)
-            return float.MaxValue;
-
-        // 내 캡슐 표면부터 잰다. 피벗 기준이면 반지름이 MaxRange보다 큰 몬스터(보스)가 공격 거리에 못 들어온다
-        Vector3 diff = Target.position - transform.position;
-        diff.y = 0f;
-        float bodyRadius = HurtBody != null ? HurtBody.radius : 0f;
-        return Mathf.Max(0f, diff.magnitude - bodyRadius);
-    }
-
-    public Vector3 GetTargetDirection()
-    {
-        if (Target == null)
-            return transform.forward;
-
-        Vector3 diff = Target.position - transform.position;
-        diff.y = 0f;
-        return diff.sqrMagnitude > 0.0001f ? diff.normalized : transform.forward;
-    }
-
-    public bool CanSeeTarget()
-    {
-        if (Target == null || GetValidPlayer() == null)
-            return false;
-
-        return GetTargetDistance() <= Def.SightRange;
-    }
-
-    // 노릴 수 있는 플레이어. 없거나 PlayerController.IsValid()가 false면 null
-    public PlayerController GetValidPlayer()
-    {
-        PlayerController player = GameManager.Instance?.ActorS?.Player;
-        if (player == null || player.IsValid() == false)
-            return null;
-
-        return player;
     }
 
     // 죽은 뒤 사라질 때. 등록돼 있으면 ActorService가 지운다
@@ -157,6 +145,15 @@ public class MonsterController : UnitController<MonsterDef>
         Destroy(gameObject);
     }
 
+    public void MoveTo(Vector3 direction, float speed)
+    {
+        direction.y = 0f;
+        Move.SetVelocity(direction.normalized * speed);
+        Move.FaceTo(direction);
+    }
+
+    // attack ---
+    
     // 공용 쿨이 돌았으면 개별 쿨이 돌고 거리가 맞는 공격(기본 + 스킬) 중 가중치로 하나 골라 CurrentAttack에 둔다
     public bool TryPickAttack(float distance)
     {
@@ -183,6 +180,7 @@ public class MonsterController : UnitController<MonsterDef>
                 continue;
 
             CurrentAttack = listAttack[i];
+
             roll -= CurrentAttack.Weight;
             if (roll <= 0f)
                 break;
@@ -201,23 +199,7 @@ public class MonsterController : UnitController<MonsterDef>
             m_ListAttackCooldown[index] = CurrentAttack.Cooldown;
     }
 
-    public void MoveTo(Vector3 direction, float speed)
-    {
-        direction.y = 0f;
-        Move.SetVelocity(direction.normalized * speed);
-        Move.FaceTo(direction);
-    }
-
-    // ==================================================
-
-    private bool CanUseAttack(int index, float distance)
-    {
-        AttackSpec attack = m_ListAttackChoice[index];
-        if (attack.Weight <= 0f || m_ListAttackCooldown[index] > 0f)
-            return false;
-
-        return distance >= attack.MinRange && distance <= attack.MaxRange;
-    }
+    // part ---
 
     // 몸 판정 표의 부위 뼈로 판정 모양을 등록한다. 버섯 칸이 걸린 부위는 그 칸 번호를 달아 부위 판정이 된다
     private void AddBodyShapes()
@@ -232,46 +214,6 @@ public class MonsterController : UnitController<MonsterDef>
             }
 
             AddHitShape(new HitShape(bone, shapeDef, FindPartIndex(shapeDef.Part)));
-        }
-    }
-
-    // 이 몸 부위를 BattlePart로 가진 깨지는 버섯 칸. 없으면 -1
-    // shortcut: 한 몸 부위에 깨지는 버섯이 여럿이면 첫 칸만 깎인다. 여럿이 필요해지면 칸 목록으로 바꾼다
-    private int FindPartIndex(EBattlePartType battlePart)
-    {
-        if (battlePart == EBattlePartType.None)
-            return -1;
-
-        IReadOnlyList<MonsterDef.MushroomSocket> listSocket = Def.ListMushroom;
-        for (int i = 0; i < listSocket.Count; i++)
-        {
-            if (listSocket[i].BattlePart == battlePart && listSocket[i].IsBreakable)
-                return i;
-        }
-
-        return -1;
-    }
-
-    // 씬 뷰에 몸 판정 모양(구·캡슐)과 부위 판정 구를 그린다. 선이 뼈 축 방향
-    protected override void OnDrawGizmosSelected()
-    {
-        base.OnDrawGizmosSelected();
-        if (Def == null)
-            return;
-
-        DrawPartGizmos();
-
-        Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.8f);
-        foreach (HitShapeDef shapeDef in Def.ListBodyShape)
-        {
-            Transform bone = GetBattleBone(shapeDef.Part);
-            if (bone == null)
-                continue;
-
-            new HitShape(bone, shapeDef, -1).GetSegment(out Vector3 start, out Vector3 end);
-            Gizmos.DrawWireSphere(start, shapeDef.Radius);
-            Gizmos.DrawWireSphere(end, shapeDef.Radius);
-            Gizmos.DrawLine(start, end);
         }
     }
 
@@ -301,6 +243,7 @@ public class MonsterController : UnitController<MonsterDef>
 
         Renderer normal = AttachModel(socket.Model, bone, socket);
         Renderer broken = socket.BrokenModel != null ? AttachModel(socket.BrokenModel, bone, socket) : null;
+
         HitFeature.AddFlashRenderer(normal, index);
         HitFeature.AddFlashRenderer(broken, index);
 
@@ -315,6 +258,7 @@ public class MonsterController : UnitController<MonsterDef>
         instance.transform.localPosition = Vector3.zero;
         instance.transform.localRotation = Quaternion.Euler(socket.Euler);
         instance.transform.localScale = Vector3.one * socket.Scale;
+        
         return instance;
     }
 
@@ -329,6 +273,31 @@ public class MonsterController : UnitController<MonsterDef>
         pickup.Launch(new Vector3(spread.x, PartDropUpSpeed, spread.y), IsDead ? EFreshness.Low : EFreshness.High);
     }
 
+    #region Gizmo
+    
+    // 씬 뷰에 몸 판정 모양(구·캡슐)과 부위 판정 구를 그린다. 선이 뼈 축 방향
+    protected override void OnDrawGizmosSelected()
+    {
+        base.OnDrawGizmosSelected();
+        if (Def == null)
+            return;
+
+        DrawPartGizmos();
+
+        Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.8f);
+        foreach (HitShapeDef shapeDef in Def.ListBodyShape)
+        {
+            Transform bone = GetBattleBone(shapeDef.Part);
+            if (bone == null)
+                continue;
+
+            new HitShape(bone, shapeDef, -1).GetSegment(out Vector3 start, out Vector3 end);
+            Gizmos.DrawWireSphere(start, shapeDef.Radius);
+            Gizmos.DrawWireSphere(end, shapeDef.Radius);
+            Gizmos.DrawLine(start, end);
+        }
+    }
+    
     // 버섯 칸이 걸린 몸 판정 모양 위에 상태색(초록 멀쩡, 빨강 깨짐, 회색 장식)과 남은 내구도를 그린다
     private void DrawPartGizmos()
     {
@@ -357,7 +326,91 @@ public class MonsterController : UnitController<MonsterDef>
 #endif
         }
     }
+    
+    private static Color GetPartGizmoColor(MonsterDef.MushroomSocket socket, PartFeature part)
+    {
+        if (socket.IsBreakable == false)
+            return Color.gray;
 
+        return part != null && part.IsBroken ? Color.red : Color.green;
+    }
+
+    #endregion
+    
+    # region Get
+
+    // target ---
+    
+    public Vector3 GetTargetDirection()
+    {
+        if (Target == null)
+            return transform.forward;
+
+        Vector3 diff = Target.position - transform.position;
+        diff.y = 0f;
+        return diff.sqrMagnitude > 0.0001f ? diff.normalized : transform.forward;
+    }
+    
+    public float GetTargetDistance()
+    {
+        if (Target == null)
+            return float.MaxValue;
+
+        // 내 캡슐 표면부터 잰다. 피벗 기준이면 반지름이 MaxRange보다 큰 몬스터(보스)가 공격 거리에 못 들어온다
+        Vector3 diff = Target.position - transform.position;
+        diff.y = 0f;
+        float bodyRadius = HurtBody != null ? HurtBody.radius : 0f;
+        return Mathf.Max(0f, diff.magnitude - bodyRadius);
+    }
+
+    public bool CanSeeTarget()
+    {
+        if (Target == null || GetValidPlayer() == null)
+            return false;
+
+        return GetTargetDistance() <= Def.SightRange;
+    }
+
+    // attack ---
+    
+    // 노릴 수 있는 플레이어. 없거나 PlayerController.IsValid()가 false면 null
+    public PlayerController GetValidPlayer()
+    {
+        PlayerController player = GameManager.Instance?.ActorS?.Player;
+        if (player == null || player.IsValid() == false)
+            return null;
+
+        return player;
+    }
+    
+    private bool CanUseAttack(int index, float distance)
+    {
+        AttackSpec attack = m_ListAttackChoice[index];
+        if (attack.Weight <= 0f || m_ListAttackCooldown[index] > 0f)
+            return false;
+
+        return distance >= attack.MinRange && distance <= attack.MaxRange;
+    }
+
+    // part ---
+    
+    // 이 몸 부위를 BattlePart로 가진 깨지는 버섯 칸. 없으면 -1
+    // shortcut: 한 몸 부위에 깨지는 버섯이 여럿이면 첫 칸만 깎인다. 여럿이 필요해지면 칸 목록으로 바꾼다
+    private int FindPartIndex(EBattlePartType battlePart)
+    {
+        if (battlePart == EBattlePartType.None)
+            return -1;
+
+        IReadOnlyList<MonsterDef.MushroomSocket> listSocket = Def.ListMushroom;
+        for (int i = 0; i < listSocket.Count; i++)
+        {
+            if (listSocket[i].BattlePart == battlePart && listSocket[i].IsBreakable)
+                return i;
+        }
+
+        return -1;
+    }
+    
     private HitShapeDef FindBodyShape(EBattlePartType battlePart)
     {
         foreach (HitShapeDef shapeDef in Def.ListBodyShape)
@@ -368,36 +421,6 @@ public class MonsterController : UnitController<MonsterDef>
 
         return null;
     }
-
-    private static Color GetPartGizmoColor(MonsterDef.MushroomSocket socket, PartFeature part)
-    {
-        if (socket.IsBreakable == false)
-            return Color.gray;
-
-        return part != null && part.IsBroken ? Color.red : Color.green;
-    }
-
-    // 진행 중인 상태를 Exit로 정리(움츠림 크기·애니 배속 복구)하고 AI를 끈다
-    protected override void OnBattleEnded()
-    {
-        m_Fsm.Stop();
-        base.OnBattleEnded();
-    }
-
-    protected override void OnHit(HitParams hit)
-    {
-        if (IsDead)
-            return;
-
-        LastHitDirection = hit.Direction;
-        if (hit.Attacker != null)
-            Target = hit.Attacker.transform;
-
-        m_Fsm.Change(EMonsterState.Hit);
-    }
-
-    protected override void OnDied()
-    {
-        m_Fsm.Change(EMonsterState.Dead);
-    }
+    
+    #endregion
 }

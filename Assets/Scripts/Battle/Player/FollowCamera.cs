@@ -1,6 +1,10 @@
 using UnityEngine;
 
+// ==================================================
+
 // 3인칭 쿼터뷰 추적 카메라. 시작할 때 플레이어를 따라간다
+// [mj] todo) 더 멋진 전투 연출 카메라
+
 public class FollowCamera : MonoBehaviour
 {
     private const float Distance = 11f;     // 바라보는 점에서 카메라까지 거리

@@ -1,11 +1,15 @@
 using System.Collections.Generic;
 
+// ==================================================
+
 public interface IState
 {
     void Enter();
     void Update(float deltaTime);
     void Exit();
 }
+
+// ==================================================
 
 // 키(보통 enum)로 상태를 바꾸는 작은 FSM. 몬스터 AI가 쓴다. 보스처럼 패턴이 많아지면 BT로 갈 자리.
 public class StateMachine<TKey>
@@ -16,7 +20,7 @@ public class StateMachine<TKey>
     public TKey Current { get; private set; }
     public float TimeInState { get; private set; }
 
-    // ==================================================
+    // ------------------------------------------------
 
     public void Add(TKey key, IState state)
     {

@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
+// ==================================================
+
 // 몬스터 정의. 몸 수치(UnitDef)에 이동·AI 거리·몸에 꽂는 버섯·드랍을 더한다.
 // 새 몬스터은 이 에셋 한 장 + 프리팹으로 늘린다
+
 [CreateAssetMenu(menuName = "MushTaker/Data/Monster", fileName = "Monster_")]
 public class MonsterDef : UnitDef
 {
@@ -13,13 +16,13 @@ public class MonsterDef : UnitDef
     public class MushroomSocket
     {
         [field: SerializeField]
-        public EMushroomPartType Part { get; private set; } = EMushroomPartType.Head; // 꽂을 자리(프리팹 Socket_* 뼈)
+        public EMushroomPartType Part { get; private set; } // 꽂을 자리(프리팹 Socket_* 뼈)
 
         [field: SerializeField, FormerlySerializedAs("m_Model")]
         public Renderer Model { get; private set; } = null;               // 버섯 모델(Mush_*.fbx)
 
         [field: SerializeField, FormerlySerializedAs("m_Scale")]
-        public float Scale { get; private set; } = 1f;
+        public float Scale { get; private set; }
 
         [field: SerializeField, FormerlySerializedAs("m_Euler")]
         public Vector3 Euler { get; private set; } = Vector3.zero;        // 버섯이 눕는다면 여기서 돌린다
@@ -37,17 +40,18 @@ public class MonsterDef : UnitDef
         [field: SerializeField]
         public float BodyDamageScale { get; private set; } = 1f;          // 이 부위를 때릴 때 본체에 들어가는 피해 배율(구름 갑옷은 1 미만). 0 이하면 1
 
-        // !!) 기존 에셋에 새로 생긴 칸은 0으로 들어온다. 0을 1로 봐야 본체 피해가 사라지지 않는다
-        public float BodyDamageRate => BodyDamageScale > 0f ? BodyDamageScale : 1f;
-
         [field: SerializeField]
         public float RegenTime { get; private set; } = 0f;                // 깨진 뒤 다시 돋기까지(초). 0이면 재생 안 함
 
         [field: SerializeField]
         public MushroomPickup Drop { get; private set; } = null;          // 깨질 때 확정으로 떨구는 버섯
+        
+        // get ---
+        // !!) 기존 에셋에 새로 생긴 칸은 0으로 들어온다. 0을 1로 봐야 본체 피해가 사라지지 않는다
+        public float BodyDamageRate => BodyDamageScale > 0f ? BodyDamageScale : 1f;
 
         public bool IsBreakable => Durability > 0;
-
+        
         // ------------------------------------------------
 
         public MushroomSocket(EMushroomPartType part, Renderer model, float scale)
@@ -66,13 +70,13 @@ public class MonsterDef : UnitDef
         public MushroomPickup Pickup { get; private set; } = null;
 
         [field: SerializeField, FormerlySerializedAs("m_Min")]
-        public int Min { get; private set; } = 1;                      // 최소 개수
+        public int Min { get; private set; } // 최소 개수
 
         [field: SerializeField, FormerlySerializedAs("m_Max")]
-        public int Max { get; private set; } = 1;                      // 최대 개수
+        public int Max { get; private set; } // 최대 개수
 
         [field: SerializeField, Range(0f, 1f), FormerlySerializedAs("m_Chance")]
-        public float Chance { get; private set; } = 1f; // 떨굴 확률
+        public float Chance { get; private set; } // 떨굴 확률
 
         // ------------------------------------------------
 
@@ -85,6 +89,8 @@ public class MonsterDef : UnitDef
         }
     }
 
+    // ------------------------------------------------
+    
     // 이동 ---
     [field: SerializeField, FormerlySerializedAs("m_MoveSpeed")]
     public float MoveSpeed { get; private set; } = 3f;       // 추적 속도
@@ -137,6 +143,7 @@ public class MonsterDef : UnitDef
 
     [SerializeField] private List<DropEntry> m_ListDrop = new();
 
+    // get ---
     public IReadOnlyList<MushroomSocket> ListMushroom => m_ListMushroom;
     public IReadOnlyList<DropEntry> ListDrop => m_ListDrop;
 
