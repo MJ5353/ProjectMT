@@ -5,26 +5,29 @@ using UnityEngine;
 
 // 몸에 꽂힌 버섯 부위 하나. 내구도가 0이 되면 깨진 모델로 바꾸고, 재생 시간 뒤 작게 다시 돋아 원래 크기로 자란다.
 // 일반·깨진 모델을 둘 다 소켓에 붙여 두고 켜고 끈다(새로 만들지 않아 풀이 필요 없다)
+// [mj] todo) 이거 하나로 안됨?
+
 public class PartFeature : UnitFeature
 {
     private const float RegrowTime = 1.5f;         // [mj] todo) 임시값. 다시 돋은 뒤 원래 크기까지 자라는 시간(초)
     private const float RegrowStartScale = 0.3f;   // 다시 돋을 때 처음 크기 배율
-
     private readonly Renderer m_Normal;
     private readonly Renderer m_Broken;
     private readonly Vector3 m_NormalScale;
-
-    private float m_RegenRemain;
-    private float m_GrowRemain;
 
     public int Index { get; } // MonsterDef.ListMushroom 칸 번호 = HitParams.PartIndex
     public MonsterDef.MushroomSocket Socket { get; }
     public Transform Bone { get; }
     public int Durability { get; private set; }
     public bool IsBroken { get; private set; }
+    public bool CanBreak => Socket.IsBreakable && IsBroken == false && m_GrowRemain <= 0f; 
+
+    // runtime ---
+    
+    private float m_RegenRemain;
+    private float m_GrowRemain;
 
     // 자라는 중에는 깨지지 않는다
-    public bool CanBreak => Socket.IsBreakable && IsBroken == false && m_GrowRemain <= 0f; 
     public event Action<PartFeature> Broken;
 
     // ------------------------------------------------
