@@ -18,24 +18,17 @@ MonoBehaviour:
   <Icon>k__BackingField: {fileID: 0}
   <MaxHp>k__BackingField: 3
   <HitStunTime>k__BackingField: 0.35
-  <Hit>k__BackingField: {fileID: 0}
-  <Attack>k__BackingField:
-    <Clip>k__BackingField: Attack
-    <Damage>k__BackingField: 1
-    m_HitFrame: 9
-    <Reach>k__BackingField: 1
-    <Radius>k__BackingField: 0.9
-    <Height>k__BackingField: 0.6
-    <Knockback>k__BackingField: 6
-    <HitStop>k__BackingField: 0.06
-    <Lunge>k__BackingField: 0
+  <TurnSpeed>k__BackingField: 900
+  <Hit>k__BackingField: {fileID: 11400000, guid: 9707896f19aae5149ab2a53582632c5e, type: 2}
+  <ListAttack>k__BackingField: []
+  <ListSkill>k__BackingField:
+  - {fileID: 11400000, guid: fd9c6d353c664a64db92224ef1129246, type: 2}
   <MoveSpeed>k__BackingField: 3
   <WanderSpeed>k__BackingField: 1.2
   <SightRange>k__BackingField: 7
   <LoseRange>k__BackingField: 12
   <WanderRadius>k__BackingField: 4
   <AttackRange>k__BackingField: 1.4
-  <WindupTime>k__BackingField: 0.45
   <AttackCooldown>k__BackingField: 1.2
   <FleeTime>k__BackingField: 0
   <FleeSpeed>k__BackingField: 4
@@ -43,15 +36,28 @@ MonoBehaviour:
   <ModelName>k__BackingField: Mon_001_Rabbit
   <BodyHeight>k__BackingField: 1.1
   <BodyRadius>k__BackingField: 0.2
+  m_ListBodyShape: []
   m_ListMushroom:
-  - <SocketName>k__BackingField: Socket_Head
+  - <Part>k__BackingField: 1
+    <Model>k__BackingField: {fileID: 0}
+    <Scale>k__BackingField: 1
+    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
+  - <Part>k__BackingField: 2
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
-    <Scale>k__BackingField: 0.73
-    <Euler>k__BackingField: {x: -5, y: -5.7, z: -3.71}
-  - <SocketName>k__BackingField: Socket_Back
-    <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
-    <Scale>k__BackingField: 0.64
-    <Euler>k__BackingField: {x: 1.92, y: 11.04, z: -3.92}
+    <Scale>k__BackingField: 0.79
+    <Euler>k__BackingField: {x: 5.48, y: -0.85, z: -1.23}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
   m_ListDrop:
   - <Pickup>k__BackingField: {fileID: 4636793933275367326, guid: 1eb9da794de58c440a8daff32af3050c, type: 3}
     <Min>k__BackingField: 1

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using UnityEngine.Serialization;
 
 // 채집꾼 수치. 몸 수치(UnitDef)에 이동·공격 보조·대시를 더한다
@@ -37,6 +38,27 @@ public class PlayerDef : UnitDef
 
     [field: SerializeField, FormerlySerializedAs("m_DashAnimSpeed")]
     public float DashAnimSpeed { get; private set; } = 1.6f;   // 대시 중 Run 애니 배속
+
+    // 콤보 ---
+    [field: SerializeField]
+    public List<SkillDef> ListCombo { get; private set; } = new();  // 공격 연타 순서(좌 → 우 → 막타). 비면 기본 공격 하나
+
+    [field: SerializeField]
+    public float ComboResetTime { get; private set; } = 0.4f;      // [mj] todo) 임시값. 공격이 끝난 뒤 이 시간 안에 누르면 다음 타, 지나면 첫 타부터
+
+    [field: SerializeField]
+    public SkillDef RunAttack { get; private set; } = null;        // 달리는 중 공격(달리다 베기). 비면 콤보
+
+    [field: SerializeField]
+    public SkillDef HoldAttack { get; private set; } = null;       // 공격 버튼을 길게 누르면(회오리). 비면 없음
+
+    [field: SerializeField]
+    public float HoldTime { get; private set; } = 0.35f;           // [mj] todo) 임시값. 이만큼 누르고 있으면 HoldAttack
+
+    [field: SerializeField]
+    public float AttackBlendTime { get; private set; } = 0.08f;    // [mj] todo) 임시값. 공격 애니로 넘어갈 때 섞는 시간(초). 판정 시각은 상태 시간 기준이라 밀리지 않음
+
+    public AttackSpec UpAttack => GetBasicAttack(1); // 두 번째 기본 공격: 위로 치기(높은 부위용). 없으면 null
 
     // ------------------------------------------------
 

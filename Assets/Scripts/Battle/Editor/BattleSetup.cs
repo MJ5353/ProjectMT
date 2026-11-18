@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // 전투 1단계 시험 환경을 만드는 메뉴.
-// 기존 Def로 누락 프리팹을 복구하고 Battle 씬(Map_001_Field + 스폰 지점)을 만든다.
+// 기존 Def로 누락 프리팹을 복구하고 Battle 씬을 만든다. 맵은 씬에 두지 않고 BattleService가 MapDef.Prefab으로 만든다.
 // 프리팹의 참조(Def·CharacterController·Animator·몸 렌더러)는 여기서 채워서, 런타임에는 GetComponent를 쓰지 않는다
 // !!) 초기 설정은 누락된 에셋만 복구한다. 수치와 기존 프리팹은 데이터 편집기에서 관리한다.
 public static class BattleSetup
@@ -25,7 +25,7 @@ public static class BattleSetup
     private const string PlayerPrefabPath = PrefabDir + "Player.prefab";
     private const string PlayerDataDir = "Assets/Resources/Data/Player/";
     private const string PlayerDefPath = PlayerDataDir + "Player.asset";
-    private const string MapDataDir = "Assets/Resources/Data/Maps/";
+    internal const string MapDataDir = "Assets/Resources/Data/Maps/";
     private const string HitMaterialDir = "Assets/Resources/" + HitMaterials.ResourceDir;
 
     // ------------------------------------------------
@@ -68,6 +68,7 @@ public static class BattleSetup
         BuildHitMaterial(HitMaterials.ChunkName);
         MushroomPickupBuilder.BuildAll(false);
         MonsterPrefabBuilder.BuildAll(false);
+        MapPrefabBuilder.BuildAll(false);
         BuildPlayer(playerDef, false);
         if (playerDef.Prefab == null)
         {
@@ -121,6 +122,11 @@ public static class BattleSetup
     internal static GameObject BuildUnit<TController>(string name, GameObject modelAsset, float height, float radius, UnitDef def) where TController : Component
     {
         GameObject root = new GameObject(name);
+        int actorLayer = LayerMask.NameToLayer(GameLayers.Actor);
+        if (actorLayer < 0)
+            CLogger.Error("BattleSetup", $"{GameLayers.Actor} 레이어가 없습니다. Tags and Layers에 추가하세요.");
+        else
+            root.layer = actorLayer;
 
         Animator animator = null;
         List<Renderer> listRenderer = new();
@@ -157,8 +163,36 @@ public static class BattleSetup
             listBody.GetArrayElementAtIndex(i).objectReferenceValue = listRenderer[i];
         }
 
+        // 부위 뼈: 판정용 Hitbox_*는 모두, 버섯 자리 Socket_*는 몬스터만
+        Dictionary<EBattlePartType, Transform> dicBattleBone = new();
+        Dictionary<EMushroomPartType, Transform> dicMushroomBone = new();
+        if (model != null)
+        {
+            BodyPartMap.CollectBattleBones(model.transform, dicBattleBone, def);
+            if (def is MonsterDef)
+                BodyPartMap.CollectMushroomBones(model.transform, dicMushroomBone, def);
+        }
+
+        WriteBoneDictionary(so.FindProperty("m_DicBattleBone"), dicBattleBone);
+        WriteBoneDictionary(so.FindProperty("m_DicMushroomBone"), dicMushroomBone);
+
         so.ApplyModifiedPropertiesWithoutUndo();
         return root;
+    }
+
+    // SerializableDictionary<enum, Transform>의 저장 목록(m_ListEntry)을 채운다
+    private static void WriteBoneDictionary<TPart>(SerializedProperty dictionary, Dictionary<TPart, Transform> dicBone) where TPart : System.Enum
+    {
+        SerializedProperty entries = dictionary.FindPropertyRelative("m_ListEntry");
+        entries.arraySize = dicBone.Count;
+        int index = 0;
+        foreach (var pair in dicBone)
+        {
+            SerializedProperty entry = entries.GetArrayElementAtIndex(index);
+            entry.FindPropertyRelative("Key").intValue = System.Convert.ToInt32(pair.Key);
+            entry.FindPropertyRelative("Value").objectReferenceValue = pair.Value;
+            index++;
+        }
     }
 
     // 상태 이름 = 클립 이름, 기본 상태 Idle. 전이 없이 코드에서 CrossFade로 부른다
@@ -168,7 +202,7 @@ public static class BattleSetup
         return "AC_" + MonsterPrefabBuilder.GetKey(modelName);
     }
 
-    private static AnimatorController BuildController(GameObject modelAsset)
+    internal static AnimatorController BuildController(GameObject modelAsset)
     {
         Directory.CreateDirectory(AnimatorDir);
         string path = $"{AnimatorDir}{GetControllerName(modelAsset.name)}.controller";
@@ -206,9 +240,7 @@ public static class BattleSetup
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
         SceneController sceneController = new GameObject(nameof(SceneController)).AddComponent<SceneController>();
 
-        // 플레이어는 씬에 두지 않고 플레이 때 BattleService가 ActorService로 만든다
-        Transform map = BuildMap();
-
+        // 맵·플레이어는 씬에 두지 않고 플레이 때 BattleService가 만든다
         Camera cam = Object.FindAnyObjectByType<Camera>();
         if (cam != null)
         {
@@ -220,69 +252,13 @@ public static class BattleSetup
         RectTransform popupRoot = UIBuilder.CreateCanvas("BattlePopupCanvas", 110);
         MapDef mapDef = AssetDatabase.LoadAssetAtPath<MapDef>(MapDataDir + MapName + ".asset");
         sceneController.EditorSetup(popupRoot, mapDef);
-        sceneController.EditorSetSpawnSlots(CollectSpawnSlots(map));
 
         // 결과 화면(UI 스레드 담당)
         BattleUISetup.AddResultScreen();
 
         EditorSceneManager.SaveScene(scene, ScenePath);
         AddToBuildSettings();
-        int slotCount = FindAllByPrefix(map, MapDef.SpawnSlotPrefix).Count;
-        CLogger.Log("BattleSetup", $"{ScenePath} 생성. 스폰 슬롯 {slotCount}개");
-    }
-
-    // Map_001_Field 슬롯 배치(tools/voxel/SpawnSlots.md). 1번은 플레이어
-    private static readonly int[] BuggiSlots = { 2, 3, 5, 6, 8, 9, 11, 12, 14, 15 };
-
-    // 맵의 SpawnSlot_NN을 [NN-1] 자리에 담는다. 빠진 번호는 null
-    private static Transform[] CollectSpawnSlots(Transform map)
-    {
-        List<Transform> listSlot = FindAllByPrefix(map, MapDef.SpawnSlotPrefix);
-        int maxSlot = 0;
-        foreach (Transform t in listSlot)
-        {
-            if (MapDef.TryParseSlot(t.name, out int slot))
-                maxSlot = Mathf.Max(maxSlot, slot);
-        }
-
-        Transform[] slots = new Transform[maxSlot];
-        foreach (Transform t in listSlot)
-        {
-            if (MapDef.TryParseSlot(t.name, out int slot) == false || slot <= 0)
-                continue;
-
-            if (slots[slot - 1] != null)
-                CLogger.Warning("BattleSetup", $"{t.name}이 둘 이상 있습니다. 먼저 찾은 것을 씁니다.");
-            else
-                slots[slot - 1] = t;
-        }
-
-        return slots;
-    }
-
-    // 맵 FBX가 있으면 그것을, 없으면 평지와 임시 스폰 지점을 만든다
-    private static Transform BuildMap()
-    {
-        GameObject mapModel = LoadModel(MapName);
-        if (mapModel != null)
-            return ((GameObject)PrefabUtility.InstantiatePrefab(mapModel)).transform;
-
-        CLogger.Warning("BattleSetup", $"{MapName}.fbx가 없어 평지로 만듭니다.");
-        GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        ground.name = "Ground";
-        ground.transform.localScale = new Vector3(6f, 1f, 6f);
-
-        GameObject playerSpawn = new GameObject(MapDef.GetSlotName(MapDef.DefaultPlayerSlot));
-        playerSpawn.transform.SetParent(ground.transform, false);
-        for (int i = 0; i < 6; i++)
-        {
-            float angle = i * Mathf.PI * 2f / 6f;
-            GameObject point = new GameObject(MapDef.GetSlotName(BuggiSlots[i]));
-            point.transform.position = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * 10f;
-            point.transform.SetParent(ground.transform, true);
-        }
-
-        return ground.transform;
+        CLogger.Log("BattleSetup", $"{ScenePath} 생성");
     }
 
     private static void AddToBuildSettings()
@@ -320,7 +296,7 @@ public static class BattleSetup
         return instance;
     }
 
-    private static List<Transform> FindAllByPrefix(Transform parent, string prefix)
+    internal static List<Transform> FindAllByPrefix(Transform parent, string prefix)
     {
         return parent.GetComponentsInChildren<Transform>(true)
             .Where(t => t.name.StartsWith(prefix))

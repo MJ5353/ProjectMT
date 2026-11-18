@@ -39,6 +39,12 @@ public class HitDef : DataDef
     public float FlashTime { get; private set; } = 0.08f;                         // 번쩍이는 시간(실제 초, 히트스톱 중에도 흐름)
 
     [field: SerializeField]
+    public Color FlashColor { get; private set; } = Color.white;                  // 몸을 맞았을 때 번쩍 색
+
+    [field: SerializeField]
+    public Color PartFlashColor { get; private set; } = new(1f, 0.85f, 0.1f);     // 부위(버섯)를 맞았을 때 번쩍 색
+
+    [field: SerializeField]
     public Color ChunkColor { get; private set; } = new(0.85f, 0.75f, 0.6f);      // 튀는 복셀 조각 색
 
     // ------------------------------------------------

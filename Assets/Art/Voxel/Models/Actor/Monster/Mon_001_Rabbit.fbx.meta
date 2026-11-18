@@ -42,7 +42,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Attack
+      name: Attack_01
       takeName: Buggi|Attack
       internalID: 5918996992998840128
       firstFrame: 0

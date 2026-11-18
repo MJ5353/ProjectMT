@@ -109,10 +109,33 @@ public sealed class ActorService : ServiceBase
                 continue;
 
             ActorHitCandidate candidate = new(actor, body);
-            float range = radius + candidate.HalfHeight;
-            if ((candidate.Center - center).sqrMagnitude <= range * range)
+            if (candidate.IsNear(center, radius))
                 results.Add(candidate);
         }
+    }
+
+    // 다른 몸(팀 무관)과 margin 안으로 붙어 있는지. 수평 거리 + 높이 범위만 본다
+    public bool IsBodyNear(CharacterController self, float margin)
+    {
+        Vector3 position = self.transform.position;
+        foreach (IActor actor in m_DicActor.Values)
+        {
+            CharacterController body = actor.HurtBody;
+            if (body == null || body == self || body.enabled == false)
+                continue;
+
+            Vector3 otherPosition = body.transform.position;
+            if (otherPosition.y > position.y + self.height + margin || position.y > otherPosition.y + body.height + margin)
+                continue;
+
+            Vector3 offset = otherPosition - position;
+            offset.y = 0f;
+            float range = self.radius + self.skinWidth + body.radius + margin;
+            if (offset.sqrMagnitude < range * range)
+                return true;
+        }
+
+        return false;
     }
 
     private static bool IsEnemy(IHitTarget actor, ETeam team)
@@ -145,22 +168,73 @@ public readonly struct ActorHitCandidate
         HalfHeight = Mathf.Max(Radius, body.height * Mathf.Abs(scale.y) * 0.5f);
     }
 
-    public bool OverlapsSphere(Vector3 center, float radius, out Vector3 point)
+    // 대충 가까운지. 뼈 모양이 있으면 감싸는 반지름, 없으면 CharacterController 캡슐 기준(부위만 있는 몹은 둘 다)
+    public bool IsNear(Vector3 center, float radius)
     {
-        float halfAxis = HalfHeight - Radius;
-        float alongAxis = Mathf.Clamp(Vector3.Dot(center - Center, Axis), -halfAxis, halfAxis);
-        Vector3 axisPoint = Center + Axis * alongAxis;
-        Vector3 offset = center - axisPoint;
-        float distanceSq = offset.sqrMagnitude;
-        float combinedRadius = radius + Radius;
+        float capsuleRange = radius + HalfHeight;
+        if ((Center - center).sqrMagnitude <= capsuleRange * capsuleRange)
+            return true;
 
-        if (distanceSq > combinedRadius * combinedRadius)
-        {
-            point = default;
+        if (Actor.ListHitShape.Count == 0)
             return false;
+
+        float shapeRange = radius + Actor.HitBoundRadius;
+        return (Actor.transform.position - center).sqrMagnitude <= shapeRange * shapeRange;
+    }
+
+    // 공격 구와 겹치는지. 부위 → 몸 순서로 보고, 겹친 것 중 표면이 구 중심에 가장 가까운 모양.
+    // 몸 뼈 모양이 없으면(일반 몹) 몸은 CharacterController 캡슐
+    public bool OverlapsSphere(Vector3 center, float radius, out Vector3 point, out int partIndex)
+    {
+        if (TryOverlapShapes(center, radius, true, out point, out partIndex))
+            return true;
+
+        if (TryOverlapShapes(center, radius, false, out point, out partIndex))
+            return true;
+
+        partIndex = -1;
+        if (HasBodyShape())
+            return false;
+
+        float halfAxis = HalfHeight - Radius;
+        return HitMath.SphereVsCapsule(Center - Axis * halfAxis, Center + Axis * halfAxis, Radius, center, radius, out point, out float _);
+    }
+
+    // ==================================================
+
+    private bool TryOverlapShapes(Vector3 center, float radius, bool isPart, out Vector3 point, out int partIndex)
+    {
+        point = default;
+        partIndex = -1;
+        bool isHit = false;
+        float nearest = float.MaxValue;
+
+        foreach (HitShape shape in Actor.ListHitShape)
+        {
+            if ((shape.PartIndex >= 0) != isPart)
+                continue;
+
+            shape.GetSegment(out Vector3 start, out Vector3 end);
+            if (HitMath.SphereVsCapsule(start, end, shape.Radius, center, radius, out Vector3 shapePoint, out float distanceSq) == false)
+                continue;
+
+            // 표면까지 거리로 비교
+            float distance = Mathf.Sqrt(distanceSq) - shape.Radius;
+            if (distance >= nearest)
+                continue;
+
+            isHit = true;
+            nearest = distance;
+            point = shapePoint;
+            partIndex = shape.PartIndex;
         }
 
-        point = distanceSq <= Radius * Radius ? center : axisPoint + offset.normalized * Radius;
-        return true;
+        return isHit;
+    }
+
+    // 몸 판정 표가 있으면 캡슐 대신 그것만 쓴다(버섯이 걸린 몸 부위도 몸 판정 표다)
+    private bool HasBodyShape()
+    {
+        return Actor.ListHitShape.Count > 0;
     }
 }

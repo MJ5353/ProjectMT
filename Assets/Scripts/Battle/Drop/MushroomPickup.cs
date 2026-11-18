@@ -1,7 +1,19 @@
 using UnityEngine;
 
-// 바닥에 떨어진 버섯. 튀어 올랐다 떨어진 뒤, 플레이어가 가까이 오면 빨려 들어가 주워진다
-public class MushroomPickup : MonoBehaviour
+// ==================================================
+
+// 버섯 신선도. 살아 있을 때 부위를 깨서 얻으면 상급, 쓰러진 뒤 얻으면 하급
+public enum EFreshness
+{
+    High,
+    Low,
+}
+
+// ==================================================
+
+// 바닥에 떨어진 버섯. 튀어 올랐다 떨어진 뒤, 플레이어가 가까이 오면 빨려 들어가 주워진다.
+// ResourceManager 풀로 꺼내고 돌려준다
+public class MushroomPickup : PoolableMono
 {
     private const float Gravity = -20f;
     private const float CollectDistance = 0.5f;  // 이 거리까지 빨려 오면 주운 것으로 친다
@@ -20,6 +32,7 @@ public class MushroomPickup : MonoBehaviour
     private float m_GroundY;
 
     public string ItemID => m_ItemID;
+    public EFreshness Freshness { get; private set; }
 
     // ------------------------------------------------
 
@@ -46,8 +59,9 @@ public class MushroomPickup : MonoBehaviour
             m_IsMagnet = true;
     }
 
-    public void Launch(Vector3 velocity)
+    public void Launch(Vector3 velocity, EFreshness freshness)
     {
+        Freshness = freshness;
         m_Velocity = velocity;
         m_IsLanded = false;
         m_IsMagnet = false;
@@ -111,7 +125,7 @@ public class MushroomPickup : MonoBehaviour
 
     private void Collect()
     {
-        SEventManager.Publish(new LootPicked(m_ItemID, m_Amount));
-        Destroy(gameObject);
+        SEventManager.Publish(new LootPicked(m_ItemID, m_Amount, Freshness));
+        ResourceManager.Instance.Despawn(this);
     }
 }

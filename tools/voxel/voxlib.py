@@ -189,7 +189,7 @@ def static_mesh(name, vox, size, mat, origin=(0, 0, 0)):
 
 # ---------------- 리그 캐릭터 ----------------
 def rig_character(name, size, bones, mesh_parts, mat):
-    """bones: [(이름, 머리위치(복셀), 부모, 방향벡터 또는 None)]
+    """bones: [(이름, 머리위치(복셀), 부모, 방향벡터 또는 None)]  방향 = 뼈 Y. Hitbox_*는 Unity 판정 캡슐 축(None이면 위)
     mesh_parts: {메시이름: [(vox, 뼈이름), ...]}  메시마다 SkinnedMesh 하나."""
     scn = bpy.context.scene
     ad = bpy.data.armatures.new(name + '_Rig')

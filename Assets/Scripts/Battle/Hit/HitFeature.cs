@@ -5,7 +5,7 @@ using UnityEngine;
 // ==================================================
 
 // 맞는 쪽 입구이자 피격 반응 처리. 팀·무적·사망을 거른 뒤 체력을 깎고, HitDef에서 켠 반응을 정해진 순서로 처리한다.
-// 순서: 체력 → 넉백 → 번쩍 → 히트스톱 → 조각
+// 순서: 부위 → 체력 → 넉백 → 번쩍 → 히트스톱 → 조각·타격 마크
 // 번쩍이 히트스톱 중에도 끝나야 해서 실제 시간(unscaled)으로 돌고, 무적 시간만 게임 시간으로 바꿔 깎는다
 
 public class HitFeature : UnitFeature
@@ -21,6 +21,12 @@ public class HitFeature : UnitFeature
     private readonly List<Renderer> m_ListFlashRenderer = new();
     private readonly List<Material[]> m_ListOriginalMaterial = new();
     private readonly List<Material[]> m_ListFlashMaterial = new();
+    private readonly List<int> m_ListFlashPart = new(); // 렌더러마다 부위 번호. -1이면 몸
+    private static readonly int s_BaseColorID = Shader.PropertyToID("_BaseColor");
+    private static MaterialPropertyBlock s_FlashBlock; // 번쩍 색. 같은 흰 머티리얼에 색만 얹는다
+
+    // 부위 --- [i] = MonsterDef.ListMushroom 칸. 부위가 없는 칸은 null
+    private IReadOnlyList<PartFeature> m_ListPart = null;
 
     // flag
     private float m_InvincibleRemain;
@@ -88,8 +94,20 @@ public class HitFeature : UnitFeature
         if (IsDead || IsInvincible)
             return false;
 
-        m_Health.TakeDamage(hit.Damage);
-        ApplyReactions(hit);
+        // 부위를 맞으면 부위 내구도와 본체 체력이 함께 깎인다. 본체 쪽은 부위의 몸 피해 배율을 곱한다
+        // 깨졌거나 자라는 중이거나 장식인 부위는 몸으로 친다(번쩍도 몸)
+        int bodyDamage = hit.Damage;
+        int partIndex = -1;
+        PartFeature part = GetPart(hit.PartIndex);
+        if (part != null && part.CanBreak)
+        {
+            partIndex = hit.PartIndex;
+            part.TakeDamage(hit.Damage);
+            bodyDamage = Mathf.RoundToInt(hit.Damage * part.Socket.BodyDamageRate);
+        }
+
+        m_Health.TakeDamage(bodyDamage);
+        ApplyReactions(hit, partIndex);
 
         if (m_HitDef != null)
             m_InvincibleRemain = m_HitDef.InvincibleTime;
@@ -99,10 +117,15 @@ public class HitFeature : UnitFeature
         return true;
     }
 
+    public void SetParts(IReadOnlyList<PartFeature> listPart)
+    {
+        m_ListPart = listPart;
+    }
+
     // 번쩍 렌더러---
 
-    // 몸에 꽂은 버섯처럼 나중에 붙인 렌더러를 더한다
-    public void AddFlashRenderer(Renderer meshRenderer)
+    // 몸에 꽂은 버섯처럼 나중에 붙인 렌더러를 더한다. 부위 렌더러는 그 부위를 맞았을 때만 번쩍인다
+    public void AddFlashRenderer(Renderer meshRenderer, int partIndex = -1)
     {
         if (meshRenderer == null)
             return;
@@ -110,35 +133,7 @@ public class HitFeature : UnitFeature
         m_ListFlashRenderer.Add(meshRenderer);
         m_ListOriginalMaterial.Add(meshRenderer.sharedMaterials);
         m_ListFlashMaterial.Add(CreateFlashMaterials(meshRenderer.sharedMaterials.Length));
-    }
-
-    // 버섯이 깨진 모델로 바뀔 때처럼 렌더러를 갈아 끼운다. 번쩍 중이면 새 렌더러도 바로 번쩍인다
-    public void ReplaceFlashRenderer(Renderer oldRenderer, Renderer newRenderer)
-    {
-        int index = m_ListFlashRenderer.IndexOf(oldRenderer);
-        if (index < 0)
-        {
-            AddFlashRenderer(newRenderer);
-            return;
-        }
-
-        if (m_FlashRemain > 0f && oldRenderer != null)
-            oldRenderer.sharedMaterials = m_ListOriginalMaterial[index];
-
-        if (newRenderer == null)
-        {
-            m_ListFlashRenderer.RemoveAt(index);
-            m_ListOriginalMaterial.RemoveAt(index);
-            m_ListFlashMaterial.RemoveAt(index);
-            return;
-        }
-
-        m_ListFlashRenderer[index] = newRenderer;
-        m_ListOriginalMaterial[index] = newRenderer.sharedMaterials;
-        m_ListFlashMaterial[index] = CreateFlashMaterials(newRenderer.sharedMaterials.Length);
-
-        if (m_FlashRemain > 0f)
-            newRenderer.sharedMaterials = m_ListFlashMaterial[index];
+        m_ListFlashPart.Add(partIndex);
     }
 
     public void RestoreFlash()
@@ -150,6 +145,7 @@ public class HitFeature : UnitFeature
                 continue;
 
             m_ListFlashRenderer[i].sharedMaterials = m_ListOriginalMaterial[i];
+            m_ListFlashRenderer[i].SetPropertyBlock(null);
         }
     }
 
@@ -157,7 +153,7 @@ public class HitFeature : UnitFeature
 
     // 반응---
 
-    private void ApplyReactions(in HitParams hit)
+    private void ApplyReactions(in HitParams hit, int partIndex)
     {
         if (m_HitDef == null)
             return;
@@ -166,13 +162,13 @@ public class HitFeature : UnitFeature
             ApplyKnockback(hit);
 
         if (m_HitDef.Has(EHitReaction.Flash))
-            ApplyFlash();
+            ApplyFlash(partIndex);
 
         if (m_HitDef.Has(EHitReaction.HitStop))
             ApplyHitStop(hit);
 
         if (m_HitDef.Has(EHitReaction.ChunkBurst))
-            ApplyChunkBurst(hit);
+            ApplyChunkBurst(hit, partIndex);
     }
 
     private void ApplyKnockback(in HitParams hit)
@@ -183,20 +179,33 @@ public class HitFeature : UnitFeature
         m_Move.AddImpulse(hit.Direction * (hit.Knockback * m_HitDef.KnockbackScale));
     }
 
-    private void ApplyFlash()
+    // 몸을 맞으면 몸 렌더러만, 부위를 맞으면 그 부위 버섯만 번쩍인다
+    private void ApplyFlash(int partIndex)
     {
         if (HitMaterials.Flash == null)
             return;
 
+        RestoreFlash(); // 다른 부위가 번쩍이던 중이면 먼저 되돌린다
+        s_FlashBlock ??= new MaterialPropertyBlock();
+        s_FlashBlock.SetColor(s_BaseColorID, partIndex < 0 ? m_HitDef.FlashColor : m_HitDef.PartFlashColor);
         for (int i = 0; i < m_ListFlashRenderer.Count; i++)
         {
-            if (m_ListFlashRenderer[i] == null)
+            if (m_ListFlashRenderer[i] == null || m_ListFlashPart[i] != partIndex)
                 continue;
 
             m_ListFlashRenderer[i].sharedMaterials = m_ListFlashMaterial[i];
+            m_ListFlashRenderer[i].SetPropertyBlock(s_FlashBlock);
         }
 
         m_FlashRemain = m_HitDef.FlashTime;
+    }
+
+    private PartFeature GetPart(int partIndex)
+    {
+        if (m_ListPart == null || partIndex < 0 || partIndex >= m_ListPart.Count)
+            return null;
+
+        return m_ListPart[partIndex];
     }
 
     private void ApplyHitStop(in HitParams hit)
@@ -204,14 +213,15 @@ public class HitFeature : UnitFeature
         GameManager.Instance?.HitStop?.Request(hit.HitStop);
     }
 
-    // 전투 씬이 아니면 조각을 튀기지 않는다
-    private void ApplyChunkBurst(in HitParams hit)
+    // 전투 씬이 아니면 조각을 튀기지 않는다. 타격 마크는 실제 맞은 자리(부위 표면)에 띄운다
+    private void ApplyChunkBurst(in HitParams hit, int partIndex)
     {
         ChunkBurstService chunkBurstS = GameManager.Instance?.Chunks;
         if (chunkBurstS == null)
             return;
 
         chunkBurstS.Burst(Owner.transform.position + Vector3.up * ChunkHeight, hit.Direction, m_HitDef.ChunkColor);
+        chunkBurstS.Mark(hit.Point, partIndex >= 0);
     }
 
     // 렌더러 머티리얼 칸 수만큼 번쩍 머티리얼을 채운 배열. 맞을 때마다 새로 만들지 않도록 미리 만든다

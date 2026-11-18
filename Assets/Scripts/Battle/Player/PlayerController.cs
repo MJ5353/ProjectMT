@@ -13,25 +13,28 @@ public enum EPlayerState
 
 // 채집꾼 조작. 입력은 프로젝트 입력 에셋(Assets/InputSystem_Actions)의 Player 맵 Move·Attack·Dash를 쓴다.
 // 키 배치는 에셋에서 바꾼다(기본: 이동 WASD·방향키·왼스틱, 공격 클릭·스페이스·J·패드 A/X, 대시 Shift·패드 B).
-// 공격 버튼을 누르면 가까운 몬스터 쪽으로 자동으로 돌아서 내려친다(모바일 대비). 수치는 PlayerDef
+// 공격 버튼을 누르면 가까운 몬스터 쪽으로 자동으로 돌아서 벤다(모바일 대비). 연타하면 Def.ListCombo 순서, 달리는 중이면 Def.RunAttack. 수치는 PlayerDef
 public class PlayerController : UnitController<PlayerDef>
 {
     private const string PlayerMapName = "Player";
     private const string MoveActionName = "Player/Move";
     private const string AttackActionName = "Player/Attack";
+    private const string AttackUpActionName = "Player/AttackUp";
     private const string DashActionName = "Player/Dash";
 
     private Transform m_CameraTransform;
 
     private InputAction m_MoveAction;
     private InputAction m_AttackAction;
+    private InputAction m_AttackUpAction;
     private InputAction m_DashAction;
 
     private EPlayerState m_State;
     private float m_TimeInState;
     private float m_AttackLength;
-    private bool m_IsHitDone;
-    private bool m_IsAttackQueued;
+    private AttackSpec m_QueuedAttack; // 다음에 낼 공격. null이면 입력 없음
+    private int m_ComboStep;           // 다음에 낼 콤보 칸(Def.ListCombo)
+    private float m_AttackHoldTime;    // 공격 버튼을 누르고 있는 시간
     private Vector3 m_DashDirection;
     private float m_DashCooldownRemain;
 
@@ -60,7 +63,7 @@ public class PlayerController : UnitController<PlayerDef>
         if (m_MoveAction == null)
             return;
 
-        bool isAttackPressed = m_AttackAction.WasPressedThisFrame() && IsClickOnUI() == false;
+        AttackSpec pressedAttack = GetPressedAttack(deltaTime);
         if (m_DashAction.WasPressedThisFrame() && CanDash())
         {
             ChangeState(EPlayerState.Dash);
@@ -70,10 +73,10 @@ public class PlayerController : UnitController<PlayerDef>
         switch (m_State)
         {
             case EPlayerState.Move:
-                UpdateMove(isAttackPressed);
+                UpdateMove(pressedAttack);
                 break;
             case EPlayerState.Attack:
-                UpdateAttack(isAttackPressed);
+                UpdateAttack(pressedAttack);
                 break;
             case EPlayerState.Dash:
                 UpdateDash();
@@ -95,7 +98,8 @@ public class PlayerController : UnitController<PlayerDef>
     protected override void OnSpawned()
     {
         m_DashCooldownRemain = 0f;
-        m_IsAttackQueued = false;
+        m_QueuedAttack = null;
+        m_ComboStep = 0;
         Init();
     }
 
@@ -121,14 +125,74 @@ public class PlayerController : UnitController<PlayerDef>
 
         m_MoveAction = actions.FindAction(MoveActionName, true);
         m_AttackAction = actions.FindAction(AttackActionName, true);
+        m_AttackUpAction = actions.FindAction(AttackUpActionName, true);
         m_DashAction = actions.FindAction(DashActionName, true);
         actions.FindActionMap(PlayerMapName, true).Enable();
     }
 
-    // 결과 화면 버튼 같은 UI를 마우스로 누른 것이면 공격으로 치지 않는다
-    private bool IsClickOnUI()
+    // 이번 프레임에 누른 공격. 위로 치기(1번)가 기본(0번)보다 먼저
+    // 길게 누르면 누른 순간 나간 콤보 뒤에 HoldAttack이 이어진다
+    private AttackSpec GetPressedAttack(float deltaTime)
     {
-        if (m_AttackAction.activeControl?.device is not Mouse)
+        if (IsHoldReached(deltaTime))
+            return Def.HoldAttack.Attack;
+
+        if (m_AttackUpAction.WasPressedThisFrame() && Def.UpAttack != null && IsClickOnUI(m_AttackUpAction) == false)
+            return Def.UpAttack;
+
+        if (m_AttackAction.WasPressedThisFrame() && IsClickOnUI(m_AttackAction) == false)
+            return GetNextAttack();
+
+        return null;
+    }
+
+    // 누른 시간이 HoldTime을 넘은 그 프레임만 true. 떼면 다시 잰다
+    private bool IsHoldReached(float deltaTime)
+    {
+        if (Def.HoldAttack == null || m_AttackAction.IsPressed() == false)
+        {
+            m_AttackHoldTime = 0f;
+            return false;
+        }
+
+        float before = m_AttackHoldTime;
+        m_AttackHoldTime += deltaTime;
+        return before < Def.HoldTime && m_AttackHoldTime >= Def.HoldTime;
+    }
+
+    // 달리는 중이면 달리다 베기, 아니면 콤보 다음 타. 콤보가 없으면 기본 공격
+    private AttackSpec GetNextAttack()
+    {
+        if (m_State == EPlayerState.Move && Def.RunAttack != null && GetMoveInput().magnitude >= Def.RunThreshold)
+            return Def.RunAttack.Attack;
+
+        if (Def.ListCombo.Count == 0)
+            return Def.MainAttack;
+
+        // 공격이 끝나고 리셋 시간이 지나면 첫 타부터
+        if (m_State != EPlayerState.Attack && m_TimeInState > Def.ComboResetTime)
+            m_ComboStep = 0;
+
+        SkillDef combo = Def.ListCombo[m_ComboStep % Def.ListCombo.Count];
+        return combo != null ? combo.Attack : Def.MainAttack;
+    }
+
+    // 콤보 몇 번째 칸인지. 콤보 밖 공격이면 -1
+    private int FindComboIndex(AttackSpec attack)
+    {
+        for (int i = 0; i < Def.ListCombo.Count; i++)
+        {
+            if (Def.ListCombo[i] != null && Def.ListCombo[i].Attack == attack)
+                return i;
+        }
+
+        return -1;
+    }
+
+    // 결과 화면 버튼 같은 UI를 마우스로 누른 것이면 공격으로 치지 않는다
+    private bool IsClickOnUI(InputAction action)
+    {
+        if (action.activeControl?.device is not Mouse)
             return false;
 
         EventSystem eventSystem = EventSystem.current;
@@ -138,6 +202,7 @@ public class PlayerController : UnitController<PlayerDef>
     private void ChangeState(EPlayerState next)
     {
         Anim.SetSpeed(1f);
+        Melee.End();
         m_State = next;
         m_TimeInState = 0f;
 
@@ -160,10 +225,11 @@ public class PlayerController : UnitController<PlayerDef>
         }
     }
 
-    private void UpdateMove(bool isAttackPressed)
+    private void UpdateMove(AttackSpec pressedAttack)
     {
-        if (isAttackPressed)
+        if (pressedAttack != null)
         {
+            m_QueuedAttack = pressedAttack;
             ChangeState(EPlayerState.Attack);
             return;
         }
@@ -184,33 +250,38 @@ public class PlayerController : UnitController<PlayerDef>
 
     private void EnterAttack()
     {
-        m_IsHitDone = false;
-        m_IsAttackQueued = false;
-        m_AttackLength = Anim.GetLength(Def.Attack.Clip);
+        AttackSpec attack = m_QueuedAttack ?? Def.MainAttack;
+        m_QueuedAttack = null;
+        m_ComboStep = FindComboIndex(attack) + 1; // 막타 다음은 GetNextAttack에서 첫 타로 돈다. 콤보 밖 공격이면 0
+        m_AttackLength = Anim.GetLength(attack.Clip);
 
+        Melee.Begin(attack);
         Move.Stop();
+
         Vector3 aimDirection = FindAimDirection();
         Move.FaceTo(aimDirection, true);
-        Anim.Play(Def.Attack.Clip, true);
+        Anim.Play(attack.Clip, true, Def.AttackBlendTime);
 
-        if (Def.Attack.Lunge > 0f)
-            Move.AddImpulse(transform.forward * Def.Attack.Lunge);
+        if (attack.Lunge > 0f)
+            Move.AddImpulse(transform.forward * attack.Lunge);
     }
 
-    private void UpdateAttack(bool isAttackPressed)
+    private void UpdateAttack(AttackSpec pressedAttack)
     {
-        if (m_IsHitDone == false && m_TimeInState >= Def.Attack.HitTime)
-        {
-            m_IsHitDone = true;
-            Melee.Perform(Def.Attack);
-        }
+        // 판정 구간 동안 앞으로 돌진
+        AttackSpec attack = Melee.Spec;
+        if (attack.ActiveMoveSpeed > 0f)
+            Move.SetVelocity(Melee.IsActive(m_TimeInState) ? transform.forward * attack.ActiveMoveSpeed : Vector3.zero);
 
-        if (isAttackPressed)
-            m_IsAttackQueued = true;
+        Melee.TickAttack(m_TimeInState);
+
+        // 판정 시작 뒤에 누른 것만 다음 타로 받는다(너무 이른 연타는 무시)
+        if (pressedAttack != null && m_TimeInState >= attack.HitTime)
+            m_QueuedAttack = pressedAttack;
 
         // 판정이 끝난 뒤 입력이 있으면 다음 공격으로 끊는다
-        bool canCancel = m_IsHitDone && m_TimeInState >= Def.Attack.HitTime + Def.CancelDelay;
-        if (canCancel && m_IsAttackQueued)
+        bool canCancel = Melee.IsDone(m_TimeInState) && m_TimeInState >= attack.HitEndTime + Def.CancelDelay;
+        if (canCancel && m_QueuedAttack != null)
         {
             ChangeState(EPlayerState.Attack);
             return;
@@ -231,7 +302,7 @@ public class PlayerController : UnitController<PlayerDef>
             case EPlayerState.Move:
                 return true;
             case EPlayerState.Attack:
-                return m_IsHitDone;
+                return Melee.IsDone(m_TimeInState);
             default:
                 return false;
         }

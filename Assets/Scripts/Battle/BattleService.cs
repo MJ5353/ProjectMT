@@ -35,12 +35,11 @@ public sealed class BattleService : ServiceBase
     }
 
     public const float SpawnLift = 0.3f; // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
-    public const string TerrainName = "Map_Terrain";
     private const float RespawnBlockDistance = 15f; // 플레이어가 이보다 가까우면 리스폰을 미룬다(눈앞에 갑자기 생기지 않게)
     private const int GoalKillCount = 10; // 이만큼 잡으면 승리 (보스가 들어오기 전 임시 조건)
     private const string DefaultPlayerID = "Player";
 
-    private readonly Transform[] m_SpawnSlots; // [i] = SpawnSlot_{i+1}. SceneController가 넘겨준다
+    private Transform[] m_SpawnSlots; // [i] = SpawnSlot_{i+1}. 생성한 맵에서 받는다
     private readonly Dictionary<string, int> m_DicLoot = new();
     private readonly List<SpawnState> m_ListSpawn = new();
 
@@ -58,10 +57,9 @@ public sealed class BattleService : ServiceBase
 
     // ------------------------------------------------
 
-    public BattleService(MapDef mapDef, Transform[] spawnSlots)
+    public BattleService(MapDef mapDef)
     {
         Map = mapDef;
-        m_SpawnSlots = spawnSlots;
     }
 
     public override void Tick(float deltaTime)
@@ -77,7 +75,9 @@ public sealed class BattleService : ServiceBase
 
     public override void Init()
     {
+        SpawnMap();
         SpawnPlayer();
+        
         if (m_PlayerController != null && m_PlayerController.Health != null)
             m_PlayerController.Health.Died += OnPlayerDied;
 
@@ -121,6 +121,7 @@ public sealed class BattleService : ServiceBase
         m_ListSpawn.Clear();
         m_DicLoot.Clear();
         m_PlayerController = null;
+        m_SpawnSlots = null; // 맵 오브젝트는 씬과 함께 사라진다
     }
 
     public void Retry() => GameManager.Instance?.RetryBattle();
@@ -135,7 +136,20 @@ public sealed class BattleService : ServiceBase
     }
 
     #region Spawn
-    
+
+    // 지역 맵을 만든다. 씬은 Single로 불러서 지금 씬에 들어간다
+    private void SpawnMap()
+    {
+        if (Map == null || Map.Prefab == null)
+        {
+            CLogger.Warning("BattleService", "MapDef에 맵 프리팹이 없습니다. 누락 전투 에셋 복구를 실행하세요.");
+            return;
+        }
+
+        MapRoot map = UnityEngine.Object.Instantiate(Map.Prefab);
+        m_SpawnSlots = map.SpawnSlots;
+    }
+
     private void SpawnPlayer()
     {
         PlayerDef playerDef = GameManager.Instance.Database?.Get<PlayerDef>(DefaultPlayerID);
@@ -150,8 +164,8 @@ public sealed class BattleService : ServiceBase
         if (spawn == null)
             CLogger.Warning("BattleService", $"플레이어 슬롯 {MapDef.GetSlotName(playerSlot)}이 맵에 없어 원점에서 시작합니다.");
 
-        Vector3 position = spawn != null ? SnapToGround(spawn.position) : Vector3.zero;
-        Quaternion rotation = spawn != null ? spawn.rotation : Quaternion.identity;
+        Vector3 position = spawn != null ? spawn.position + Vector3.up * SpawnLift : Vector3.zero;
+        Quaternion rotation = spawn != null ? GetSpawnRotation(spawn) : Quaternion.identity;
 
         m_PlayerController = GameManager.Instance.Actors.Spawn(playerDef.Prefab, position, rotation);
     }
@@ -166,38 +180,20 @@ public sealed class BattleService : ServiceBase
         return m_SpawnSlots[index];
     }
 
-    public static Vector3 SnapToGround(Vector3 position)
+    // 지점의 수평 방향(yaw)만 쓴다
+    // !!) 맵 FBX의 SpawnSlot은 X 90도로 누워 있다. 그대로 쓰면 캐릭터 컨트롤러 center도 같이 돌아 캡슐이 땅 밑에서 시작해 떨어진다
+    public static Quaternion GetSpawnRotation(Transform slot)
     {
-        // 지점을 땅 위에 세운다. 위에서 아래로 쏴서 지형(Map_Terrain)에 맞은 가장 높은 점을 쓴다(나무·바위 위는 피함)
-        
-        Vector3 origin = position + Vector3.up * 50f;
-        RaycastHit[] hits = Physics.RaycastAll(origin, Vector3.down, 100f, ~0, QueryTriggerInteraction.Ignore);
+        Vector3 forward = Vector3.ProjectOnPlane(slot.forward, Vector3.up);
+        if (forward.sqrMagnitude < 0.01f)
+            forward = Vector3.ProjectOnPlane(slot.up, Vector3.up); // 앞이 수직이면(누운 지점) 위 축이 수평 방향
 
-        bool isFound = false;
-        float bestY = float.MinValue;
-
-        foreach (RaycastHit hit in hits)
-        {
-            if (hit.collider.name != TerrainName || hit.point.y <= bestY)
-                continue;
-
-            bestY = hit.point.y;
-            isFound = true;
-        }
-
-        if (isFound)
-            return new Vector3(position.x, bestY + SpawnLift, position.z);
-
-        // 지형 이름이 다르면 원래 위치 기준 3m 위에서 한 번 더
-        if (Physics.Raycast(position + Vector3.up * 3f, Vector3.down, out RaycastHit hitInfo, 30f, ~0, QueryTriggerInteraction.Ignore))
-            return hitInfo.point + Vector3.up * SpawnLift;
-
-        return position;
+        return forward.sqrMagnitude < 0.01f ? Quaternion.identity : Quaternion.LookRotation(forward, Vector3.up);
     }
 
     private void Spawn(SpawnState spawn)
     {
-        MonsterController controller = GameManager.Instance.Actors.Spawn(spawn.Entry.Monster.Prefab, SnapToGround(spawn.Point.position), spawn.Point.rotation);
+        MonsterController controller = GameManager.Instance.Actors.Spawn(spawn.Entry.Monster.Prefab, spawn.Point.position + Vector3.up * SpawnLift, GetSpawnRotation(spawn.Point));
         if (controller == null)
             return;
 

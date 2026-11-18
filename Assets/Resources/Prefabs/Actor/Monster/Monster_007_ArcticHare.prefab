@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1681561804816767155}
   - component: {fileID: 7820086285888809820}
   - component: {fileID: 8710974654303757476}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Monster_007_ArcticHare
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -76,6 +76,14 @@ MonoBehaviour:
   m_Animator: {fileID: 7402075939517482620}
   m_ListBodyRenderer:
   - {fileID: 7772518352235139732}
+  m_DicBattleBone:
+    m_ListEntry: []
+  m_DicMushroomBone:
+    m_ListEntry:
+    - Key: 1
+      Value: {fileID: 5395683674834142677}
+    - Key: 2
+      Value: {fileID: 90763524531547911}
 --- !u!1001 &8357950328188780246
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -136,6 +144,16 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 7402075939517482620}
   m_SourcePrefab: {fileID: 100100000, guid: 2b45a5a59e6f66847bdff2720b14f2fd, type: 3}
+--- !u!4 &90763524531547911 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -955023175428681263, guid: 2b45a5a59e6f66847bdff2720b14f2fd, type: 3}
+  m_PrefabInstance: {fileID: 8357950328188780246}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5395683674834142677 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -5108148243925026045, guid: 2b45a5a59e6f66847bdff2720b14f2fd, type: 3}
+  m_PrefabInstance: {fileID: 8357950328188780246}
+  m_PrefabAsset: {fileID: 0}
 --- !u!137 &7772518352235139732 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: -7484718937190224830, guid: 2b45a5a59e6f66847bdff2720b14f2fd, type: 3}

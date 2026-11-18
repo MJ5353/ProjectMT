@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3911269640473186783}
   - component: {fileID: 3971685447781270571}
   - component: {fileID: 4044930645481338447}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Monster_012_Pachycephalosaurus
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -76,6 +76,14 @@ MonoBehaviour:
   m_Animator: {fileID: 8638804712394947667}
   m_ListBodyRenderer:
   - {fileID: 5197197754248225956}
+  m_DicBattleBone:
+    m_ListEntry: []
+  m_DicMushroomBone:
+    m_ListEntry:
+    - Key: 1
+      Value: {fileID: 8320993051189751636}
+    - Key: 2
+      Value: {fileID: 3301298781537435441}
 --- !u!1001 &3164431565667405806
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -168,8 +176,18 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 02078cd00ec560241967a6dde67683c1, type: 3}
   m_PrefabInstance: {fileID: 3164431565667405806}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &3301298781537435441 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8774489276423048993, guid: 02078cd00ec560241967a6dde67683c1, type: 3}
+  m_PrefabInstance: {fileID: 3164431565667405806}
+  m_PrefabAsset: {fileID: 0}
 --- !u!137 &5197197754248225956 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: -2032682073783801014, guid: 02078cd00ec560241967a6dde67683c1, type: 3}
+  m_PrefabInstance: {fileID: 3164431565667405806}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8320993051189751636 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6381682765066870970, guid: 02078cd00ec560241967a6dde67683c1, type: 3}
   m_PrefabInstance: {fileID: 3164431565667405806}
   m_PrefabAsset: {fileID: 0}

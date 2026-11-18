@@ -35,7 +35,7 @@ public class AnimFeature : UnitFeature
         SetSpeed(1f);
     }
 
-    // 같은 클립이 이미 재생 중이면 무시. restart면 처음부터 다시
+    // 같은 클립이 이미 재생 중이면 무시. restart면 처음부터 다시(fade가 0보다 크면 섞으며 처음부터)
     public void Play(string clip, bool restart = false, float fade = -1f)
     {
         if (m_Animator == null)
@@ -51,7 +51,11 @@ public class AnimFeature : UnitFeature
         m_Current = clip;
         if (restart)
         {
-            m_Animator.Play(hash, 0, 0f);
+            if (fade > 0f)
+                m_Animator.CrossFadeInFixedTime(hash, fade, 0, 0f);
+            else
+                m_Animator.Play(hash, 0, 0f);
+
             return;
         }
 

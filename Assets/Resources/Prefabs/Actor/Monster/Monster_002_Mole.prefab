@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3249953161081276007}
   - component: {fileID: 5182907109810912524}
   - component: {fileID: 2089465106041730039}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Monster_002_Mole
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -76,6 +76,14 @@ MonoBehaviour:
   m_Animator: {fileID: 2376814221369554502}
   m_ListBodyRenderer:
   - {fileID: 8898019034080627207}
+  m_DicBattleBone:
+    m_ListEntry: []
+  m_DicMushroomBone:
+    m_ListEntry:
+    - Key: 1
+      Value: {fileID: 4519874764261600680}
+    - Key: 2
+      Value: {fileID: 6411218701097893820}
 --- !u!1001 &8534436469157958068
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -136,6 +144,16 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2376814221369554502}
   m_SourcePrefab: {fileID: 100100000, guid: 2c2f3fbc71bb4cc4d9b7bf3534350888, type: 3}
+--- !u!4 &4519874764261600680 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5244928741533826076, guid: 2c2f3fbc71bb4cc4d9b7bf3534350888, type: 3}
+  m_PrefabInstance: {fileID: 8534436469157958068}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6411218701097893820 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -5870070820293087736, guid: 2c2f3fbc71bb4cc4d9b7bf3534350888, type: 3}
+  m_PrefabInstance: {fileID: 8534436469157958068}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8213107480829490783 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2c2f3fbc71bb4cc4d9b7bf3534350888, type: 3}

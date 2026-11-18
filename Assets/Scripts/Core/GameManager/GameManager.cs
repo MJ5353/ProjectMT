@@ -42,7 +42,7 @@ public class GameManager : MonoSingleton<GameManager>
 
     // ------------------------------------------------
 
-    internal void InitSceneServices(Scene scene, MapDef defaultMap, Transform[] spawnSlots)
+    internal void InitSceneServices(Scene scene, MapDef defaultMap)
     {
         if (m_ServiceScene == scene)
             return;
@@ -56,10 +56,16 @@ public class GameManager : MonoSingleton<GameManager>
             if (mapDef == null)
                 mapDef = defaultMap;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // Battle 씬을 바로 실행하면 고른 지역이 없다. 개발용 기본 지역을 쓴다
+            if (mapDef == null)
+                mapDef = DebugPanel.GetDefaultMap(Database);
+#endif
+
             Actors = Register(new ActorService());
             Chunks = Register(new ChunkBurstService());
             HitStop = Register(new HitStopService());
-            Battle = Register(new BattleService(mapDef, spawnSlots));
+            Battle = Register(new BattleService(mapDef));
         }
 
         Popup = Register(new PopupService());

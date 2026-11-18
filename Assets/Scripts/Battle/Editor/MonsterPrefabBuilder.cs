@@ -12,7 +12,6 @@ public static class MonsterPrefabBuilder
 {
     private const string DefPrefix = "Monster_";
     private const string ModelPrefix = "Mon_";
-    private const string SocketPrefix = "Socket_";
     private const float SizeStep = 0.05f;      // 자동 크기 반올림 단위
     private const float RadiusRate = 0.4f;     // 모델 가로·세로 중 짧은 쪽에 곱해 반지름으로
     private const float MinRadius = 0.2f;
@@ -151,14 +150,15 @@ public static class MonsterPrefabBuilder
         return Mathf.Round(value / SizeStep) * SizeStep;
     }
 
-    // Def의 버섯 소켓 이름이 모델 뼈에 없으면 알린다(오타·모델 교체 확인용)
+    // Def의 버섯 자리가 모델 Socket_* 뼈에 없으면 알린다(모델 교체 확인용)
     private static void CheckSockets(MonsterDef def, GameObject model)
     {
-        HashSet<string> setBone = new(model.GetComponentsInChildren<Transform>(true).Select(t => t.name));
+        Dictionary<EMushroomPartType, Transform> dicBone = new();
+        BodyPartMap.CollectMushroomBones(model.transform, dicBone, def);
         foreach (MonsterDef.MushroomSocket socket in def.ListMushroom)
         {
-            if (setBone.Contains(socket.SocketName) == false)
-                CLogger.Warning("MonsterPrefabBuilder", $"{def.name}: 모델 {model.name}에 소켓 뼈 없음: {socket.SocketName}", def);
+            if (dicBone.ContainsKey(socket.Part) == false)
+                CLogger.Warning("MonsterPrefabBuilder", $"{def.name}: 모델 {model.name}에 버섯 자리 뼈 없음: {socket.Part}", def);
         }
     }
 
@@ -189,9 +189,10 @@ public static class MonsterPrefabBuilder
         BattleSetup.SetString(def, nameof(MonsterDef.ModelName), model.name);
 
         // 버섯 모델은 비워 둔다. 빈 칸은 붙이지 않으니 Def에서 골라 넣으면 된다
-        List<MonsterDef.MushroomSocket> listSocket = model.GetComponentsInChildren<Transform>(true)
-            .Where(t => t.name.StartsWith(SocketPrefix))
-            .Select(t => new MonsterDef.MushroomSocket(t.name, null, 1f))
+        Dictionary<EMushroomPartType, Transform> dicBone = new();
+        BodyPartMap.CollectMushroomBones(model.transform, dicBone, def);
+        List<MonsterDef.MushroomSocket> listSocket = dicBone.Keys
+            .Select(part => new MonsterDef.MushroomSocket(part, null, 1f))
             .ToList();
         def.EditorSetMushrooms(listSocket);
 

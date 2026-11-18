@@ -188,8 +188,8 @@ def body_bukbugom():
         ('Socket_ThighL', (10.5, 11, 12), 'Body', (1, 0.2, 0.5)),
         ('Socket_ThighR', (-10.5, 11, 12), 'Body', (-1, 0.2, 0.5)),
         # 몸통 히트박스 기준점
-        ('Hitbox_Head', (0, -28, 18), 'Head', None), ('Hitbox_Neck', (0, -19, 17), 'Neck', None),
-        ('Hitbox_Body', (0, 0, 15), 'Body', None),
+        ('Hitbox_Head', (0, -28, 18), 'Head', (0, -1, 0)), ('Hitbox_Neck', (0, -19, 17), 'Neck', (0, -1, 0)),
+        ('Hitbox_Body', (0, 0, 15), 'Body', (0, 1, 0)),
         ('Hitbox_PawFL', (7, -11, 4), 'LegFL', None), ('Hitbox_PawFR', (-7, -11, 4), 'LegFR', None),
         ('Hitbox_PawBL', (7, 11, 4), 'LegBL', None), ('Hitbox_PawBR', (-7, 11, 4), 'LegBR', None),
     ]

@@ -2,10 +2,12 @@
 using UnityEngine;
 
 // 개발용 치트 패널(IMGUI). 오른쪽 위 DBG 버튼으로 연다. 릴리스 빌드에는 들어가지 않는다.
-// 흐름 이동, 데이터베이스 아이템 지급, 세이브 저장·삭제를 한 곳에서 한다
+// 흐름 이동, 몬스터 소환, 데이터베이스 아이템 지급, 세이브 저장·삭제를 한 곳에서 한다
 public class DebugPanel : MonoBehaviour
 {
     private const float RefHeight = 960f;
+    private const string DefaultMapID = "Map_001_Field"; // Battle 씬 단독 실행 때 쓰는 지역
+    private const float SpawnGap = 2f; // 플레이어 캡슐과 소환 몬스터 캡슐 사이 거리(m)
 
     private static readonly EGameState[] s_MoveStates = { EGameState.Lobby, EGameState.Battle, EGameState.Result };
 
@@ -36,6 +38,8 @@ public class DebugPanel : MonoBehaviour
 
         DrawFlow(gameM);
         GUILayout.Space(8);
+        DrawSpawn(gameM);
+        GUILayout.Space(8);
         DrawItems(gameM);
         GUILayout.Space(8);
         DrawSave();
@@ -58,6 +62,44 @@ public class DebugPanel : MonoBehaviour
 
         GUI.enabled = true;
         GUILayout.EndHorizontal();
+    }
+
+    // 전투 중일 때만 몬스터 목록을 보여 주고, 누르면 플레이어 앞에 소환한다
+    private void DrawSpawn(GameManager gameM)
+    {
+        if (gameM.Actors == null || gameM.Actors.Player == null || gameM.Database == null)
+            return;
+
+        GUILayout.Label("몬스터 소환(플레이어 앞)");
+        foreach (MonsterDef def in gameM.Database.GetAll<MonsterDef>())
+        {
+            if (def == null || def.Prefab == null)
+                continue;
+
+            if (GUILayout.Button(def.ID))
+                SpawnInFront(gameM.Actors, def);
+        }
+    }
+
+    private static void SpawnInFront(ActorService actors, MonsterDef def)
+    {
+        Transform player = actors.Player.transform;
+        float distance = SpawnGap + actors.Player.HurtBody.radius;
+        if (def.Prefab.TryGetComponent(out CharacterController controller))
+            distance += controller.radius;
+
+        Vector3 forward = Vector3.ProjectOnPlane(player.forward, Vector3.up).normalized;
+        Vector3 position = player.position + forward * distance + Vector3.up * BattleService.SpawnLift;
+        actors.Spawn(def.Prefab, position, Quaternion.LookRotation(-forward, Vector3.up));
+    }
+
+    public static MapDef GetDefaultMap(GameDatabase database)
+    {
+        if (database == null || database.TryGet(DefaultMapID, out MapDef map) == false)
+            return null;
+
+        CLogger.Warning("DebugPanel", $"고른 지역이 없어 개발용 기본 지역 {DefaultMapID}을 씁니다.");
+        return map;
     }
 
     private void DrawItems(GameManager gameM)

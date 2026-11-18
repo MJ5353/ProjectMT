@@ -42,7 +42,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Attack
+      name: Attack_01
       takeName: Bursus|Attack
       internalID: -1824807229066357554
       firstFrame: 0
@@ -158,7 +158,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Stomp
+      name: Skill_01
       takeName: Bursus|Stomp
       internalID: -4150803620990369436
       firstFrame: 0

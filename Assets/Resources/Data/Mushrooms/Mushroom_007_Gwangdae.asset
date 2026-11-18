@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DisplayName: "\uAD11\uB300\uBC84\uC12F"
   <ID>k__BackingField: Mushroom_007_Gwangdae
   <Description>k__BackingField: 
-  <Icon>k__BackingField: {fileID: 0}
+  <Icon>k__BackingField: {fileID: 21300000, guid: e0767ac17949d834586757e83195fbc9, type: 3}
   <DexNo>k__BackingField: 7
   <Rarity>k__BackingField: 0
   <Tint>k__BackingField: {r: 1, g: 1, b: 1, a: 1}

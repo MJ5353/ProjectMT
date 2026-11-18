@@ -77,7 +77,9 @@ public static class BattleUISetup
         grid.spacing = new Vector2(48, 64);
         grid.childAlignment = TextAnchor.UpperCenter;
 
-        UIItemSlot template = UIBuilder.ItemSlot(lootRoot, "SlotTemplate");
+        // !!) 템플릿은 그리드 밖에 둔다. 그리드 자식이면 에디터에서 레이아웃이 RectTransform을 고쳐 씬에 오버라이드가 생긴다
+        UIItemSlot template = UIBuilder.ItemSlot(window, "SlotTemplate");
+        template.gameObject.SetActive(false);
 
         TMP_Text empty = UIBuilder.Label(lootRoot.parent, "주운 버섯이 없어요", UIStyle.FontNormal, TextAlignmentOptions.Center, "EmptyLabel");
         empty.rectTransform.offsetMin = new Vector2(60, 200);

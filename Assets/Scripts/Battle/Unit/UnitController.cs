@@ -12,11 +12,24 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     [SerializeField] private Animator m_Animator = null;                         // 모델(Model 자식)의 애니메이터
     [SerializeField] private List<Renderer> m_ListBodyRenderer = new();          // 맞을 때 하얗게 번쩍일 몸 렌더러
 
-    public TDef Def => m_Def;
-    public Transform VisualRoot => m_Animator.transform;
-    public CharacterController HurtBody => m_CharacterController;
-    public bool IsDead => Health.IsDead;
+    // 부위 뼈 --- 프리팹 굽기(BattleSetup.BuildUnit)가 BodyPartMap 표로 채운다.
+    // 손으로 넣은 값은 다시 구우면 덮이니 BodyPartMap 표에 뼈 이름을 더한다
+    [SerializeField] private SerializableDictionary<EBattlePartType, Transform> m_DicBattleBone = new();       // Hitbox_* 뼈
+    [SerializeField] private SerializableDictionary<EMushroomPartType, Transform> m_DicMushroomBone = new();   // Socket_* 뼈
+
+    // core
     public int ActorID { get; private set; }   // ActorService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
+    protected abstract ETeam Team { get; }
+    
+    private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
+    private bool m_IsBattleOver;
+    
+    // hit
+    public IReadOnlyList<HitShape> ListHitShape => m_ListHitShape;
+    private readonly List<HitShape> m_ListHitShape = new();     // 뼈 판정 모양. Set에서 한 번 만들고 풀 재사용 때도 그대로
+    
+    public float HitBoundRadius { get; private set; }
+    private const float HitBoundMargin = 1.3f; // 애니로 뼈가 뻗는 만큼 감싸는 반지름에 더 주는 배율
     
     // feature
     public MoveFeature Move { get; private set; }
@@ -25,10 +38,10 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     public HitFeature HitFeature { get; private set; }
     public MeleeAttackFeature Melee { get; private set; }
 
-    protected abstract ETeam Team { get; }
-
-    private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
-    private bool m_IsBattleOver;
+    public TDef Def => m_Def;
+    public Transform VisualRoot => m_Animator.transform;
+    public CharacterController HurtBody => m_CharacterController;
+    public bool IsDead => Health.IsDead;
 
     // ------------------------------------------------
 
@@ -42,11 +55,11 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
             return;
         }
 
-        Move = AddFeature(new MoveFeature(this, m_CharacterController));
+        Move = AddFeature(new MoveFeature(this, m_CharacterController, m_Def.TurnSpeed));
         Anim = AddFeature(new AnimFeature(this, m_Animator));
         Health = AddFeature(new HealthFeature(this, m_Def.MaxHp));
         HitFeature = AddFeature(new HitFeature(this, Team, m_Def.Hit, Health, Move, m_ListBodyRenderer));
-        Melee = AddFeature(new MeleeAttackFeature(this));
+        Melee = AddFeature(new MeleeAttackFeature(this, GetAttacks(), m_DicBattleBone));
 
         // 피격 반응 수치가 없으면 체력만 깎이고 반응은 없다
         if (m_Def.Hit == null)
@@ -54,12 +67,13 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
 
         HitFeature.Hit += OnHit;
         Health.Died += OnDied;
-        
-        T AddFeature<T>(T feature) where T : UnitFeature
-        {
-            m_ListFeature.Add(feature);
-            return feature;
-        }
+    }
+
+    // 수명 주기를 함께 돌릴 부품 등록. 등록 순서대로 실행
+    protected T AddFeature<T>(T feature) where T : UnitFeature
+    {
+        m_ListFeature.Add(feature);
+        return feature;
     }
 
     protected virtual void OnDisable()
@@ -124,16 +138,50 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         }
     }
 
-    // 씬 뷰에 기본 공격 판정 범위 표시
-    private void OnDrawGizmosSelected()
+    // 부위 뼈. 없으면 null
+    public Transform GetBattleBone(EBattlePartType part)
+    {
+        return m_DicBattleBone.TryGetValue(part, out Transform bone) ? bone : null;
+    }
+
+    public Transform GetMushroomBone(EMushroomPartType part)
+    {
+        return m_DicMushroomBone.TryGetValue(part, out Transform bone) ? bone : null;
+    }
+
+    // 뼈 판정 모양 추가. 감싸는 반지름은 지금(Set 시점) 자세 기준
+    // shortcut: 애니로 뼈가 HitBoundMargin보다 멀리 뻗으면 후보에서 빠진다. 그러면 매 프레임 재계산으로 바꾼다
+    protected void AddHitShape(HitShape shape)
+    {
+        m_ListHitShape.Add(shape);
+
+        shape.GetSegment(out Vector3 start, out Vector3 end);
+        float reach = Mathf.Max((start - transform.position).magnitude, (end - transform.position).magnitude) + shape.Radius;
+        HitBoundRadius = Mathf.Max(HitBoundRadius, reach * HitBoundMargin);
+    }
+
+    // 씬 뷰에 공격 판정 범위 표시
+    protected virtual void OnDrawGizmosSelected()
     {
         if (m_Def == null)
             return;
 
         Gizmos.color = new Color(1f, 0.3f, 0.2f, 0.6f);
-        Gizmos.DrawWireSphere(MeleeAttackFeature.GetCenter(transform, m_Def.Attack), m_Def.Attack.Radius);
+        foreach (AttackSpec attack in GetAttacks())
+        {
+            Transform bone = GetBattleBone(attack.HitPart);
+            Gizmos.DrawWireSphere(MeleeAttackFeature.GetCenter(transform, attack, bone), attack.Radius);
+        }
     }
-    
+
+    // Def의 공격 전부(이전 목록 + SkillDef). 판정 뼈 검사·기즈모용이라 매번 새 목록
+    private List<AttackSpec> GetAttacks()
+    {
+        List<AttackSpec> listAttack = new();
+        m_Def.CollectAttacks(listAttack);
+        return listAttack;
+    }
+
     // ==================================================
 
     // virtual ---

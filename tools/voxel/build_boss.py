@@ -66,8 +66,8 @@ def body_boss():
         ('Socket_Tail1', (0, 24, 26.0), 'Tail1', None),
         ('Socket_TailTip', (0, 58, 16.3), 'Tail3', None),
         # 몸통 히트박스 기준점(버섯 없는 부위). 반지름은 README 참고
-        ('Hitbox_Head', (0, -27, 22), 'Head', None), ('Hitbox_Neck', (0, -18, 22.5), 'Neck', None),
-        ('Hitbox_Body', (0, 0, 21), 'Body', None), ('Hitbox_Tail', (0, 39, 16.5), 'Tail2', None),
+        ('Hitbox_Head', (0, -27, 22), 'Head', (0, -1, 0)), ('Hitbox_Neck', (0, -18, 22.5), 'Neck', (0, -1, 0)),
+        ('Hitbox_Body', (0, 0, 21), 'Body', (0, 1, 0)), ('Hitbox_Tail', (0, 39, 16.5), 'Tail2', (0, 14, -3.5)),
         ('Hitbox_LegFL', (7.5, -10, 8), 'LegFL', None), ('Hitbox_LegFR', (-7.5, -10, 8), 'LegFR', None),
         ('Hitbox_LegBL', (8, 10, 9), 'LegBL', None), ('Hitbox_LegBR', (-8, 10, 9), 'LegBR', None),
     ]

@@ -92,9 +92,9 @@ def body_tree():
         ('Socket_RootBL', (9, 8, 2.5), 'RootBL', None),
         # 몸통 히트박스 기준점
         ('Hitbox_Trunk', (0, 0, 18), 'Body', None), ('Hitbox_Face', (0, -5, 21), 'Body', None),
-        ('Hitbox_ArmL', (10, -3, 12), 'ForearmL', None), ('Hitbox_ArmR', (-10, -3, 12), 'ForearmR', None),
-        ('Hitbox_RootFL', (7, -6.5, 4), 'RootFL', None), ('Hitbox_RootFR', (-7, -6.5, 4), 'RootFR', None),
-        ('Hitbox_RootBL', (7, 6.5, 4), 'RootBL', None), ('Hitbox_RootBR', (-7, 6.5, 4), 'RootBR', None),
+        ('Hitbox_ArmL', (10, -3, 12), 'ForearmL', (0.05, -0.3, -1)), ('Hitbox_ArmR', (-10, -3, 12), 'ForearmR', (-0.05, -0.3, -1)),
+        ('Hitbox_RootFL', (7, -6.5, 4), 'RootFL', (5, -6, -8.2)), ('Hitbox_RootFR', (-7, -6.5, 4), 'RootFR', (-5, -6, -8.2)),
+        ('Hitbox_RootBL', (7, 6.5, 4), 'RootBL', (5.5, 5.5, -8.2)), ('Hitbox_RootBR', (-7, 6.5, 4), 'RootBR', (-5.5, 5.5, -8.2)),
     ]
     meshes = {'Boss_Tree_Body': [(trunk, 'Body'), (crown, 'Crown'), (armL, 'ArmL'), (foreL, 'ForearmL'),
                                  (armR, 'ArmR'), (foreR, 'ForearmR'), (rFL, 'RootFL'), (rFR, 'RootFR'),

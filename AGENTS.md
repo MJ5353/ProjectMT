@@ -1,46 +1,41 @@
-# MushTaker Codex 작업 규칙
+# 송이 시즌 작업 규칙
 
-## 작업 전과 완료 확인
+최종 수정: 26.11.18
 
-- 작업 전에 `CLAUDE.md`의 저장소·Unity·코드 규약과 현재 작업 트리의 변경을 확인한다. 사용자가 이후에 확정한 규칙을 해당 작업에 적용한다.
-- 이미 작성된 사용자 변경을 보존한다. 요청 범위에서 기존 코드와 에셋을 재사용하고, 동작과 저장 형식을 바꾸는 결정은 작업 결과에 적는다.
-- 수정한 코드의 호출부와 씬·프리팹·데이터 참조를 확인한다. Unity 6000.3.25f1에서 관련 컴파일을 확인하고, 수명 주기나 직렬화가 바뀌면 관련 씬 동작도 확인한다. 실행하지 못한 검증은 완료 보고에서 밝힌다.
-- 타격감·회피·카메라 수치는 사용자가 정한다. AI 작업 기록은 `docs/AI_실험_로그.md`에 맡긴 일, 직접 작업한 일, 판단을 남기는 저장소 규칙을 따른다.
+## 1. 적용 범위
 
-## C# 스타일
+- 프로젝트: `MJ5353/ProjectMT` (공개), Unity `6000.3.25f1`.
+- 목적: 넷마블네오 AI 인턴십 제출용. 심사자는 코드와 AI 협업 기록을 함께 확인한다.
+- **매 작업에는 이 문서만 기본 적용한다.** 상세 규칙은 해당 작업에 필요할 때만 아래 참고 문서를 읽는다.
 
-- 네임스페이스 없이 전역 타입으로 둔다. 선언에 접근 제한자를 명시하고, C# 문법상 제한자를 붙일 수 없는 선언은 언어 규칙을 따른다.
-- private·protected 인스턴스 필드는 `m_PascalCase`, 정적 필드는 `s_PascalCase`, 상수는 `PascalCase`로 쓴다. 목록은 `m_ListXxx`, 딕셔너리는 `m_DicXxx` 형태를 쓰고 정적 컬렉션에는 `s_`를 적용한다. 직렬화 참조는 `[SerializeField] private T m_Xxx = null;` 형태를 따른다.
-- `Def`의 단순 저장 값은 `[field: SerializeField] public T Xxx { get; private set; }`로 선언한다. 기존 필드를 옮길 때는 `[field: FormerlySerializedAs("m_Xxx")]`로 에셋 값을 이어받는다.
-- 지역 변수·`out` 변수·일반 `foreach` 변수의 타입을 명시한다. 딕셔너리 순회의 `foreach (var pair in ...)`는 기존 관례대로 쓸 수 있다.
-- bool 부정은 `== false`로 쓴다. 가드 조건에서 먼저 반환하고, 한 문장짜리 `if` 본문은 중괄호 없이 다음 줄에 쓴다. 한 줄에 문장 하나를 둔다.
-- `for`와 `foreach`는 본문이 한 문장이어도 중괄호 `{}`로 감싼다.
-- 클래스 안의 필드·프로퍼티와 메서드 사이에는 앞뒤에 빈 줄을 두고 `// ------------------------------------------------`를 쓴다. 파일 최상위에서 타입을 구분할 때는 `// ==================================================`를 쓴다. 이름 있는 묶음은 `// 제목 ---`, 가상 메서드 묶음은 `// virtual ---`로 표시한다. Unity 이벤트 메서드는 일반 메서드 앞에 둔다.
-- 열거형에는 `E` 접두사, 매개변수 묶음에는 `readonly struct XxxParams` 형식을 쓴다. 식별자 이름에서 ID는 `ActorID`, `itemID`처럼 대문자로 쓴다. 기존 세이브의 JSON 키와 Unity 직렬화 필드는 데이터 호환 규칙에 따라 취급한다.
-- 주석은 짧은 한글로 쓴다. 주의는 `// !!)`, 사용자의 메모는 `// [mj] todo)`를 사용한다.
+## 2. 작업 원칙
 
-## 런타임 구조
+- 시작 전 저장소 변경 사항을 확인하고, 기존 사용자 변경은 임의로 되돌리지 않는다.
+- 요청받은 범위만 수정한다. 문의·언급은 수정 요청으로 간주하지 않는다.
+- AI는 초안·검토·수정을 돕되, 코드는 대장이 이해하고 판단한 뒤 반영한다. 손맛 수치(타격감·회피 타이밍·카메라)는 대장이 결정한다.
+- **커밋·푸시는 명시적 요청이 있을 때만 한다.** 브랜치·PR 절차는 Git 작업 시 참고 문서에 따른다.
 
-- 전역 싱글턴에 `Manager`, 하위 관리 시스템에 `Management`, 액터 부품에 `Feature`, 모음에 `Hub`를 쓴다. 런타임 매니저는 `[Managers]`에 모으고, 정적 이벤트 버스는 `SEventManager`를 사용한다.
-- 씬 `Service`는 `ServiceBase`를 상속한다. `GameManager`가 `Init`, `Tick(float deltaTime)`, `Clear`를 호출하고, 호출부는 `GameManager.Instance`의 서비스 프로퍼티를 사용한다. `SceneController`는 씬 시작과 종료를 전달하고 `RootManager`에 그 씬의 UI 루트를 연결한다.
-- 일반 수명 주기는 `Init`, `Reset`, `Clear`, 일반 갱신은 `Update(float deltaTime)` 관례를 따른다. 씬 서비스의 `Tick`과 액터 부품의 `Tick`·`LateTick`은 각 기반 타입의 계약을 따른다. 이벤트를 구독하는 곳에서 같은 수명 주기의 정리 시점에 구독도 해제한다.
+## 3. 선제 검증 금지 · 토큰 절약
 
-## Unity 에셋과 Git
+- **요청하지 않은 검증·테스트·빌드·실행·컴파일·에디터 실행을 선제적으로 하지 않는다.** 수정 후 확인을 명목으로 추가 작업을 확장하지 않는다.
+- 검증이 필요하다고 판단되면 **필요한 이유와 최소 범위를 제안하고 승인을 받은 뒤** 수행한다. 수행하지 않은 검증을 완료했다고 표현하지 않는다.
+- `.unity`·`.prefab`·`.asset`은 통째로 읽지 않고 `grep`으로 필요한 필드·`m_Name`·GUID 주변만 확인한다.
+- C#은 심볼을 먼저 찾고 필요한 범위만 읽는다. 200줄 초과 파일 전체 읽기는 필요한 경우에만 한다.
+- 방금 수정한 파일을 재확인 목적으로 다시 읽지 않는다. 로그는 error/warning만 확인하며 전체 `Editor.log`를 출력하지 않는다.
+- 한 작업이 끝나면 스레드를 마무리한다. 다음 작업에 필요한 맥락만 Goals 문서에 남긴다.
 
-- 프로젝트 에셋은 `Assets/` 아래 기존 구조에 두고, 이동·이름 변경 시 `.meta`를 함께 옮겨 GUID를 보존한다. 씬·프리팹·애니메이션은 텍스트로 유지하고, 바이너리 에셋의 Git LFS 규칙은 `.gitattributes`와 `CLAUDE.md`를 따른다.
-- 외부 에셋은 `Assets/ThirdParty/`에 둔다. Unity 생성물, 빌드 산출물, 계정·API 키는 저장소에서 제외한다.
-- 기능 단위 브랜치와 PR 흐름을 따르고, 커밋·푸시는 사용자가 요청할 때 수행한다. 커밋 제목은 한국어 한 줄 요약으로 쓰고, PR 리뷰 지적에 대한 수용 여부와 이유를 기록한다.
+## 4. 기록
 
-## graphify
+- 작업 종료 시 `_Else/AI_실험_로그.md`에 **AI에게 맡긴 일 / 직접 작업한 일 / 판단**을 간결하게 기록한다.
+- 진행·다음 작업은 **Goals**, 과거 기록은 **Records**에서 관리한다. 이 저장소에는 README·AI 실험 로그·기획서 링크만 둔다.
 
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+## 5. 상황별 참고 문서
 
-When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
+| 필요한 상황 | 해당 문서 |
+|---|---|
+| C# 작성·수정·리뷰 | [_Else/Rule/코드_스타일.md](코드_스타일.md) |
+| Git·PR·에셋 이동·업로드·라이선스 처리 | [_Else/Rule/Git_에셋_관리.md](Git_에셋_관리.md) |
+| 콘텐츠 추가·에셋/ID 명명 | [_Else/Rule/콘텐츠_명명_규칙.md](콘텐츠_명명_규칙.md) |
+| Goals·Records·README·기획서·AI 로그 작성·정리 | [_Else/Rule/문서_관리.md](문서_관리.md) |
 
-Rules:
-- When graphify-out/graph.json exists, run `graphify query "<question>"` before your first grep, search or source-file read for a codebase question, and put this rule in every subagent prompt that explores code. Read raw files only for lines the graph or an earlier read already located. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. When the answer is under a Markdown heading, `graphify section "<heading>"` prints that section's text, so the .md need not be opened. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
-- Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
-- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
-- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
-- A committed graphify-out/graph.json is rewritten whole on every build, so a large diff to it in a pull request is expected. Do not flag it as churn or suggest skipping the graph rebuild or its hooks.
+**관련 없는 참고 문서는 열지 않는다.**

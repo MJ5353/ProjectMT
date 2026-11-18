@@ -12,8 +12,8 @@ public class MonsterDef : UnitDef
     [Serializable]
     public class MushroomSocket
     {
-        [field: SerializeField, FormerlySerializedAs("m_SocketName")]
-        public string SocketName { get; private set; } = "Socket_Head";   // 꽂을 뼈 이름
+        [field: SerializeField]
+        public EMushroomPartType Part { get; private set; } = EMushroomPartType.Head; // 꽂을 자리(프리팹 Socket_* 뼈)
 
         [field: SerializeField, FormerlySerializedAs("m_Model")]
         public Renderer Model { get; private set; } = null;               // 버섯 모델(Mush_*.fbx)
@@ -24,11 +24,35 @@ public class MonsterDef : UnitDef
         [field: SerializeField, FormerlySerializedAs("m_Euler")]
         public Vector3 Euler { get; private set; } = Vector3.zero;        // 버섯이 눕는다면 여기서 돌린다
 
+        // 부위 파괴 ---
+        [field: SerializeField]
+        public Renderer BrokenModel { get; private set; } = null;         // 깨진 버섯 모델(Mush_*_Broken.fbx). 비면 깨지면 사라진다
+
+        [field: SerializeField]
+        public int Durability { get; private set; } = 0;                  // 부위 내구도. 0이면 안 깨지는 장식
+
+        [field: SerializeField]
+        public EBattlePartType BattlePart { get; private set; } = EBattlePartType.None; // 이 몸 부위(ListBodyShape)가 맞으면 이 버섯 내구도가 깎임. None이면 판정 없음
+
+        [field: SerializeField]
+        public float BodyDamageScale { get; private set; } = 1f;          // 이 부위를 때릴 때 본체에 들어가는 피해 배율(구름 갑옷은 1 미만). 0 이하면 1
+
+        // !!) 기존 에셋에 새로 생긴 칸은 0으로 들어온다. 0을 1로 봐야 본체 피해가 사라지지 않는다
+        public float BodyDamageRate => BodyDamageScale > 0f ? BodyDamageScale : 1f;
+
+        [field: SerializeField]
+        public float RegenTime { get; private set; } = 0f;                // 깨진 뒤 다시 돋기까지(초). 0이면 재생 안 함
+
+        [field: SerializeField]
+        public MushroomPickup Drop { get; private set; } = null;          // 깨질 때 확정으로 떨구는 버섯
+
+        public bool IsBreakable => Durability > 0;
+
         // ------------------------------------------------
 
-        public MushroomSocket(string socketName, Renderer model, float scale)
+        public MushroomSocket(EMushroomPartType part, Renderer model, float scale)
         {
-            SocketName = socketName;
+            Part = part;
             Model = model;
             Scale = scale;
         }
@@ -79,13 +103,10 @@ public class MonsterDef : UnitDef
     public float WanderRadius { get; private set; } = 4f;    // 처음 자리에서 배회하는 반경
 
     [field: SerializeField, FormerlySerializedAs("m_AttackRange")]
-    public float AttackRange { get; private set; } = 1.4f;   // 이 거리 안이면 공격을 시작
-
-    [field: SerializeField, FormerlySerializedAs("m_WindupTime")]
-    public float WindupTime { get; private set; } = 0.45f;   // 공격 전에 움츠리는 시간(예고)
+    public float AttackRange { get; private set; } = 1.4f;   // 추적을 멈추고 마주 보는 거리. 공격 선택은 AttackSpec.MinRange·MaxRange
 
     [field: SerializeField, FormerlySerializedAs("m_AttackCooldown")]
-    public float AttackCooldown { get; private set; } = 1.2f;
+    public float AttackCooldown { get; private set; } = 1.2f; // 공격 하나가 끝난 뒤 다음 공격까지 공용 쿨(초)
 
     [field: SerializeField, FormerlySerializedAs("m_FleeTime")]
     public float FleeTime { get; private set; } = 0f;        // 맞은 뒤 도망치는 시간. 0이면 바로 반격
@@ -105,6 +126,11 @@ public class MonsterDef : UnitDef
 
     [field: SerializeField, FormerlySerializedAs("m_BodyRadius")]
     public float BodyRadius { get; private set; } = 0f;      // 캡슐 반지름. 0이면 모델 크기로 자동 계산해 채운다
+
+    // 몸 판정 --- 비면 CharacterController 캡슐로 맞는다. 큰 몹(보스)은 뼈마다 구·캡슐을 둔다
+    [SerializeField] private List<HitShapeDef> m_ListBodyShape = new();
+
+    public IReadOnlyList<HitShapeDef> ListBodyShape => m_ListBodyShape;
 
     // 버섯·드랍 ---
     [SerializeField] private List<MushroomSocket> m_ListMushroom = new();

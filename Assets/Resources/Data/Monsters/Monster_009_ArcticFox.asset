@@ -18,24 +18,19 @@ MonoBehaviour:
   <Icon>k__BackingField: {fileID: 0}
   <MaxHp>k__BackingField: 16
   <HitStunTime>k__BackingField: 0.2
-  <Hit>k__BackingField: {fileID: 0}
-  <Attack>k__BackingField:
-    <Clip>k__BackingField: Attack
-    <Damage>k__BackingField: 3
-    m_HitFrame: 9
-    <Reach>k__BackingField: 1
-    <Radius>k__BackingField: 0.9
-    <Height>k__BackingField: 0.6
-    <Knockback>k__BackingField: 6
-    <HitStop>k__BackingField: 0.06
-    <Lunge>k__BackingField: 0
+  <TurnSpeed>k__BackingField: 900
+  <Hit>k__BackingField: {fileID: 11400000, guid: 42cb1a2f4fed08945bb932f6a330a98f, type: 2}
+  <ListAttack>k__BackingField: []
+  <ListSkill>k__BackingField:
+  - {fileID: 11400000, guid: f172edb419b84e046947b55e2adb81e4, type: 2}
+  - {fileID: 11400000, guid: 983d630e90d59154b8f38592d32c6dbe, type: 2}
+  - {fileID: 11400000, guid: 81e1cee128053e546b09722234ca79d7, type: 2}
   <MoveSpeed>k__BackingField: 2.59
   <WanderSpeed>k__BackingField: 1.04
   <SightRange>k__BackingField: 8
   <LoseRange>k__BackingField: 13
   <WanderRadius>k__BackingField: 4
   <AttackRange>k__BackingField: 1.4
-  <WindupTime>k__BackingField: 0.65
   <AttackCooldown>k__BackingField: 1.7
   <FleeTime>k__BackingField: 0
   <FleeSpeed>k__BackingField: 4
@@ -43,23 +38,48 @@ MonoBehaviour:
   <ModelName>k__BackingField: Mon_009_ArcticFox
   <BodyHeight>k__BackingField: 1.35
   <BodyRadius>k__BackingField: 0.25
+  m_ListBodyShape: []
   m_ListMushroom:
-  - <SocketName>k__BackingField: Socket_Head
+  - <Part>k__BackingField: 1
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 7f086ad7928ac4b4eb84f4a6b5dc8321, type: 3}
-    <Scale>k__BackingField: 1.17
-    <Euler>k__BackingField: {x: 10.34, y: -1.94, z: 1.61}
-  - <SocketName>k__BackingField: Socket_Back1
+    <Scale>k__BackingField: 1.24
+    <Euler>k__BackingField: {x: -4.8, y: -1.96, z: -8.18}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
+  - <Part>k__BackingField: 2
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 7f086ad7928ac4b4eb84f4a6b5dc8321, type: 3}
+    <Scale>k__BackingField: 1.1
+    <Euler>k__BackingField: {x: 9.04, y: -3.22, z: -1.09}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
+  - <Part>k__BackingField: 3
     <Model>k__BackingField: {fileID: 0}
     <Scale>k__BackingField: 1
     <Euler>k__BackingField: {x: 0, y: 0, z: 0}
-  - <SocketName>k__BackingField: Socket_Back2
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
+  - <Part>k__BackingField: 11
     <Model>k__BackingField: {fileID: 0}
     <Scale>k__BackingField: 1
     <Euler>k__BackingField: {x: 0, y: 0, z: 0}
-  - <SocketName>k__BackingField: Socket_Tail
-    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 7f086ad7928ac4b4eb84f4a6b5dc8321, type: 3}
-    <Scale>k__BackingField: 1.26
-    <Euler>k__BackingField: {x: 11.94, y: -7.26, z: 4.55}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
   m_ListDrop:
   - <Pickup>k__BackingField: {fileID: 127310580877431111, guid: 580b56ca90a35174981e33f7e6df73b0, type: 3}
     <Min>k__BackingField: 2

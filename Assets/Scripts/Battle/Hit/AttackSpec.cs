@@ -11,7 +11,8 @@ public class AttackSpec
 {
     public const float Fps = 30f;
     
-    public float HitTime => m_HitFrame / Fps;
+    public float HitTime => m_HitFrame / Fps; // 판정 시작 시각
+    public float HitEndTime => Mathf.Max(m_HitFrame, HitEndFrame) / Fps; // 판정 끝 시각
 
     [field: SerializeField, FormerlySerializedAs("m_Clip")]
     public string Clip { get; private set; } = "Attack"; // 재생할 애니 클립 이름
@@ -20,7 +21,10 @@ public class AttackSpec
     public int Damage { get; private set; } = 1;
 
     [SerializeField] 
-    private int m_HitFrame = 9; // 판정이 나는 프레임(30fps 기준)
+    private int m_HitFrame = 9; // 판정 시작 프레임(30fps 기준)
+
+    [field: SerializeField]
+    public int HitEndFrame { get; private set; } = 0; // 판정 끝 프레임. 시작보다 작거나 같으면 한 프레임만
 
     [field: SerializeField, FormerlySerializedAs("m_Reach")]
     public float Reach { get; private set; } = 1f; // 몸 앞쪽으로 판정 중심까지 거리
@@ -39,6 +43,33 @@ public class AttackSpec
 
     [field: SerializeField, FormerlySerializedAs("m_Lunge")]
     public float Lunge { get; private set; } = 0f; // 공격 시작 때 앞으로 내딛는 속도
+
+    [field: SerializeField]
+    public float ActiveMoveSpeed { get; private set; } = 0f; // 판정 구간 동안 앞으로 가는 속도(돌진). 0이면 제자리
+
+    [field: SerializeField]
+    public int RehitFrame { get; private set; } = 0; // 판정 구간 안에서 이 프레임마다 같은 대상을 다시 맞힐 수 있다(회오리 두 바퀴). 0이면 한 번만
+
+    public float RehitTime => RehitFrame / Fps;
+
+    [field: SerializeField]
+    public EBattlePartType HitPart { get; private set; } = EBattlePartType.None; // 판정 중심 부위 뼈. None이면 몸 앞(Height·Reach)
+
+    // 몬스터 공격 고르기 --- 플레이어는 쓰지 않는다
+    [field: SerializeField]
+    public float MinRange { get; private set; } = 0f; // 대상이 이 거리 이상일 때만 고른다
+
+    [field: SerializeField]
+    public float MaxRange { get; private set; } = 1.4f; // 대상이 이 거리 이하일 때만 고른다
+
+    [field: SerializeField]
+    public float Cooldown { get; private set; } = 0f; // 이 공격만의 쿨(초). 공용 쿨(MonsterDef.AttackCooldown)과 따로 돈다
+
+    [field: SerializeField]
+    public float Weight { get; private set; } = 1f; // 고를 때 가중치. 0이면 안 고른다
+
+    [field: SerializeField]
+    public float WindupTime { get; private set; } = 0f; // 움츠리는 예고 시간(초). 0이면 움츠림 없이 클립 자체 예비 동작
 
     // ------------------------------------------------
 

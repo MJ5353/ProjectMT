@@ -42,7 +42,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Attack
+      name: Attack_01
       takeName: Bukera|Attack
       internalID: 2791715396617183408
       firstFrame: 0
@@ -71,7 +71,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Charge
+      name: Skill_01
       takeName: Bukera|Charge
       internalID: -5569746937576211595
       firstFrame: 0
@@ -216,7 +216,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Stomp
+      name: Skill_02
       takeName: Bukera|Stomp
       internalID: -1583948480078646296
       firstFrame: 0

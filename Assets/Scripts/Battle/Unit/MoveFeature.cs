@@ -10,11 +10,13 @@ public class MoveFeature : UnitFeature
     private const float Gravity = -25f;
     private const float GroundedSpeed = -2f; // 땅에 붙어 있도록 누르는 속도
     private const float ImpulseDamping = 9f; // 넉백이 줄어드는 빠르기
-    private const float TurnSpeed = 900f; // 초당 회전 각도
+    private const float ActorContactMargin = 0.2f; // [mj] todo) 임시값. 다른 캐릭터 캡슐과 이 거리 안이면 계단 오르기를 끈다
 
     // readonly
     private readonly CharacterController m_Controller;
     private readonly Transform m_Transform;
+    private readonly float m_StepOffset; // 프리팹의 계단 높이
+    private readonly float m_TurnSpeed; // 초당 회전 각도(UnitDef.TurnSpeed)
 
     private Vector3 m_Desired;
     private Vector3 m_Impulse;
@@ -25,10 +27,12 @@ public class MoveFeature : UnitFeature
 
     // ------------------------------------------------
 
-    public MoveFeature(IActor owner, CharacterController controller) : base(owner)
+    public MoveFeature(IActor owner, CharacterController controller, float turnSpeed) : base(owner)
     {
         m_Controller = controller;
         m_Transform = owner.transform;
+        m_StepOffset = controller.stepOffset;
+        m_TurnSpeed = turnSpeed;
     }
 
     // 풀에서 다시 꺼낼 때. 속도를 비우고 충돌을 다시 켠다
@@ -57,8 +61,13 @@ public class MoveFeature : UnitFeature
 
         Vector3 motion = (m_Desired + m_Impulse) * deltaTime;
         motion.y = m_VerticalSpeed * deltaTime;
-        m_Controller.Move(motion);
 
+        // !!) 계단 오르기가 켜져 있으면 둥근 캡슐 바닥이 다른 캐릭터를 계단으로 보고 타고 올라간다(큰 몬스터가 플레이어 위로)
+        ActorService actors = GameManager.Instance?.Actors;
+        bool isTouchingActor = actors != null && actors.IsBodyNear(m_Controller, ActorContactMargin);
+
+        m_Controller.stepOffset = isTouchingActor ? 0f : m_StepOffset;
+        m_Controller.Move(motion);
         m_Impulse = Vector3.Lerp(m_Impulse, Vector3.zero, 1f - Mathf.Exp(-ImpulseDamping * deltaTime));
     }
 
@@ -97,7 +106,7 @@ public class MoveFeature : UnitFeature
             return;
 
         Quaternion target = Quaternion.LookRotation(direction);
-        m_Transform.rotation = instant ? target : Quaternion.RotateTowards(m_Transform.rotation, target, TurnSpeed * Time.deltaTime);
+        m_Transform.rotation = instant ? target : Quaternion.RotateTowards(m_Transform.rotation, target, m_TurnSpeed * Time.deltaTime);
     }
 
     public void SetCollision(bool isOn)
