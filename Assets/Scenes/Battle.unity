@@ -622,7 +622,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneController
   m_UIRoot: {fileID: 1479169397}
-  m_DefaultRegion: {fileID: 11400000, guid: f150fc24e89ab06429d0c9ef7a061f99, type: 2}
+  m_DefaultMap: {fileID: 11400000, guid: f150fc24e89ab06429d0c9ef7a061f99, type: 2}
   m_SpawnSlots:
   - {fileID: 658614366}
   - {fileID: 658614365}
