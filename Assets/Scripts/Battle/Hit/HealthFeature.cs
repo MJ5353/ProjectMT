@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
 
-// 체력 반응. 피격 반응 중 가장 먼저 넣는다
-public class HealthFeature : UnitFeature, IHitReaction
+// 체력 상태. 피격 반응이 아니라 HitFeature가 반응 처리 전에 직접 깎는다
+public class HealthFeature : UnitFeature
 {
     public int MaxHp => m_MaxHp;
     private readonly int m_MaxHp;
@@ -25,12 +25,12 @@ public class HealthFeature : UnitFeature, IHitReaction
         Current = m_MaxHp;
     }
 
-    public void OnHit(in HitParams hit)
+    public void TakeDamage(int damage)
     {
         if (IsDead)
             return;
 
-        Current = Mathf.Max(0, Current - hit.Damage);
+        Current = Mathf.Max(0, Current - damage);
         if (IsDead)
             Died?.Invoke();
     }

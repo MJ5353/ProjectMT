@@ -42,7 +42,7 @@ public class GameManager : MonoSingleton<GameManager>
 
     // ------------------------------------------------
 
-    internal void InitSceneServices(Scene scene, RegionDef defaultRegion, Transform[] spawnSlots)
+    internal void InitSceneServices(Scene scene, MapDef defaultMap, Transform[] spawnSlots)
     {
         if (m_ServiceScene == scene)
             return;
@@ -52,14 +52,14 @@ public class GameManager : MonoSingleton<GameManager>
 
         if (GetStateByScene(scene.name) == EGameState.Battle)
         {
-            RegionDef region = PlayerDataManager.Instance?.Hunt.SelectedRegion;
-            if (region == null)
-                region = defaultRegion;
+            MapDef mapDef = PlayerDataManager.Instance?.Hunt.SelectedMap;
+            if (mapDef == null)
+                mapDef = defaultMap;
 
             Actors = Register(new ActorService());
             Chunks = Register(new ChunkBurstService());
             HitStop = Register(new HitStopService());
-            Battle = Register(new BattleService(region, spawnSlots));
+            Battle = Register(new BattleService(mapDef, spawnSlots));
         }
 
         Popup = Register(new PopupService());

@@ -10,17 +10,12 @@ public abstract class UnitDef : DataDef
     [field: SerializeField, FormerlySerializedAs("m_MaxHp")]
     public int MaxHp { get; private set; } = 3;                    // 최대 체력
 
-    [field: SerializeField, FormerlySerializedAs("m_KnockbackScale")]
-    public float KnockbackScale { get; private set; } = 1f;        // 넉백 배율. 1이면 그대로, 0이면 안 밀림
-
     [field: SerializeField, FormerlySerializedAs("m_HitStunTime")]
     public float HitStunTime { get; private set; } = 0.35f;        // 맞고 굳는 시간(초)
 
-    [field: SerializeField, FormerlySerializedAs("m_InvincibleTime")]
-    public float InvincibleTime { get; private set; } = 0f;        // 맞은 뒤 무적 시간(초)
-
-    [field: SerializeField, FormerlySerializedAs("m_ChunkColor")]
-    public Color ChunkColor { get; private set; } = new(0.85f, 0.75f, 0.6f); // 맞을 때 튀는 복셀 조각 색
+    // 피격 반응(넉백·번쩍·히트스톱·조각·무적) 수치. 여러 유닛이 같은 에셋을 같이 쓴다
+    [field: SerializeField]
+    public HitDef Hit { get; private set; } = null;
 
     // 기본 공격 ---
     [field: SerializeField, FormerlySerializedAs("m_Attack")]

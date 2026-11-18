@@ -10,7 +10,7 @@ public enum ETeam
 
 // ==================================================
 
-// 한 번의 타격 정보. 공격하는 쪽이 만들고, 맞는 쪽 HitFeature가 반응 부품들에 그대로 넘긴다.
+// 한 번의 타격 정보. 공격하는 쪽이 만들고, 맞는 쪽 HitFeature가 체력·반응 처리에 쓴다.
 
 public readonly struct HitParams
 {
@@ -34,16 +34,6 @@ public readonly struct HitParams
         HitStop = hitStop;
         Point = point;
     }
-}
-
-// ==================================================
-
-// 피격 반응 하나. 체력, 넉백, 번쩍, 히트스톱처럼 반응마다 클래스를 나눠 조합한다.
-// 실행 순서는 HitFeature에 넣은 순서(UnitController.Awake)
-
-public interface IHitReaction
-{
-    void OnHit(in HitParams hit);
 }
 
 // ==================================================
