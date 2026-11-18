@@ -110,7 +110,7 @@ public class VoxelImportSettings : AssetPostprocessor
         };
     }
 
-    [MenuItem("Tools/Voxel/머티리얼 다시 연결")]
+    [MenuItem("MushTaker/Voxel/머티리얼 다시 연결")]
     private static void SetupMaterials()
     {
         if (AssetDatabase.IsValidFolder(MaterialFolder) == false)

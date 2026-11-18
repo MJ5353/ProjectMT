@@ -231,11 +231,59 @@ for y in range(4,12):
         px[x,y]=W
 sprites["Tab_Dispatch"]=outline(im,O)
 
+# 전투 HUD: 조이스틱(흰색 바탕, 코드에서 색·투명도 입힘)
+im=new(48,48); px=im.load()
+for y in range(48):
+    for x in range(48):
+        e=ell(24,24,23.5,23.5,x,y)
+        if e>1: continue
+        if e>0.86: px[x,y]=(255,255,255,255)                 # 바깥 테
+        elif e>0.78: px[x,y]=(160,160,160,255)               # 테 안쪽 그늘
+        else: px[x,y]=(255,255,255,90)                        # 반투명 바닥
+# 상하좌우 방향 눈금
+for (x,y) in ((23,6),(24,6),(22,7),(25,7),(23,41),(24,41),(22,40),(25,40),(6,23),(6,24),(7,22),(7,25),(41,23),(41,24),(40,22),(40,25)):
+    px[x,y]=(255,255,255,200)
+sprites["HUD_JoystickBase"]=im
+
+im=new(24,24); px=im.load()
+for y in range(24):
+    for x in range(24):
+        e=ell(12,12,11,11,x,y)
+        if e>1: continue
+        u=(x+0.5-12)/11; v=(y+0.5-12)/11
+        c=W
+        if u+v>0.55 and e>0.45: c=S
+        if u+v<-0.75 and e>0.35: c=(255,255,255,255)
+        px[x,y]=c
+sprites["HUD_JoystickKnob"]=outline(im,K)
+
+# 공격: 칼 + 휘두른 궤적
+im=new(24,24); px=im.load()
+line(px,7,15,17,5,3)                                          # 칼날
+px[19,3]=W; px[18,4]=W; px[19,4]=W
+line(px,4,12,9,17,2)                                          # 가드
+line(px,3,19,6,16,2)                                          # 손잡이
+for t in range(-80,15,3):                                     # 휘두른 궤적
+    r=math.radians(t)
+    for rr in (15.5,16.5):
+        x=round(7+rr*math.cos(r)); y=round(17+rr*math.sin(r))
+        if 0<=x<24 and 0<=y<24 and px[x,y][3]==0: px[x,y]=(255,255,255,200)
+sprites["HUD_Attack"]=outline(im,O)
+
+# 대시: 앞으로 쏠린 화살표 + 속도선
+im=new(24,24); px=im.load()
+for y in range(6,18):
+    hw=6-abs(y-11.5)
+    for x in range(13,13+int(hw*1.4)+1): px[x,y]=W
+rect(px,8,10,13,13)
+rect(px,2,7,7,7); rect(px,4,11,6,12); rect(px,2,16,7,16)
+sprites["HUD_Dash"]=outline(im,O)
+
 for n,i in sprites.items(): i.save(f"{OUT}/{n}.png")
 
 # 미리보기: 6배, 틀류는 색 입혀서
 tint={"UI_Panel":(44,59,48),"UI_Button":(217,87,59),"UI_Button_Pressed":(217,87,59),"UI_Slot":(63,82,68),"UI_GaugeFrame":(243,233,210),"UI_GaugeFill":(123,201,80)}
-for k in ("Tab_Gear","Tab_Hunt","Tab_Breed","Tab_Dispatch"): tint[k]=(243,233,210)
+for k in ("Tab_Gear","Tab_Hunt","Tab_Breed","Tab_Dispatch","HUD_JoystickBase","HUD_JoystickKnob","HUD_Attack","HUD_Dash"): tint[k]=(243,233,210)
 names=list(sprites); sc=6; cell=24*sc+40
 rows=(len(sprites)+6)//7
 pv=Image.new("RGBA",(cell*7,cell*rows+10),(30,42,34,255))
@@ -246,7 +294,8 @@ for i,n in enumerate(names):
         for y in range(im.size[1]):
             for x in range(im.size[0]):
                 r,g_,b_,a=p[x,y]; p[x,y]=(r*t[0]//255,g_*t[1]//255,b_*t[2]//255,a)
-    big=im.resize((im.size[0]*sc,im.size[1]*sc),Image.NEAREST)
+    s_=sc if max(im.size)<=24 else 24*sc//max(im.size)  # 큰 스프라이트는 칸에 맞게 축소
+    big=im.resize((im.size[0]*s_,im.size[1]*s_),Image.NEAREST)
     pv.alpha_composite(big,((i%7)*cell+20,(i//7)*cell+20))
 pv.save(sys.argv[2])
 print(names)
