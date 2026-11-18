@@ -50,6 +50,7 @@
 | 26.11.18 | 보스 나무 공격 안 함·곰 머리 구름버섯 데이터·Battle 씬 결과 화면 변경 원인 조사와 수정(플레이 검증 없음) | 접촉 쪽 의심 제시, 플레이 재현 대신 의심 부분 바로 수정 지시, 확인은 직접 | 공격 거리가 피벗 기준이라 반지름 1.5 보스는 캡슐에 막혀 MaxRange 1.4 안에 못 들어옴 → 내 캡슐 표면부터 재도록 수정, 보스 공격 클립 Attack이 애니에 없어 Slam(24프레임)·Reach 2.5로 바꿈. 곰 머리 칸을 구름버섯 모델·깨진 모델·픽업으로 교체. 결과 화면 SlotTemplate이 GridLayoutGroup 자식이라 에디터 레이아웃이 RectTransform을 고쳐 씬 오버라이드가 생김 → 템플릿을 그리드 밖으로 옮기게 셋업 수정(프리팹 재생성은 대장). |
 | 26.11.18 | 송이 시즌 작업 규칙의 참고 문서 표 링크 수정 | `_Else/Rule` 기준으로 맞추라고 지시 | 없는 `참고/` 폴더 링크를 같은 폴더 파일로 바꾸고, 표시는 `_Else/Rule/파일명`으로 적어 에이전트가 루트 기준 경로를 알게 함. |
 | 26.11.18 | Claude 실행 배치파일(ponytail 적용) 작성 | 작성 지시 | ponytail은 전역 settings.json의 `enabledPlugins`(ponytail@ponytail)와 SessionStart 훅으로 이미 켜지므로 별도 플래그 없이 `claude`만 실행하고, README의 `PONYTAIL_DEFAULT_MODE=full`로 레벨만 명시. `tools/claude_start.bat`. |
+| 26.11.18 | 올라타기 수정 검토 → Actor·Terrain 레이어, 맵 프리팹·런타임 생성(MapRoot·MapPrefabBuilder·MapDef.Prefab), 겹침 쿼리를 ActorService.IsBodyNear 거리 비교로 교체, TodoNext 작성 | 레이어 추가, 맵 래핑·생성 구조 결정, 사각형 범위 검색 제안, 버퍼 제거 방식 선택, 커밋 | OverlapCapsule은 기하 연산이 아니라 물리 쿼리이고, 마스크 ~0으로 지형까지 걸려 16칸 버퍼가 차면 옆 캐릭터를 놓칠 수 있었음. 자기 콜라이더를 거르려고 버퍼가 필요해 쿼리째 액터 목록 거리 비교로 바꿈. 맵이 씬에 박혀 있어 고른 지역과 다른 맵이 나올 구조라 BattleService가 MapDef.Prefab으로 생성하게 함. 사각형 검색은 격자 없이는 원 비교와 비용이 같아 보류. 컴파일·플레이 확인 안 함. |
 
 ## 4. 결정된 사안
 
