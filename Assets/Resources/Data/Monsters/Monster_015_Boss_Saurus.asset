@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54ec08d147a321a4fbf388a99b460ef2, type: 3}
+  m_Name: Monster_015_Boss_Saurus
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterDef
+  m_DisplayName: "[\uBCF4\uC2A4] \uBC84\uC6B0\uB974\uC2A4"
+  <ID>k__BackingField: Monster_015_Boss_Saurus
+  <Description>k__BackingField: 
+  <Icon>k__BackingField: {fileID: 0}
+  <MaxHp>k__BackingField: 146
+  <HitStunTime>k__BackingField: 0.1
+  <Hit>k__BackingField: {fileID: 0}
+  <Attack>k__BackingField:
+    <Clip>k__BackingField: Attack
+    <Damage>k__BackingField: 4
+    m_HitFrame: 9
+    <Reach>k__BackingField: 1
+    <Radius>k__BackingField: 0.9
+    <Height>k__BackingField: 0.6
+    <Knockback>k__BackingField: 6
+    <HitStop>k__BackingField: 0.06
+    <Lunge>k__BackingField: 0
+  <MoveSpeed>k__BackingField: 2.55
+  <WanderSpeed>k__BackingField: 1.02
+  <SightRange>k__BackingField: 14
+  <LoseRange>k__BackingField: 19
+  <WanderRadius>k__BackingField: 4
+  <AttackRange>k__BackingField: 1.4
+  <WindupTime>k__BackingField: 0.8
+  <AttackCooldown>k__BackingField: 2
+  <FleeTime>k__BackingField: 0
+  <FleeSpeed>k__BackingField: 4
+  <Prefab>k__BackingField: {fileID: 7988321381554006659, guid: 032a9b9cc047cf745a4f1c05a4d34f9c, type: 3}
+  <ModelName>k__BackingField: Mon_015_Boss_Saurus
+  <BodyHeight>k__BackingField: 5.8
+  <BodyRadius>k__BackingField: 1.75
+  m_ListMushroom:
+  - <SocketName>k__BackingField: Socket_ForelegL
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 5c727db25668ad34b8c2f8c390596016, type: 3}
+    <Scale>k__BackingField: 1.38
+    <Euler>k__BackingField: {x: -1.48, y: 2.81, z: 2.73}
+  - <SocketName>k__BackingField: Socket_ForelegR
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 9196e6d3e40aa4a4b8854c2eb45eea2c, type: 3}
+    <Scale>k__BackingField: 1.38
+    <Euler>k__BackingField: {x: 3.22, y: 0.8, z: 4.75}
+  - <SocketName>k__BackingField: Socket_Head
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 5c727db25668ad34b8c2f8c390596016, type: 3}
+    <Scale>k__BackingField: 1.35
+    <Euler>k__BackingField: {x: 7.02, y: 9.34, z: 9.13}
+  - <SocketName>k__BackingField: Socket_Back1
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 9196e6d3e40aa4a4b8854c2eb45eea2c, type: 3}
+    <Scale>k__BackingField: 1.43
+    <Euler>k__BackingField: {x: 1.66, y: -11.31, z: 1.72}
+  - <SocketName>k__BackingField: Socket_Back2
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 9196e6d3e40aa4a4b8854c2eb45eea2c, type: 3}
+    <Scale>k__BackingField: 1.37
+    <Euler>k__BackingField: {x: -3.53, y: 1.35, z: 3.2}
+  - <SocketName>k__BackingField: Socket_Back3
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 9196e6d3e40aa4a4b8854c2eb45eea2c, type: 3}
+    <Scale>k__BackingField: 1.45
+    <Euler>k__BackingField: {x: -11.43, y: -6.19, z: 10.03}
+  - <SocketName>k__BackingField: Socket_Tail1
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 9196e6d3e40aa4a4b8854c2eb45eea2c, type: 3}
+    <Scale>k__BackingField: 1.37
+    <Euler>k__BackingField: {x: -6.25, y: -0.99, z: -6.02}
+  - <SocketName>k__BackingField: Socket_TailTip
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: a9c956f23fb2bbd488cf1cd6d0aa7b08, type: 3}
+    <Scale>k__BackingField: 1.57
+    <Euler>k__BackingField: {x: -9.97, y: 1.14, z: 5.99}
+  m_ListDrop:
+  - <Pickup>k__BackingField: {fileID: 8573921450686864998, guid: d57fbca48157d5847a8d92de338d6d68, type: 3}
+    <Min>k__BackingField: 4
+    <Max>k__BackingField: 6
+    <Chance>k__BackingField: 1
+  - <Pickup>k__BackingField: {fileID: 2928097537796928298, guid: aa4959c85326e1a44be15773a7715a71, type: 3}
+    <Min>k__BackingField: 2
+    <Max>k__BackingField: 3
+    <Chance>k__BackingField: 1
+  - <Pickup>k__BackingField: {fileID: 6116324105684739401, guid: 8d86c47187962c8478df36aa0c2aeed9, type: 3}
+    <Min>k__BackingField: 2
+    <Max>k__BackingField: 3
+    <Chance>k__BackingField: 1

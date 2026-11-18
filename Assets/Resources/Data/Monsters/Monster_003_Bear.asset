@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54ec08d147a321a4fbf388a99b460ef2, type: 3}
+  m_Name: Monster_003_Bear
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterDef
+  m_DisplayName: "\uBC84\uACF0"
+  <ID>k__BackingField: Monster_003_Bear
+  <Description>k__BackingField: 
+  <Icon>k__BackingField: {fileID: 0}
+  <MaxHp>k__BackingField: 8
+  <HitStunTime>k__BackingField: 0.2
+  <Hit>k__BackingField: {fileID: 0}
+  <Attack>k__BackingField:
+    <Clip>k__BackingField: Attack
+    <Damage>k__BackingField: 2
+    m_HitFrame: 9
+    <Reach>k__BackingField: 1
+    <Radius>k__BackingField: 0.9
+    <Height>k__BackingField: 0.6
+    <Knockback>k__BackingField: 6
+    <HitStop>k__BackingField: 0.06
+    <Lunge>k__BackingField: 0
+  <MoveSpeed>k__BackingField: 2.4
+  <WanderSpeed>k__BackingField: 0.96
+  <SightRange>k__BackingField: 8
+  <LoseRange>k__BackingField: 13
+  <WanderRadius>k__BackingField: 4
+  <AttackRange>k__BackingField: 1.4
+  <WindupTime>k__BackingField: 0.65
+  <AttackCooldown>k__BackingField: 1.7
+  <FleeTime>k__BackingField: 0
+  <FleeSpeed>k__BackingField: 4
+  <Prefab>k__BackingField: {fileID: 2040594486013402949, guid: ffe6329033125b74fa83fa42ecbcdb5a, type: 3}
+  <ModelName>k__BackingField: Mon_003_Bear
+  <BodyHeight>k__BackingField: 1.6
+  <BodyRadius>k__BackingField: 0.5
+  m_ListMushroom:
+  - <SocketName>k__BackingField: Socket_Head
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 627f15b921e6e7a42a2bc072ddde8840, type: 3}
+    <Scale>k__BackingField: 1.29
+    <Euler>k__BackingField: {x: -5.48, y: -3.33, z: 10.82}
+  - <SocketName>k__BackingField: Socket_Back1
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 627f15b921e6e7a42a2bc072ddde8840, type: 3}
+    <Scale>k__BackingField: 1.23
+    <Euler>k__BackingField: {x: 6.73, y: -6.08, z: 8.36}
+  - <SocketName>k__BackingField: Socket_Back2
+    <Model>k__BackingField: {fileID: 0}
+    <Scale>k__BackingField: 1
+    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+  - <SocketName>k__BackingField: Socket_SideL
+    <Model>k__BackingField: {fileID: 0}
+    <Scale>k__BackingField: 1
+    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+  - <SocketName>k__BackingField: Socket_SideR
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 627f15b921e6e7a42a2bc072ddde8840, type: 3}
+    <Scale>k__BackingField: 1.13
+    <Euler>k__BackingField: {x: -11.24, y: 9.71, z: 11.71}
+  m_ListDrop:
+  - <Pickup>k__BackingField: {fileID: 6028424544987752414, guid: d5be80f20fab2784eb8acdcb193826f3, type: 3}
+    <Min>k__BackingField: 2
+    <Max>k__BackingField: 3
+    <Chance>k__BackingField: 1
+  - <Pickup>k__BackingField: {fileID: 4636793933275367326, guid: 1eb9da794de58c440a8daff32af3050c, type: 3}
+    <Min>k__BackingField: 1
+    <Max>k__BackingField: 1
+    <Chance>k__BackingField: 0.5

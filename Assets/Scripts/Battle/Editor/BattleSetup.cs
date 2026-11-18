@@ -23,11 +23,9 @@ public static class BattleSetup
     private const float ModelYaw = 180f;
 
     private const string PlayerPrefabPath = PrefabDir + "Player.prefab";
-    private const string SongiPickupPath = PrefabDir + "Pickup_001_Songi.prefab";
-    private const string CloudPickupPath = PrefabDir + "Pickup_002_Gureum.prefab";
     private const string PlayerDataDir = "Assets/Resources/Data/Player/";
     private const string PlayerDefPath = PlayerDataDir + "Player.asset";
-    private const string RegionDataDir = "Assets/Resources/Data/Regions/";
+    private const string MapDataDir = "Assets/Resources/Data/Maps/";
     private const string HitMaterialDir = "Assets/Resources/" + HitMaterials.ResourceDir;
 
     // ------------------------------------------------
@@ -68,8 +66,7 @@ public static class BattleSetup
         Directory.CreateDirectory(HitMaterialDir);
         BuildHitMaterial(HitMaterials.FlashName);
         BuildHitMaterial(HitMaterials.ChunkName);
-        BuildPickup(SongiPickupPath, "Mush_001_Songi", "Mushroom_001_Songi", false);
-        BuildPickup(CloudPickupPath, "Mush_002_Gureum", "Mushroom_002_Gureum", false);
+        MushroomPickupBuilder.BuildAll(false);
         MonsterPrefabBuilder.BuildAll(false);
         BuildPlayer(playerDef, false);
         if (playerDef.Prefab == null)
@@ -82,24 +79,6 @@ public static class BattleSetup
         DataTools.RefreshDatabase(false);
         CLogger.Log("BattleSetup", "누락 전투 에셋 복구 완료");
         return true;
-    }
-
-    private static MushroomPickup BuildPickup(string path, string modelName, string itemID, bool isForce)
-    {
-        if (File.Exists(path) && isForce == false)
-            return AssetDatabase.LoadAssetAtPath<MushroomPickup>(path);
-
-        GameObject root = new GameObject(Path.GetFileNameWithoutExtension(path));
-        MushroomPickup pickup = root.AddComponent<MushroomPickup>();
-        SetString(pickup, "m_ItemID", itemID);
-
-        GameObject model = InstantiateModel(modelName, root.transform);
-        if (model != null)
-            model.transform.localScale = Vector3.one * 0.8f;
-
-        GameObject saved = PrefabUtility.SaveAsPrefabAsset(root, path);
-        Object.DestroyImmediate(root);
-        return saved.GetComponent<MushroomPickup>();
     }
 
     // 피격 연출용 흰색 Unlit 머티리얼. 조각 색은 MaterialPropertyBlock으로 바꾸므로 인스턴싱을 켠다
@@ -239,8 +218,8 @@ public static class BattleSetup
 
         new GameObject(nameof(BattleHud)).AddComponent<BattleHud>();
         RectTransform popupRoot = UIBuilder.CreateCanvas("BattlePopupCanvas", 110);
-        RegionDef region = AssetDatabase.LoadAssetAtPath<RegionDef>(RegionDataDir + MapName + ".asset");
-        sceneController.EditorSetup(popupRoot, region);
+        MapDef mapDef = AssetDatabase.LoadAssetAtPath<MapDef>(MapDataDir + MapName + ".asset");
+        sceneController.EditorSetup(popupRoot, mapDef);
         sceneController.EditorSetSpawnSlots(CollectSpawnSlots(map));
 
         // 결과 화면(UI 스레드 담당)
@@ -248,7 +227,7 @@ public static class BattleSetup
 
         EditorSceneManager.SaveScene(scene, ScenePath);
         AddToBuildSettings();
-        int slotCount = FindAllByPrefix(map, RegionDef.SpawnSlotPrefix).Count;
+        int slotCount = FindAllByPrefix(map, MapDef.SpawnSlotPrefix).Count;
         CLogger.Log("BattleSetup", $"{ScenePath} 생성. 스폰 슬롯 {slotCount}개");
     }
 
@@ -258,18 +237,18 @@ public static class BattleSetup
     // 맵의 SpawnSlot_NN을 [NN-1] 자리에 담는다. 빠진 번호는 null
     private static Transform[] CollectSpawnSlots(Transform map)
     {
-        List<Transform> listSlot = FindAllByPrefix(map, RegionDef.SpawnSlotPrefix);
+        List<Transform> listSlot = FindAllByPrefix(map, MapDef.SpawnSlotPrefix);
         int maxSlot = 0;
         foreach (Transform t in listSlot)
         {
-            if (RegionDef.TryParseSlot(t.name, out int slot))
+            if (MapDef.TryParseSlot(t.name, out int slot))
                 maxSlot = Mathf.Max(maxSlot, slot);
         }
 
         Transform[] slots = new Transform[maxSlot];
         foreach (Transform t in listSlot)
         {
-            if (RegionDef.TryParseSlot(t.name, out int slot) == false || slot <= 0)
+            if (MapDef.TryParseSlot(t.name, out int slot) == false || slot <= 0)
                 continue;
 
             if (slots[slot - 1] != null)
@@ -293,12 +272,12 @@ public static class BattleSetup
         ground.name = "Ground";
         ground.transform.localScale = new Vector3(6f, 1f, 6f);
 
-        GameObject playerSpawn = new GameObject(RegionDef.GetSlotName(RegionDef.DefaultPlayerSlot));
+        GameObject playerSpawn = new GameObject(MapDef.GetSlotName(MapDef.DefaultPlayerSlot));
         playerSpawn.transform.SetParent(ground.transform, false);
         for (int i = 0; i < 6; i++)
         {
             float angle = i * Mathf.PI * 2f / 6f;
-            GameObject point = new GameObject(RegionDef.GetSlotName(BuggiSlots[i]));
+            GameObject point = new GameObject(MapDef.GetSlotName(BuggiSlots[i]));
             point.transform.position = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * 10f;
             point.transform.SetParent(ground.transform, true);
         }
@@ -326,18 +305,6 @@ public static class BattleSetup
             .FirstOrDefault(p => Path.GetFileNameWithoutExtension(p) == modelName && p.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase));
 
         return path != null ? AssetDatabase.LoadAssetAtPath<GameObject>(path) : null;
-    }
-
-    private static GameObject InstantiateModel(string modelName, Transform parent)
-    {
-        GameObject asset = LoadModel(modelName);
-        if (asset == null)
-        {
-            CLogger.Error("BattleSetup", $"모델이 없습니다: {ModelDir} 아래 {modelName}.fbx");
-            return null;
-        }
-
-        return InstantiateModel(asset, parent);
     }
 
     private static GameObject InstantiateModel(GameObject asset, Transform parent)

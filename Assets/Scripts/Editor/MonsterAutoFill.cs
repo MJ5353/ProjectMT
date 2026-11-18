@@ -74,7 +74,6 @@ public static class MonsterAutoFill
         public float WanderSpeed { get; set; }
         public float SightRange { get; set; }
         public float LoseRange { get; set; }
-        public float KnockbackScale { get; set; }
         public float HitStunTime { get; set; }
         public float WindupTime { get; set; }
         public float AttackCooldown { get; set; }
@@ -218,7 +217,6 @@ public static class MonsterAutoFill
         plan.WanderSpeed = Round(plan.MoveSpeed * table.WanderSpeedRate);
         plan.SightRange = stat.SightRange;
         plan.LoseRange = stat.SightRange + table.LoseRangeAdd;
-        plan.KnockbackScale = stat.KnockbackScale;
         plan.HitStunTime = stat.HitStunTime;
         plan.WindupTime = stat.WindupTime;
         plan.AttackCooldown = stat.AttackCooldown;
@@ -369,7 +367,6 @@ public static class MonsterAutoFill
     private static void ApplyBalance(SerializedObject so, Plan plan)
     {
         Find(so, nameof(UnitDef.MaxHp)).intValue = plan.Hp;
-        Find(so, nameof(UnitDef.KnockbackScale)).floatValue = plan.KnockbackScale;
         Find(so, nameof(UnitDef.HitStunTime)).floatValue = plan.HitStunTime;
         Find(Find(so, nameof(UnitDef.Attack)), nameof(AttackSpec.Damage)).intValue = plan.Damage;
         Find(so, nameof(MonsterDef.MoveSpeed)).floatValue = plan.MoveSpeed;

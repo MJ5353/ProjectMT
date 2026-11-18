@@ -17,3 +17,4 @@
 | 26.11.18 | Region이 들어간 나머지 이름(변수·프로퍼티·폴더 경로·클리어 플래그)을 Map으로 변경 | 남은 Region 이름도 Map으로 바꾸라고 지시 | 직렬화 필드는 FormerlySerializedAs로 에셋·씬 값 유지, #region과 옛 에셋 이름 문자열은 제외. 클리어 플래그는 Clear_ID로 줄이고 세이브 버전 3에서 이전. Data/Regions 폴더는 대장이 Unity에서 Maps로 이름 변경. |
 | 26.11.18 | NamingMigration 제거, 남은 Region 직렬화 이름(씬·밸런스 에셋 키, FormerlySerializedAs) 정리 | 쓸모없는 마이그레이션 삭제와 region 이름 마저 변경 지시 | 에셋·씬 키를 새 이름으로 직접 바꾼 뒤 FormerlySerializedAs 제거. 옛 세이브 이전용 키 문자열과 #region은 유지. |
 | 26.11.18 | 옛 세이브 이전 코드 삭제 | 세이브 초기화 전제로 이전 문자열 삭제 지시 | SaveService의 옛 키 표와 이름 바꾸기 제거, Migrate는 빈 목록 보정만 남김. 버전 3 미만 세이브는 클리어·버섯 키가 안 맞으니 세이브 초기화 필요. |
+| 26.11.18 | 자동 배정 컴파일 오류 수정 | KnockbackScale이 HitDef로 옮겨져 MonsterAutoFill이 깨짐 | HitDef는 여러 유닛이 같이 쓰는 별도 에셋이라 자동 배정이 쓰면 다른 몬스터까지 바뀜. 대장 지시로 자동 배정·밸런스 표·MonsterBalance.asset에서 KnockbackScale 삭제, 넉백은 HitDef 에셋에서만 정함. |

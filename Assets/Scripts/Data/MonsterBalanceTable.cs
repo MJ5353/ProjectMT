@@ -31,9 +31,6 @@ public class MonsterBalanceTable : ScriptableObject
         [field: SerializeField, Tooltip("공격력 배율")]
         public float DamageRate { get; private set; } = 1f;
 
-        [field: SerializeField, Tooltip("넉백 배율. 1이면 그대로, 0이면 안 밀림")]
-        public float KnockbackScale { get; private set; } = 1f;
-
         [field: SerializeField, Tooltip("맞고 굳는 시간(초)")]
         public float HitStunTime { get; private set; } = 0.35f;
 
@@ -71,12 +68,11 @@ public class MonsterBalanceTable : ScriptableObject
 
         public TierStat() { }
 
-        public TierStat(float hpRate, float damageRate, float knockbackScale, float hitStunTime, float moveSpeed, float sightRange,
+        public TierStat(float hpRate, float damageRate,float hitStunTime, float moveSpeed, float sightRange,
             float windupTime, float attackCooldown, int socketMin, int socketMax, Vector2 mushroomScale, int dropMin, int dropMax, float extraDropChance)
         {
             HpRate = hpRate;
             DamageRate = damageRate;
-            KnockbackScale = knockbackScale;
             HitStunTime = hitStunTime;
             MoveSpeed = moveSpeed;
             SightRange = sightRange;
@@ -106,7 +102,7 @@ public class MonsterBalanceTable : ScriptableObject
     public float MapHpRate { get; private set; } = 1.8f;
 
     [field: SerializeField, Tooltip("지역이 하나 뒤로 갈 때마다 공격력 배율")]
-    public float MapDamageRate { get; private set; } = 1.5f;
+    public float MapDamageRate { get; private set; } = 1.4f;
 
     [field: SerializeField, Tooltip("지역이 하나 뒤로 갈 때마다 이동 속도 가산(0.1 = +10%)")]
     public float MapSpeedAdd { get; private set; } = 0.08f;
@@ -129,13 +125,13 @@ public class MonsterBalanceTable : ScriptableObject
 
     // 등급 ---
     [field: SerializeField]
-    public TierStat Normal { get; private set; } = new(1f, 1f, 1f, 0.35f, 3f, 7f, 0.45f, 1.2f, 1, 2, new Vector2(0.6f, 0.9f), 1, 2, 0f);
+    public TierStat Normal { get; private set; } = new(1f, 1f, 0.35f, 3f, 7f, 0.45f, 1.2f, 1, 2, new Vector2(0.6f, 0.9f), 1, 2, 0f);
 
     [field: SerializeField]
-    public TierStat Elite { get; private set; } = new(2.5f, 2f, 0.35f, 0.2f, 2.4f, 8f, 0.65f, 1.7f, 2, 3, new Vector2(0.9f, 1.3f), 2, 3, 0.5f);
+    public TierStat Elite { get; private set; } = new(2.5f, 2f, 0.2f, 2.4f, 8f, 0.65f, 1.7f, 2, 3, new Vector2(0.9f, 1.3f), 2, 3, 0.5f);
 
     [field: SerializeField]
-    public TierStat Boss { get; private set; } = new(15f, 2f, 0f, 0.1f, 2.2f, 14f, 0.8f, 2f, 99, 99, new Vector2(1.2f, 1.6f), 4, 6, 1f);
+    public TierStat Boss { get; private set; } = new(15f, 2f, 0.1f, 2.2f, 14f, 0.8f, 2f, 99, 99, new Vector2(1.2f, 1.6f), 4, 6, 1f);
 
     // ------------------------------------------------
 

@@ -15,7 +15,8 @@ MonoBehaviour:
   m_DisplayName: "\uAD6C\uB984\uBC84\uC12F"
   <ID>k__BackingField: Mushroom_002_Gureum
   <Description>k__BackingField: 
-  <Icon>k__BackingField: {fileID: 21300000, guid: 03895da3bfbdc91489746ba67bff0e46, type: 3}
+  <Icon>k__BackingField: {fileID: 0}
   <DexNo>k__BackingField: 2
   <Rarity>k__BackingField: 0
   <Tint>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
+  <Pickup>k__BackingField: {fileID: 2928097537796928298, guid: aa4959c85326e1a44be15773a7715a71, type: 3}

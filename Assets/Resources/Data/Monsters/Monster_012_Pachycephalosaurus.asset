@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54ec08d147a321a4fbf388a99b460ef2, type: 3}
+  m_Name: Monster_012_Pachycephalosaurus
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterDef
+  m_DisplayName: "\uBC84\uD30C\uD0A4"
+  <ID>k__BackingField: Monster_012_Pachycephalosaurus
+  <Description>k__BackingField: 
+  <Icon>k__BackingField: {fileID: 0}
+  <MaxHp>k__BackingField: 12
+  <HitStunTime>k__BackingField: 0.35
+  <Hit>k__BackingField: {fileID: 0}
+  <Attack>k__BackingField:
+    <Clip>k__BackingField: Attack
+    <Damage>k__BackingField: 2
+    m_HitFrame: 9
+    <Reach>k__BackingField: 1
+    <Radius>k__BackingField: 0.9
+    <Height>k__BackingField: 0.6
+    <Knockback>k__BackingField: 6
+    <HitStop>k__BackingField: 0.06
+    <Lunge>k__BackingField: 0
+  <MoveSpeed>k__BackingField: 3.48
+  <WanderSpeed>k__BackingField: 1.39
+  <SightRange>k__BackingField: 7
+  <LoseRange>k__BackingField: 12
+  <WanderRadius>k__BackingField: 4
+  <AttackRange>k__BackingField: 1.4
+  <WindupTime>k__BackingField: 0.45
+  <AttackCooldown>k__BackingField: 1.2
+  <FleeTime>k__BackingField: 0
+  <FleeSpeed>k__BackingField: 4
+  <Prefab>k__BackingField: {fileID: 4044930645481338447, guid: 44f6e2a986134c34899bf6dd69db4103, type: 3}
+  <ModelName>k__BackingField: Mon_012_Pachycephalosaurus
+  <BodyHeight>k__BackingField: 1.45
+  <BodyRadius>k__BackingField: 0.25
+  m_ListMushroom:
+  - <SocketName>k__BackingField: Socket_Head
+    <Model>k__BackingField: {fileID: 0}
+    <Scale>k__BackingField: 1
+    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+  - <SocketName>k__BackingField: Socket_Back
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 5c727db25668ad34b8c2f8c390596016, type: 3}
+    <Scale>k__BackingField: 0.61
+    <Euler>k__BackingField: {x: -8.98, y: -7.64, z: -1.92}
+  m_ListDrop:
+  - <Pickup>k__BackingField: {fileID: 2928097537796928298, guid: aa4959c85326e1a44be15773a7715a71, type: 3}
+    <Min>k__BackingField: 1
+    <Max>k__BackingField: 2
+    <Chance>k__BackingField: 1

@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52e27e241801659479c930b6b22a1311, type: 3}
+  m_Name: Mushroom_004_Noru
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomDef
+  m_DisplayName: "\uB178\uB8E8\uAD81\uB385\uC774\uBC84\uC12F"
+  <ID>k__BackingField: Mushroom_004_Noru
+  <Description>k__BackingField: 
+  <Icon>k__BackingField: {fileID: 0}
+  <DexNo>k__BackingField: 4
+  <Rarity>k__BackingField: 0
+  <Tint>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
+  <Pickup>k__BackingField: {fileID: 6028424544987752414, guid: d5be80f20fab2784eb8acdcb193826f3, type: 3}

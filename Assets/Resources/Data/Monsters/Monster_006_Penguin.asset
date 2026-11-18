@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54ec08d147a321a4fbf388a99b460ef2, type: 3}
+  m_Name: Monster_006_Penguin
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterDef
+  m_DisplayName: "\uBC84\uADC4"
+  <ID>k__BackingField: Monster_006_Penguin
+  <Description>k__BackingField: 
+  <Icon>k__BackingField: {fileID: 0}
+  <MaxHp>k__BackingField: 5
+  <HitStunTime>k__BackingField: 0.35
+  <Hit>k__BackingField: {fileID: 0}
+  <Attack>k__BackingField:
+    <Clip>k__BackingField: Attack
+    <Damage>k__BackingField: 1
+    m_HitFrame: 9
+    <Reach>k__BackingField: 1
+    <Radius>k__BackingField: 0.9
+    <Height>k__BackingField: 0.6
+    <Knockback>k__BackingField: 6
+    <HitStop>k__BackingField: 0.06
+    <Lunge>k__BackingField: 0
+  <MoveSpeed>k__BackingField: 3.24
+  <WanderSpeed>k__BackingField: 1.3
+  <SightRange>k__BackingField: 7
+  <LoseRange>k__BackingField: 12
+  <WanderRadius>k__BackingField: 4
+  <AttackRange>k__BackingField: 1.4
+  <WindupTime>k__BackingField: 0.45
+  <AttackCooldown>k__BackingField: 1.2
+  <FleeTime>k__BackingField: 0
+  <FleeSpeed>k__BackingField: 4
+  <Prefab>k__BackingField: {fileID: 1033579112734878169, guid: 050c74332923dfe4ea4f447fafdbaf4a, type: 3}
+  <ModelName>k__BackingField: Mon_006_Penguin
+  <BodyHeight>k__BackingField: 1.0500001
+  <BodyRadius>k__BackingField: 0.2
+  m_ListMushroom:
+  - <SocketName>k__BackingField: Socket_Head
+    <Model>k__BackingField: {fileID: 0}
+    <Scale>k__BackingField: 1
+    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+  - <SocketName>k__BackingField: Socket_Back
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 881e42cda7a9b51479e41bfb1cbbe2a3, type: 3}
+    <Scale>k__BackingField: 0.79
+    <Euler>k__BackingField: {x: 4.1, y: -10.05, z: -2.12}
+  m_ListDrop:
+  - <Pickup>k__BackingField: {fileID: 118531751412590121, guid: 1a41e685feb70ae4598e846d9b8e63a5, type: 3}
+    <Min>k__BackingField: 1
+    <Max>k__BackingField: 2
+    <Chance>k__BackingField: 1

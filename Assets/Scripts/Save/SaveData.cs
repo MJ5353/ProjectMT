@@ -9,7 +9,7 @@ using System.Collections.Generic;
 [Serializable]
 public class SaveData
 {
-    public const int CurrentVersion = 3;     // 2: 26.11.18 명명 규칙으로 바뀐 ID 이전, 3: 클리어 플래그 Region_Clear_ → Clear_
+    public const int CurrentVersion = 3;     // 3: 26.11.18 명명 규칙 적용. 이전 버전 세이브는 이전하지 않음(초기화)
 
     public int version = CurrentVersion;
     public List<ItemStack> items = new();

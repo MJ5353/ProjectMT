@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54ec08d147a321a4fbf388a99b460ef2, type: 3}
+  m_Name: Monster_001_Rabbit
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterDef
+  m_DisplayName: "\uBC84\uB07C"
+  <ID>k__BackingField: Monster_001_Rabbit
+  <Description>k__BackingField: 
+  <Icon>k__BackingField: {fileID: 0}
+  <MaxHp>k__BackingField: 3
+  <HitStunTime>k__BackingField: 0.35
+  <Hit>k__BackingField: {fileID: 0}
+  <Attack>k__BackingField:
+    <Clip>k__BackingField: Attack
+    <Damage>k__BackingField: 1
+    m_HitFrame: 9
+    <Reach>k__BackingField: 1
+    <Radius>k__BackingField: 0.9
+    <Height>k__BackingField: 0.6
+    <Knockback>k__BackingField: 6
+    <HitStop>k__BackingField: 0.06
+    <Lunge>k__BackingField: 0
+  <MoveSpeed>k__BackingField: 3
+  <WanderSpeed>k__BackingField: 1.2
+  <SightRange>k__BackingField: 7
+  <LoseRange>k__BackingField: 12
+  <WanderRadius>k__BackingField: 4
+  <AttackRange>k__BackingField: 1.4
+  <WindupTime>k__BackingField: 0.45
+  <AttackCooldown>k__BackingField: 1.2
+  <FleeTime>k__BackingField: 0
+  <FleeSpeed>k__BackingField: 4
+  <Prefab>k__BackingField: {fileID: 3763329728629620724, guid: 6552d34b46dda8a4fa7bb25f02d7748c, type: 3}
+  <ModelName>k__BackingField: Mon_001_Rabbit
+  <BodyHeight>k__BackingField: 1.1
+  <BodyRadius>k__BackingField: 0.2
+  m_ListMushroom:
+  - <SocketName>k__BackingField: Socket_Head
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
+    <Scale>k__BackingField: 0.73
+    <Euler>k__BackingField: {x: -5, y: -5.7, z: -3.71}
+  - <SocketName>k__BackingField: Socket_Back
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
+    <Scale>k__BackingField: 0.64
+    <Euler>k__BackingField: {x: 1.92, y: 11.04, z: -3.92}
+  m_ListDrop:
+  - <Pickup>k__BackingField: {fileID: 4636793933275367326, guid: 1eb9da794de58c440a8daff32af3050c, type: 3}
+    <Min>k__BackingField: 1
+    <Max>k__BackingField: 2
+    <Chance>k__BackingField: 1

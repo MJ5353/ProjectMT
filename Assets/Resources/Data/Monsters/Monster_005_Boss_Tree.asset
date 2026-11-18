@@ -12,18 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54ec08d147a321a4fbf388a99b460ef2, type: 3}
   m_Name: Monster_005_Boss_Tree
   m_EditorClassIdentifier: Assembly-CSharp::MonsterDef
-  m_DisplayName: "\uB098\uBB34"
+  m_DisplayName: "[\uBCF4\uC2A4] \uBC84\uBAA9"
   <ID>k__BackingField: Monster_005_Boss_Tree
   <Description>k__BackingField: 
   <Icon>k__BackingField: {fileID: 0}
-  <MaxHp>k__BackingField: 3
-  <KnockbackScale>k__BackingField: 1
-  <HitStunTime>k__BackingField: 0.35
-  <InvincibleTime>k__BackingField: 0
-  <ChunkColor>k__BackingField: {r: 0.85, g: 0.75, b: 0.6, a: 1}
+  <MaxHp>k__BackingField: 45
+  <HitStunTime>k__BackingField: 0.1
+  <Hit>k__BackingField: {fileID: 0}
   <Attack>k__BackingField:
     <Clip>k__BackingField: Attack
-    <Damage>k__BackingField: 1
+    <Damage>k__BackingField: 2
     m_HitFrame: 9
     <Reach>k__BackingField: 1
     <Radius>k__BackingField: 0.9
@@ -31,14 +29,14 @@ MonoBehaviour:
     <Knockback>k__BackingField: 6
     <HitStop>k__BackingField: 0.06
     <Lunge>k__BackingField: 0
-  <MoveSpeed>k__BackingField: 3
-  <WanderSpeed>k__BackingField: 1.2
-  <SightRange>k__BackingField: 7
-  <LoseRange>k__BackingField: 12
+  <MoveSpeed>k__BackingField: 2.2
+  <WanderSpeed>k__BackingField: 0.88
+  <SightRange>k__BackingField: 14
+  <LoseRange>k__BackingField: 19
   <WanderRadius>k__BackingField: 4
   <AttackRange>k__BackingField: 1.4
-  <WindupTime>k__BackingField: 0.45
-  <AttackCooldown>k__BackingField: 1.2
+  <WindupTime>k__BackingField: 0.8
+  <AttackCooldown>k__BackingField: 2
   <FleeTime>k__BackingField: 0
   <FleeSpeed>k__BackingField: 4
   <Prefab>k__BackingField: {fileID: 3321796980609354128, guid: fb4c0120730a40b49b4efe3a6672e3f9, type: 3}
@@ -47,39 +45,51 @@ MonoBehaviour:
   <BodyRadius>k__BackingField: 1.5
   m_ListMushroom:
   - <SocketName>k__BackingField: Socket_ForearmL
-    <Model>k__BackingField: {fileID: 0}
-    <Scale>k__BackingField: 1
-    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
+    <Scale>k__BackingField: 1.25
+    <Euler>k__BackingField: {x: 1.35, y: -6.92, z: 6.88}
   - <SocketName>k__BackingField: Socket_ForearmR
-    <Model>k__BackingField: {fileID: 0}
-    <Scale>k__BackingField: 1
-    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
+    <Scale>k__BackingField: 1.28
+    <Euler>k__BackingField: {x: 2.09, y: -9.79, z: 5.07}
   - <SocketName>k__BackingField: Socket_Crown
-    <Model>k__BackingField: {fileID: 0}
-    <Scale>k__BackingField: 1
-    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
+    <Scale>k__BackingField: 1.44
+    <Euler>k__BackingField: {x: -2.62, y: 5.3, z: -6.5}
   - <SocketName>k__BackingField: Socket_Back
-    <Model>k__BackingField: {fileID: 0}
-    <Scale>k__BackingField: 1
-    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 627f15b921e6e7a42a2bc072ddde8840, type: 3}
+    <Scale>k__BackingField: 1.46
+    <Euler>k__BackingField: {x: 9.82, y: 1.74, z: 9.08}
   - <SocketName>k__BackingField: Socket_ShoulderL
-    <Model>k__BackingField: {fileID: 0}
-    <Scale>k__BackingField: 1
-    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
+    <Scale>k__BackingField: 1.59
+    <Euler>k__BackingField: {x: 11.9, y: -8.93, z: -10.55}
   - <SocketName>k__BackingField: Socket_ShoulderR
-    <Model>k__BackingField: {fileID: 0}
-    <Scale>k__BackingField: 1
-    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
+    <Scale>k__BackingField: 1.35
+    <Euler>k__BackingField: {x: 9.38, y: 0.9, z: 4.04}
   - <SocketName>k__BackingField: Socket_TrunkL
-    <Model>k__BackingField: {fileID: 0}
-    <Scale>k__BackingField: 1
-    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
+    <Scale>k__BackingField: 1.24
+    <Euler>k__BackingField: {x: 4.9, y: 1.87, z: -4.03}
   - <SocketName>k__BackingField: Socket_TrunkR
-    <Model>k__BackingField: {fileID: 0}
-    <Scale>k__BackingField: 1
-    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 33d5e5e40cbd5374b97af9cfcc9de2b3, type: 3}
+    <Scale>k__BackingField: 1.41
+    <Euler>k__BackingField: {x: 5.23, y: 2.3, z: -0.35}
   - <SocketName>k__BackingField: Socket_RootBL
-    <Model>k__BackingField: {fileID: 0}
-    <Scale>k__BackingField: 1
-    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
-  m_ListDrop: []
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
+    <Scale>k__BackingField: 1.26
+    <Euler>k__BackingField: {x: -4.48, y: 0.21, z: -2.47}
+  m_ListDrop:
+  - <Pickup>k__BackingField: {fileID: 4636793933275367326, guid: 1eb9da794de58c440a8daff32af3050c, type: 3}
+    <Min>k__BackingField: 4
+    <Max>k__BackingField: 6
+    <Chance>k__BackingField: 1
+  - <Pickup>k__BackingField: {fileID: 8360666463547286274, guid: 25e1f7617935f0e4b9e36c4444342fa6, type: 3}
+    <Min>k__BackingField: 2
+    <Max>k__BackingField: 3
+    <Chance>k__BackingField: 1
+  - <Pickup>k__BackingField: {fileID: 6028424544987752414, guid: d5be80f20fab2784eb8acdcb193826f3, type: 3}
+    <Min>k__BackingField: 2
+    <Max>k__BackingField: 3
+    <Chance>k__BackingField: 1
