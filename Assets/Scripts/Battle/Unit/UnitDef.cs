@@ -60,6 +60,7 @@ public abstract class UnitDef : DataDef
     {
         results.Clear();
         results.AddRange(ListAttack);
+        
         foreach (SkillDef skill in ListSkill)
         {
             if (skill != null)

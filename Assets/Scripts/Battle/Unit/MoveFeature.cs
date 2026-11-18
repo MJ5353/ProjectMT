@@ -12,12 +12,13 @@ public class MoveFeature : UnitFeature
     private const float ImpulseDamping = 9f; // 넉백이 줄어드는 빠르기
     private const float ActorContactMargin = 0.2f; // [mj] todo) 임시값. 다른 캐릭터 캡슐과 이 거리 안이면 계단 오르기를 끈다
 
-    // readonly
     private readonly CharacterController m_Controller;
     private readonly Transform m_Transform;
     private readonly float m_StepOffset; // 프리팹의 계단 높이
     private readonly float m_TurnSpeed; // 초당 회전 각도(UnitDef.TurnSpeed)
 
+    // runtime ---
+    
     private Vector3 m_Desired;
     private Vector3 m_Impulse;
     private float m_VerticalSpeed;
@@ -50,6 +51,7 @@ public class MoveFeature : UnitFeature
             return;
 
         // 씬 로드 직후 같은 긴 프레임에 한 번에 크게 떨어지지 않게 자른다
+        // [mj] todo) 게임 플레이에 지장이 있을까? 확인 필요
         deltaTime = Mathf.Min(deltaTime, MaxDeltaTime);
         if (deltaTime <= 0f)
             return;

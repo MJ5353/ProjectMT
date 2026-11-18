@@ -8,7 +8,6 @@ public class AnimFeature : UnitFeature
 {
     private const float DefaultFade = 0.08f;
     private const float UnknownLength = 0.5f;   // 클립이 없을 때 돌려주는 길이
-
     private readonly Animator m_Animator;
     private readonly Dictionary<string, float> m_DicLength = new();
     

@@ -69,18 +69,19 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         Health.Died += OnDied;
     }
 
-    // 수명 주기를 함께 돌릴 부품 등록. 등록 순서대로 실행
     protected T AddFeature<T>(T feature) where T : UnitFeature
     {
+        // 수명 주기를 함께 돌릴 부품 등록. 등록 순서대로 실행
         m_ListFeature.Add(feature);
         return feature;
     }
-
+    
     protected virtual void OnDisable()
     {
         HitFeature?.RestoreFlash();
     }
 
+    // [mj] todo) 이거 왜 update 이벤트 그대로 쓰고있지? 개편 필요
     private void Update()
     {
         float deltaTime = Time.deltaTime;
@@ -111,9 +112,9 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         }
     }
     
-    // ActorFactory가 풀에서 꺼낸 직후. 처음 상태로 되돌린다
     public void OnSpawn(int actorID)
     {
+        // ActorFactory가 풀에서 꺼낸 직후. 처음 상태로 되돌린다
         if (m_ListFeature.Count == 0)
             Set();
 
@@ -128,9 +129,9 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         OnSpawned();
     }
 
-    // 풀로 돌아가기 직전
     public void OnDespawn()
     {
+        // 풀로 돌아가기 직전
         ActorID = 0;
         foreach (var feature in m_ListFeature)
         {
@@ -138,17 +139,8 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         }
     }
 
-    // 부위 뼈. 없으면 null
-    public Transform GetBattleBone(EBattlePartType part)
-    {
-        return m_DicBattleBone.TryGetValue(part, out Transform bone) ? bone : null;
-    }
-
-    public Transform GetMushroomBone(EMushroomPartType part)
-    {
-        return m_DicMushroomBone.TryGetValue(part, out Transform bone) ? bone : null;
-    }
-
+    // hit shape ---
+    
     // 뼈 판정 모양 추가. 감싸는 반지름은 지금(Set 시점) 자세 기준
     // shortcut: 애니로 뼈가 HitBoundMargin보다 멀리 뻗으면 후보에서 빠진다. 그러면 매 프레임 재계산으로 바꾼다
     protected void AddHitShape(HitShape shape)
@@ -182,6 +174,18 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         return listAttack;
     }
 
+    // get ---
+
+    public Transform GetBattleBone(EBattlePartType part)
+    {
+        return m_DicBattleBone.TryGetValue(part, out Transform bone) ? bone : null;
+    }
+
+    public Transform GetMushroomBone(EMushroomPartType part)
+    {
+        return m_DicMushroomBone.TryGetValue(part, out Transform bone) ? bone : null;
+    }
+    
     // ==================================================
 
     // virtual ---
@@ -190,6 +194,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     protected virtual void OnBattleEnded()
     {
         Anim.SetSpeed(1f);
+        
         if (IsDead == false)
             Anim.Play("Idle");
     }
