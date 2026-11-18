@@ -24,9 +24,6 @@ public class MonsterController : UnitController<MonsterDef>
     private readonly StateMachine<EMonsterState> m_Fsm = new();
     private readonly List<AttackSpec> m_ListAttackChoice = new(); // 고를 수 있는 공격: Def.ListSkill
     private readonly List<float> m_ListAttackCooldown = new();  // m_ListAttackChoice 칸마다 남은 개별 쿨
-    private readonly List<PartFeature> m_ListPart = new();      // [i] = Def.ListPart 칸. 버섯이 없는 칸은 null
-    private readonly HashSet<Transform> m_SetUsedSocket = new(); // 스폰 때 버섯 배치용
-    private readonly List<Transform> m_ListSocketPick = new();
     private const float PartDropUpSpeed = 5f;     // 부위 버섯이 튀어 오르는 속도
     private const float PartDropSpread = 2f;      // 부위 버섯이 옆으로 퍼지는 속도
 
@@ -38,7 +35,7 @@ public class MonsterController : UnitController<MonsterDef>
     
     public EMonsterState State => m_Fsm.Current;
     public float TimeInState => m_Fsm.TimeInState;
-    public IReadOnlyList<PartFeature> ListPart => m_ListPart;
+    public PartFeature Parts { get; private set; }             // 몸에 꽂힌 버섯 부위
     protected override ETeam Team => ETeam.Monster;
 
     // ------------------------------------------------
@@ -81,7 +78,6 @@ public class MonsterController : UnitController<MonsterDef>
             m_ListAttackCooldown[i] = 0f;
         }
 
-        PlaceMushrooms();
         m_Fsm.Change(EMonsterState.Idle);
     }
 
@@ -220,89 +216,16 @@ public class MonsterController : UnitController<MonsterDef>
         }
     }
 
-    // 부위마다 버섯 모델을 최대 개수만큼 미리 만든다. 맞은 부위만 번쩍이도록 부위 번호와 함께 렌더러를 넘긴다
+    // 버섯 부위. 스폰 때 PartFeature가 소켓을 골라 꽂는다
     private void AttachMushrooms()
     {
-        IReadOnlyList<MonsterDef.PartEntry> listEntry = Def.ListPart;
-        for (int i = 0; i < listEntry.Count; i++)
-        {
-            m_ListPart.Add(CreatePart(i, listEntry[i]));
-        }
-
-        HitFeature.SetParts(m_ListPart);
-    }
-
-    private PartFeature CreatePart(int index, MonsterDef.PartEntry entry)
-    {
-        if (entry.Model == null || entry.CountMax <= 0)
-            return null;
-
-        PartFeature part = AddFeature(new PartFeature(this, index, entry));
-        for (int i = 0; i < entry.CountMax; i++)
-        {
-            Renderer normal = Instantiate(entry.Model, transform);
-            Renderer broken = entry.BrokenModel != null ? Instantiate(entry.BrokenModel, transform) : null;
-            HitFeature.AddFlashRenderer(normal, index);
-            HitFeature.AddFlashRenderer(broken, index);
-            part.AddMushroom(normal, broken);
-        }
-
-        part.Broken += OnPartBroken;
-        return part;
-    }
-
-    // 스폰마다 부위별로 소켓을 새로 골라 버섯을 꽂는다. 깨지는 부위 먼저, 장식(None)은 남은 소켓 어디든
-    private void PlaceMushrooms()
-    {
-        m_SetUsedSocket.Clear();
-        foreach (PartFeature part in m_ListPart)
-        {
-            if (part != null && part.Entry.BattlePart != EBattlePartType.None)
-                PlacePart(part);
-        }
-
-        foreach (PartFeature part in m_ListPart)
-        {
-            if (part != null && part.Entry.BattlePart == EBattlePartType.None)
-                PlacePart(part);
-        }
-    }
-
-    private void PlacePart(PartFeature part)
-    {
-        // 장식(None)이나 부위 소켓이 없는 칸(Hitbox 뼈가 없는 잡몹)은 몸 어디든
-        m_ListSocketPick.Clear();
-        UnitProperty.BonePart bonePart = Property.GetBonePart(part.Entry.BattlePart);
-        if (bonePart != null && bonePart.ListSocket.Count > 0)
-        {
-            m_ListSocketPick.AddRange(bonePart.ListSocket);
-        }
-        else
-        {
-            foreach (UnitProperty.BonePart candidate in Property.ListBonePart)
-            {
-                m_ListSocketPick.AddRange(candidate.ListSocket);
-            }
-        }
-
-        m_ListSocketPick.RemoveAll(socket => socket == null || m_SetUsedSocket.Contains(socket));
-
-        // 앞에서부터 count개를 무작위로 뽑아 채운다(부분 셔플)
-        int count = Mathf.Min(Random.Range(part.Entry.CountMin, part.Entry.CountMax + 1), m_ListSocketPick.Count);
-        for (int i = 0; i < count; i++)
-        {
-            int pick = Random.Range(i, m_ListSocketPick.Count);
-            (m_ListSocketPick[i], m_ListSocketPick[pick]) = (m_ListSocketPick[pick], m_ListSocketPick[i]);
-        }
-
-        m_ListSocketPick.RemoveRange(count, m_ListSocketPick.Count - count);
-
-        m_SetUsedSocket.UnionWith(m_ListSocketPick);
-        part.Place(m_ListSocketPick);
+        Parts = AddFeature(new PartFeature(this, Def.ListPart, Property, HitFeature));
+        Parts.Broken += OnPartBroken;
+        HitFeature.SetParts(Parts);
     }
 
     // 살아 있을 때 깬 버섯은 상급으로 확정 드랍. 꽂힌 버섯 하나마다 하나. 휘청·다운 전환은 보스 상태(6번)에서 붙인다
-    private void OnPartBroken(PartFeature part)
+    private void OnPartBroken(PartFeature.Part part)
     {
         if (part.Entry.Drop == null)
             return;
@@ -356,7 +279,7 @@ public class MonsterController : UnitController<MonsterDef>
             if (bone == null || shapeDef == null)
                 continue;
 
-            PartFeature part = i < m_ListPart.Count ? m_ListPart[i] : null;
+            PartFeature.Part part = Parts?.GetPart(i);
             Gizmos.color = part != null && part.IsBroken ? Color.red : Color.green;
             new HitShape(bone, shapeDef, i).GetSegment(out Vector3 start, out Vector3 end);
             Gizmos.DrawWireSphere(start, shapeDef.Radius);

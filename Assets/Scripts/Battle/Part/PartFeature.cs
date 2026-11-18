@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 // ==================================================
 
-// 몸 부위 하나(MonsterDef.PartEntry)와 거기 꽂힌 버섯들. 내구도가 0이 되면 버섯이 같이 깨진 모델로 바뀌고,
-// 재생 시간 뒤 작게 다시 돋아 원래 크기로 자란다.
-// 버섯 모델은 Set에서 최대 개수만큼 미리 만들어 두고, 스폰마다 Place로 소켓을 다시 골라 옮긴다(풀이 필요 없다)
+// 몸에 꽂힌 버섯 부위 전부(MonsterDef.ListPart). 유닛당 하나.
+// 버섯 모델은 만들 때 부위마다 최대 개수만큼 미리 만들어 두고, 스폰(Reset)마다 소켓을 다시 골라 옮긴다(풀이 필요 없다).
+// 부위 내구도가 0이 되면 꽂힌 버섯이 같이 깨진 모델로 바뀌고, 재생 시간 뒤 작게 다시 돋아 원래 크기로 자란다
 
 public class PartFeature : UnitFeature
 {
@@ -57,136 +58,260 @@ public class PartFeature : UnitFeature
         }
     }
 
-    public int Index { get; } // MonsterDef.ListPart 칸 번호 = HitParams.PartIndex
-    public MonsterDef.PartEntry Entry { get; }
-    public IReadOnlyList<Mushroom> ListMushroom => m_ListMushroom;
-    public int PlacedCount => m_PlacedCount; // 이번 스폰에 꽂힌 버섯 수(ListMushroom 앞에서부터)
-    public int Durability { get; private set; }
-    public bool IsBroken { get; private set; }
-    public bool CanBreak => Entry.IsBreakable && IsBroken == false && m_GrowRemain <= 0f && m_PlacedCount > 0;
+    // 부위 하나(MonsterDef.PartEntry)의 상태와 꽂힌 버섯들
+    public class Part
+    {
+        public readonly int Index; // MonsterDef.ListPart 칸 번호 = HitParams.PartIndex
+        public readonly MonsterDef.PartEntry Entry;
+        public IReadOnlyList<Mushroom> ListMushroom => m_ListMushroom;
+        public int PlacedCount { get; private set; } // 이번 스폰에 꽂힌 버섯 수(ListMushroom 앞에서부터)
+        public int Durability { get; private set; }
+        public bool IsBroken { get; private set; }
+        public bool CanBreak => Entry.IsBreakable && IsBroken == false && m_GrowRemain <= 0f && PlacedCount > 0;
 
-    private readonly List<Mushroom> m_ListMushroom = new();
+        private readonly List<Mushroom> m_ListMushroom = new();
+        private float m_RegenRemain;
+        private float m_GrowRemain;  // 자라는 중에는 깨지지 않는다
 
-    // runtime ---
+        // ------------------------------------------------
 
-    private int m_PlacedCount;   // 이번 스폰에 꽂힌 버섯 수(앞에서부터)
-    private float m_RegenRemain;
-    private float m_GrowRemain;  // 자라는 중에는 깨지지 않는다
+        public Part(int index, MonsterDef.PartEntry entry)
+        {
+            Index = index;
+            Entry = entry;
+        }
 
-    public event Action<PartFeature> Broken;
+        public void AddMushroom(Renderer normal, Renderer broken)
+        {
+            m_ListMushroom.Add(new Mushroom(normal, broken));
+        }
+
+        public void Reset()
+        {
+            IsBroken = false;
+            Durability = Entry.Durability;
+            m_RegenRemain = 0f;
+            m_GrowRemain = 0f;
+        }
+
+        // 고른 소켓에 앞에서부터 꽂는다. 남는 버섯은 숨긴다
+        public void Place(IReadOnlyList<Transform> listSocket)
+        {
+            PlacedCount = Mathf.Min(listSocket.Count, m_ListMushroom.Count);
+            for (int i = 0; i < m_ListMushroom.Count; i++)
+            {
+                Mushroom mushroom = m_ListMushroom[i];
+                if (i >= PlacedCount)
+                {
+                    mushroom.Detach();
+                    continue;
+                }
+
+                float tilt = Entry.TiltMax;
+                Quaternion rotation = Quaternion.Euler(Random.Range(-tilt, tilt), Random.Range(-180f, 180f), Random.Range(-tilt, tilt));
+                float scale = Random.Range(Entry.ScaleRange.x, Entry.ScaleRange.y);
+                mushroom.Attach(listSocket[i], rotation, scale);
+            }
+
+            SetBrokenModel(false);
+        }
+
+        public void Tick(float deltaTime)
+        {
+            if (m_GrowRemain > 0f)
+                UpdateGrow(deltaTime);
+
+            if (IsBroken == false || Entry.RegenTime <= 0f)
+                return;
+
+            m_RegenRemain -= deltaTime;
+            if (m_RegenRemain <= 0f)
+                Regrow();
+        }
+
+        // 내구도를 깎는다. 이번에 깨졌으면 true
+        public bool TakeDamage(int damage)
+        {
+            Durability = Mathf.Max(0, Durability - damage);
+            if (Durability > 0)
+                return false;
+
+            IsBroken = true;
+            m_RegenRemain = Entry.RegenTime;
+            SetBrokenModel(true);
+            return true;
+        }
+
+        private void Regrow()
+        {
+            IsBroken = false;
+            Durability = Entry.Durability;
+            m_GrowRemain = RegrowTime;
+
+            SetNormalScale(RegrowStartScale);
+            SetBrokenModel(false);
+        }
+
+        private void UpdateGrow(float deltaTime)
+        {
+            m_GrowRemain = Mathf.Max(0f, m_GrowRemain - deltaTime);
+
+            float t = 1f - m_GrowRemain / RegrowTime;
+            SetNormalScale(Mathf.Lerp(RegrowStartScale, 1f, t));
+        }
+
+        private void SetNormalScale(float rate)
+        {
+            for (int i = 0; i < PlacedCount; i++)
+            {
+                Mushroom mushroom = m_ListMushroom[i];
+                mushroom.Normal.transform.localScale = mushroom.NormalScale * rate;
+            }
+        }
+
+        private void SetBrokenModel(bool isBroken)
+        {
+            for (int i = 0; i < PlacedCount; i++)
+            {
+                Mushroom mushroom = m_ListMushroom[i];
+                mushroom.Normal.gameObject.SetActive(isBroken == false);
+                if (mushroom.Broken != null)
+                    mushroom.Broken.gameObject.SetActive(isBroken);
+            }
+        }
+    }
+
+    private readonly UnitProperty m_Property;
+    private readonly List<Part> m_ListPart = new();               // [i] = MonsterDef.ListPart 칸. 버섯이 없는 칸은 null
+    private readonly HashSet<Transform> m_SetUsedSocket = new();  // 스폰 때 버섯 배치용
+    private readonly List<Transform> m_ListSocketPick = new();
+
+    public IReadOnlyList<Part> ListPart => m_ListPart;
+
+    public event Action<Part> Broken;
 
     // ------------------------------------------------
 
-    public PartFeature(IActor owner, int index, MonsterDef.PartEntry entry) : base(owner)
+    // 부위마다 버섯 모델을 최대 개수만큼 미리 만든다. 맞은 부위만 번쩍이도록 부위 번호와 함께 렌더러를 넘긴다
+    public PartFeature(IActor owner, IReadOnlyList<MonsterDef.PartEntry> listEntry, UnitProperty property, HitFeature hitFeature) : base(owner)
     {
-        Index = index;
-        Entry = entry;
+        m_Property = property;
+        for (int i = 0; i < listEntry.Count; i++)
+        {
+            m_ListPart.Add(CreatePart(i, listEntry[i], owner.transform, hitFeature));
+        }
     }
 
-    public void AddMushroom(Renderer normal, Renderer broken)
-    {
-        m_ListMushroom.Add(new Mushroom(normal, broken));
-    }
-
-    // 풀에서 다시 꺼낼 때 원상복구. 버섯 위치는 주인이 Place로 다시 고른다
+    // 풀에서 다시 꺼낼 때 원상복구하고 소켓을 새로 골라 꽂는다
     public override void Reset()
     {
-        IsBroken = false;
-        Durability = Entry.Durability;
-        m_RegenRemain = 0f;
-        m_GrowRemain = 0f;
-    }
-
-    // 고른 소켓에 앞에서부터 꽂는다. 남는 버섯은 숨긴다
-    public void Place(IReadOnlyList<Transform> listSocket)
-    {
-        m_PlacedCount = Mathf.Min(listSocket.Count, m_ListMushroom.Count);
-        for (int i = 0; i < m_ListMushroom.Count; i++)
+        foreach (Part part in m_ListPart)
         {
-            Mushroom mushroom = m_ListMushroom[i];
-            if (i >= m_PlacedCount)
-            {
-                mushroom.Detach();
-                continue;
-            }
-
-            float tilt = Entry.TiltMax;
-            Quaternion rotation = Quaternion.Euler(Random.Range(-tilt, tilt), Random.Range(-180f, 180f), Random.Range(-tilt, tilt));
-            float scale = Random.Range(Entry.ScaleRange.x, Entry.ScaleRange.y);
-            mushroom.Attach(listSocket[i], rotation, scale);
+            part?.Reset();
         }
 
-        SetBrokenModel(false);
+        PlaceMushrooms();
     }
 
     public override void Tick(float deltaTime)
     {
-        if (m_GrowRemain > 0f)
-            UpdateGrow(deltaTime);
-
-        if (IsBroken == false || Entry.RegenTime <= 0f)
-            return;
-
-        m_RegenRemain -= deltaTime;
-        if (m_RegenRemain > 0f)
-            return;
-
-        Regrow();
+        foreach (Part part in m_ListPart)
+        {
+            part?.Tick(deltaTime);
+        }
     }
 
-    public void TakeDamage(int damage)
+    // 맞은 부위가 깰 수 있으면 내구도를 깎고 본체 피해 배율을 넘긴다. 못 깨면 false(몸으로 친다)
+    public bool TryHit(int index, int damage, out float bodyDamageRate)
     {
-        if (CanBreak == false)
-            return;
+        bodyDamageRate = 1f;
+        
+        Part part = GetPart(index);
+        if (part == null || part.CanBreak == false)
+            return false;
 
-        Durability = Mathf.Max(0, Durability - damage);
-        if (Durability > 0)
-            return;
+        bodyDamageRate = part.Entry.BodyDamageRate;
+        
+        if (part.TakeDamage(damage))
+            Broken?.Invoke(part);
 
-        IsBroken = true;
-        m_RegenRemain = Entry.RegenTime;
+        return true;
+    }
 
-        SetBrokenModel(true);
-        Broken?.Invoke(this);
+    public Part GetPart(int index)
+    {
+        return index >= 0 && index < m_ListPart.Count ? m_ListPart[index] : null;
     }
 
     // ==================================================
 
-    private void Regrow()
+    private static Part CreatePart(int index, MonsterDef.PartEntry entry, Transform parent, HitFeature hitFeature)
     {
-        IsBroken = false;
-        Durability = Entry.Durability;
-        m_GrowRemain = RegrowTime;
+        if (entry.Model == null || entry.CountMax <= 0)
+            return null;
 
-        SetNormalScale(RegrowStartScale);
-        SetBrokenModel(false);
-    }
-
-    private void UpdateGrow(float deltaTime)
-    {
-        m_GrowRemain = Mathf.Max(0f, m_GrowRemain - deltaTime);
-
-        float t = 1f - m_GrowRemain / RegrowTime;
-        SetNormalScale(Mathf.Lerp(RegrowStartScale, 1f, t));
-    }
-
-    private void SetNormalScale(float rate)
-    {
-        for (int i = 0; i < m_PlacedCount; i++)
+        Part part = new Part(index, entry);
+        for (int i = 0; i < entry.CountMax; i++)
         {
-            Mushroom mushroom = m_ListMushroom[i];
-            mushroom.Normal.transform.localScale = mushroom.NormalScale * rate;
+            Renderer normal = Object.Instantiate(entry.Model, parent);
+            Renderer broken = entry.BrokenModel != null ? Object.Instantiate(entry.BrokenModel, parent) : null;
+
+            hitFeature.AddFlashRenderer(normal, index);
+            hitFeature.AddFlashRenderer(broken, index);
+            part.AddMushroom(normal, broken);
+        }
+
+        return part;
+    }
+
+    // 깨지는 부위 먼저, 장식(None)은 남은 소켓 어디든
+    private void PlaceMushrooms()
+    {
+        m_SetUsedSocket.Clear();
+        
+        foreach (Part part in m_ListPart)
+        {
+            if (part != null && part.Entry.BattlePart != EBattlePartType.None)
+                PlacePart(part);
+        }
+
+        foreach (Part part in m_ListPart)
+        {
+            if (part != null && part.Entry.BattlePart == EBattlePartType.None)
+                PlacePart(part);
         }
     }
 
-    private void SetBrokenModel(bool isBroken)
+    private void PlacePart(Part part)
     {
-        for (int i = 0; i < m_PlacedCount; i++)
+        // 장식(None)이나 부위 소켓이 없는 칸(Hitbox 뼈가 없는 잡몹)은 몸 어디든
+        m_ListSocketPick.Clear();
+        
+        UnitProperty.BonePart bonePart = m_Property.GetBonePart(part.Entry.BattlePart);
+        if (bonePart != null && bonePart.ListSocket.Count > 0)
         {
-            Mushroom mushroom = m_ListMushroom[i];
-            mushroom.Normal.gameObject.SetActive(isBroken == false);
-            if (mushroom.Broken != null)
-                mushroom.Broken.gameObject.SetActive(isBroken);
+            m_ListSocketPick.AddRange(bonePart.ListSocket);
         }
+        else
+        {
+            foreach (UnitProperty.BonePart candidate in m_Property.ListBonePart)
+            {
+                m_ListSocketPick.AddRange(candidate.ListSocket);
+            }
+        }
+
+        m_ListSocketPick.RemoveAll(socket => socket == null || m_SetUsedSocket.Contains(socket));
+
+        // 앞에서부터 count개를 무작위로 뽑아 채운다(부분 셔플)
+        int count = Mathf.Min(Random.Range(part.Entry.CountMin, part.Entry.CountMax + 1), m_ListSocketPick.Count);
+        for (int i = 0; i < count; i++)
+        {
+            int pick = Random.Range(i, m_ListSocketPick.Count);
+            (m_ListSocketPick[i], m_ListSocketPick[pick]) = (m_ListSocketPick[pick], m_ListSocketPick[i]);
+        }
+
+        m_ListSocketPick.RemoveRange(count, m_ListSocketPick.Count - count);
+        m_SetUsedSocket.UnionWith(m_ListSocketPick);
+        part.Place(m_ListSocketPick);
     }
 }

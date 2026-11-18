@@ -26,9 +26,7 @@ public class HitFeature : UnitFeature
     private static MaterialPropertyBlock s_FlashBlock; // 번쩍 색. 같은 흰 머티리얼에 색만 얹는다
 
     // 부위 ---
-    // [mj] todo) 이거 굳이 list 써야함? 하나로 합치고 내부에서 list 관리하면 안되는지 검토
-    // [i] = MonsterDef.ListPart 칸. 버섯이 없는 칸은 null
-    private IReadOnlyList<PartFeature> m_ListPart = null;
+    private PartFeature m_Parts = null; // 버섯 부위가 있는 유닛(몬스터)만
 
     // flag ---
     private float m_InvincibleRemain;
@@ -103,13 +101,10 @@ public class HitFeature : UnitFeature
         
         int bodyDamage = hit.Damage;
         int partIndex = -1;
-        PartFeature part = GetPart(hit.PartIndex);
-
-        if (part != null && part.CanBreak)
+        if (m_Parts != null && m_Parts.TryHit(hit.PartIndex, hit.Damage, out float bodyDamageRate))
         {
             partIndex = hit.PartIndex;
-            part.TakeDamage(hit.Damage);
-            bodyDamage = Mathf.RoundToInt(hit.Damage * part.Entry.BodyDamageRate);
+            bodyDamage = Mathf.RoundToInt(hit.Damage * bodyDamageRate);
         }
 
         m_Health.TakeDamage(bodyDamage);
@@ -123,9 +118,9 @@ public class HitFeature : UnitFeature
         return true;
     }
 
-    public void SetParts(IReadOnlyList<PartFeature> listPart)
+    public void SetParts(PartFeature parts)
     {
-        m_ListPart = listPart;
+        m_Parts = parts;
     }
 
     // 번쩍 ---
@@ -202,14 +197,6 @@ public class HitFeature : UnitFeature
         }
 
         m_FlashRemain = m_HitDef.FlashTime;
-    }
-
-    private PartFeature GetPart(int partIndex)
-    {
-        if (m_ListPart == null || partIndex < 0 || partIndex >= m_ListPart.Count)
-            return null;
-
-        return m_ListPart[partIndex];
     }
 
     private void ApplyHitStop(in HitParams hit)
