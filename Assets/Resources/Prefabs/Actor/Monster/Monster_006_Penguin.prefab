@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5111552252561222226}
   - component: {fileID: 9138551838898102146}
   - component: {fileID: 1033579112734878169}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Monster_006_Penguin
   m_TagString: Untagged
   m_Icon: {fileID: 0}

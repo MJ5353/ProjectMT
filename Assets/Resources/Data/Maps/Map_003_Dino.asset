@@ -25,6 +25,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c8574fd4a7aa3ae40ae6e81d0e6971d9, type: 2}
   - {fileID: 11400000, guid: 0632adb5f8ca8234c9e5716a915c646c, type: 2}
   <PlayerSlot>k__BackingField: 1
+  <Prefab>k__BackingField: {fileID: 1985923242283213487, guid: a742c273e66353342990ae81cdcdb63d, type: 3}
   m_ListSpawn:
   - <Slot>k__BackingField: 2
     <Monster>k__BackingField: {fileID: 11400000, guid: 76c59206fd92447439b2afa70442f16b, type: 2}

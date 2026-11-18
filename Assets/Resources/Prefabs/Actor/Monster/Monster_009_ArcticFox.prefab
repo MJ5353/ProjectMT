@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2371240291231348542}
   - component: {fileID: 2213069635439086650}
   - component: {fileID: 5275136551062244193}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Monster_009_ArcticFox
   m_TagString: Untagged
   m_Icon: {fileID: 0}

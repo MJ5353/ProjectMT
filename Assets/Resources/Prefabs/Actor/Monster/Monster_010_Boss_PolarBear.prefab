@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3533349858045659606}
   - component: {fileID: 3330452623794701083}
   - component: {fileID: 8657307171887573610}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Monster_010_Boss_PolarBear
   m_TagString: Untagged
   m_Icon: {fileID: 0}

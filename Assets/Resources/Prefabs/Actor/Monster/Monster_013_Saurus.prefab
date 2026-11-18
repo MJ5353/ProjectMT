@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2335342178369030757}
   - component: {fileID: 7983793434658949430}
   - component: {fileID: 6238945651430959062}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Monster_013_Saurus
   m_TagString: Untagged
   m_Icon: {fileID: 0}

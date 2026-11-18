@@ -39,7 +39,7 @@ public sealed class BattleService : ServiceBase
     private const int GoalKillCount = 10; // 이만큼 잡으면 승리 (보스가 들어오기 전 임시 조건)
     private const string DefaultPlayerID = "Player";
 
-    private readonly Transform[] m_SpawnSlots; // [i] = SpawnSlot_{i+1}. SceneController가 넘겨준다
+    private Transform[] m_SpawnSlots; // [i] = SpawnSlot_{i+1}. 생성한 맵에서 받는다
     private readonly Dictionary<string, int> m_DicLoot = new();
     private readonly List<SpawnState> m_ListSpawn = new();
 
@@ -57,10 +57,9 @@ public sealed class BattleService : ServiceBase
 
     // ------------------------------------------------
 
-    public BattleService(MapDef mapDef, Transform[] spawnSlots)
+    public BattleService(MapDef mapDef)
     {
         Map = mapDef;
-        m_SpawnSlots = spawnSlots;
     }
 
     public override void Tick(float deltaTime)
@@ -76,6 +75,7 @@ public sealed class BattleService : ServiceBase
 
     public override void Init()
     {
+        SpawnMap();
         SpawnPlayer();
         
         if (m_PlayerController != null && m_PlayerController.Health != null)
@@ -121,6 +121,7 @@ public sealed class BattleService : ServiceBase
         m_ListSpawn.Clear();
         m_DicLoot.Clear();
         m_PlayerController = null;
+        m_SpawnSlots = null; // 맵 오브젝트는 씬과 함께 사라진다
     }
 
     public void Retry() => GameManager.Instance?.RetryBattle();
@@ -135,7 +136,20 @@ public sealed class BattleService : ServiceBase
     }
 
     #region Spawn
-    
+
+    // 지역 맵을 만든다. 씬은 Single로 불러서 지금 씬에 들어간다
+    private void SpawnMap()
+    {
+        if (Map == null || Map.Prefab == null)
+        {
+            CLogger.Warning("BattleService", "MapDef에 맵 프리팹이 없습니다. 누락 전투 에셋 복구를 실행하세요.");
+            return;
+        }
+
+        MapRoot map = UnityEngine.Object.Instantiate(Map.Prefab);
+        m_SpawnSlots = map.SpawnSlots;
+    }
+
     private void SpawnPlayer()
     {
         PlayerDef playerDef = GameManager.Instance.Database?.Get<PlayerDef>(DefaultPlayerID);

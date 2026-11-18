@@ -42,7 +42,7 @@ public class GameManager : MonoSingleton<GameManager>
 
     // ------------------------------------------------
 
-    internal void InitSceneServices(Scene scene, MapDef defaultMap, Transform[] spawnSlots)
+    internal void InitSceneServices(Scene scene, MapDef defaultMap)
     {
         if (m_ServiceScene == scene)
             return;
@@ -65,7 +65,7 @@ public class GameManager : MonoSingleton<GameManager>
             Actors = Register(new ActorService());
             Chunks = Register(new ChunkBurstService());
             HitStop = Register(new HitStopService());
-            Battle = Register(new BattleService(mapDef, spawnSlots));
+            Battle = Register(new BattleService(mapDef));
         }
 
         Popup = Register(new PopupService());

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6562936206198138980}
   - component: {fileID: 435178834070498449}
   - component: {fileID: 8086556070094950349}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Monster_014_Triceratops
   m_TagString: Untagged
   m_Icon: {fileID: 0}

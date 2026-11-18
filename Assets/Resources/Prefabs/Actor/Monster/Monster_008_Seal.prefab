@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1999566455597227617}
   - component: {fileID: 7002958856550585383}
   - component: {fileID: 7609976951471837491}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Monster_008_Seal
   m_TagString: Untagged
   m_Icon: {fileID: 0}

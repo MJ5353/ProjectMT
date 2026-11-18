@@ -19,6 +19,7 @@ public class MoveFeature : UnitFeature
     private readonly CharacterController m_Controller;
     private readonly Transform m_Transform;
     private readonly float m_StepOffset; // 프리팹의 계단 높이
+    private readonly int m_ActorMask; // 다른 캐릭터만 찾는다(지형까지 걸리면 비용이 크고 버퍼가 찬다)
 
     private Vector3 m_Desired;
     private Vector3 m_Impulse;
@@ -34,6 +35,7 @@ public class MoveFeature : UnitFeature
         m_Controller = controller;
         m_Transform = owner.transform;
         m_StepOffset = controller.stepOffset;
+        m_ActorMask = LayerMask.GetMask(GameLayers.Actor);
     }
 
     // 풀에서 다시 꺼낼 때. 속도를 비우고 충돌을 다시 켠다
@@ -123,7 +125,7 @@ public class MoveFeature : UnitFeature
         Vector3 center = m_Transform.TransformPoint(m_Controller.center);
         Vector3 axis = m_Transform.up * halfAxis;
 
-        int count = Physics.OverlapCapsuleNonAlloc(center - axis, center + axis, radius, s_OverlapBuffer, ~0, QueryTriggerInteraction.Ignore);
+        int count = Physics.OverlapCapsuleNonAlloc(center - axis, center + axis, radius, s_OverlapBuffer, m_ActorMask, QueryTriggerInteraction.Ignore);
         for (int i = 0; i < count; i++)
         {
             if (s_OverlapBuffer[i] is CharacterController other && other != m_Controller)

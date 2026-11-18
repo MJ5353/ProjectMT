@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3911269640473186783}
   - component: {fileID: 3971685447781270571}
   - component: {fileID: 4044930645481338447}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Monster_012_Pachycephalosaurus
   m_TagString: Untagged
   m_Icon: {fileID: 0}

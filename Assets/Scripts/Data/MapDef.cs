@@ -49,6 +49,9 @@ public class MapDef : DataDef
     [field: SerializeField, Tooltip("플레이어가 시작할 맵 슬롯 번호")]
     public int PlayerSlot { get; private set; } = DefaultPlayerSlot;
 
+    [field: SerializeField, Tooltip("전투 때 생성할 맵. MapPrefabBuilder가 채운다")]
+    public MapRoot Prefab { get; private set; } = null;
+
     [SerializeField]
     private List<SpawnEntry> m_ListSpawn = new();
 
@@ -72,6 +75,8 @@ public class MapDef : DataDef
 
 #if UNITY_EDITOR
     public void EditorSetSpawns(List<SpawnEntry> listSpawn) => m_ListSpawn = listSpawn;
+
+    public void EditorSetPrefab(MapRoot prefab) => Prefab = prefab;
 
     public void EditorSetup(int order, MapDef requireMap, Vector2 mapPosition, List<MushroomDef> listMushroom)
     {

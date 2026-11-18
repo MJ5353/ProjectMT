@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3113205262260264311}
   - component: {fileID: 3886455994162152012}
   - component: {fileID: 3321796980609354128}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Monster_005_Boss_Tree
   m_TagString: Untagged
   m_Icon: {fileID: 0}

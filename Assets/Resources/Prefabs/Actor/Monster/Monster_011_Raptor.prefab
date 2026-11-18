@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 273740855762204339}
   - component: {fileID: 7693766365527386197}
   - component: {fileID: 7286287158611388334}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Monster_011_Raptor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
