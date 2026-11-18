@@ -32,7 +32,7 @@ public class MonsterDef : UnitDef
         public int Durability { get; private set; } = 0;                  // 부위 내구도. 0이면 안 깨지는 장식
 
         [field: SerializeField]
-        public float HitRadius { get; private set; } = 0f;                // 부위 판정 구 반지름(m). 0이면 판정 없음
+        public EBattlePartType BattlePart { get; private set; } = EBattlePartType.None; // 이 몸 부위(ListBodyShape)가 맞으면 이 버섯 내구도가 깎임. None이면 판정 없음
 
         [field: SerializeField]
         public float BodyDamageScale { get; private set; } = 1f;          // 이 부위를 때릴 때 본체에 들어가는 피해 배율(구름 갑옷은 1 미만). 0 이하면 1

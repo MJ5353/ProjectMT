@@ -232,14 +232,9 @@ public readonly struct ActorHitCandidate
         return isHit;
     }
 
+    // 몸 판정 표가 있으면 캡슐 대신 그것만 쓴다(버섯이 걸린 몸 부위도 몸 판정 표다)
     private bool HasBodyShape()
     {
-        foreach (HitShape shape in Actor.ListHitShape)
-        {
-            if (shape.PartIndex < 0)
-                return true;
-        }
-
-        return false;
+        return Actor.ListHitShape.Count > 0;
     }
 }

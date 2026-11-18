@@ -35,15 +35,6 @@ public readonly struct HitShape
         PartIndex = partIndex;
     }
 
-    // 부위(버섯) 판정 구
-    public HitShape(Transform bone, float radius, int partIndex)
-    {
-        Bone = bone;
-        Radius = radius;
-        Length = 0f;
-        PartIndex = partIndex;
-    }
-
     // 캡슐 양 끝(월드). 뼈 위치가 가운데. 구면 둘이 같다
     public void GetSegment(out Vector3 start, out Vector3 end)
     {

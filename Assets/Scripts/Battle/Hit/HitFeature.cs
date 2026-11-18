@@ -95,16 +95,19 @@ public class HitFeature : UnitFeature
             return false;
 
         // 부위를 맞으면 부위 내구도와 본체 체력이 함께 깎인다. 본체 쪽은 부위의 몸 피해 배율을 곱한다
+        // 깨졌거나 자라는 중이거나 장식인 부위는 몸으로 친다(번쩍도 몸)
         int bodyDamage = hit.Damage;
+        int partIndex = -1;
         PartFeature part = GetPart(hit.PartIndex);
-        if (part != null)
+        if (part != null && part.CanBreak)
         {
+            partIndex = hit.PartIndex;
             part.TakeDamage(hit.Damage);
             bodyDamage = Mathf.RoundToInt(hit.Damage * part.Socket.BodyDamageRate);
         }
 
         m_Health.TakeDamage(bodyDamage);
-        ApplyReactions(hit);
+        ApplyReactions(hit, partIndex);
 
         if (m_HitDef != null)
             m_InvincibleRemain = m_HitDef.InvincibleTime;
@@ -150,7 +153,7 @@ public class HitFeature : UnitFeature
 
     // 반응---
 
-    private void ApplyReactions(in HitParams hit)
+    private void ApplyReactions(in HitParams hit, int partIndex)
     {
         if (m_HitDef == null)
             return;
@@ -159,7 +162,7 @@ public class HitFeature : UnitFeature
             ApplyKnockback(hit);
 
         if (m_HitDef.Has(EHitReaction.Flash))
-            ApplyFlash(hit.PartIndex);
+            ApplyFlash(partIndex);
 
         if (m_HitDef.Has(EHitReaction.HitStop))
             ApplyHitStop(hit);

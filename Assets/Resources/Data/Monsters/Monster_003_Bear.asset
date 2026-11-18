@@ -44,7 +44,7 @@ MonoBehaviour:
     <Euler>k__BackingField: {x: 0.91, y: 10.67, z: -0.12}
     <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: a5c663a890fc48949a4770b9feb2d6a8, type: 3}
     <Durability>k__BackingField: 3
-    <HitRadius>k__BackingField: 0.35
+    <BattlePart>k__BackingField: 2
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 8
     <Drop>k__BackingField: {fileID: 2928097537796928298, guid: aa4959c85326e1a44be15773a7715a71, type: 3}

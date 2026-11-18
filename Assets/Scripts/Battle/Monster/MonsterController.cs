@@ -219,7 +219,7 @@ public class MonsterController : UnitController<MonsterDef>
         return distance >= attack.MinRange && distance <= attack.MaxRange;
     }
 
-    // 몸 판정 표의 부위 뼈로 판정 모양을 등록한다
+    // 몸 판정 표의 부위 뼈로 판정 모양을 등록한다. 버섯 칸이 걸린 부위는 그 칸 번호를 달아 부위 판정이 된다
     private void AddBodyShapes()
     {
         foreach (HitShapeDef shapeDef in Def.ListBodyShape)
@@ -231,8 +231,25 @@ public class MonsterController : UnitController<MonsterDef>
                 continue;
             }
 
-            AddHitShape(new HitShape(bone, shapeDef, -1));
+            AddHitShape(new HitShape(bone, shapeDef, FindPartIndex(shapeDef.Part)));
         }
+    }
+
+    // 이 몸 부위를 BattlePart로 가진 깨지는 버섯 칸. 없으면 -1
+    // shortcut: 한 몸 부위에 깨지는 버섯이 여럿이면 첫 칸만 깎인다. 여럿이 필요해지면 칸 목록으로 바꾼다
+    private int FindPartIndex(EBattlePartType battlePart)
+    {
+        if (battlePart == EBattlePartType.None)
+            return -1;
+
+        IReadOnlyList<MonsterDef.MushroomSocket> listSocket = Def.ListMushroom;
+        for (int i = 0; i < listSocket.Count; i++)
+        {
+            if (listSocket[i].BattlePart == battlePart && listSocket[i].IsBreakable)
+                return i;
+        }
+
+        return -1;
     }
 
     // 씬 뷰에 몸 판정 모양(구·캡슐)과 부위 판정 구를 그린다. 선이 뼈 축 방향
@@ -287,9 +304,6 @@ public class MonsterController : UnitController<MonsterDef>
         HitFeature.AddFlashRenderer(normal, index);
         HitFeature.AddFlashRenderer(broken, index);
 
-        if (socket.HitRadius > 0f)
-            AddHitShape(new HitShape(bone, socket.HitRadius, index));
-
         PartFeature part = AddFeature(new PartFeature(this, index, socket, bone, normal, broken));
         part.Broken += OnPartBroken;
         return part;
@@ -315,26 +329,44 @@ public class MonsterController : UnitController<MonsterDef>
         pickup.Launch(new Vector3(spread.x, PartDropUpSpeed, spread.y), IsDead ? EFreshness.Low : EFreshness.High);
     }
 
-    // 부위 판정 구. 플레이 중이면 상태별 색(초록 멀쩡, 빨강 깨짐, 회색 장식)과 남은 내구도
+    // 버섯 칸이 걸린 몸 판정 모양 위에 상태색(초록 멀쩡, 빨강 깨짐, 회색 장식)과 남은 내구도를 그린다
     private void DrawPartGizmos()
     {
         IReadOnlyList<MonsterDef.MushroomSocket> listSocket = Def.ListMushroom;
         for (int i = 0; i < listSocket.Count; i++)
         {
             MonsterDef.MushroomSocket socket = listSocket[i];
-            Transform bone = GetMushroomBone(socket.Part);
-            if (bone == null || socket.HitRadius <= 0f)
+            if (socket.BattlePart == EBattlePartType.None)
+                continue;
+
+            Transform bone = GetBattleBone(socket.BattlePart);
+            HitShapeDef shapeDef = FindBodyShape(socket.BattlePart);
+            if (bone == null || shapeDef == null)
                 continue;
 
             PartFeature part = i < m_ListPart.Count ? m_ListPart[i] : null;
             Gizmos.color = GetPartGizmoColor(socket, part);
-            Gizmos.DrawWireSphere(bone.position, socket.HitRadius);
+            new HitShape(bone, shapeDef, i).GetSegment(out Vector3 start, out Vector3 end);
+            Gizmos.DrawWireSphere(start, shapeDef.Radius);
+            Gizmos.DrawWireSphere(end, shapeDef.Radius);
+            Gizmos.DrawLine(start, end);
 
 #if UNITY_EDITOR
             string durability = part != null ? $"{part.Durability}/{socket.Durability}" : $"{socket.Durability}";
-            UnityEditor.Handles.Label(bone.position + Vector3.up * socket.HitRadius, $"{i}:{socket.Part} {durability}");
+            UnityEditor.Handles.Label(end + Vector3.up * shapeDef.Radius, $"{i}:{socket.Part}→{socket.BattlePart} {durability}");
 #endif
         }
+    }
+
+    private HitShapeDef FindBodyShape(EBattlePartType battlePart)
+    {
+        foreach (HitShapeDef shapeDef in Def.ListBodyShape)
+        {
+            if (shapeDef.Part == battlePart)
+                return shapeDef;
+        }
+
+        return null;
     }
 
     private static Color GetPartGizmoColor(MonsterDef.MushroomSocket socket, PartFeature part)

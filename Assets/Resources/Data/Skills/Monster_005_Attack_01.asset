@@ -23,7 +23,7 @@ MonoBehaviour:
     m_HitFrame: 24
     <HitEndFrame>k__BackingField: 0
     <Reach>k__BackingField: 2.5
-    <Radius>k__BackingField: 0.9
+    <Radius>k__BackingField: 1.2
     <Height>k__BackingField: 0.6
     <Knockback>k__BackingField: 6
     <HitStop>k__BackingField: 0.06
@@ -31,7 +31,7 @@ MonoBehaviour:
     <ActiveMoveSpeed>k__BackingField: 0
     <HitPart>k__BackingField: 0
     <MinRange>k__BackingField: 0
-    <MaxRange>k__BackingField: 1.4
+    <MaxRange>k__BackingField: 1.5
     <Cooldown>k__BackingField: 0
     <Weight>k__BackingField: 1
-    <WindupTime>k__BackingField: 0.8
+    <WindupTime>k__BackingField: 0
