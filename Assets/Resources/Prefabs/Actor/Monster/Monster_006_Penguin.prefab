@@ -76,7 +76,12 @@ MonoBehaviour:
   <Animator>k__BackingField: {fileID: 2838786461876077647}
   <ListBodyRenderer>k__BackingField:
   - {fileID: 8491492894617295285}
-  <ListBonePart>k__BackingField: []
+  <ListBonePart>k__BackingField:
+  - <Part>k__BackingField: 0
+    <Bone>k__BackingField: {fileID: 0}
+    <ListSocket>k__BackingField:
+    - {fileID: 7804237019786079544}
+    - {fileID: 1142968165617092142}
 --- !u!114 &1033579112734878169
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -151,6 +156,16 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2838786461876077647}
   m_SourcePrefab: {fileID: 100100000, guid: 4a984734624f1cc4fb806487bc7e23f8, type: 3}
+--- !u!4 &1142968165617092142 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -613956632461624762, guid: 4a984734624f1cc4fb806487bc7e23f8, type: 3}
+  m_PrefabInstance: {fileID: 8693753571122805864}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7804237019786079544 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -7716826739870822064, guid: 4a984734624f1cc4fb806487bc7e23f8, type: 3}
+  m_PrefabInstance: {fileID: 8693753571122805864}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &8387676259987210553 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 4a984734624f1cc4fb806487bc7e23f8, type: 3}

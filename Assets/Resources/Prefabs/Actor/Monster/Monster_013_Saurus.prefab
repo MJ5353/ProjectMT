@@ -76,7 +76,15 @@ MonoBehaviour:
   <Animator>k__BackingField: {fileID: 1273278913441033952}
   <ListBodyRenderer>k__BackingField:
   - {fileID: 6824999510592327436}
-  <ListBonePart>k__BackingField: []
+  <ListBonePart>k__BackingField:
+  - <Part>k__BackingField: 0
+    <Bone>k__BackingField: {fileID: 0}
+    <ListSocket>k__BackingField:
+    - {fileID: 2667071994855255777}
+    - {fileID: 3191931315046867900}
+    - {fileID: 260389313841218529}
+    - {fileID: 3163957748408261145}
+    - {fileID: 3184656936421991795}
 --- !u!114 &6238945651430959062
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -151,6 +159,31 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1273278913441033952}
   m_SourcePrefab: {fileID: 100100000, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}
+--- !u!4 &260389313841218529 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -82128158492150036, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}
+  m_PrefabInstance: {fileID: 9025546171595420941}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2667071994855255777 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6359779443412147180, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}
+  m_PrefabInstance: {fileID: 9025546171595420941}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3163957748408261145 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6244676992112586516, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}
+  m_PrefabInstance: {fileID: 9025546171595420941}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3184656936421991795 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5869037969867690110, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}
+  m_PrefabInstance: {fileID: 9025546171595420941}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3191931315046867900 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -3383000522439747919, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}
+  m_PrefabInstance: {fileID: 9025546171595420941}
+  m_PrefabAsset: {fileID: 0}
 --- !u!137 &6824999510592327436 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: 2591375770241137153, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}

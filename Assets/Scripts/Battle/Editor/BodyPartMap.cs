@@ -48,7 +48,8 @@ public static class BodyPartMap
         Collect(root, HitboxPrefix, s_DicBattlePart, dicBone, context);
     }
 
-    // 부위마다 판정 뼈와 소켓 목록. Socket_* 뼈는 가장 가까운 Hitbox_* 뼈의 부위에 넣는다(이름순)
+    // 부위마다 판정 뼈와 소켓 목록. Socket_* 뼈는 가장 가까운 Hitbox_* 뼈의 부위에 넣는다(이름순).
+    // Hitbox 뼈가 없는 모델(잡몹)은 소켓을 부위 None 칸 하나에 모은다
     public static List<UnitProperty.BonePart> CollectBoneParts(Transform root, Object context)
     {
         Dictionary<EBattlePartType, Transform> dicBone = new();
@@ -63,15 +64,22 @@ public static class BodyPartMap
         IEnumerable<Transform> sockets = root.GetComponentsInChildren<Transform>(true)
             .Where(bone => bone.name.StartsWith(SocketPrefix))
             .OrderBy(bone => bone.name, StringComparer.Ordinal);
+        List<UnitProperty.BonePart> listHitbox = new(listBonePart);
+        UnitProperty.BonePart noneBonePart = null;
         foreach (Transform socket in sockets)
         {
-            UnitProperty.BonePart nearest = listBonePart
+            UnitProperty.BonePart nearest = listHitbox
                 .OrderBy(bonePart => (bonePart.Bone.position - socket.position).sqrMagnitude)
                 .FirstOrDefault();
             if (nearest == null)
             {
-                CLogger.Warning("BodyPartMap", $"Hitbox 뼈가 없어 소켓을 넣을 부위가 없음: {socket.name} ({root.name})", context);
-                continue;
+                if (noneBonePart == null)
+                {
+                    noneBonePart = new UnitProperty.BonePart(EBattlePartType.None, null);
+                    listBonePart.Add(noneBonePart);
+                }
+
+                nearest = noneBonePart;
             }
 
             nearest.ListSocket.Add(socket);

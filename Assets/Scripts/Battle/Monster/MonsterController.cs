@@ -270,19 +270,19 @@ public class MonsterController : UnitController<MonsterDef>
 
     private void PlacePart(PartFeature part)
     {
+        // 장식(None)이나 부위 소켓이 없는 칸(Hitbox 뼈가 없는 잡몹)은 몸 어디든
         m_ListSocketPick.Clear();
-        if (part.Entry.BattlePart == EBattlePartType.None)
+        UnitProperty.BonePart bonePart = Property.GetBonePart(part.Entry.BattlePart);
+        if (bonePart != null && bonePart.ListSocket.Count > 0)
         {
-            foreach (UnitProperty.BonePart bonePart in Property.ListBonePart)
-            {
-                m_ListSocketPick.AddRange(bonePart.ListSocket);
-            }
+            m_ListSocketPick.AddRange(bonePart.ListSocket);
         }
         else
         {
-            UnitProperty.BonePart bonePart = Property.GetBonePart(part.Entry.BattlePart);
-            if (bonePart != null)
-                m_ListSocketPick.AddRange(bonePart.ListSocket);
+            foreach (UnitProperty.BonePart candidate in Property.ListBonePart)
+            {
+                m_ListSocketPick.AddRange(candidate.ListSocket);
+            }
         }
 
         m_ListSocketPick.RemoveAll(socket => socket == null || m_SetUsedSocket.Contains(socket));
