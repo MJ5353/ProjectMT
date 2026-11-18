@@ -25,19 +25,23 @@ public class HitFeature : UnitFeature
     private static readonly int s_BaseColorID = Shader.PropertyToID("_BaseColor");
     private static MaterialPropertyBlock s_FlashBlock; // 번쩍 색. 같은 흰 머티리얼에 색만 얹는다
 
-    // 부위 --- [i] = MonsterDef.ListMushroom 칸. 부위가 없는 칸은 null
+    // 부위 ---
+    // [mj] todo) 이거 굳이 list 써야함? 하나로 합치고 내부에서 list 관리하면 안되는지 검토
+    // [i] = MonsterDef.ListMushroom 칸. 부위가 없는 칸은 null
     private IReadOnlyList<PartFeature> m_ListPart = null;
 
-    // flag
+    // flag ---
     private float m_InvincibleRemain;
     private float m_FlashRemain;
 
+    // hit ---
+    public event Action<HitParams> Hit;
+    
+    // get ---
     public ETeam Team => m_Team;
     public bool IsDead => m_Health.IsDead;
     public bool IsInvincible => m_InvincibleRemain > 0f;
     public override bool IsUnscaledTime => true;
-
-    public event Action<HitParams> Hit;
 
     // ------------------------------------------------
 
@@ -96,9 +100,11 @@ public class HitFeature : UnitFeature
 
         // 부위를 맞으면 부위 내구도와 본체 체력이 함께 깎인다. 본체 쪽은 부위의 몸 피해 배율을 곱한다
         // 깨졌거나 자라는 중이거나 장식인 부위는 몸으로 친다(번쩍도 몸)
+        
         int bodyDamage = hit.Damage;
         int partIndex = -1;
         PartFeature part = GetPart(hit.PartIndex);
+
         if (part != null && part.CanBreak)
         {
             partIndex = hit.PartIndex;
@@ -122,7 +128,7 @@ public class HitFeature : UnitFeature
         m_ListPart = listPart;
     }
 
-    // 번쩍 렌더러---
+    // 번쩍 ---
 
     // 몸에 꽂은 버섯처럼 나중에 붙인 렌더러를 더한다. 부위 렌더러는 그 부위를 맞았을 때만 번쩍인다
     public void AddFlashRenderer(Renderer meshRenderer, int partIndex = -1)
@@ -148,8 +154,6 @@ public class HitFeature : UnitFeature
             m_ListFlashRenderer[i].SetPropertyBlock(null);
         }
     }
-
-    // ==================================================
 
     // 반응---
 

@@ -5,6 +5,7 @@ using UnityEngine.Serialization;
 // ==================================================
 
 // 근접 공격 한 종류의 수치. 판정 프레임은 tools/voxel/README.md의 애니 표(30fps)를 따른다.
+// [mj] todo) remove?
 
 [Serializable]
 public class AttackSpec

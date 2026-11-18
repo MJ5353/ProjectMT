@@ -12,6 +12,7 @@ public class MeleeAttackFeature : UnitFeature
     private readonly HashSet<IHitTarget> m_SetHit = new(); // 이번 공격에 이미 맞은 대상
     private readonly IReadOnlyDictionary<EBattlePartType, Transform> m_DicBattleBone; // 주인 프리팹의 부위 뼈
 
+    // [mj] todo) remove?
     public AttackSpec Spec => m_Spec;
     private AttackSpec m_Spec;
     
@@ -102,8 +103,6 @@ public class MeleeAttackFeature : UnitFeature
         return Perform(m_Spec);
     }
 
-    // ==================================================
-
     private int Perform(AttackSpec spec)
     {
         Transform owner = Owner.transform;
@@ -113,6 +112,7 @@ public class MeleeAttackFeature : UnitFeature
             return 0;
 
         m_DicBattleBone.TryGetValue(spec.HitPart, out Transform bone);
+
         Vector3 center = GetCenter(owner, spec, bone);
         ETeam team = Owner.HitFeature.Team;
         actors.CollectNearbyEnemies(center, spec.Radius, team, m_ListCandidate);
