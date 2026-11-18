@@ -154,7 +154,7 @@ public class MonsterController : UnitController<MonsterDef>
             mushroom.transform.localPosition = Vector3.zero;
             mushroom.transform.localRotation = Quaternion.Euler(socket.Euler);
             mushroom.transform.localScale = Vector3.one * socket.Scale;
-            Flash.AddRenderer(mushroom);
+            HitFeature.AddFlashRenderer(mushroom);
         }
     }
 

@@ -4,7 +4,7 @@ using UnityEngine;
 public sealed class SceneController : MonoBehaviour
 {
     [SerializeField] private RectTransform m_UIRoot = null;
-    [SerializeField] private RegionDef m_DefaultRegion = null;
+    [SerializeField] private MapDef m_DefaultMap = null;
     [SerializeField] private Transform[] m_SpawnSlots = null; // [i] = 맵의 SpawnSlot_{i+1}. 씬을 만들 때 BattleSetup이 채운다
 
     // ------------------------------------------------
@@ -20,7 +20,7 @@ public sealed class SceneController : MonoBehaviour
         rootM.SetUIRoot(gameObject.scene, m_UIRoot);
     }
 
-    private void Start() => GameManager.Instance.InitSceneServices(gameObject.scene, m_DefaultRegion, m_SpawnSlots);
+    private void Start() => GameManager.Instance.InitSceneServices(gameObject.scene, m_DefaultMap, m_SpawnSlots);
 
     private void Update() => GameManager.Instance?.TickSceneServices(gameObject.scene, Time.deltaTime);
 
@@ -49,10 +49,10 @@ public sealed class SceneController : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    public void EditorSetup(RectTransform uiRoot, RegionDef defaultRegion = null)
+    public void EditorSetup(RectTransform uiRoot, MapDef defaultMap = null)
     {
         m_UIRoot = uiRoot;
-        m_DefaultRegion = defaultRegion;
+        m_DefaultMap = defaultMap;
     }
 
     public void EditorSetSpawnSlots(Transform[] spawnSlots) => m_SpawnSlots = spawnSlots;

@@ -25,7 +25,6 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     public HitFeature HitFeature { get; private set; }
     public MeleeAttackFeature Melee { get; private set; }
 
-    protected FlashFeature Flash { get; private set; }
     protected abstract ETeam Team { get; }
 
     private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
@@ -46,16 +45,12 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         Move = AddFeature(new MoveFeature(this, m_CharacterController));
         Anim = AddFeature(new AnimFeature(this, m_Animator));
         Health = AddFeature(new HealthFeature(this, m_Def.MaxHp));
-        Flash = AddFeature(new FlashFeature(this, m_ListBodyRenderer));
-        HitFeature = AddFeature(new HitFeature(this, Team, m_Def.InvincibleTime, Health));
+        HitFeature = AddFeature(new HitFeature(this, Team, m_Def.Hit, Health, Move, m_ListBodyRenderer));
         Melee = AddFeature(new MeleeAttackFeature(this));
 
-        // 피격 반응은 넣은 순서대로 실행된다. 체력이 먼저라서 뒤 반응은 IsDead를 볼 수 있다
-        HitFeature.AddReaction(Health);
-        HitFeature.AddReaction(AddFeature(new KnockbackFeature(this, Move, m_Def.KnockbackScale)));
-        HitFeature.AddReaction(Flash);
-        HitFeature.AddReaction(AddFeature(new HitStopFeature(this)));
-        HitFeature.AddReaction(AddFeature(new ChunkBurstFeature(this, m_Def.ChunkColor)));
+        // 피격 반응 수치가 없으면 체력만 깎이고 반응은 없다
+        if (m_Def.Hit == null)
+            CLogger.Warning(GetType().Name, $"{m_Def.name}의 HitDef가 비어 있어 피격 반응이 없습니다", this);
 
         HitFeature.Hit += OnHit;
         Health.Died += OnDied;
@@ -69,7 +64,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
 
     protected virtual void OnDisable()
     {
-        Flash?.Restore();
+        HitFeature?.RestoreFlash();
     }
 
     private void Update()

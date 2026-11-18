@@ -20,14 +20,14 @@ public sealed class BattleService : ServiceBase
     // 슬롯 하나의 플레이 중 상태
     private class SpawnState
     {
-        public readonly RegionDef.SpawnEntry Entry;
+        public readonly MapDef.SpawnEntry Entry;
         public readonly Transform Point;
         public bool IsAlive;
         public float RespawnTimer;
 
         // ------------------------------------------------
 
-        public SpawnState(RegionDef.SpawnEntry entry, Transform point)
+        public SpawnState(MapDef.SpawnEntry entry, Transform point)
         {
             Entry = entry;
             Point = point;
@@ -50,7 +50,7 @@ public sealed class BattleService : ServiceBase
     public PlayerController Player => m_PlayerController;
     private PlayerController m_PlayerController;
 
-    public RegionDef Region { get; }
+    public MapDef Map { get; }
     public EBattleState State { get; private set; } = EBattleState.Playing;
     public int KillCount { get; private set; }
     public int KillGoal => GoalKillCount;
@@ -58,9 +58,9 @@ public sealed class BattleService : ServiceBase
 
     // ------------------------------------------------
 
-    public BattleService(RegionDef region, Transform[] spawnSlots)
+    public BattleService(MapDef mapDef, Transform[] spawnSlots)
     {
-        Region = region;
+        Map = mapDef;
         m_SpawnSlots = spawnSlots;
     }
 
@@ -85,19 +85,19 @@ public sealed class BattleService : ServiceBase
         SEventManager.Subscribe<MonsterKilled>(OnMonsterKilled);
         SEventManager.Subscribe<LootPicked>(OnLootPicked);
 
-        if (Region == null)
+        if (Map == null)
         {
             CLogger.Warning("BattleService", "전투에 사용할 지역 데이터가 없습니다.");
             return;
         }
 
-        foreach (RegionDef.SpawnEntry entry in Region.ListSpawn)
+        foreach (MapDef.SpawnEntry entry in Map.ListSpawn)
         {
             Transform point = GetSlot(entry.Slot);
             if (point == null || entry.Monster == null || entry.Monster.Prefab == null)
             {
                 string monsterName = entry.Monster == null ? "없음" : entry.Monster.name;
-                CLogger.Warning("BattleService", $"스폰 불가: {RegionDef.GetSlotName(entry.Slot)} 지점 {(point == null ? "없음" : "있음")}, 몬스터 {monsterName}(프리팹은 MonsterDef.Prefab)");
+                CLogger.Warning("BattleService", $"스폰 불가: {MapDef.GetSlotName(entry.Slot)} 지점 {(point == null ? "없음" : "있음")}, 몬스터 {monsterName}(프리팹은 MonsterDef.Prefab)");
                 continue;
             }
 
@@ -145,10 +145,10 @@ public sealed class BattleService : ServiceBase
             return;
         }
 
-        int playerSlot = Region != null ? Region.PlayerSlot : RegionDef.DefaultPlayerSlot;
+        int playerSlot = Map != null ? Map.PlayerSlot : MapDef.DefaultPlayerSlot;
         Transform spawn = GetSlot(playerSlot);
         if (spawn == null)
-            CLogger.Warning("BattleService", $"플레이어 슬롯 {RegionDef.GetSlotName(playerSlot)}이 맵에 없어 원점에서 시작합니다.");
+            CLogger.Warning("BattleService", $"플레이어 슬롯 {MapDef.GetSlotName(playerSlot)}이 맵에 없어 원점에서 시작합니다.");
 
         Vector3 position = spawn != null ? SnapToGround(spawn.position) : Vector3.zero;
         Quaternion rotation = spawn != null ? spawn.rotation : Quaternion.identity;
@@ -279,7 +279,7 @@ public sealed class BattleService : ServiceBase
 
             // 이긴 지역을 깬 것으로 표시해 다음 지역을 연다(UI 스레드 토벌 탭)
             if (isWin)
-                playerDataM.Hunt.MarkCleared(Region);
+                playerDataM.Hunt.MarkCleared(Map);
 
             playerDataM.RunSave();
         }
