@@ -25,6 +25,10 @@ public abstract class UnitDef : DataDef
     [field: SerializeField]
     public List<AttackSpec> ListAttack { get; private set; } = new() { new AttackSpec() };
     
+    // 스킬 목록 --- 쿨이 있는 공격. 몬스터는 기본 공격과 같이 후보에 넣어 고른다. 플레이어는 아직 쓰지 않는다
+    [field: SerializeField]
+    public List<SkillDef> ListSkill { get; private set; } = new();
+
     public AttackSpec MainAttack => ListAttack.Count > 0 ? ListAttack[0] : null; // 첫 칸. 없으면 null
 
     // ------------------------------------------------

@@ -18,7 +18,8 @@ public enum EMonsterState
 public class MonsterController : UnitController<MonsterDef>
 {
     private readonly StateMachine<EMonsterState> m_Fsm = new();
-    private readonly List<float> m_ListAttackCooldown = new(); // Def.ListAttack 칸마다 남은 개별 쿨
+    private readonly List<AttackSpec> m_ListAttackChoice = new(); // 고를 수 있는 공격: 기본(Def.ListAttack) + 스킬(Def.ListSkill)
+    private readonly List<float> m_ListAttackCooldown = new(); // m_ListAttackChoice 칸마다 남은 개별 쿨
     private readonly List<PartFeature> m_ListPart = new();      // [i] = Def.ListMushroom 칸. 버섯이 없는 칸은 null
 
     private const float PartDropUpSpeed = 5f;     // 부위 버섯이 튀어 오르는 속도
@@ -46,7 +47,14 @@ public class MonsterController : UnitController<MonsterDef>
         AttachMushrooms();
         AddBodyShapes();
 
-        for (int i = 0; i < Def.ListAttack.Count; i++)
+        m_ListAttackChoice.AddRange(Def.ListAttack);
+        foreach (SkillDef skill in Def.ListSkill)
+        {
+            if (skill != null)
+                m_ListAttackChoice.Add(skill.Attack);
+        }
+
+        for (int i = 0; i < m_ListAttackChoice.Count; i++)
         {
             m_ListAttackCooldown.Add(0f);
         }
@@ -155,13 +163,13 @@ public class MonsterController : UnitController<MonsterDef>
         Destroy(gameObject);
     }
 
-    // 공용 쿨이 돌았으면 개별 쿨이 돌고 거리가 맞는 공격 중 가중치로 하나 골라 CurrentAttack에 둔다
+    // 공용 쿨이 돌았으면 개별 쿨이 돌고 거리가 맞는 공격(기본 + 스킬) 중 가중치로 하나 골라 CurrentAttack에 둔다
     public bool TryPickAttack(float distance)
     {
         if (CooldownRemain > 0f)
             return false;
 
-        IReadOnlyList<AttackSpec> listAttack = Def.ListAttack;
+        IReadOnlyList<AttackSpec> listAttack = m_ListAttackChoice;
         float totalWeight = 0f;
         
         for (int i = 0; i < listAttack.Count; i++)
@@ -194,7 +202,7 @@ public class MonsterController : UnitController<MonsterDef>
     {
         CooldownRemain = Def.AttackCooldown;
 
-        int index = Def.ListAttack.IndexOf(CurrentAttack);
+        int index = m_ListAttackChoice.IndexOf(CurrentAttack);
         if (index >= 0)
             m_ListAttackCooldown[index] = CurrentAttack.Cooldown;
     }
@@ -210,7 +218,7 @@ public class MonsterController : UnitController<MonsterDef>
 
     private bool CanUseAttack(int index, float distance)
     {
-        AttackSpec attack = Def.ListAttack[index];
+        AttackSpec attack = m_ListAttackChoice[index];
         if (attack.Weight <= 0f || m_ListAttackCooldown[index] > 0f)
             return false;
 

@@ -38,6 +38,10 @@ MonoBehaviour:
     <Cooldown>k__BackingField: 0
     <Weight>k__BackingField: 1
     <WindupTime>k__BackingField: 0.8
+  <ListSkill>k__BackingField:
+  - {fileID: 11400000, guid: 7382f6652c68d524b8f3573d33d16ca5, type: 2}
+  - {fileID: 11400000, guid: b64e08050cbbc8f4e95917f3fd7d0344, type: 2}
+  - {fileID: 11400000, guid: f3faef6fad01bae4e9bbc0d3a83457de, type: 2}
   <MoveSpeed>k__BackingField: 2.2
   <WanderSpeed>k__BackingField: 0.88
   <SightRange>k__BackingField: 14

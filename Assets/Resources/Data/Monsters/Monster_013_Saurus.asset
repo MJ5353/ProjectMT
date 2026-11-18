@@ -18,18 +18,19 @@ MonoBehaviour:
   <Icon>k__BackingField: {fileID: 0}
   <MaxHp>k__BackingField: 24
   <HitStunTime>k__BackingField: 0.2
+  <TurnSpeed>k__BackingField: 900
   <Hit>k__BackingField: {fileID: 11400000, guid: 42cb1a2f4fed08945bb932f6a330a98f, type: 2}
   <ListAttack>k__BackingField:
   - <Clip>k__BackingField: Attack
     <Damage>k__BackingField: 4
     m_HitFrame: 9
+    <HitEndFrame>k__BackingField: 0
     <Reach>k__BackingField: 1
     <Radius>k__BackingField: 0.9
     <Height>k__BackingField: 0.6
     <Knockback>k__BackingField: 6
     <HitStop>k__BackingField: 0.06
     <Lunge>k__BackingField: 0
-    <HitEndFrame>k__BackingField: 0
     <ActiveMoveSpeed>k__BackingField: 0
     <HitPart>k__BackingField: 0
     <MinRange>k__BackingField: 0
@@ -37,6 +38,8 @@ MonoBehaviour:
     <Cooldown>k__BackingField: 0
     <Weight>k__BackingField: 1
     <WindupTime>k__BackingField: 0.65
+  <ListSkill>k__BackingField:
+  - {fileID: 11400000, guid: 9dea61d35379edc49a4b5f01cc0fe749, type: 2}
   <MoveSpeed>k__BackingField: 2.78
   <WanderSpeed>k__BackingField: 1.11
   <SightRange>k__BackingField: 8
@@ -50,27 +53,58 @@ MonoBehaviour:
   <ModelName>k__BackingField: Mon_013_Saurus
   <BodyHeight>k__BackingField: 2.5
   <BodyRadius>k__BackingField: 0.75
+  m_ListBodyShape: []
   m_ListMushroom:
   - <Part>k__BackingField: 1
     <Model>k__BackingField: {fileID: 0}
     <Scale>k__BackingField: 1
     <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
   - <Part>k__BackingField: 2
     <Model>k__BackingField: {fileID: 0}
     <Scale>k__BackingField: 1
     <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
   - <Part>k__BackingField: 3
     <Model>k__BackingField: {fileID: 0}
     <Scale>k__BackingField: 1
     <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
   - <Part>k__BackingField: 4
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 9196e6d3e40aa4a4b8854c2eb45eea2c, type: 3}
     <Scale>k__BackingField: 1.29
     <Euler>k__BackingField: {x: 11.45, y: -6.76, z: 7.39}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
   - <Part>k__BackingField: 11
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: a9c956f23fb2bbd488cf1cd6d0aa7b08, type: 3}
     <Scale>k__BackingField: 1.25
     <Euler>k__BackingField: {x: 7.48, y: 6.34, z: 8.86}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
   m_ListDrop:
   - <Pickup>k__BackingField: {fileID: 6116324105684739401, guid: 8d86c47187962c8478df36aa0c2aeed9, type: 3}
     <Min>k__BackingField: 2

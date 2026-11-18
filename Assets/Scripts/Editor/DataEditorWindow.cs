@@ -131,6 +131,7 @@ public sealed class DataEditorWindow : EditorWindow
             m_AutoFill.menu.AppendAction($"{scope}/드랍만", _ => AutoFillMonsters(MonsterAutoFill.EPart.Drop, isAll));
             m_AutoFill.menu.AppendAction($"{scope}/버섯 꽂기만 (다시 굴리기)", _ => AutoFillMonsters(MonsterAutoFill.EPart.Socket, isAll));
             m_AutoFill.menu.AppendAction($"{scope}/보스 몸 판정", _ => AutoFillBodyShapes(isAll));
+            m_AutoFill.menu.AppendAction($"{scope}/스킬 Def 만들기", _ => AutoFillSkills(isAll));
         }
         m_AutoFill.menu.AppendSeparator();
         m_AutoFill.menu.AppendAction("밸런스 공식 열기", _ => RunAction(() => Selection.activeObject = MonsterAutoFill.LoadTable()));
@@ -581,6 +582,23 @@ public sealed class DataEditorWindow : EditorWindow
 
             Reload();
             SetStatus("보스 몸 판정 자동 채움 완료. 씬에서 몬스터를 골라 기즈모로 확인하세요.");
+        });
+    }
+
+    // 모델 클립으로 SkillDef를 만든다(SkillDefAutoFill)
+    private void AutoFillSkills(bool isAll)
+    {
+        List<MonsterDef> listDef = isAll ? m_ListDef.OfType<MonsterDef>().ToList() : m_Table.selectedItems.OfType<MonsterDef>().ToList();
+        if (listDef.Count == 0)
+            return;
+
+        RunAction(() =>
+        {
+            if (SkillDefAutoFill.Run(listDef) == false)
+                return;
+
+            Reload();
+            SetStatus($"스킬 Def 생성 완료({SkillDefAutoFill.SkillDataDir}). 수치는 기본 공격 복사본이니 손맛 수치를 정하세요.");
         });
     }
 
