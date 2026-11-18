@@ -3,13 +3,14 @@ using UnityEngine;
 
 // ==================================================
 
-// 근접 공격 판정. Begin으로 공격을 걸고, 매 프레임 Tick(공격 시작부터 지난 시간)을 부르면
+// 근접 공격 판정. Begin으로 공격을 걸고, 매 프레임 TickAttack(공격 시작부터 지난 시간)을 부르면
 // 판정 구간(HitTime~HitEndTime) 동안 공격 구체와 후보 액터의 몸을 비교한다. 한 공격에서 맞은 대상은 다시 맞지 않는다.
 
 public class MeleeAttackFeature : UnitFeature
 {
     private readonly List<ActorHitCandidate> m_ListCandidate = new();
     private readonly HashSet<IHitTarget> m_SetHit = new(); // 이번 공격에 이미 맞은 대상
+    private readonly Dictionary<AttackSpec, Transform> m_DicHitBone = new(); // HitBone이 있는 공격의 판정 뼈. 생성 때 한 번 찾는다
 
     public AttackSpec Spec => m_Spec;
     private AttackSpec m_Spec;
@@ -19,7 +20,15 @@ public class MeleeAttackFeature : UnitFeature
 
     // ------------------------------------------------
 
-    public MeleeAttackFeature(IActor owner) : base(owner) { }
+    public MeleeAttackFeature(IActor owner, IReadOnlyList<AttackSpec> listAttack) : base(owner)
+    {
+        foreach (AttackSpec attack in listAttack)
+        {
+            Transform bone = FindHitBone(owner.transform, attack);
+            if (bone != null)
+                m_DicHitBone[attack] = bone;
+        }
+    }
 
     public override void Reset()
     {
@@ -31,9 +40,26 @@ public class MeleeAttackFeature : UnitFeature
         End();
     }
 
-    public static Vector3 GetCenter(Transform owner, AttackSpec spec)
+    // 판정 구 중심. 판정 뼈가 있으면 뼈 위치(Height·Reach 무시), 없으면 몸 앞
+    public static Vector3 GetCenter(Transform owner, AttackSpec spec, Transform bone)
     {
+        if (bone != null)
+            return bone.position;
+
         return owner.position + Vector3.up * spec.Height + owner.forward * spec.Reach;
+    }
+
+    // HitBone 이름으로 뼈를 찾는다. 비었거나 못 찾으면 null(못 찾으면 경고)
+    public static Transform FindHitBone(Transform owner, AttackSpec spec)
+    {
+        if (string.IsNullOrEmpty(spec.HitBone))
+            return null;
+
+        Transform bone = owner.E_FindDeep(spec.HitBone);
+        if (bone == null)
+            CLogger.Warning("MeleeAttackFeature", $"판정 뼈를 찾지 못함: {spec.HitBone} ({owner.name})", owner);
+
+        return bone;
     }
 
     public void Begin(AttackSpec spec)
@@ -66,7 +92,7 @@ public class MeleeAttackFeature : UnitFeature
     }
 
     // 공격 시작부터 지난 시간. 판정 구간이면 판정하고 새로 맞힌 수를 돌려준다
-    public int Tick(float time)
+    public int TickAttack(float time)
     {
         if (IsActive(time) == false)
             return 0;
@@ -85,7 +111,8 @@ public class MeleeAttackFeature : UnitFeature
         if (actors == null)
             return 0;
 
-        Vector3 center = GetCenter(owner, spec);
+        m_DicHitBone.TryGetValue(spec, out Transform bone);
+        Vector3 center = GetCenter(owner, spec, bone);
         ETeam team = Owner.HitFeature.Team;
         actors.CollectNearbyEnemies(center, spec.Radius, team, m_ListCandidate);
 
@@ -99,7 +126,7 @@ public class MeleeAttackFeature : UnitFeature
             if (controller == null || controller.enabled == false || controller.gameObject.activeInHierarchy == false)
                 continue;
 
-            if (candidate.OverlapsSphere(center, spec.Radius, out Vector3 point) == false)
+            if (candidate.OverlapsSphere(center, spec.Radius, out Vector3 point, out int partIndex) == false)
                 continue;
 
             Vector3 direction = candidate.Actor.transform.position - owner.position;
@@ -107,7 +134,7 @@ public class MeleeAttackFeature : UnitFeature
             direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : owner.forward;
 
             // 무적 등으로 막히면 구간 안에서 다시 노린다
-            HitParams hit = new(owner.gameObject, team, spec.Damage, direction, spec.Knockback, spec.HitStop, point);
+            HitParams hit = new(owner.gameObject, team, spec.Damage, direction, spec.Knockback, spec.HitStop, point, partIndex);
             if (candidate.Actor.HitFeature.Receive(hit) == false)
                 continue;
 

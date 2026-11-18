@@ -12,11 +12,19 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     [SerializeField] private Animator m_Animator = null;                         // 모델(Model 자식)의 애니메이터
     [SerializeField] private List<Renderer> m_ListBodyRenderer = new();          // 맞을 때 하얗게 번쩍일 몸 렌더러
 
-    public TDef Def => m_Def;
-    public Transform VisualRoot => m_Animator.transform;
-    public CharacterController HurtBody => m_CharacterController;
-    public bool IsDead => Health.IsDead;
+    // core
     public int ActorID { get; private set; }   // ActorService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
+    protected abstract ETeam Team { get; }
+    
+    private readonly List<UnitFeature> m_ListFeature = new();
+    private bool m_IsBattleOver;
+    
+    // hit
+    public IReadOnlyList<HitShape> ListHitShape => m_ListHitShape;
+    private readonly List<HitShape> m_ListHitShape = new();     // 뼈 판정 모양. Set에서 한 번 만들고 풀 재사용 때도 그대로   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
+    
+    public float HitBoundRadius { get; private set; }
+    private const float HitBoundMargin = 1.3f; // 애니로 뼈가 뻗는 만큼 감싸는 반지름에 더 주는 배율
     
     // feature
     public MoveFeature Move { get; private set; }
@@ -25,10 +33,10 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     public HitFeature HitFeature { get; private set; }
     public MeleeAttackFeature Melee { get; private set; }
 
-    protected abstract ETeam Team { get; }
-
-    private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
-    private bool m_IsBattleOver;
+    public TDef Def => m_Def;
+    public Transform VisualRoot => m_Animator.transform;
+    public CharacterController HurtBody => m_CharacterController;
+    public bool IsDead => Health.IsDead;
 
     // ------------------------------------------------
 
@@ -46,7 +54,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         Anim = AddFeature(new AnimFeature(this, m_Animator));
         Health = AddFeature(new HealthFeature(this, m_Def.MaxHp));
         HitFeature = AddFeature(new HitFeature(this, Team, m_Def.Hit, Health, Move, m_ListBodyRenderer));
-        Melee = AddFeature(new MeleeAttackFeature(this));
+        Melee = AddFeature(new MeleeAttackFeature(this, m_Def.ListAttack));
 
         // 피격 반응 수치가 없으면 체력만 깎이고 반응은 없다
         if (m_Def.Hit == null)
@@ -124,8 +132,19 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         }
     }
 
+    // 뼈 판정 모양 추가. 감싸는 반지름은 지금(Set 시점) 자세 기준
+    // shortcut: 애니로 뼈가 HitBoundMargin보다 멀리 뻗으면 후보에서 빠진다. 그러면 매 프레임 재계산으로 바꾼다
+    protected void AddHitShape(HitShape shape)
+    {
+        m_ListHitShape.Add(shape);
+
+        shape.GetSegment(out Vector3 start, out Vector3 end);
+        float reach = Mathf.Max((start - transform.position).magnitude, (end - transform.position).magnitude) + shape.Radius;
+        HitBoundRadius = Mathf.Max(HitBoundRadius, reach * HitBoundMargin);
+    }
+
     // 씬 뷰에 공격 판정 범위 표시
-    private void OnDrawGizmosSelected()
+    protected virtual void OnDrawGizmosSelected()
     {
         if (m_Def == null)
             return;
@@ -133,7 +152,8 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         Gizmos.color = new Color(1f, 0.3f, 0.2f, 0.6f);
         foreach (AttackSpec attack in m_Def.ListAttack)
         {
-            Gizmos.DrawWireSphere(MeleeAttackFeature.GetCenter(transform, attack), attack.Radius);
+            Transform bone = string.IsNullOrEmpty(attack.HitBone) ? null : transform.E_FindDeep(attack.HitBone);
+            Gizmos.DrawWireSphere(MeleeAttackFeature.GetCenter(transform, attack, bone), attack.Radius);
         }
     }
     

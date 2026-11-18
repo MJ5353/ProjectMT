@@ -103,6 +103,11 @@ public class MonsterDef : UnitDef
     [field: SerializeField, FormerlySerializedAs("m_BodyRadius")]
     public float BodyRadius { get; private set; } = 0f;      // 캡슐 반지름. 0이면 모델 크기로 자동 계산해 채운다
 
+    // 몸 판정 --- 비면 CharacterController 캡슐로 맞는다. 큰 몹(보스)은 뼈마다 구·캡슐을 둔다
+    [SerializeField] private List<HitShapeDef> m_ListBodyShape = new();
+
+    public IReadOnlyList<HitShapeDef> ListBodyShape => m_ListBodyShape;
+
     // 버섯·드랍 ---
     [SerializeField] private List<MushroomSocket> m_ListMushroom = new();
 

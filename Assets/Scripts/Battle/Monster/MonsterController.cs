@@ -39,6 +39,7 @@ public class MonsterController : UnitController<MonsterDef>
             return;
 
         AttachMushrooms();
+        AddBodyShapes();
 
         for (int i = 0; i < Def.ListAttack.Count; i++)
         {
@@ -207,6 +208,43 @@ public class MonsterController : UnitController<MonsterDef>
             return false;
 
         return distance >= attack.MinRange && distance <= attack.MaxRange;
+    }
+
+    // 몸 판정 표의 뼈를 한 번 찾아 판정 모양으로 등록한다
+    private void AddBodyShapes()
+    {
+        foreach (HitShapeDef shapeDef in Def.ListBodyShape)
+        {
+            Transform bone = transform.E_FindDeep(shapeDef.BoneName);
+            if (bone == null)
+            {
+                CLogger.Warning("MonsterController", $"판정 뼈를 찾지 못함: {shapeDef.BoneName} ({name})", this);
+                continue;
+            }
+
+            AddHitShape(new HitShape(bone, shapeDef, -1));
+        }
+    }
+
+    // 씬 뷰에 몸 판정 모양(구·캡슐)을 그린다. 선이 뼈 축 방향
+    protected override void OnDrawGizmosSelected()
+    {
+        base.OnDrawGizmosSelected();
+        if (Def == null)
+            return;
+
+        Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.8f);
+        foreach (HitShapeDef shapeDef in Def.ListBodyShape)
+        {
+            Transform bone = transform.E_FindDeep(shapeDef.BoneName);
+            if (bone == null)
+                continue;
+
+            new HitShape(bone, shapeDef, -1).GetSegment(out Vector3 start, out Vector3 end);
+            Gizmos.DrawWireSphere(start, shapeDef.Radius);
+            Gizmos.DrawWireSphere(end, shapeDef.Radius);
+            Gizmos.DrawLine(start, end);
+        }
     }
 
     // 버섯을 소켓 뼈에 꽂고, 맞을 때 같이 번쩍이도록 렌더러를 넘긴다

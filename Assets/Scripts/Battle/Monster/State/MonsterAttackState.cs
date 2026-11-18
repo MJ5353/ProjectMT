@@ -32,7 +32,7 @@ public class MonsterAttackState : MonsterState
         if (attack.ActiveMoveSpeed > 0f)
             m_Controller.Move.SetVelocity(isActive ? m_Controller.transform.forward * attack.ActiveMoveSpeed : Vector3.zero);
 
-        m_Controller.Melee.Tick(TimeInState);
+        m_Controller.Melee.TickAttack(TimeInState);
 
         if (TimeInState >= m_Length)
             m_Controller.ChangeState(EMonsterState.Chase);

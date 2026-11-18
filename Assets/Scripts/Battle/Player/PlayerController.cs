@@ -206,7 +206,7 @@ public class PlayerController : UnitController<PlayerDef>
         if (attack.ActiveMoveSpeed > 0f)
             Move.SetVelocity(Melee.IsActive(m_TimeInState) ? transform.forward * attack.ActiveMoveSpeed : Vector3.zero);
 
-        Melee.Tick(m_TimeInState);
+        Melee.TickAttack(m_TimeInState);
 
         if (isAttackPressed)
             m_IsAttackQueued = true;

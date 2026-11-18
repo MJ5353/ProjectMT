@@ -109,8 +109,7 @@ public sealed class ActorService : ServiceBase
                 continue;
 
             ActorHitCandidate candidate = new(actor, body);
-            float range = radius + candidate.HalfHeight;
-            if ((candidate.Center - center).sqrMagnitude <= range * range)
+            if (candidate.IsNear(center, radius))
                 results.Add(candidate);
         }
     }
@@ -145,22 +144,48 @@ public readonly struct ActorHitCandidate
         HalfHeight = Mathf.Max(Radius, body.height * Mathf.Abs(scale.y) * 0.5f);
     }
 
-    public bool OverlapsSphere(Vector3 center, float radius, out Vector3 point)
+    // 대충 가까운지. 뼈 모양이 있으면 감싸는 반지름, 없으면 CharacterController 캡슐 기준
+    public bool IsNear(Vector3 center, float radius)
     {
-        float halfAxis = HalfHeight - Radius;
-        float alongAxis = Mathf.Clamp(Vector3.Dot(center - Center, Axis), -halfAxis, halfAxis);
-        Vector3 axisPoint = Center + Axis * alongAxis;
-        Vector3 offset = center - axisPoint;
-        float distanceSq = offset.sqrMagnitude;
-        float combinedRadius = radius + Radius;
+        bool hasShape = Actor.ListHitShape.Count > 0;
+        Vector3 bodyCenter = hasShape ? Actor.transform.position : Center;
+        
+        float range = radius + (hasShape ? Actor.HitBoundRadius : HalfHeight);
+        return (bodyCenter - center).sqrMagnitude <= range * range;
+    }
 
-        if (distanceSq > combinedRadius * combinedRadius)
+    // 공격 구와 겹치는지. 뼈 모양이 있으면 겹친 것 중 구 중심에 가장 가까운 모양, 없으면 CharacterController 캡슐
+    public bool OverlapsSphere(Vector3 center, float radius, out Vector3 point, out int partIndex)
+    {
+        IReadOnlyList<HitShape> listShape = Actor.ListHitShape;
+        partIndex = -1;
+        if (listShape.Count == 0)
         {
-            point = default;
-            return false;
+            float halfAxis = HalfHeight - Radius;
+            return HitMath.SphereVsCapsule(Center - Axis * halfAxis, Center + Axis * halfAxis, Radius, center, radius, out point, out float _);
         }
 
-        point = distanceSq <= Radius * Radius ? center : axisPoint + offset.normalized * Radius;
-        return true;
+        point = default;
+        bool isHit = false;
+        float nearest = float.MaxValue;
+        
+        foreach (HitShape shape in listShape)
+        {
+            shape.GetSegment(out Vector3 start, out Vector3 end);
+            if (HitMath.SphereVsCapsule(start, end, shape.Radius, center, radius, out Vector3 shapePoint, out float distanceSq) == false)
+                continue;
+
+            // 표면까지 거리로 비교
+            float distance = Mathf.Sqrt(distanceSq) - shape.Radius;
+            if (distance >= nearest)
+                continue;
+
+            isHit = true;
+            nearest = distance;
+            point = shapePoint;
+            partIndex = shape.PartIndex;
+        }
+
+        return isHit;
     }
 }

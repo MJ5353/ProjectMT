@@ -23,3 +23,4 @@
 
 | 26.11.18 | 부위 파괴 1번 피격 통합: IHitReaction 클래스 4개 → HitFeature 타입별 처리 + HitDef | 반응 Feature 통합과 HitDef 재사용 지시, 기존 수치 이전은 손으로 | 반응마다 Feature가 늘던 구조를 HitFeature 하나와 [Flags] 반응 종류로 정리. 피격 수치는 여러 유닛이 같이 쓰는 HitDef 에셋으로 분리. |
 | 26.11.18 | 부위 파괴 2번 공격 목록·판정 구간: UnitDef.ListAttack, AttackSpec 값 추가, 판정 구간·중복 제외, 몬스터 공격 선택 | 공격 목록화와 판정 구간 방식 지시, 공용 쿨·정지 거리 유지 | 몬스터 예고 시간을 AttackSpec.WindupTime으로 옮기고 AttackRange는 추적 정지 거리로 남김. 에셋 16개는 YAML을 직접 바꿔 값 유지(Unity 로드로 확인). 공용 쿨은 MonsterDef, 개별 쿨은 AttackSpec. |
+| 26.11.18 | 부위 파괴 3번 뼈 판정: HitShape·HitMath, MonsterDef 몸 판정 표, 감싸는 반지름 후보 거르기, HitParams.PartIndex, 공격 HitBone, 기즈모 | 뼈 따라가는 구·캡슐 판정과 기존 캡슐 계산 재사용 지시 | 캡슐 대 구를 HitMath로 빼 CharacterController 판정도 같이 씀. 여러 모양이 겹치면 표면이 가장 가까운 것. 감싸는 반지름은 Set 때 자세 기준 ×1.3. 2번에서 생긴 Tick 이름 가림 경고를 TickAttack으로 고침. |

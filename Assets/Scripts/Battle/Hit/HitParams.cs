@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // ==================================================
@@ -22,8 +23,9 @@ public readonly struct HitParams
     public readonly float Knockback;
     public readonly float HitStop;
     public readonly Vector3 Point;
+    public readonly int PartIndex; // 맞은 부위 번호. -1이면 몸
 
-    public HitParams(GameObject attacker, ETeam team, int damage, Vector3 direction, float knockback, float hitStop, Vector3 point)
+    public HitParams(GameObject attacker, ETeam team, int damage, Vector3 direction, float knockback, float hitStop, Vector3 point, int partIndex = -1)
     {
         Attacker = attacker;
         Team = team;
@@ -33,6 +35,7 @@ public readonly struct HitParams
         Knockback = knockback;
         HitStop = hitStop;
         Point = point;
+        PartIndex = partIndex;
     }
 }
 
@@ -45,4 +48,6 @@ public interface IHitTarget
     Transform transform { get; }
     HitFeature HitFeature { get; }
     CharacterController HurtBody { get; }
+    IReadOnlyList<HitShape> ListHitShape { get; } // 뼈 판정 모양. 비면 HurtBody 캡슐로 판정
+    float HitBoundRadius { get; }                 // 몸 중심(transform)에서 모양들을 감싸는 반지름. 후보 거르기용
 }
