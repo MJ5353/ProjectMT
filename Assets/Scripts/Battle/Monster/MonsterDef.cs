@@ -93,7 +93,10 @@ public class MonsterDef : UnitDef
     [field: SerializeField, FormerlySerializedAs("m_FleeSpeed")]
     public float FleeSpeed { get; private set; } = 4f;
 
-    // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽는다
+    // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽고, 구운 프리팹을 Prefab에 채운다
+    [field: SerializeField]
+    public MonsterController Prefab { get; private set; } = null;
+
     [field: SerializeField, FormerlySerializedAs("m_ModelName")]
     public string ModelName { get; private set; } = null;    // Art/Voxel/Models 아래 FBX 이름. 비면 에셋 이름(Monster_Xxx)의 Xxx
 
@@ -121,6 +124,8 @@ public class MonsterDef : UnitDef
         FleeTime = fleeTime;
         m_ListDrop = listDrop;
     }
+
+    public void EditorSetPrefab(MonsterController prefab) => Prefab = prefab;
 
     public void EditorSetMushrooms(List<MushroomSocket> listMushroom)
     {

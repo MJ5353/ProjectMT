@@ -12,22 +12,51 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51d8908ac2bdcd74db9aae877f4ee773, type: 3}
   m_Name: Region_03
   m_EditorClassIdentifier: Assembly-CSharp::RegionDef
-  m_ID: Region_03
   m_DisplayName: "\uB9D0\uBD88 \uC5B8\uB355"
-  m_Description: "\uBD80\uD480\uC5B4 \uC624\uB978 \uBC84\uC6B0\uB974\uC2A4\uAC00
+  <ID>k__BackingField: Region_03
+  <Description>k__BackingField: "\uBD80\uD480\uC5B4 \uC624\uB978 \uBC84\uC6B0\uB974\uC2A4\uAC00
     \uD3EC\uC790\uB97C \uBFDC\uB294 \uC5B8\uB355."
-  m_Icon: {fileID: 0}
-  m_Order: 3
-  m_RequireRegion: {fileID: 11400000, guid: 8a4dfed4853d4ed4696105fa99b1bc24, type: 2}
-  m_MapPosition: {x: 0.8, y: 0.35}
+  <Icon>k__BackingField: {fileID: 0}
+  <Order>k__BackingField: 3
+  <RequireRegion>k__BackingField: {fileID: 11400000, guid: 8a4dfed4853d4ed4696105fa99b1bc24, type: 2}
+  <MapPosition>k__BackingField: {x: 0.8, y: 0.35}
   m_ListMushroom:
   - {fileID: 11400000, guid: c8574fd4a7aa3ae40ae6e81d0e6971d9, type: 2}
-  m_ListSpawnGroup:
-  - m_Prefab: {fileID: 3209006290765593484, guid: e67e15bf70aafd441998c115905c7e3f, type: 3}
-    m_PointPrefix: Spawn_Buggi
-    m_MaxAlive: 6
-    m_RespawnDelay: 4
-  - m_Prefab: {fileID: 3701865610991526730, guid: 382abb4bd3765ed45b6eb1a1b65305c9, type: 3}
-    m_PointPrefix: Spawn_Bugom
-    m_MaxAlive: 3
-    m_RespawnDelay: 8
+  <PlayerSlot>k__BackingField: 1
+  m_ListSpawn:
+  - <Slot>k__BackingField: 2
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 3
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 5
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 6
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 8
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 9
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 11
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 12
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 14
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 15
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 17
+    <Monster>k__BackingField: {fileID: 11400000, guid: 5c880b59f0cba5044b02df65c38989e5, type: 2}
+    <RespawnDelay>k__BackingField: 8
+  - <Slot>k__BackingField: 19
+    <Monster>k__BackingField: {fileID: 11400000, guid: 5c880b59f0cba5044b02df65c38989e5, type: 2}
+    <RespawnDelay>k__BackingField: 8

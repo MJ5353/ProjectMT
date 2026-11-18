@@ -42,7 +42,7 @@ public class GameManager : MonoSingleton<GameManager>
 
     // ------------------------------------------------
 
-    internal void InitSceneServices(Scene scene, RegionDef defaultRegion)
+    internal void InitSceneServices(Scene scene, RegionDef defaultRegion, Transform[] spawnSlots)
     {
         if (m_ServiceScene == scene)
             return;
@@ -59,7 +59,7 @@ public class GameManager : MonoSingleton<GameManager>
             Actors = Register(new ActorService());
             Chunks = Register(new ChunkBurstService());
             HitStop = Register(new HitStopService());
-            Battle = Register(new BattleService(scene, region));
+            Battle = Register(new BattleService(region, spawnSlots));
         }
 
         Popup = Register(new PopupService());
@@ -210,7 +210,7 @@ public class GameManager : MonoSingleton<GameManager>
     {
         Database = Resources.Load<GameDatabase>(GameDatabase.ResourcePath);
         if (Database == null)
-            CLogger.Error("GameManager", $"Resources/{GameDatabase.ResourcePath} 데이터베이스가 없습니다. 메뉴 MushTaker/Data/데이터베이스 갱신을 실행하세요.");
+            CLogger.Error("GameManager", $"Resources/{GameDatabase.ResourcePath} 데이터베이스가 없습니다. MushTaker/데이터 편집기에서 DB 갱신을 실행하세요.");
         else
             Database.Init();
 

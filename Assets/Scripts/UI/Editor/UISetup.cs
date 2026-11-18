@@ -15,7 +15,6 @@ public static class UISetup
 
     // ==================================================
 
-    [MenuItem("MushTaker/UI/1. 공통 기반 설정 (가로 고정, 폰트)")]
     public static void SetupBase()
     {
         SetLandscape();
@@ -30,12 +29,11 @@ public static class UISetup
         CLogger.Log("UISetup", "공통 기반 설정 완료. Game 뷰 해상도를 1920x1080으로 두고 확인하세요.");
     }
 
-    [MenuItem("MushTaker/UI/2. 공용 부품 프리팹 만들기")]
     public static void CreateCommonPrefabs()
     {
         if (UIBuilder.Font == null)
         {
-            CLogger.Warning("UISetup", "폰트 에셋이 없습니다. 1번 메뉴를 먼저 실행하세요.");
+            CLogger.Warning("UISetup", "MushTaker/초기 설정/UI 기반 준비를 먼저 실행하세요.");
             return;
         }
 
@@ -102,7 +100,7 @@ public static class UISetup
         TMP_Settings settings = Resources.Load<TMP_Settings>(TMPSettingsPath);
         if (settings == null)
         {
-            CLogger.Warning("UISetup", "TMP Settings가 없습니다. Window > TextMeshPro > Import TMP Essential Resources 후 1번 메뉴를 다시 실행하세요.");
+            CLogger.Warning("UISetup", "TMP Settings가 없습니다. Window > TextMeshPro > Import TMP Essential Resources 후 UI 기반 준비를 다시 실행하세요.");
             return;
         }
 

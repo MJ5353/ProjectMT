@@ -42,7 +42,7 @@ public static class DataTools
         return db;
     }
 
-    private static List<DataDef> CollectDefs()
+    public static List<DataDef> CollectDefs()
     {
         return AssetDatabase.FindAssets("t:DataDef", new[] { "Assets" })
             .Select(guid => AssetDatabase.LoadAssetAtPath<DataDef>(AssetDatabase.GUIDToAssetPath(guid)))
@@ -51,11 +51,7 @@ public static class DataTools
             .ToList();
     }
 
-    [MenuItem("MushTaker/Data/데이터베이스 갱신")]
-    private static void RefreshFromMenu() => RefreshDatabase(true);
-
-    [MenuItem("MushTaker/Data/데이터 검사")]
-    private static void ValidateFromMenu() => Validate(CollectDefs(), true);
+    public static bool ValidateAll() => Validate(CollectDefs(), true);
 
     // ID 비어 있음, ID 중복을 잡는다. 문제가 없으면 true
     private static bool Validate(List<DataDef> listDef, bool isVerbose)

@@ -8,31 +8,31 @@ using UnityEngine.Serialization;
 [CreateAssetMenu(menuName = "MushTaker/Data/Region", fileName = "Region_")]
 public class RegionDef : DataDef
 {
+    // 맵 슬롯 하나에 나올 몬스터
     [Serializable]
-    public class SpawnGroup
+    public class SpawnEntry
     {
-        [field: SerializeField, FormerlySerializedAs("m_Prefab")]
-        public MonsterController Prefab { get; private set; } = null;
+        [field: SerializeField, Tooltip("맵 슬롯 번호(SpawnSlot_NN의 NN)")]
+        public int Slot { get; private set; } = 0;
 
-        [field: SerializeField, FormerlySerializedAs("m_PointPrefix")]
-        public string PointPrefix { get; private set; } // 스폰 지점 이름 접두사
+        [field: SerializeField]
+        public MonsterDef Monster { get; private set; } = null;
 
-        [field: SerializeField, FormerlySerializedAs("m_MaxAlive")]
-        public int MaxAlive { get; private set; } // 동시에 살아 있는 최대 수
-
-        [field: SerializeField, FormerlySerializedAs("m_RespawnDelay")]
-        public float RespawnDelay { get; private set; } // 빈자리가 생긴 뒤 다시 나오기까지(초)
+        [field: SerializeField, Tooltip("죽은 뒤 다시 나오기까지(초). 0보다 작으면 다시 안 나옴(보스)")]
+        public float RespawnDelay { get; private set; } = 0f;
 
         // ------------------------------------------------
 
-        public SpawnGroup(MonsterController prefab, string pointPrefix, int maxAlive, float respawnDelay)
+        public SpawnEntry(int slot, MonsterDef monster, float respawnDelay)
         {
-            Prefab = prefab;
-            PointPrefix = pointPrefix;
-            MaxAlive = maxAlive;
+            Slot = slot;
+            Monster = monster;
             RespawnDelay = respawnDelay;
         }
     }
+
+    public const string SpawnSlotPrefix = "SpawnSlot_"; // 맵 FBX의 스폰 지점 이름(SpawnSlot_01~)
+    public const int DefaultPlayerSlot = 1;
 
     [field: SerializeField, FormerlySerializedAs("m_Order")]
     public int Order { get; private set; } = 0;
@@ -46,17 +46,32 @@ public class RegionDef : DataDef
     [SerializeField, Tooltip("이 지역에서 캘 수 있는 버섯(지도 안내용)")]
     private List<MushroomDef> m_ListMushroom = new();
 
-    [SerializeField]
-    private List<SpawnGroup> m_ListSpawnGroup = new();
+    [field: SerializeField, Tooltip("플레이어가 시작할 맵 슬롯 번호")]
+    public int PlayerSlot { get; private set; } = DefaultPlayerSlot;
 
-    public IReadOnlyList<SpawnGroup> ListSpawnGroup => m_ListSpawnGroup;
+    [SerializeField]
+    private List<SpawnEntry> m_ListSpawn = new();
+
+    public IReadOnlyList<SpawnEntry> ListSpawn => m_ListSpawn;
     public IReadOnlyList<MushroomDef> ListMushroom => m_ListMushroom;
     public string ClearFlag => $"Region_Clear_{ID}";
 
     // ------------------------------------------------
 
+    public static string GetSlotName(int slot) => $"{SpawnSlotPrefix}{slot:00}";
+
+    // SpawnSlot_NN이면 NN을 돌려준다
+    public static bool TryParseSlot(string objectName, out int slot)
+    {
+        slot = 0;
+        return objectName.StartsWith(SpawnSlotPrefix, StringComparison.Ordinal)
+            && int.TryParse(objectName.Substring(SpawnSlotPrefix.Length), out slot);
+    }
+
+    // ------------------------------------------------
+
 #if UNITY_EDITOR
-    public void EditorSetSpawnGroups(List<SpawnGroup> groups) => m_ListSpawnGroup = groups;
+    public void EditorSetSpawns(List<SpawnEntry> listSpawn) => m_ListSpawn = listSpawn;
 
     public void EditorSetup(int order, RegionDef requireRegion, Vector2 mapPosition, List<MushroomDef> listMushroom)
     {

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 // ==================================================
 
@@ -18,29 +17,30 @@ public enum EBattleState
 // 끝나면 주운 버섯을 인벤토리에 넣고 게임 흐름을 결과(Result)로 넘긴다
 public sealed class BattleService : ServiceBase
 {
-    // 스폰 그룹 하나의 플레이 중 상태
+    // 슬롯 하나의 플레이 중 상태
     private class SpawnState
     {
-        public readonly RegionDef.SpawnGroup Group;
-        public readonly List<Transform> ListPoint = new();
-        public int AliveCount;
+        public readonly RegionDef.SpawnEntry Entry;
+        public readonly Transform Point;
+        public bool IsAlive;
         public float RespawnTimer;
 
         // ------------------------------------------------
 
-        public SpawnState(RegionDef.SpawnGroup group)
+        public SpawnState(RegionDef.SpawnEntry entry, Transform point)
         {
-            Group = group;
+            Entry = entry;
+            Point = point;
         }
     }
 
     public const float SpawnLift = 0.3f; // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
     public const string TerrainName = "Map_Terrain";
-    private const string PlayerSpawnName = "Spawn_Player"; // 시작할 때 플레이어를 옮길 지점 이름
+    private const float RespawnBlockDistance = 15f; // 플레이어가 이보다 가까우면 리스폰을 미룬다(눈앞에 갑자기 생기지 않게)
     private const int GoalKillCount = 10; // 이만큼 잡으면 승리 (보스가 들어오기 전 임시 조건)
     private const string DefaultPlayerID = "Player";
 
-    private readonly Scene m_Scene;
+    private readonly Transform[] m_SpawnSlots; // [i] = SpawnSlot_{i+1}. SceneController가 넘겨준다
     private readonly Dictionary<string, int> m_DicLoot = new();
     private readonly List<SpawnState> m_ListSpawn = new();
 
@@ -58,10 +58,10 @@ public sealed class BattleService : ServiceBase
 
     // ------------------------------------------------
 
-    public BattleService(Scene scene, RegionDef region)
+    public BattleService(RegionDef region, Transform[] spawnSlots)
     {
-        m_Scene = scene;
         Region = region;
+        m_SpawnSlots = spawnSlots;
     }
 
     public override void Tick(float deltaTime)
@@ -91,24 +91,19 @@ public sealed class BattleService : ServiceBase
             return;
         }
 
-        foreach (RegionDef.SpawnGroup group in Region.ListSpawnGroup)
+        foreach (RegionDef.SpawnEntry entry in Region.ListSpawn)
         {
-            SpawnState spawn = new(group);
-            m_ListSpawn.Add(spawn);
-
-            FindPoints(spawn);
-            if (group.Prefab == null || spawn.ListPoint.Count == 0)
+            Transform point = GetSlot(entry.Slot);
+            if (point == null || entry.Monster == null || entry.Monster.Prefab == null)
             {
-                CLogger.Warning("BattleService", $"스폰 불가: 프리팹 {(group.Prefab == null ? "없음" : group.Prefab.name)}, '{group.PointPrefix}' 지점 {spawn.ListPoint.Count}개");
+                string monsterName = entry.Monster == null ? "없음" : entry.Monster.name;
+                CLogger.Warning("BattleService", $"스폰 불가: {RegionDef.GetSlotName(entry.Slot)} 지점 {(point == null ? "없음" : "있음")}, 몬스터 {monsterName}(프리팹은 MonsterDef.Prefab)");
                 continue;
             }
 
-            CLogger.Log("BattleService", $"{group.Prefab.name} 스폰 지점 {spawn.ListPoint.Count}개");
-            int count = Mathf.Min(group.MaxAlive, spawn.ListPoint.Count);
-            for (int k = 0; k < count; k++)
-            {
-                Spawn(spawn, spawn.ListPoint[k]);
-            }
+            SpawnState spawn = new(entry, point);
+            m_ListSpawn.Add(spawn);
+            Spawn(spawn);
         }
     }
 
@@ -150,28 +145,25 @@ public sealed class BattleService : ServiceBase
             return;
         }
 
-        GameObject spawn = GameObject.Find(PlayerSpawnName);
-        Vector3 position = spawn != null ? SnapToGround(spawn.transform.position) : Vector3.zero;
-        Quaternion rotation = spawn != null ? spawn.transform.rotation : Quaternion.identity;
+        int playerSlot = Region != null ? Region.PlayerSlot : RegionDef.DefaultPlayerSlot;
+        Transform spawn = GetSlot(playerSlot);
+        if (spawn == null)
+            CLogger.Warning("BattleService", $"플레이어 슬롯 {RegionDef.GetSlotName(playerSlot)}이 맵에 없어 원점에서 시작합니다.");
+
+        Vector3 position = spawn != null ? SnapToGround(spawn.position) : Vector3.zero;
+        Quaternion rotation = spawn != null ? spawn.rotation : Quaternion.identity;
 
         m_PlayerController = GameManager.Instance.Actors.Spawn(playerDef.Prefab, position, rotation);
     }
 
-    private void FindPoints(SpawnState spawn)
+    // 슬롯 번호(1부터) → 맵 지점
+    private Transform GetSlot(int slot)
     {
-        // 이름 접두사로 스폰 지점을 찾는다
-        string prefix = spawn.Group.PointPrefix;
-        if (prefix.E_IsNullOrEmpty())
-            return;
+        int index = slot - 1;
+        if (m_SpawnSlots == null || index < 0 || index >= m_SpawnSlots.Length)
+            return null;
 
-        Transform[] all = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-        foreach (Transform t in all)
-        {
-            if (t.gameObject.scene == m_Scene && t.name.StartsWith(prefix, StringComparison.Ordinal))
-                spawn.ListPoint.Add(t);
-        }
-
-        spawn.ListPoint.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+        return m_SpawnSlots[index];
     }
 
     public static Vector3 SnapToGround(Vector3 position)
@@ -203,61 +195,44 @@ public sealed class BattleService : ServiceBase
         return position;
     }
 
-    private void Spawn(SpawnState spawn, Transform point)
+    private void Spawn(SpawnState spawn)
     {
-        if (spawn.Group.Prefab == null || point == null)
-            return;
-
-        MonsterController controller = GameManager.Instance.Actors.Spawn(spawn.Group.Prefab, SnapToGround(point.position), point.rotation);
+        MonsterController controller = GameManager.Instance.Actors.Spawn(spawn.Entry.Monster.Prefab, SnapToGround(spawn.Point.position), spawn.Point.rotation);
         if (controller == null)
             return;
 
         m_DicSpawnByActorID.Add(controller.ActorID, spawn);
-        spawn.AliveCount++;
+        spawn.IsAlive = true;
+        spawn.RespawnTimer = 0f;
     }
 
     private void UpdateRespawn(float deltaTime)
     {
         foreach (SpawnState spawn in m_ListSpawn)
         {
-            if (spawn.AliveCount >= spawn.Group.MaxAlive || spawn.ListPoint.Count == 0)
+            if (spawn.IsAlive || spawn.Entry.RespawnDelay < 0f)
                 continue;
 
             spawn.RespawnTimer += deltaTime;
-            if (spawn.RespawnTimer < spawn.Group.RespawnDelay)
+            if (spawn.RespawnTimer < spawn.Entry.RespawnDelay || IsPlayerNear(spawn.Point.position))
                 continue;
 
-            spawn.RespawnTimer = 0f;
-            Spawn(spawn, PickFarPoint(spawn));
+            Spawn(spawn);
         }
+    }
+
+    private bool IsPlayerNear(Vector3 position)
+    {
+        if (m_PlayerController == null)
+            return false;
+
+        return (m_PlayerController.transform.position - position).sqrMagnitude < RespawnBlockDistance * RespawnBlockDistance;
     }
 
     private void ReleaseSpawnSlot(int actorID)
     {
         if (m_DicSpawnByActorID.Remove(actorID, out SpawnState spawn))
-            spawn.AliveCount--;
-    }
-
-    private Transform PickFarPoint(SpawnState spawn)
-    {
-        // 플레이어 눈앞에 갑자기 생기지 않게 가장 먼 지점 근처에서 고른다
-        if (m_PlayerController == null)
-            return spawn.ListPoint[UnityEngine.Random.Range(0, spawn.ListPoint.Count)];
-
-        Transform best = null;
-        float bestDistance = -1f;
-
-        foreach (Transform point in spawn.ListPoint)
-        {
-            float distance = Vector3.Distance(point.position, m_PlayerController.transform.position) + UnityEngine.Random.Range(0f, 4f);
-            if (distance <= bestDistance)
-                continue;
-
-            best = point;
-            bestDistance = distance;
-        }
-
-        return best;
+            spawn.IsAlive = false;
     }
     
     #endregion

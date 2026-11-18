@@ -124,7 +124,7 @@ public class HuntTabView : TabView
         {
             m_InfoName.text = "지역 없음";
             m_InfoState.text = string.Empty;
-            m_InfoDesc.text = "메뉴 MushTaker/UI/4로 샘플 지역을 만드세요.";
+            m_InfoDesc.text = "MushTaker/데이터 편집기에서 RegionDef를 준비하세요.";
             m_EnterButton.interactable = false;
             return;
         }

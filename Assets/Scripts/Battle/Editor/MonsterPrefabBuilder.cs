@@ -6,8 +6,7 @@ using UnityEngine;
 
 // 몬스터 프리팹 일괄 제작. Data/Monsters의 MonsterDef 한 장 = 프리팹 한 개(Prefabs/Actor/{에셋 이름}.prefab).
 // 이름: 모델 Xxx.fbx → Def·프리팹 Monster_Xxx, ID도 Monster_Xxx(DataDef 기본 규칙, 에셋 이름 = ID)
-// 새 몬스터: FBX를 Art/Voxel/Models/Actor/Monster에 넣고 → 프로젝트 창에서 FBX 선택 → 우클릭 MushTaker/선택한 모델로 몬스터 만들기
-// 수치·버섯을 고친 뒤: MushTaker/Battle/몬스터 프리팹 일괄 제작
+// 모델 등록과 빌드는 MushTaker/데이터 편집기에서 한다.
 // !!) 프리팹은 덮어쓴다(GUID 유지라 씬 참조는 안 끊긴다). 프리팹에 손으로 단 것은 사라지니 값은 Def에 둔다
 public static class MonsterPrefabBuilder
 {
@@ -19,73 +18,60 @@ public static class MonsterPrefabBuilder
 
     // ==================================================
 
-    [MenuItem("MushTaker/Battle/몬스터 프리팹 일괄 제작")]
-    private static void BuildAllFromMenu()
-    {
-        BuildAll(true);
-        AssetDatabase.SaveAssets();
-    }
-
-    [MenuItem("Assets/MushTaker/선택한 모델로 몬스터 만들기")]
-    private static void CreateFromSelection()
-    {
-        Directory.CreateDirectory(BattleSetup.MonsterDataDir);
-        Directory.CreateDirectory(BattleSetup.PrefabDir);
-
-        List<MonsterDef> listDef = new();
-        foreach (GameObject model in GetSelectedModels())
-        {
-            MonsterDef def = LoadOrCreateDef(model);
-            if (BuildPrefab(def))
-                listDef.Add(def);
-        }
-
-        AssetDatabase.SaveAssets();
-        DataTools.RefreshDatabase(false);
-        Selection.objects = listDef.ToArray();
-        CLogger.Log("MonsterPrefabBuilder", $"몬스터 {listDef.Count}종 생성. 수치·버섯은 Def에서 고친 뒤 일괄 제작을 다시 누르세요");
-    }
-
-    [MenuItem("Assets/MushTaker/선택한 모델로 몬스터 만들기", true)]
-    private static bool CanCreateFromSelection()
-    {
-        return GetSelectedModels().Count > 0;
-    }
-
-    // ==================================================
-
     // Data/Monsters의 MonsterDef 전부. isForce가 false면 이미 있는 프리팹은 건너뛴다
     public static void BuildAll(bool isForce)
     {
-        Directory.CreateDirectory(BattleSetup.PrefabDir);
-
         List<MonsterDef> listDef = AssetDatabase.FindAssets("t:MonsterDef", new[] { BattleSetup.MonsterDataDir.TrimEnd('/') })
             .Select(guid => AssetDatabase.LoadAssetAtPath<MonsterDef>(AssetDatabase.GUIDToAssetPath(guid)))
             .Where(d => d != null)
             .OrderBy(d => d.name)
             .ToList();
 
+        Build(listDef, isForce);
+    }
+
+    public static int Build(IEnumerable<MonsterDef> listDef, bool isForce)
+    {
+        Directory.CreateDirectory(BattleSetup.PrefabDir);
         int builtCount = 0;
         List<string> listFailed = new();
         foreach (MonsterDef def in listDef)
         {
-            if (File.Exists(GetPrefabPath(def)) && isForce == false)
-                continue;
+            if (File.Exists(GetPrefabPath(def)) == false || isForce)
+            {
+                if (BuildPrefab(def))
+                    builtCount++;
+                else
+                    listFailed.Add(def.name);
+            }
 
-            if (BuildPrefab(def))
-                builtCount++;
-            else
-                listFailed.Add(def.name);
+            LinkPrefab(def);
         }
 
         if (listFailed.Count > 0)
             CLogger.Warning("MonsterPrefabBuilder", $"몬스터 프리팹 {builtCount}개 제작, 실패 {listFailed.Count}개: {string.Join(", ", listFailed)}");
         else
-            CLogger.Log("MonsterPrefabBuilder", $"몬스터 프리팹 {builtCount}개 제작 (Def {listDef.Count}장)");
+            CLogger.Log("MonsterPrefabBuilder", $"몬스터 프리팹 {builtCount}개 제작");
+
+        return builtCount;
+    }
+
+    // Def.Prefab을 구운 프리팹으로 채운다(지역 스폰이 Def에서 프리팹을 꺼내 쓴다)
+    private static void LinkPrefab(MonsterDef def)
+    {
+        MonsterController prefab = AssetDatabase.LoadAssetAtPath<MonsterController>(GetPrefabPath(def));
+        if (prefab == null || def.Prefab == prefab)
+            return;
+
+        def.EditorSetPrefab(prefab);
+        EditorUtility.SetDirty(def);
     }
 
     public static string GetPrefabPath(MonsterDef def)
     {
+        if (def.Prefab != null && AssetDatabase.Contains(def.Prefab))
+            return AssetDatabase.GetAssetPath(def.Prefab);
+
         return $"{BattleSetup.PrefabDir}{def.name}.prefab";
     }
 
@@ -105,13 +91,18 @@ public static class MonsterPrefabBuilder
         CheckSockets(def, model);
 
         GameObject root = BattleSetup.BuildUnit<MonsterController>(def.name, model, def.BodyHeight, def.BodyRadius, def);
-        PrefabUtility.SaveAsPrefabAsset(root, GetPrefabPath(def));
-        Object.DestroyImmediate(root);
-        return true;
+        try
+        {
+            return PrefabUtility.SaveAsPrefabAsset(root, GetPrefabPath(def)) != null;
+        }
+        finally
+        {
+            Object.DestroyImmediate(root);
+        }
     }
 
     // 비어 있으면 에셋 이름에서 접두사를 뗀 이름(Monster_Buggi → Buggi)
-    private static string GetModelName(MonsterDef def)
+    public static string GetModelName(MonsterDef def)
     {
         if (def.ModelName.E_IsNullOrEmpty() == false)
             return def.ModelName;
@@ -167,16 +158,26 @@ public static class MonsterPrefabBuilder
     // ==================================================
 
     // 같은 이름의 Def가 있으면 그대로 쓰고, 없으면 기본값 + 모델의 Socket_* 뼈를 버섯 칸으로 채워 만든다
-    private static MonsterDef LoadOrCreateDef(GameObject model)
+    public static MonsterDef CreateDef(GameObject model)
     {
-        string path = $"{BattleSetup.MonsterDataDir}{DefPrefix}{model.name}.asset";
-        MonsterDef def = AssetDatabase.LoadAssetAtPath<MonsterDef>(path);
-        if (def != null)
-            return def;
+        string modelPath = AssetDatabase.GetAssetPath(model);
+        if (model == null || modelPath.StartsWith(BattleSetup.MonsterModelDir, System.StringComparison.Ordinal) == false
+            || modelPath.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase) == false)
+            throw new System.ArgumentException("몬스터 모델 폴더의 FBX를 선택하세요.");
 
-        def = ScriptableObject.CreateInstance<MonsterDef>();
+        MonsterDef existing = DataTools.CollectDefs().OfType<MonsterDef>()
+            .FirstOrDefault(candidate => GetModelName(candidate) == model.name);
+        if (existing != null)
+            return existing;
+
+        Directory.CreateDirectory(BattleSetup.MonsterDataDir);
+        string path = $"{BattleSetup.MonsterDataDir}{DefPrefix}{model.name}.asset";
+        if (File.Exists(path) || DataTools.CollectDefs().Any(candidate => candidate.ID == DefPrefix + model.name))
+            throw new System.InvalidOperationException($"에셋 경로 또는 ID가 이미 있습니다: {path}");
+
+        MonsterDef def = ScriptableObject.CreateInstance<MonsterDef>();
+        def.EditorSetIdentity(DefPrefix + model.name, model.name);
         AssetDatabase.CreateAsset(def, path);
-        def.EditorSetIdentity(def.name, model.name);
         BattleSetup.SetString(def, nameof(MonsterDef.ModelName), model.name);
 
         // 버섯 모델은 비워 둔다. 빈 칸은 붙이지 않으니 Def에서 골라 넣으면 된다
@@ -190,15 +191,15 @@ public static class MonsterPrefabBuilder
         return def;
     }
 
-    // 프로젝트 창에서 고른 것 중 Art/Voxel/Models/Actor/Monster 안의 FBX만
-    private static List<GameObject> GetSelectedModels()
+    public static List<GameObject> FindUnregisteredModels(IEnumerable<MonsterDef> listDef)
     {
-        return Selection.GetFiltered<GameObject>(SelectionMode.Assets)
-            .Where(go =>
-            {
-                string path = AssetDatabase.GetAssetPath(go);
-                return path.StartsWith(BattleSetup.MonsterModelDir) && path.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase);
-            })
+        HashSet<string> setModel = new(listDef.Select(GetModelName), System.StringComparer.Ordinal);
+        return AssetDatabase.FindAssets("t:Model", new[] { BattleSetup.MonsterModelDir.TrimEnd('/') })
+            .Select(AssetDatabase.GUIDToAssetPath)
+            .Where(path => path.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase))
+            .Select(AssetDatabase.LoadAssetAtPath<GameObject>)
+            .Where(model => model != null && setModel.Contains(model.name) == false)
+            .OrderBy(model => model.name, System.StringComparer.Ordinal)
             .ToList();
     }
 }

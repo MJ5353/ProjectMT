@@ -7,7 +7,6 @@ using UnityEngine;
 // 모든 DataDef를 모아 ID로 찾는 데이터베이스. Assets/Resources/GameDatabase.asset 한 개만 둔다.
 // !!) 목록은 에디터 메뉴(또는 플레이 시작 시 자동)로 채우므로 직접 수정하지 말 것
 
-[CreateAssetMenu(menuName = "MushTaker/Data/Game Database", fileName = "GameDatabase")]
 public class GameDatabase : ScriptableObject
 {
     public const string ResourcePath = "GameDatabase";

@@ -5,6 +5,7 @@ public sealed class SceneController : MonoBehaviour
 {
     [SerializeField] private RectTransform m_UIRoot = null;
     [SerializeField] private RegionDef m_DefaultRegion = null;
+    [SerializeField] private Transform[] m_SpawnSlots = null; // [i] = 맵의 SpawnSlot_{i+1}. 씬을 만들 때 BattleSetup이 채운다
 
     // ------------------------------------------------
 
@@ -19,7 +20,7 @@ public sealed class SceneController : MonoBehaviour
         rootM.SetUIRoot(gameObject.scene, m_UIRoot);
     }
 
-    private void Start() => GameManager.Instance.InitSceneServices(gameObject.scene, m_DefaultRegion);
+    private void Start() => GameManager.Instance.InitSceneServices(gameObject.scene, m_DefaultRegion, m_SpawnSlots);
 
     private void Update() => GameManager.Instance?.TickSceneServices(gameObject.scene, Time.deltaTime);
 
@@ -53,5 +54,7 @@ public sealed class SceneController : MonoBehaviour
         m_UIRoot = uiRoot;
         m_DefaultRegion = defaultRegion;
     }
+
+    public void EditorSetSpawnSlots(Transform[] spawnSlots) => m_SpawnSlots = spawnSlots;
 #endif
 }

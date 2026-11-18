@@ -8,12 +8,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// 로비 씬(상단 재화 바, 하단 탭 4개, 토벌 탭)과 샘플 지역 데이터를 만드는 메뉴
+// 로비 씬 UI를 재생성한다. 지역 데이터는 데이터 편집기에서 관리한다.
 public static class LobbyUISetup
 {
     private const string ScenePath = "Assets/Scenes/" + SceneNames.Lobby + ".unity";
-    private const string RegionDir = "Assets/Resources/Data/Regions";
-    private const string MushroomDir = "Assets/Resources/Data/Mushrooms";
 
     private const float TopBarHeight = 110f;
     private const float TabBarHeight = 150f;
@@ -24,12 +22,12 @@ public static class LobbyUISetup
 
     // ------------------------------------------------
 
-    [MenuItem("MushTaker/UI/4. 로비 씬 만들기")]
+    [MenuItem("MushTaker/초기 설정/로비 씬 재생성", false, 101)]
     public static void CreateLobbyScene()
     {
         if (UIBuilder.Font == null)
         {
-            CLogger.Warning("LobbyUISetup", "폰트 에셋이 없습니다. 1번 메뉴를 먼저 실행하세요.");
+            CLogger.Warning("LobbyUISetup", "MushTaker/초기 설정/UI 기반 준비를 먼저 실행하세요.");
             return;
         }
 
@@ -38,46 +36,10 @@ public static class LobbyUISetup
         if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo() == false)
             return;
 
-        CreateSampleRegions();
         BuildScene();
     }
 
     // ==================================================
-
-    private static void CreateSampleRegions()
-    {
-        MushroomDef songi = AssetDatabase.LoadAssetAtPath<MushroomDef>($"{MushroomDir}/Mushroom_Songi.asset");
-        MushroomDef cloud = AssetDatabase.LoadAssetAtPath<MushroomDef>($"{MushroomDir}/Mushroom_Cloud.asset");
-
-        RegionDef r1 = CreateRegion("Region_01", "이끼 숲 어귀", "버끼 무리가 사는 얕은 숲. 송이가 흔하다.",
-            1, null, new Vector2(0.2f, 0.3f), songi);
-        RegionDef r2 = CreateRegion("Region_02", "구름 고개", "버곰이 길을 막는 고갯길. 단단한 구름버섯 갓을 깨야 한다.",
-            2, r1, new Vector2(0.5f, 0.62f), songi, cloud);
-        CreateRegion("Region_03", "말불 언덕", "부풀어 오른 버우르스가 포자를 뿜는 언덕.",
-            3, r2, new Vector2(0.8f, 0.35f), cloud);
-
-        AssetDatabase.SaveAssets();
-        DataTools.RefreshDatabase(false);
-    }
-
-    // 이미 있으면 그대로 둔다(대장이 고친 값 보호)
-    private static RegionDef CreateRegion(string regionID, string displayName, string description, int order, RegionDef require, Vector2 mapPosition, params MushroomDef[] mushrooms)
-    {
-        string path = $"{RegionDir}/{regionID}.asset";
-        RegionDef exist = AssetDatabase.LoadAssetAtPath<RegionDef>(path);
-        if (exist != null)
-            return exist;
-
-        Directory.CreateDirectory(RegionDir);
-
-        RegionDef def = ScriptableObject.CreateInstance<RegionDef>();
-        def.EditorSetIdentity(regionID, displayName, description);
-        def.EditorSetup(order, require, mapPosition, mushrooms.Where(m => m != null).ToList());
-        def.EditorSetSpawnGroups(BattleSetup.CreateDefaultSpawnGroups());
-        AssetDatabase.CreateAsset(def, path);
-
-        return def;
-    }
 
     private static void BuildScene()
     {

@@ -15,19 +15,7 @@ public static class BattleUISetup
 
     // ==================================================
 
-    [MenuItem("MushTaker/UI/3. 결과 화면 붙이기 (열린 전투 씬)")]
-    public static void AddResultScreenMenu()
-    {
-        Scene scene = SceneManager.GetActiveScene();
-        if (scene.name != SceneNames.Battle)
-        {
-            CLogger.Warning("BattleUISetup", $"전투 씬({SceneNames.Battle})을 연 상태에서 실행하세요.");
-            return;
-        }
 
-        if (AddResultScreen())
-            EditorSceneManager.SaveScene(scene);
-    }
 
     // 전투 씬 생성 도구(BattleSetup)에서도 부를 수 있게 열어 둔다. 씬에 새로 넣었으면 true
     public static bool AddResultScreen()
