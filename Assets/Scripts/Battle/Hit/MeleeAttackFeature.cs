@@ -10,7 +10,6 @@ public class MeleeAttackFeature : UnitFeature
 {
     private readonly List<ActorHitCandidate> m_ListCandidate = new();
     private readonly HashSet<IHitTarget> m_SetHit = new(); // 이번 공격에 이미 맞은 대상
-    private readonly UnitProperty m_Property; // 주인 프리팹의 부위 뼈
 
     // [mj] todo) remove?
     public AttackSpec Spec => m_Spec;
@@ -19,17 +18,16 @@ public class MeleeAttackFeature : UnitFeature
     // 판정을 한 번이라도 했는지(한 프레임 판정 보장)
     private bool m_IsTicked; 
     private int m_HitRound; // 다시 맞히기 회차(AttackSpec.RehitFrame). 바뀌면 맞은 대상 목록을 비운다
+    private float m_Length;  // 지금 공격 클립 길이(초)
 
     // ------------------------------------------------
 
-    public MeleeAttackFeature(IActor owner, IReadOnlyList<AttackSpec> listAttack, UnitProperty property) : base(owner)
+    public MeleeAttackFeature(IActor owner, IReadOnlyList<AttackSpec> listAttack) : base(owner)
     {
-        m_Property = property;
-
         // 판정 부위 뼈가 프리팹에 없으면 몸 앞으로 판정한다
         foreach (AttackSpec attack in listAttack)
         {
-            if (attack.HitPart != EBattlePartType.None && property.GetBattleBone(attack.HitPart) == null)
+            if (attack.HitPart != EBattlePartType.None && owner.Property.GetBattleBone(attack.HitPart) == null)
                 CLogger.Warning("MeleeAttackFeature", $"판정 부위 뼈가 프리팹에 없음: {attack.HitPart} ({owner.transform.name})", owner.transform);
         }
     }
@@ -52,6 +50,41 @@ public class MeleeAttackFeature : UnitFeature
 
         return owner.position + Vector3.up * spec.Height + owner.forward * spec.Reach;
     }
+
+    // 공격 실행 ---
+
+    // 공격 하나 시작: 판정 걸기, 멈춰서 클립 재생, 시작 돌진(Lunge). 방향은 부르는 쪽이 먼저 맞춘다
+    public void StartAttack(AttackSpec spec, float blendTime = -1f)
+    {
+        Begin(spec);
+        m_Length = Owner.Anim.GetLength(spec.Clip);
+
+        Owner.Move.Stop();
+        Owner.Anim.Play(spec.Clip, true, blendTime);
+
+        if (spec.Lunge > 0f)
+            Owner.Move.AddImpulse(Owner.transform.forward * spec.Lunge);
+    }
+
+    // 공격 중 매 프레임(time = 공격 시작부터 지난 시간): 판정 구간 동안 앞으로 돌진하고 판정한다
+    public void UpdateAttack(float time)
+    {
+        if (m_Spec == null)
+            return;
+
+        if (m_Spec.ActiveMoveSpeed > 0f)
+            Owner.Move.SetVelocity(IsActive(time) ? Owner.transform.forward * m_Spec.ActiveMoveSpeed : Vector3.zero);
+
+        TickAttack(time);
+    }
+
+    // 클립이 끝났는지(걸린 공격이 없어도 true)
+    public bool IsFinished(float time)
+    {
+        return m_Spec == null || time >= m_Length;
+    }
+
+    // 판정 ---
 
     public void Begin(AttackSpec spec)
     {
@@ -111,7 +144,7 @@ public class MeleeAttackFeature : UnitFeature
         if (actors == null)
             return 0;
 
-        Transform bone = m_Property.GetBattleBone(spec.HitPart);
+        Transform bone = Owner.Property.GetBattleBone(spec.HitPart);
 
         Vector3 center = GetCenter(owner, spec, bone);
         ETeam team = Owner.HitFeature.Team;

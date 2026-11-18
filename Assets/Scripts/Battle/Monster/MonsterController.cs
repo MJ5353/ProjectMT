@@ -219,7 +219,7 @@ public class MonsterController : UnitController<MonsterDef>
     // 버섯 부위. 스폰 때 PartFeature가 소켓을 골라 꽂는다
     private void AttachMushrooms()
     {
-        Parts = AddFeature(new PartFeature(this, Def.ListPart, Property, HitFeature));
+        Parts = AddFeature(new PartFeature(this, Def.ListPart));
         Parts.Broken += OnPartBroken;
         HitFeature.SetParts(Parts);
     }

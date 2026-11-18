@@ -12,6 +12,12 @@ public interface IActor : IHitTarget
     void OnSpawn(int actorID);
     void OnDespawn();
     void Tick(float deltaTime, float unscaledDeltaTime);
+
+    // 부품끼리는 서로를(프리팹 참조도) 들고 있지 않고 주인을 통해 꺼낸다
+    UnitProperty Property { get; }
+    MoveFeature Move { get; }
+    AnimFeature Anim { get; }
+    HealthFeature Health { get; }
 }
 
 // ==================================================

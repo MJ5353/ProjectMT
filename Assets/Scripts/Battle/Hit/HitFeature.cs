@@ -14,8 +14,6 @@ public class HitFeature : UnitFeature
 
     private readonly ETeam m_Team;
     private readonly HitDef m_HitDef;
-    private readonly HealthFeature m_Health;
-    private readonly MoveFeature m_Move;
 
     // 번쩍 ---
     private readonly List<Renderer> m_ListFlashRenderer = new();
@@ -37,18 +35,16 @@ public class HitFeature : UnitFeature
     
     // get ---
     public ETeam Team => m_Team;
-    public bool IsDead => m_Health.IsDead;
+    public bool IsDead => Owner.Health.IsDead;
     public bool IsInvincible => m_InvincibleRemain > 0f;
     public override bool IsUnscaledTime => true;
 
     // ------------------------------------------------
 
-    public HitFeature(IActor owner, ETeam team, HitDef hitDef, HealthFeature health, MoveFeature move, List<Renderer> listFlashRenderer) : base(owner)
+    public HitFeature(IActor owner, ETeam team, HitDef hitDef, List<Renderer> listFlashRenderer) : base(owner)
     {
         m_Team = team;
         m_HitDef = hitDef;
-        m_Health = health;
-        m_Move = move;
 
         foreach (Renderer meshRenderer in listFlashRenderer)
         {
@@ -107,7 +103,7 @@ public class HitFeature : UnitFeature
             bodyDamage = Mathf.RoundToInt(hit.Damage * bodyDamageRate);
         }
 
-        m_Health.TakeDamage(bodyDamage);
+        Owner.Health.TakeDamage(bodyDamage);
         ApplyReactions(hit, partIndex);
 
         if (m_HitDef != null)
@@ -175,7 +171,7 @@ public class HitFeature : UnitFeature
         if (m_HitDef.KnockbackScale <= 0f)
             return;
 
-        m_Move.AddImpulse(hit.Direction * (hit.Knockback * m_HitDef.KnockbackScale));
+        Owner.Move.AddImpulse(hit.Direction * (hit.Knockback * m_HitDef.KnockbackScale));
     }
 
     // 몸을 맞으면 몸 렌더러만, 부위를 맞으면 그 부위 버섯만 번쩍인다

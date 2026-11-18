@@ -52,8 +52,8 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         Move = AddFeature(new MoveFeature(this, m_Property.CharacterController, m_Def.TurnSpeed));
         Anim = AddFeature(new AnimFeature(this, m_Property.Animator));
         Health = AddFeature(new HealthFeature(this, m_Def.MaxHp));
-        HitFeature = AddFeature(new HitFeature(this, Team, m_Def.Hit, Health, Move, m_Property.ListBodyRenderer));
-        Melee = AddFeature(new MeleeAttackFeature(this, GetAttacks(), m_Property));
+        HitFeature = AddFeature(new HitFeature(this, Team, m_Def.Hit, m_Property.ListBodyRenderer));
+        Melee = AddFeature(new MeleeAttackFeature(this, GetAttacks()));
 
         // 피격 반응 수치가 없으면 체력만 깎이고 반응은 없다
         if (m_Def.Hit == null)

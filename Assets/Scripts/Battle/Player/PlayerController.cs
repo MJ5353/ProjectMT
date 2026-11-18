@@ -35,7 +35,6 @@ public class PlayerController : UnitController<PlayerDef>
 
     private EPlayerState m_State;
     private float m_TimeInState;
-    private float m_AttackLength;
     private AttackSpec m_QueuedAttack; // 다음에 낼 공격. null이면 입력 없음
     private int m_ComboStep;           // 다음에 낼 콤보 칸(Def.ListCombo)
     private float m_AttackHoldTime;    // 공격 버튼을 누르고 있는 시간
@@ -210,27 +209,15 @@ public class PlayerController : UnitController<PlayerDef>
         AttackSpec attack = m_QueuedAttack ?? Def.MainAttack;
         m_QueuedAttack = null;
         m_ComboStep = FindComboIndex(attack) + 1; // 막타 다음은 GetNextAttack에서 첫 타로 돈다. 콤보 밖 공격이면 0
-        m_AttackLength = Anim.GetLength(attack.Clip);
 
-        Melee.Begin(attack);
-        Move.Stop();
-
-        Vector3 aimDirection = FindAimDirection();
-        Move.FaceTo(aimDirection, true);
-        Anim.Play(attack.Clip, true, Def.AttackBlendTime);
-
-        if (attack.Lunge > 0f)
-            Move.AddImpulse(transform.forward * attack.Lunge);
+        Move.FaceTo(FindAimDirection(), true);
+        Melee.StartAttack(attack, Def.AttackBlendTime);
     }
 
     private void UpdateAttack(AttackSpec pressedAttack)
     {
-        // 판정 구간 동안 앞으로 돌진
         AttackSpec attack = Melee.Spec;
-        if (attack.ActiveMoveSpeed > 0f)
-            Move.SetVelocity(Melee.IsActive(m_TimeInState) ? transform.forward * attack.ActiveMoveSpeed : Vector3.zero);
-
-        Melee.TickAttack(m_TimeInState);
+        Melee.UpdateAttack(m_TimeInState);
 
         // 판정 시작 뒤에 누른 것만 다음 타로 받는다(너무 이른 연타는 무시)
         if (pressedAttack != null && m_TimeInState >= attack.HitTime)
@@ -244,7 +231,7 @@ public class PlayerController : UnitController<PlayerDef>
             return;
         }
 
-        if (m_TimeInState >= m_AttackLength)
+        if (Melee.IsFinished(m_TimeInState))
             ChangeState(EPlayerState.Move);
     }
 

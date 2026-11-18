@@ -181,7 +181,6 @@ public class PartFeature : UnitFeature
         }
     }
 
-    private readonly UnitProperty m_Property;
     private readonly List<Part> m_ListPart = new();               // [i] = MonsterDef.ListPart 칸. 버섯이 없는 칸은 null
     private readonly HashSet<Transform> m_SetUsedSocket = new();  // 스폰 때 버섯 배치용
     private readonly List<Transform> m_ListSocketPick = new();
@@ -193,12 +192,11 @@ public class PartFeature : UnitFeature
     // ------------------------------------------------
 
     // 부위마다 버섯 모델을 최대 개수만큼 미리 만든다. 맞은 부위만 번쩍이도록 부위 번호와 함께 렌더러를 넘긴다
-    public PartFeature(IActor owner, IReadOnlyList<MonsterDef.PartEntry> listEntry, UnitProperty property, HitFeature hitFeature) : base(owner)
+    public PartFeature(IActor owner, IReadOnlyList<MonsterDef.PartEntry> listEntry) : base(owner)
     {
-        m_Property = property;
         for (int i = 0; i < listEntry.Count; i++)
         {
-            m_ListPart.Add(CreatePart(i, listEntry[i], owner.transform, hitFeature));
+            m_ListPart.Add(CreatePart(i, listEntry[i], owner));
         }
     }
 
@@ -245,7 +243,7 @@ public class PartFeature : UnitFeature
 
     // ==================================================
 
-    private static Part CreatePart(int index, MonsterDef.PartEntry entry, Transform parent, HitFeature hitFeature)
+    private static Part CreatePart(int index, MonsterDef.PartEntry entry, IActor owner)
     {
         if (entry.Model == null || entry.CountMax <= 0)
             return null;
@@ -253,11 +251,11 @@ public class PartFeature : UnitFeature
         Part part = new Part(index, entry);
         for (int i = 0; i < entry.CountMax; i++)
         {
-            Renderer normal = Object.Instantiate(entry.Model, parent);
-            Renderer broken = entry.BrokenModel != null ? Object.Instantiate(entry.BrokenModel, parent) : null;
+            Renderer normal = Object.Instantiate(entry.Model, owner.transform);
+            Renderer broken = entry.BrokenModel != null ? Object.Instantiate(entry.BrokenModel, owner.transform) : null;
 
-            hitFeature.AddFlashRenderer(normal, index);
-            hitFeature.AddFlashRenderer(broken, index);
+            owner.HitFeature.AddFlashRenderer(normal, index);
+            owner.HitFeature.AddFlashRenderer(broken, index);
             part.AddMushroom(normal, broken);
         }
 
@@ -287,14 +285,14 @@ public class PartFeature : UnitFeature
         // 장식(None)이나 부위 소켓이 없는 칸(Hitbox 뼈가 없는 잡몹)은 몸 어디든
         m_ListSocketPick.Clear();
         
-        UnitProperty.BonePart bonePart = m_Property.GetBonePart(part.Entry.BattlePart);
+        UnitProperty.BonePart bonePart = Owner.Property.GetBonePart(part.Entry.BattlePart);
         if (bonePart != null && bonePart.ListSocket.Count > 0)
         {
             m_ListSocketPick.AddRange(bonePart.ListSocket);
         }
         else
         {
-            foreach (UnitProperty.BonePart candidate in m_Property.ListBonePart)
+            foreach (UnitProperty.BonePart candidate in Owner.Property.ListBonePart)
             {
                 m_ListSocketPick.AddRange(candidate.ListSocket);
             }
