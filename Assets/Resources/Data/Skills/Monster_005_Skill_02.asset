@@ -18,7 +18,7 @@ MonoBehaviour:
   <Icon>k__BackingField: {fileID: 0}
   <Kind>k__BackingField: 1
   <Attack>k__BackingField:
-    <Clip>k__BackingField: SporeBurst
+    <Clip>k__BackingField: Skill_02
     <Damage>k__BackingField: 2
     m_HitFrame: 24
     <HitEndFrame>k__BackingField: 0

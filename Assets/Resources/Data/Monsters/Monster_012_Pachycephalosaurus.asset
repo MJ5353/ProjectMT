@@ -18,25 +18,11 @@ MonoBehaviour:
   <Icon>k__BackingField: {fileID: 0}
   <MaxHp>k__BackingField: 12
   <HitStunTime>k__BackingField: 0.35
+  <TurnSpeed>k__BackingField: 900
   <Hit>k__BackingField: {fileID: 11400000, guid: 9707896f19aae5149ab2a53582632c5e, type: 2}
-  <ListAttack>k__BackingField:
-  - <Clip>k__BackingField: Attack
-    <Damage>k__BackingField: 2
-    m_HitFrame: 9
-    <Reach>k__BackingField: 1
-    <Radius>k__BackingField: 0.9
-    <Height>k__BackingField: 0.6
-    <Knockback>k__BackingField: 6
-    <HitStop>k__BackingField: 0.06
-    <Lunge>k__BackingField: 0
-    <HitEndFrame>k__BackingField: 0
-    <ActiveMoveSpeed>k__BackingField: 0
-    <HitPart>k__BackingField: 0
-    <MinRange>k__BackingField: 0
-    <MaxRange>k__BackingField: 1.4
-    <Cooldown>k__BackingField: 0
-    <Weight>k__BackingField: 1
-    <WindupTime>k__BackingField: 0.45
+  <ListAttack>k__BackingField: []
+  <ListSkill>k__BackingField:
+  - {fileID: 11400000, guid: 9779170ef3d889240906e435f1428b89, type: 2}
   <MoveSpeed>k__BackingField: 3.48
   <WanderSpeed>k__BackingField: 1.39
   <SightRange>k__BackingField: 7
@@ -50,15 +36,28 @@ MonoBehaviour:
   <ModelName>k__BackingField: Mon_012_Pachycephalosaurus
   <BodyHeight>k__BackingField: 1.45
   <BodyRadius>k__BackingField: 0.25
+  m_ListBodyShape: []
   m_ListMushroom:
   - <Part>k__BackingField: 1
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 5c727db25668ad34b8c2f8c390596016, type: 3}
     <Scale>k__BackingField: 0.65
     <Euler>k__BackingField: {x: -7.85, y: 11.98, z: 9.06}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
   - <Part>k__BackingField: 2
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 5c727db25668ad34b8c2f8c390596016, type: 3}
     <Scale>k__BackingField: 0.89
     <Euler>k__BackingField: {x: -3.36, y: -7.34, z: -8.92}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
   m_ListDrop:
   - <Pickup>k__BackingField: {fileID: 2928097537796928298, guid: aa4959c85326e1a44be15773a7715a71, type: 3}
     <Min>k__BackingField: 1

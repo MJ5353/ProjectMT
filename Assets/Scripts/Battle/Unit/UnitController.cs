@@ -59,7 +59,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         Anim = AddFeature(new AnimFeature(this, m_Animator));
         Health = AddFeature(new HealthFeature(this, m_Def.MaxHp));
         HitFeature = AddFeature(new HitFeature(this, Team, m_Def.Hit, Health, Move, m_ListBodyRenderer));
-        Melee = AddFeature(new MeleeAttackFeature(this, m_Def.ListAttack, m_DicBattleBone));
+        Melee = AddFeature(new MeleeAttackFeature(this, GetAttacks(), m_DicBattleBone));
 
         // 피격 반응 수치가 없으면 체력만 깎이고 반응은 없다
         if (m_Def.Hit == null)
@@ -167,13 +167,21 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
             return;
 
         Gizmos.color = new Color(1f, 0.3f, 0.2f, 0.6f);
-        foreach (AttackSpec attack in m_Def.ListAttack)
+        foreach (AttackSpec attack in GetAttacks())
         {
             Transform bone = GetBattleBone(attack.HitPart);
             Gizmos.DrawWireSphere(MeleeAttackFeature.GetCenter(transform, attack, bone), attack.Radius);
         }
     }
-    
+
+    // Def의 공격 전부(이전 목록 + SkillDef). 판정 뼈 검사·기즈모용이라 매번 새 목록
+    private List<AttackSpec> GetAttacks()
+    {
+        List<AttackSpec> listAttack = new();
+        m_Def.CollectAttacks(listAttack);
+        return listAttack;
+    }
+
     // ==================================================
 
     // virtual ---

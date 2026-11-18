@@ -216,7 +216,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: RootStrike
+      name: Skill_01
       takeName: Boss_Tree|RootStrike
       internalID: 1158577817872196305
       firstFrame: 0
@@ -245,7 +245,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Slam
+      name: Attack_01
       takeName: Boss_Tree|Slam
       internalID: 7736624220853685872
       firstFrame: 0
@@ -274,7 +274,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: SporeBurst
+      name: Skill_02
       takeName: Boss_Tree|SporeBurst
       internalID: 8873150050644806704
       firstFrame: 0
@@ -303,7 +303,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Sweep
+      name: Skill_03
       takeName: Boss_Tree|Sweep
       internalID: 3941159081495440343
       firstFrame: 0

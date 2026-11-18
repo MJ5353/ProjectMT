@@ -18,25 +18,11 @@ MonoBehaviour:
   <Icon>k__BackingField: {fileID: 0}
   <MaxHp>k__BackingField: 4
   <HitStunTime>k__BackingField: 0.35
+  <TurnSpeed>k__BackingField: 900
   <Hit>k__BackingField: {fileID: 11400000, guid: 9707896f19aae5149ab2a53582632c5e, type: 2}
-  <ListAttack>k__BackingField:
-  - <Clip>k__BackingField: Attack
-    <Damage>k__BackingField: 1
-    m_HitFrame: 9
-    <Reach>k__BackingField: 1
-    <Radius>k__BackingField: 0.9
-    <Height>k__BackingField: 0.6
-    <Knockback>k__BackingField: 6
-    <HitStop>k__BackingField: 0.06
-    <Lunge>k__BackingField: 0
-    <HitEndFrame>k__BackingField: 0
-    <ActiveMoveSpeed>k__BackingField: 0
-    <HitPart>k__BackingField: 0
-    <MinRange>k__BackingField: 0
-    <MaxRange>k__BackingField: 1.4
-    <Cooldown>k__BackingField: 0
-    <Weight>k__BackingField: 1
-    <WindupTime>k__BackingField: 0.45
+  <ListAttack>k__BackingField: []
+  <ListSkill>k__BackingField:
+  - {fileID: 11400000, guid: 952b5a92f8f452b4b9e85d7438ce3dd3, type: 2}
   <MoveSpeed>k__BackingField: 3
   <WanderSpeed>k__BackingField: 1.2
   <SightRange>k__BackingField: 7
@@ -50,15 +36,28 @@ MonoBehaviour:
   <ModelName>k__BackingField: Mon_002_Mole
   <BodyHeight>k__BackingField: 0.5
   <BodyRadius>k__BackingField: 0.3
+  m_ListBodyShape: []
   m_ListMushroom:
   - <Part>k__BackingField: 1
     <Model>k__BackingField: {fileID: 0}
     <Scale>k__BackingField: 1
     <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
   - <Part>k__BackingField: 2
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 33d5e5e40cbd5374b97af9cfcc9de2b3, type: 3}
     <Scale>k__BackingField: 0.76
     <Euler>k__BackingField: {x: -1.78, y: 7.23, z: -3.75}
+    <BrokenModel>k__BackingField: {fileID: 0}
+    <Durability>k__BackingField: 0
+    <HitRadius>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 0
+    <RegenTime>k__BackingField: 0
+    <Drop>k__BackingField: {fileID: 0}
   m_ListDrop:
   - <Pickup>k__BackingField: {fileID: 8360666463547286274, guid: 25e1f7617935f0e4b9e36c4444342fa6, type: 3}
     <Min>k__BackingField: 1

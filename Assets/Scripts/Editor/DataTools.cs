@@ -19,7 +19,7 @@ public static class DataTools
     }
 
     public const string DatabasePath = "Assets/Resources/GameDatabase.asset";
-    private static readonly Regex s_SkillNameRule = new(@"^Monster_\d{3}_(Attack|Skill)_\d{2}$");
+    private static readonly Regex s_SkillNameRule = new(@"^(Monster_\d{3}|Player)_(Attack|Skill)_\d{2}$");
 
     public static GameDatabase RefreshDatabase(bool isVerbose)
     {
@@ -96,6 +96,8 @@ public static class DataTools
                 }
 
                 CheckClip(unit, skill.Attack, setClip, skill.name);
+                if (skill.Kind == ESkillKind.Attack && skill.Attack.Cooldown > 0f)
+                    CLogger.Warning("DataTools", $"기본 공격 SkillDef에 개별 쿨({skill.Attack.Cooldown})이 있음: {skill.name}. 쿨이 있으면 Kind를 Skill로", skill);
             }
         }
     }

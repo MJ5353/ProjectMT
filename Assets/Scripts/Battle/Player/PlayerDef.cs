@@ -38,7 +38,7 @@ public class PlayerDef : UnitDef
     [field: SerializeField, FormerlySerializedAs("m_DashAnimSpeed")]
     public float DashAnimSpeed { get; private set; } = 1.6f;   // 대시 중 Run 애니 배속
 
-    public AttackSpec UpAttack => ListAttack.Count > 1 ? ListAttack[1] : null; // 1번 칸: 위로 치기(높은 부위용). 없으면 null
+    public AttackSpec UpAttack => GetBasicAttack(1); // 두 번째 기본 공격: 위로 치기(높은 부위용). 없으면 null
 
     // ------------------------------------------------
 

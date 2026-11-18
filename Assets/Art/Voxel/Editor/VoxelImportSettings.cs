@@ -1,9 +1,12 @@
+using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
 // Assets/Art/Voxel 아래 복셀 에셋 가져오기 설정 (tools/voxel 스크립트가 만든 FBX·PNG 전용)
 // - 텍스처: 점 필터, 밉맵·압축 끔 (도트 색이 번지지 않게)
 // - 모델: 맵 지형·소품 충돌체, 축 변환 굽기, Generic 애니, 클립 이름 "Buggi|Walk" -> "Walk", Idle/Walk/Run/Underground 반복
+// - 클립 이름 표준화: AnimNameTable.txt(모델|원래 이름|표준 이름)대로 바꾼다(Attack_NN·Skill_NN). 표는 애니 이름 일괄 정리 메뉴가 채운다
 // - 머티리얼: FBX 안의 M_Voxel/M_Terrain을 Materials/ 폴더의 실제 .mat으로 바꿔 끼운다 (텍스처 연결이 FBX 위치와 무관하게 유지)
 // !!) 다시 가져올 때마다 클립 설정을 덮어쓴다. 클립을 손으로 고칠 거면 이 파일에서 해당 부분을 빼야 한다.
 public class VoxelImportSettings : AssetPostprocessor
@@ -11,6 +14,7 @@ public class VoxelImportSettings : AssetPostprocessor
     private const string Root = "Assets/Art/Voxel/";
     private const string MaterialFolder = Root + "Materials";
     private const string TextureFolder = Root + "Models/";
+    public const string AnimNameTablePath = Root + "Editor/AnimNameTable.txt";
     private static readonly string[] s_ArrLoopClip = { "Idle", "Walk", "Run", "Underground" };
     // FBX 안 머티리얼 이름 → 붙일 텍스처 이름
     private static readonly (string material, string texture)[] s_ArrVoxelMaterial =
@@ -64,11 +68,15 @@ public class VoxelImportSettings : AssetPostprocessor
         if (clips == null || clips.Length == 0)
             return;
 
+        Dictionary<string, string> dicRename = LoadAnimNames(Path.GetFileNameWithoutExtension(assetPath));
         foreach (ModelImporterClipAnimation clip in clips)
         {
             int bar = clip.name.LastIndexOf('|');
             if (bar >= 0)
                 clip.name = clip.name.Substring(bar + 1);
+
+            if (dicRename.TryGetValue(clip.name, out string standardName))
+                clip.name = standardName;
 
             clip.loopTime = System.Array.IndexOf(s_ArrLoopClip, clip.name) >= 0;
         }
@@ -77,6 +85,25 @@ public class VoxelImportSettings : AssetPostprocessor
     }
 
     // 지형·소품·경계 벽에 MeshCollider를 추가하고 경계 벽은 숨긴다. 지형은 Terrain 레이어
+    // 이 모델의 원래 클립 이름 → 표준 이름. 표 파일을 직접 읽어서 가져오기 순서와 상관없다
+    public static Dictionary<string, string> LoadAnimNames(string modelName)
+    {
+        Dictionary<string, string> dicRename = new();
+        if (File.Exists(AnimNameTablePath) == false)
+            return dicRename;
+
+        foreach (string line in File.ReadAllLines(AnimNameTablePath))
+        {
+            string[] cells = line.Split('|');
+            if (line.StartsWith("#") || cells.Length != 3 || cells[0].Trim() != modelName)
+                continue;
+
+            dicRename[cells[1].Trim()] = cells[2].Trim();
+        }
+
+        return dicRename;
+    }
+
     private void OnPostprocessModel(GameObject model)
     {
         if (assetPath.StartsWith(Root) == false)

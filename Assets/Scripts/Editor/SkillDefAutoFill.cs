@@ -9,7 +9,8 @@ using UnityEngine;
 
 // 몬스터 모델 클립으로 SkillDef를 만든다. 기본 공격(Attack·ListAttack에 쓰는 클립)은 Kind Attack, 나머지 공격 클립은 Kind Skill.
 // 수치는 기본 공격 값을 복사하고 스킬은 임시 쿨을 넣는다(손맛 수치는 대장이 정한다). 이미 같은 클립의 SkillDef가 있으면 건너뛴다
-// !!) 스킬만 MonsterDef.ListSkill에 넣는다. 기본 공격 SkillDef는 데이터 이전 때 ListAttack을 대신한다
+// !!) ListSkill에 연결한다. 애니 이름 정리 전(ListAttack 사용 중)이면 기본 공격은 연결하지 않는다(정리 메뉴가 옮긴다)
+// 새 클립은 원래 이름 그대로 Clip에 넣는다. 애니 이름 일괄 정리를 다시 돌리면 표준 이름으로 바뀐다
 public static class SkillDefAutoFill
 {
     public const string SkillDataDir = "Assets/Resources/Data/Skills/";
@@ -19,7 +20,7 @@ public static class SkillDefAutoFill
     private static readonly HashSet<string> s_SetNotAttack = new() { "Idle", "Walk", "Run", "Hit", "Death", "Roar", "Down", "PartBreak", "Burrow", "Emerge", "Underground", "Call" };
 
     // [mj] todo) 북극곰·사우루스 보스는 보류
-    private static readonly HashSet<string> s_SetHold = new() { "Monster_010_Boss_PolarBear", "Monster_015_Boss_Saurus" };
+    internal static readonly HashSet<string> s_SetHold = new() { "Monster_010_Boss_PolarBear", "Monster_015_Boss_Saurus" };
 
     private class Entry
     {
@@ -93,7 +94,7 @@ public static class SkillDefAutoFill
             if (listMine.Any(s => s.Attack.Clip == clip))
                 continue;
 
-            ESkillKind kind = setBasic.Contains(clip) ? ESkillKind.Attack : ESkillKind.Skill;
+            ESkillKind kind = setBasic.Contains(clip) || clip.StartsWith("Attack_") ? ESkillKind.Attack : ESkillKind.Skill;
             string name = $"{prefix}{kind}_{nextNo[(int)kind]:00}";
             nextNo[(int)kind]++;
             listEntry.Add(new Entry { Def = def, Clip = clip, Kind = kind, Name = name });
@@ -151,7 +152,8 @@ public static class SkillDefAutoFill
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
 
-            if (entry.Kind != ESkillKind.Skill)
+            // 애니 이름 정리 전(ListAttack 사용 중)이면 기본 공격은 연결하지 않는다(후보 중복)
+            if (entry.Kind == ESkillKind.Attack && entry.Def.ListAttack.Count > 0)
                 continue;
 
             using SerializedObject defSo = new SerializedObject(entry.Def);

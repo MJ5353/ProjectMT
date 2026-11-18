@@ -18,7 +18,7 @@ public enum EMonsterState
 public class MonsterController : UnitController<MonsterDef>
 {
     private readonly StateMachine<EMonsterState> m_Fsm = new();
-    private readonly List<AttackSpec> m_ListAttackChoice = new(); // 고를 수 있는 공격: 기본(Def.ListAttack) + 스킬(Def.ListSkill)
+    private readonly List<AttackSpec> m_ListAttackChoice = new(); // 고를 수 있는 공격: 이전 목록(Def.ListAttack) + Def.ListSkill
     private readonly List<float> m_ListAttackCooldown = new(); // m_ListAttackChoice 칸마다 남은 개별 쿨
     private readonly List<PartFeature> m_ListPart = new();      // [i] = Def.ListMushroom 칸. 버섯이 없는 칸은 null
 
@@ -47,13 +47,7 @@ public class MonsterController : UnitController<MonsterDef>
         AttachMushrooms();
         AddBodyShapes();
 
-        m_ListAttackChoice.AddRange(Def.ListAttack);
-        foreach (SkillDef skill in Def.ListSkill)
-        {
-            if (skill != null)
-                m_ListAttackChoice.Add(skill.Attack);
-        }
-
+        Def.CollectAttacks(m_ListAttackChoice);
         for (int i = 0; i < m_ListAttackChoice.Count; i++)
         {
             m_ListAttackCooldown.Add(0f);

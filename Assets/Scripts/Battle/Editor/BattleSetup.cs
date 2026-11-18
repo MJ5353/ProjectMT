@@ -202,7 +202,7 @@ public static class BattleSetup
         return "AC_" + MonsterPrefabBuilder.GetKey(modelName);
     }
 
-    private static AnimatorController BuildController(GameObject modelAsset)
+    internal static AnimatorController BuildController(GameObject modelAsset)
     {
         Directory.CreateDirectory(AnimatorDir);
         string path = $"{AnimatorDir}{GetControllerName(modelAsset.name)}.controller";

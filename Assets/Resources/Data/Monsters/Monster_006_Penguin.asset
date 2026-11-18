@@ -20,25 +20,9 @@ MonoBehaviour:
   <HitStunTime>k__BackingField: 0.35
   <TurnSpeed>k__BackingField: 900
   <Hit>k__BackingField: {fileID: 11400000, guid: 9707896f19aae5149ab2a53582632c5e, type: 2}
-  <ListAttack>k__BackingField:
-  - <Clip>k__BackingField: Attack
-    <Damage>k__BackingField: 1
-    m_HitFrame: 9
-    <HitEndFrame>k__BackingField: 0
-    <Reach>k__BackingField: 1
-    <Radius>k__BackingField: 0.9
-    <Height>k__BackingField: 0.6
-    <Knockback>k__BackingField: 6
-    <HitStop>k__BackingField: 0.06
-    <Lunge>k__BackingField: 0
-    <ActiveMoveSpeed>k__BackingField: 0
-    <HitPart>k__BackingField: 0
-    <MinRange>k__BackingField: 0
-    <MaxRange>k__BackingField: 1.4
-    <Cooldown>k__BackingField: 0
-    <Weight>k__BackingField: 1
-    <WindupTime>k__BackingField: 0.45
+  <ListAttack>k__BackingField: []
   <ListSkill>k__BackingField:
+  - {fileID: 11400000, guid: e0a1f071ee4233345bb9d6f8fe23b16d, type: 2}
   - {fileID: 11400000, guid: cefe483af78f8864dacd9b0f0d0e2baf, type: 2}
   <MoveSpeed>k__BackingField: 3.24
   <WanderSpeed>k__BackingField: 1.3
