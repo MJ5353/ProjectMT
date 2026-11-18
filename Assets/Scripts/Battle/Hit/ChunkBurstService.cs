@@ -46,6 +46,10 @@ public sealed class ChunkBurstService : ServiceBase
     private static readonly int s_ColorID = Shader.PropertyToID("_Color");
     private static readonly Bounds s_WorldBounds = new(Vector3.zero, Vector3.one * 10000f);
 
+    private readonly Dictionary<Color, ChunkBatch> m_DicBatch = new();
+    private Mesh m_Mesh;
+    private Material m_Material;
+    
     // 조각 하나
     private struct Chunk
     {
@@ -81,11 +85,6 @@ public sealed class ChunkBurstService : ServiceBase
             };
         }
     }
-
-    private readonly Dictionary<Color, ChunkBatch> m_DicBatch = new();
-
-    private Mesh m_Mesh;
-    private Material m_Material;
 
     // ------------------------------------------------
 
@@ -123,10 +122,13 @@ public sealed class ChunkBurstService : ServiceBase
 
         Transform cameraTransform = camera.transform;
         Vector3 center = point - cameraTransform.forward * MarkFront;
+        
         float pixel = isPart ? PartMarkPixel : MarkPixel;
         float lifeTime = isPart ? PartMarkLifeTime : MarkLifeTime;
+
         AddMarkPixels(s_ArrMarkCore, s_MarkCoreColor, center, cameraTransform, pixel, lifeTime);
         AddMarkPixels(s_ArrMarkRay, s_MarkRayColor, center, cameraTransform, pixel, lifeTime);
+        
         if (isPart)
             AddMarkPixels(s_ArrPartMarkOuter, s_PartMarkOuterColor, center, cameraTransform, pixel, lifeTime);
     }
@@ -140,6 +142,7 @@ public sealed class ChunkBurstService : ServiceBase
                 continue;
 
             UpdateBatch(batch, deltaTime);
+            
             if (batch.Count > 0)
                 Graphics.RenderMeshInstanced(batch.RenderParams, m_Mesh, 0, batch.ArrMatrix, batch.Count);
         }
@@ -165,6 +168,7 @@ public sealed class ChunkBurstService : ServiceBase
 
         batch = new ChunkBatch(m_Material, color);
         m_DicBatch.Add(color, batch);
+        
         return batch;
     }
 

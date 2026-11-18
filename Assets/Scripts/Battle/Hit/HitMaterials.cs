@@ -6,17 +6,19 @@ using UnityEngine;
 // 에셋은 MushTaker/초기 설정/누락 전투 에셋 복구에서 만든다.
 // Resources에 있는 머티리얼은 빌드에 셰이더와 함께 들어간다
 
+// [mj] todo) resource manager?
+
 public static class HitMaterials
 {
     public const string ResourceDir = "Materials/";
     public const string FlashName = "HitFlash";
     public const string ChunkName = "HitChunk";
 
-    private static Material s_Flash;
-    private static Material s_Chunk;
-
     public static Material Flash => Load(ref s_Flash, FlashName);
+    private static Material s_Flash;
+
     public static Material Chunk => Load(ref s_Chunk, ChunkName);
+    private static Material s_Chunk;
 
     // ==================================================
 
