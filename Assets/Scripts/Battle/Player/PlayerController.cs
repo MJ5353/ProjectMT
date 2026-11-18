@@ -19,18 +19,20 @@ public class PlayerController : UnitController<PlayerDef>
     private const string PlayerMapName = "Player";
     private const string MoveActionName = "Player/Move";
     private const string AttackActionName = "Player/Attack";
+    private const string AttackUpActionName = "Player/AttackUp";
     private const string DashActionName = "Player/Dash";
 
     private Transform m_CameraTransform;
 
     private InputAction m_MoveAction;
     private InputAction m_AttackAction;
+    private InputAction m_AttackUpAction;
     private InputAction m_DashAction;
 
     private EPlayerState m_State;
     private float m_TimeInState;
     private float m_AttackLength;
-    private bool m_IsAttackQueued;
+    private AttackSpec m_QueuedAttack; // 다음에 낼 공격. null이면 입력 없음
     private Vector3 m_DashDirection;
     private float m_DashCooldownRemain;
 
@@ -59,7 +61,7 @@ public class PlayerController : UnitController<PlayerDef>
         if (m_MoveAction == null)
             return;
 
-        bool isAttackPressed = m_AttackAction.WasPressedThisFrame() && IsClickOnUI() == false;
+        AttackSpec pressedAttack = GetPressedAttack();
         if (m_DashAction.WasPressedThisFrame() && CanDash())
         {
             ChangeState(EPlayerState.Dash);
@@ -69,10 +71,10 @@ public class PlayerController : UnitController<PlayerDef>
         switch (m_State)
         {
             case EPlayerState.Move:
-                UpdateMove(isAttackPressed);
+                UpdateMove(pressedAttack);
                 break;
             case EPlayerState.Attack:
-                UpdateAttack(isAttackPressed);
+                UpdateAttack(pressedAttack);
                 break;
             case EPlayerState.Dash:
                 UpdateDash();
@@ -94,7 +96,7 @@ public class PlayerController : UnitController<PlayerDef>
     protected override void OnSpawned()
     {
         m_DashCooldownRemain = 0f;
-        m_IsAttackQueued = false;
+        m_QueuedAttack = null;
         Init();
     }
 
@@ -120,14 +122,27 @@ public class PlayerController : UnitController<PlayerDef>
 
         m_MoveAction = actions.FindAction(MoveActionName, true);
         m_AttackAction = actions.FindAction(AttackActionName, true);
+        m_AttackUpAction = actions.FindAction(AttackUpActionName, true);
         m_DashAction = actions.FindAction(DashActionName, true);
         actions.FindActionMap(PlayerMapName, true).Enable();
     }
 
-    // 결과 화면 버튼 같은 UI를 마우스로 누른 것이면 공격으로 치지 않는다
-    private bool IsClickOnUI()
+    // 이번 프레임에 누른 공격. 위로 치기(1번)가 기본(0번)보다 먼저
+    private AttackSpec GetPressedAttack()
     {
-        if (m_AttackAction.activeControl?.device is not Mouse)
+        if (m_AttackUpAction.WasPressedThisFrame() && Def.UpAttack != null && IsClickOnUI(m_AttackUpAction) == false)
+            return Def.UpAttack;
+
+        if (m_AttackAction.WasPressedThisFrame() && IsClickOnUI(m_AttackAction) == false)
+            return Def.MainAttack;
+
+        return null;
+    }
+
+    // 결과 화면 버튼 같은 UI를 마우스로 누른 것이면 공격으로 치지 않는다
+    private bool IsClickOnUI(InputAction action)
+    {
+        if (action.activeControl?.device is not Mouse)
             return false;
 
         EventSystem eventSystem = EventSystem.current;
@@ -160,10 +175,11 @@ public class PlayerController : UnitController<PlayerDef>
         }
     }
 
-    private void UpdateMove(bool isAttackPressed)
+    private void UpdateMove(AttackSpec pressedAttack)
     {
-        if (isAttackPressed)
+        if (pressedAttack != null)
         {
+            m_QueuedAttack = pressedAttack;
             ChangeState(EPlayerState.Attack);
             return;
         }
@@ -184,8 +200,8 @@ public class PlayerController : UnitController<PlayerDef>
 
     private void EnterAttack()
     {
-        AttackSpec attack = Def.MainAttack;
-        m_IsAttackQueued = false;
+        AttackSpec attack = m_QueuedAttack ?? Def.MainAttack;
+        m_QueuedAttack = null;
         m_AttackLength = Anim.GetLength(attack.Clip);
 
         Melee.Begin(attack);
@@ -199,7 +215,7 @@ public class PlayerController : UnitController<PlayerDef>
             Move.AddImpulse(transform.forward * attack.Lunge);
     }
 
-    private void UpdateAttack(bool isAttackPressed)
+    private void UpdateAttack(AttackSpec pressedAttack)
     {
         // 판정 구간 동안 앞으로 돌진
         AttackSpec attack = Melee.Spec;
@@ -208,12 +224,12 @@ public class PlayerController : UnitController<PlayerDef>
 
         Melee.TickAttack(m_TimeInState);
 
-        if (isAttackPressed)
-            m_IsAttackQueued = true;
+        if (pressedAttack != null)
+            m_QueuedAttack = pressedAttack;
 
         // 판정이 끝난 뒤 입력이 있으면 다음 공격으로 끊는다
         bool canCancel = Melee.IsDone(m_TimeInState) && m_TimeInState >= attack.HitEndTime + Def.CancelDelay;
-        if (canCancel && m_IsAttackQueued)
+        if (canCancel && m_QueuedAttack != null)
         {
             ChangeState(EPlayerState.Attack);
             return;

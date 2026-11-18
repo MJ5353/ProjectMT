@@ -22,6 +22,8 @@ public class HitFeature : UnitFeature
     private readonly List<Material[]> m_ListOriginalMaterial = new();
     private readonly List<Material[]> m_ListFlashMaterial = new();
     private readonly List<int> m_ListFlashPart = new(); // 렌더러마다 부위 번호. -1이면 몸
+    private static readonly int s_BaseColorID = Shader.PropertyToID("_BaseColor");
+    private static MaterialPropertyBlock s_FlashBlock; // 번쩍 색. 같은 흰 머티리얼에 색만 얹는다
 
     // 부위 --- [i] = MonsterDef.ListMushroom 칸. 부위가 없는 칸은 null
     private IReadOnlyList<PartFeature> m_ListPart = null;
@@ -140,6 +142,7 @@ public class HitFeature : UnitFeature
                 continue;
 
             m_ListFlashRenderer[i].sharedMaterials = m_ListOriginalMaterial[i];
+            m_ListFlashRenderer[i].SetPropertyBlock(null);
         }
     }
 
@@ -180,12 +183,15 @@ public class HitFeature : UnitFeature
             return;
 
         RestoreFlash(); // 다른 부위가 번쩍이던 중이면 먼저 되돌린다
+        s_FlashBlock ??= new MaterialPropertyBlock();
+        s_FlashBlock.SetColor(s_BaseColorID, partIndex < 0 ? m_HitDef.FlashColor : m_HitDef.PartFlashColor);
         for (int i = 0; i < m_ListFlashRenderer.Count; i++)
         {
             if (m_ListFlashRenderer[i] == null || m_ListFlashPart[i] != partIndex)
                 continue;
 
             m_ListFlashRenderer[i].sharedMaterials = m_ListFlashMaterial[i];
+            m_ListFlashRenderer[i].SetPropertyBlock(s_FlashBlock);
         }
 
         m_FlashRemain = m_HitDef.FlashTime;

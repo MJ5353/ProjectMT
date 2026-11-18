@@ -18,6 +18,7 @@ MonoBehaviour:
   <Icon>k__BackingField: {fileID: 0}
   <MaxHp>k__BackingField: 45
   <HitStunTime>k__BackingField: 0.1
+  <TurnSpeed>k__BackingField: 120
   <Hit>k__BackingField: {fileID: 11400000, guid: c4d21274ae7bcaf4ca8e7b650ad32b20, type: 2}
   <ListAttack>k__BackingField:
   - <Clip>k__BackingField: Slam

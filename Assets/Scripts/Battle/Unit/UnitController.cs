@@ -55,7 +55,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
             return;
         }
 
-        Move = AddFeature(new MoveFeature(this, m_CharacterController));
+        Move = AddFeature(new MoveFeature(this, m_CharacterController, m_Def.TurnSpeed));
         Anim = AddFeature(new AnimFeature(this, m_Animator));
         Health = AddFeature(new HealthFeature(this, m_Def.MaxHp));
         HitFeature = AddFeature(new HitFeature(this, Team, m_Def.Hit, Health, Move, m_ListBodyRenderer));

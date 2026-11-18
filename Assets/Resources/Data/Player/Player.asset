@@ -37,6 +37,23 @@ MonoBehaviour:
     <Cooldown>k__BackingField: 0
     <Weight>k__BackingField: 1
     <WindupTime>k__BackingField: 0
+  - <Clip>k__BackingField: Attack
+    <Damage>k__BackingField: 1
+    m_HitFrame: 9
+    <Reach>k__BackingField: 0.9
+    <Radius>k__BackingField: 1.2
+    <Height>k__BackingField: 2.6
+    <Knockback>k__BackingField: 3
+    <HitStop>k__BackingField: 0.07
+    <Lunge>k__BackingField: 0
+    <HitEndFrame>k__BackingField: 0
+    <ActiveMoveSpeed>k__BackingField: 0
+    <HitPart>k__BackingField: 0
+    <MinRange>k__BackingField: 0
+    <MaxRange>k__BackingField: 1.4
+    <Cooldown>k__BackingField: 0
+    <Weight>k__BackingField: 1
+    <WindupTime>k__BackingField: 0
   <Prefab>k__BackingField: {fileID: 9078100684901017445, guid: d8bb4bf761c13534280b65af507d428c, type: 3}
   <MoveSpeed>k__BackingField: 5
   <RunThreshold>k__BackingField: 0.6

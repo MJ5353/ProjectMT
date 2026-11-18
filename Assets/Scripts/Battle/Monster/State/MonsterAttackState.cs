@@ -16,8 +16,8 @@ public class MonsterAttackState : MonsterState
         m_Length = m_Controller.Anim.GetLength(attack.Clip);
         m_Controller.Melee.Begin(attack);
 
+        // 방향은 추적·예고 동안 TurnSpeed로만 맞춘다. 공격 중에는 고정해서 옆으로 빠질 틈을 준다
         m_Controller.Move.Stop();
-        m_Controller.Move.FaceTo(m_Controller.GetTargetDirection(), true);
         m_Controller.Anim.Play(attack.Clip, true);
 
         if (attack.Lunge > 0f)
