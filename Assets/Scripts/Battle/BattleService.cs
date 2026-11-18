@@ -35,10 +35,6 @@ public sealed class BattleService : ServiceBase
     }
 
     public const float SpawnLift = 0.3f; // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
-    public const string TerrainName = "Map_Terrain";
-    private const float SnapRayHeight = 50f; // 지점 위 이 높이에서 아래로 쏜다
-    private const float SnapRayDistance = 100f;
-    private const float SnapFallbackHeight = 3f; // 지형 이름이 다를 때 지점 위 이 높이까지만 땅으로 본다(나무 꼭대기 방지)
     private const float RespawnBlockDistance = 15f; // 플레이어가 이보다 가까우면 리스폰을 미룬다(눈앞에 갑자기 생기지 않게)
     private const int GoalKillCount = 10; // 이만큼 잡으면 승리 (보스가 들어오기 전 임시 조건)
     private const string DefaultPlayerID = "Player";
@@ -154,7 +150,7 @@ public sealed class BattleService : ServiceBase
         if (spawn == null)
             CLogger.Warning("BattleService", $"플레이어 슬롯 {MapDef.GetSlotName(playerSlot)}이 맵에 없어 원점에서 시작합니다.");
 
-        Vector3 position = spawn != null ? SnapToGround(spawn, playerDef.Prefab) : Vector3.zero;
+        Vector3 position = spawn != null ? spawn.position + Vector3.up * SpawnLift : Vector3.zero;
         Quaternion rotation = spawn != null ? GetSpawnRotation(spawn) : Quaternion.identity;
 
         m_PlayerController = GameManager.Instance.Actors.Spawn(playerDef.Prefab, position, rotation);
@@ -170,40 +166,6 @@ public sealed class BattleService : ServiceBase
         return m_SpawnSlots[index];
     }
 
-    public static Vector3 SnapToGround(Transform slot, Component prefab)
-    {
-        // 지점을 땅 위에 세운다. 위에서 아래로 쏴서 지형(Map_Terrain)에 맞은 가장 높은 점을 쓴다(나무·바위 위는 피함)
-        // 지형 이름이 다른 맵이면 지점 3m 위 아래쪽에서 가장 높은 점. 캐릭터 컨트롤러(다른 몬스터·플레이어)는 무시
-
-        Vector3 position = slot.position;
-        Vector3 origin = position + Vector3.up * SnapRayHeight;
-        RaycastHit[] hits = Physics.RaycastAll(origin, Vector3.down, SnapRayDistance, ~0, QueryTriggerInteraction.Ignore);
-
-        float terrainY = float.MinValue;
-        float fallbackY = float.MinValue;
-        float fallbackTop = position.y + SnapFallbackHeight;
-
-        foreach (RaycastHit hit in hits)
-        {
-            if (hit.collider is CharacterController)
-                continue;
-
-            if (hit.collider.name == TerrainName)
-                terrainY = Mathf.Max(terrainY, hit.point.y);
-            else if (hit.point.y <= fallbackTop)
-                fallbackY = Mathf.Max(fallbackY, hit.point.y);
-        }
-
-        float groundY = terrainY > float.MinValue ? terrainY : fallbackY;
-        if (groundY == float.MinValue)
-        {
-            CLogger.Warning("BattleService", $"{slot.name} {position}: 아래에 땅이 없어 원래 위치에 놓습니다.", slot);
-            return position;
-        }
-
-        return new Vector3(position.x, groundY + GetFootOffset(prefab) + SpawnLift, position.z);
-    }
-
     // 지점의 수평 방향(yaw)만 쓴다
     // !!) 맵 FBX의 SpawnSlot은 X 90도로 누워 있다. 그대로 쓰면 캐릭터 컨트롤러 center도 같이 돌아 캡슐이 땅 밑에서 시작해 떨어진다
     public static Quaternion GetSpawnRotation(Transform slot)
@@ -215,19 +177,9 @@ public sealed class BattleService : ServiceBase
         return forward.sqrMagnitude < 0.01f ? Quaternion.identity : Quaternion.LookRotation(forward, Vector3.up);
     }
 
-    // 캡슐 바닥이 피벗보다 아래면 그만큼 올린다(피벗이 발 밑이면 0)
-    private static float GetFootOffset(Component prefab)
-    {
-        if (prefab == null || prefab.TryGetComponent(out CharacterController cc) == false)
-            return 0f;
-
-        float bottom = (cc.center.y - cc.height * 0.5f) * cc.transform.lossyScale.y;
-        return Mathf.Max(0f, -bottom);
-    }
-
     private void Spawn(SpawnState spawn)
     {
-        MonsterController controller = GameManager.Instance.Actors.Spawn(spawn.Entry.Monster.Prefab, SnapToGround(spawn.Point, spawn.Entry.Monster.Prefab), GetSpawnRotation(spawn.Point));
+        MonsterController controller = GameManager.Instance.Actors.Spawn(spawn.Entry.Monster.Prefab, spawn.Point.position + Vector3.up * SpawnLift, GetSpawnRotation(spawn.Point));
         if (controller == null)
             return;
 
