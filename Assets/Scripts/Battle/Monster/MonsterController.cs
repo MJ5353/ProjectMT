@@ -188,6 +188,13 @@ public class MonsterController : UnitController<MonsterDef>
         return true;
     }
 
+    // 콤보 다음 타로 넘어간다(AttackSpec.Next). 공격 상태를 다시 들어가 처음부터 낸다
+    public void ContinueCombo()
+    {
+        CurrentAttack = CurrentAttack.NextAttack;
+        ChangeState(EMonsterState.Attack);
+    }
+
     // 공격이 끝날 때. 공용 쿨과 쓴 공격의 개별 쿨을 건다
     public void StartAttackCooldown()
     {

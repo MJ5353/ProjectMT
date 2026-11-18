@@ -17,7 +17,7 @@ public enum EPlayerState
 
 // 채집꾼 조작. 입력은 프로젝트 입력 에셋(Assets/InputSystem_Actions)의 Player 맵 Move·Attack·Dash를 쓴다.
 // 키 배치는 에셋에서 바꾼다(기본: 이동 WASD·방향키·왼스틱, 공격 클릭·스페이스·J·패드 A/X, 대시 Shift·패드 B).
-// 공격 버튼을 누르면 가까운 몬스터 쪽으로 자동으로 돌아서 벤다(모바일 대비). 연타하면 Def.ListCombo 순서, 달리는 중이면 Def.RunAttack. 수치는 PlayerDef
+// 공격 버튼을 누르면 가까운 몬스터 쪽으로 자동으로 돌아서 벤다(모바일 대비). 연타하면 Def.ComboStart부터 AttackSpec.Next 순서, 달리는 중이면 Def.RunAttack. 수치는 PlayerDef
 public class PlayerController : UnitController<PlayerDef>
 {
     private const string PlayerMapName = "Player";
@@ -36,7 +36,7 @@ public class PlayerController : UnitController<PlayerDef>
     private EPlayerState m_State;
     private float m_TimeInState;
     private AttackSpec m_QueuedAttack; // 다음에 낼 공격. null이면 입력 없음
-    private int m_ComboStep;           // 다음에 낼 콤보 칸(Def.ListCombo)
+    private AttackSpec m_ComboNext;    // 다음에 낼 콤보 타. null이면 첫 타(Def.ComboStart)
     private float m_AttackHoldTime;    // 공격 버튼을 누르고 있는 시간
     private Vector3 m_DashDirection;
     private float m_DashCooldownRemain;
@@ -95,7 +95,7 @@ public class PlayerController : UnitController<PlayerDef>
     {
         m_DashCooldownRemain = 0f;
         m_QueuedAttack = null;
-        m_ComboStep = 0;
+        m_ComboNext = null;
         Init();
     }
     
@@ -208,7 +208,7 @@ public class PlayerController : UnitController<PlayerDef>
     {
         AttackSpec attack = m_QueuedAttack ?? Def.MainAttack;
         m_QueuedAttack = null;
-        m_ComboStep = FindComboIndex(attack) + 1; // 막타 다음은 GetNextAttack에서 첫 타로 돈다. 콤보 밖 공격이면 0
+        m_ComboNext = attack.NextAttack; // 막타·콤보 밖 공격(Next 없음) 다음은 첫 타
 
         Move.FaceTo(FindAimDirection(), true);
         Melee.StartAttack(attack, Def.AttackBlendTime);
@@ -284,15 +284,14 @@ public class PlayerController : UnitController<PlayerDef>
         if (m_State == EPlayerState.Move && Def.RunAttack != null && GetMoveInput().magnitude >= Def.RunThreshold)
             return Def.RunAttack.Attack;
 
-        if (Def.ListCombo.Count == 0)
+        if (Def.ComboStart == null)
             return Def.MainAttack;
 
         // 공격이 끝나고 리셋 시간이 지나면 첫 타부터
         if (m_State != EPlayerState.Attack && m_TimeInState > Def.ComboResetTime)
-            m_ComboStep = 0;
+            m_ComboNext = null;
 
-        SkillDef combo = Def.ListCombo[m_ComboStep % Def.ListCombo.Count];
-        return combo != null ? combo.Attack : Def.MainAttack;
+        return m_ComboNext ?? Def.ComboStart.Attack;
     }
 
     // 카메라 기준 입력 방향(수평)
@@ -311,15 +310,6 @@ public class PlayerController : UnitController<PlayerDef>
         return forward * raw.y + right * raw.x;
     }
     
-    // 콤보 몇 번째 칸인지. 콤보 밖 공격이면 -1
-    private int FindComboIndex(AttackSpec attack)
-    {
-        for (int i = 0; i < Def.ListCombo.Count; i++)
-        {
-            if (Def.ListCombo[i] != null && Def.ListCombo[i].Attack == attack)
-                return i;
-        }
-
         return -1;
     }
     

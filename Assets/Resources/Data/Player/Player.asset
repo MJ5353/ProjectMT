@@ -39,10 +39,7 @@ MonoBehaviour:
   <DashCooldown>k__BackingField: 0.5
   <IsDashInvincible>k__BackingField: 1
   <DashAnimSpeed>k__BackingField: 1.6
-  <ListCombo>k__BackingField:
-  - {fileID: 11400000, guid: 980fca3413c941579e01cfbaa9f27899, type: 2}
-  - {fileID: 11400000, guid: 39948498f604494f858e666618e47192, type: 2}
-  - {fileID: 11400000, guid: edd3e605d75046e584006f2675a5d75a, type: 2}
+  <ComboStart>k__BackingField: {fileID: 11400000, guid: 980fca3413c941579e01cfbaa9f27899, type: 2}
   <ComboResetTime>k__BackingField: 0.4
   <RunAttack>k__BackingField: {fileID: 11400000, guid: f131cb9420ac4d3da261483a93e6988a, type: 2}
   <HoldAttack>k__BackingField: {fileID: 11400000, guid: 3b19ee7eb64d42b19b2e0067c7026b59, type: 2}

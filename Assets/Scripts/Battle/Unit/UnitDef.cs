@@ -17,6 +17,9 @@ public abstract class UnitDef : DataDef
     [field: SerializeField]
     public float TurnSpeed { get; private set; } = 900f;           // 초당 회전 각도. 보스는 낮춰서 옆을 노릴 틈을 준다
 
+    [field: SerializeField]
+    public float AttackBlendTime { get; private set; } = 0.08f;    // [mj] todo) 임시값. 공격 애니로 넘어갈 때 섞는 시간(초). 판정 시각은 상태 시간 기준이라 밀리지 않음
+
     // 피격 반응(넉백·번쩍·히트스톱·조각·무적) 수치. 여러 유닛이 같은 에셋을 같이 쓴다
     [field: SerializeField]
     public HitDef Hit { get; private set; } = null;

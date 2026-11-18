@@ -72,6 +72,12 @@ public class AttackSpec
     [field: SerializeField]
     public float WindupTime { get; private set; } = 0f; // 움츠리는 예고 시간(초). 0이면 움츠림 없이 클립 자체 예비 동작
 
+    // 콤보 --- 플레이어는 리셋 시간 안에 누르면, 몬스터는 끝나자마자 바로 이어 낸다
+    [field: SerializeField]
+    public SkillDef Next { get; private set; } = null; // 이어지는 다음 타. 비면 콤보 끝
+
+    public AttackSpec NextAttack => Next != null ? Next.Attack : null;
+
     // ------------------------------------------------
 
     public AttackSpec() { }

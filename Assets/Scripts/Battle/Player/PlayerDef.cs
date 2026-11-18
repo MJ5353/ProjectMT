@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections.Generic;
 using UnityEngine.Serialization;
 
 // ==================================================
@@ -42,10 +41,9 @@ public class PlayerDef : UnitDef
     public float DashAnimSpeed { get; private set; } = 1.6f;   // 대시 중 Run 애니 배속
 
     // 콤보 ---
-    // [mj] todo) 이거 monster에서도 쓸 수 있게 일반화 필요. 
-    
+    // 연타 순서는 첫 타의 AttackSpec.Next로 이어진다(좌 → 우 → 막타). 막타(Next 없음) 다음은 다시 첫 타
     [field: SerializeField]
-    public List<SkillDef> ListCombo { get; private set; } = new();  // 공격 연타 순서(좌 → 우 → 막타). 비면 기본 공격 하나
+    public SkillDef ComboStart { get; private set; } = null;       // 콤보 첫 타. 비면 기본 공격 하나
 
     [field: SerializeField]
     public float ComboResetTime { get; private set; } = 0.4f;      // [mj] todo) 임시값. 공격이 끝난 뒤 이 시간 안에 누르면 다음 타, 지나면 첫 타부터
@@ -58,9 +56,6 @@ public class PlayerDef : UnitDef
 
     [field: SerializeField]
     public float HoldTime { get; private set; } = 0.35f;           // [mj] todo) 임시값. 이만큼 누르고 있으면 HoldAttack
-
-    [field: SerializeField]
-    public float AttackBlendTime { get; private set; } = 0.08f;    // [mj] todo) 임시값. 공격 애니로 넘어갈 때 섞는 시간(초). 판정 시각은 상태 시간 기준이라 밀리지 않음
 
     public AttackSpec UpAttack => GetBasicAttack(1); // 두 번째 기본 공격: 위로 치기(높은 부위용). 없으면 null
 

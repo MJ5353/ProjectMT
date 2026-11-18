@@ -35,3 +35,4 @@ MonoBehaviour:
     <Cooldown>k__BackingField: 0
     <Weight>k__BackingField: 1
     <WindupTime>k__BackingField: 0
+    <Next>k__BackingField: {fileID: 11400000, guid: edd3e605d75046e584006f2675a5d75a, type: 2}
