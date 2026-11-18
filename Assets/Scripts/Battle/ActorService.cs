@@ -114,6 +114,30 @@ public sealed class ActorService : ServiceBase
         }
     }
 
+    // 다른 몸(팀 무관)과 margin 안으로 붙어 있는지. 수평 거리 + 높이 범위만 본다
+    public bool IsBodyNear(CharacterController self, float margin)
+    {
+        Vector3 position = self.transform.position;
+        foreach (IActor actor in m_DicActor.Values)
+        {
+            CharacterController body = actor.HurtBody;
+            if (body == null || body == self || body.enabled == false)
+                continue;
+
+            Vector3 otherPosition = body.transform.position;
+            if (otherPosition.y > position.y + self.height + margin || position.y > otherPosition.y + body.height + margin)
+                continue;
+
+            Vector3 offset = otherPosition - position;
+            offset.y = 0f;
+            float range = self.radius + self.skinWidth + body.radius + margin;
+            if (offset.sqrMagnitude < range * range)
+                return true;
+        }
+
+        return false;
+    }
+
     private static bool IsEnemy(IHitTarget actor, ETeam team)
     {
         if (actor is UnityEngine.Object behaviour && behaviour == null)
