@@ -12,11 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51d8908ac2bdcd74db9aae877f4ee773, type: 3}
   m_Name: Map_003_Dino
   m_EditorClassIdentifier: Assembly-CSharp::MapDef
-  m_DisplayName: "\uAFC8\uC790\uB9AC"
+  m_DisplayName: "\uB4A4\uC22D\uC22D\uD55C \uAFC8\uC790\uB9AC"
   <ID>k__BackingField: Map_003_Dino
-  <Description>k__BackingField: "\uBD80\uD480\uC5B4 \uC624\uB978 \uBC84\uC6B0\uB974\uC2A4\uAC00
-    \uD3EC\uC790\uB97C \uBFDC\uB294 \uC5B8\uB355."
-  <Icon>k__BackingField: {fileID: 0}
+  <Description>k__BackingField: "\uC815\uB9D0 \uC774\uC0C1\uD55C \uAFC8\uC774\uC57C..."
+  <Icon>k__BackingField: {fileID: 21300000, guid: dde414ed5c84e6046a7055b1a9dc4d04, type: 3}
   <Order>k__BackingField: 3
   <RequireMap>k__BackingField: {fileID: 11400000, guid: 8a4dfed4853d4ed4696105fa99b1bc24, type: 2}
   <MapPosition>k__BackingField: {x: 0.8, y: 0.35}

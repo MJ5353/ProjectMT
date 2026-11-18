@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MapDef
   m_DisplayName: "\uD55C\uAE30\uC758 \uC27C\uD130"
   <ID>k__BackingField: Map_002_Ice
-  <Description>k__BackingField: "\uBC84\uACF0\uC774 \uAE38\uC744 \uB9C9\uB294 \uACE0\uAC2F\uAE38.
-    \uB2E8\uB2E8\uD55C \uAD6C\uB984\uBC84\uC12F \uAC13\uC744 \uAE68\uC57C \uD55C\uB2E4."
-  <Icon>k__BackingField: {fileID: 0}
+  <Description>k__BackingField: "\uC0AC\uB78C\uC5D0\uAC90 \uCDA5\uACE0 \uC801\uB300\uC801\uC778
+    \uACF5\uAC04\uC774\uB2E4. "
+  <Icon>k__BackingField: {fileID: 21300000, guid: 9f77f856932be6a40b92df51b5eafa69, type: 3}
   <Order>k__BackingField: 2
   <RequireMap>k__BackingField: {fileID: 11400000, guid: f150fc24e89ab06429d0c9ef7a061f99, type: 2}
   <MapPosition>k__BackingField: {x: 0.5, y: 0.62}
