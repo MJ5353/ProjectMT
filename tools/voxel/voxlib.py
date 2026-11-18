@@ -261,7 +261,23 @@ def clear_pose(arm):
     for pb in arm.pose.bones:
         pb.location = (0, 0, 0); pb.rotation_euler = (0, 0, 0); pb.scale = (1, 1, 1)
 
+# Unity 명명 규칙(26.11.18): 스크립트 안 이름 → 내보낼 파일 이름. 표에 없으면 그대로 쓴다
+EXPORT_NAMES = {
+    'Buggi': 'Mon_001_Buggi', 'Budeoji': 'Mon_002_Budeoji', 'Bugom': 'Mon_003_Bugom', 'Burangi': 'Mon_004_Burangi',
+    'Boss_Tree': 'Mon_005_Boss_Tree', 'Bugwin': 'Mon_006_Bugwin', 'BukBuggi': 'Mon_007_BukBuggi', 'Bubeom': 'Mon_008_Bubeom',
+    'BukBuyeou': 'Mon_009_BukBuyeou', 'Boss_BukBugom': 'Mon_010_Boss_BukBugom', 'Buraptor': 'Mon_011_Buraptor',
+    'Bupachy': 'Mon_012_Bupachy', 'Bursus': 'Mon_013_Bursus', 'Bukera': 'Mon_014_Bukera', 'Boss_Bursus': 'Mon_015_Boss_Bursus',
+    'Map_Field01': 'Map_001_Field', 'Map_Ice01': 'Map_002_Ice', 'Map_Dino01': 'Map_003_Dino',
+}
+for _i, _k in enumerate(['Songi', 'Cloud', 'Malbul', 'Noru', 'Pyogo', 'Paengi', 'Gwangdae', 'Seori'], 1):
+    _key = 'Gureum' if _k == 'Cloud' else _k
+    EXPORT_NAMES[f'Mush_{_k}'] = f'Mush_{_i:03d}_{_key}'
+    EXPORT_NAMES[f'Mush_{_k}_Broken'] = f'Mush_{_i:03d}_{_key}_Broken'
+
 def export_fbx(path, anim):
+    d, f = os.path.split(path)
+    stem, ext = os.path.splitext(f)
+    path = os.path.join(d, EXPORT_NAMES.get(stem, stem) + ext)
     bpy.ops.export_scene.fbx(
         filepath=path, use_selection=False, object_types={'ARMATURE', 'MESH', 'EMPTY'},
         apply_unit_scale=True, apply_scale_options='FBX_SCALE_ALL', axis_forward='-Z', axis_up='Y',

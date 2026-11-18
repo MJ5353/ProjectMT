@@ -12,32 +12,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: daef891a2f8200544aa2fc3fe8910319, type: 3}
   m_Name: Player
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDef
-  m_ID: Player
   m_DisplayName: "\uCC44\uC9D1\uAFBC"
-  m_Description: 
-  m_Icon: {fileID: 0}
-  m_MaxHp: 5
-  m_KnockbackScale: 1
-  m_HitStunTime: 0.3
-  m_InvincibleTime: 0.6
-  m_ChunkColor: {r: 0.9, g: 0.3, b: 0.3, a: 1}
-  m_Attack:
-    m_Clip: Attack
-    m_Damage: 1
+  <ID>k__BackingField: Player
+  <Description>k__BackingField: 
+  <Icon>k__BackingField: {fileID: 0}
+  <MaxHp>k__BackingField: 5
+  <KnockbackScale>k__BackingField: 1
+  <HitStunTime>k__BackingField: 0.3
+  <InvincibleTime>k__BackingField: 0.6
+  <ChunkColor>k__BackingField: {r: 0.9, g: 0.3, b: 0.3, a: 1}
+  <Attack>k__BackingField:
+    <Clip>k__BackingField: Attack
+    <Damage>k__BackingField: 1
     m_HitFrame: 9
-    m_Reach: 1.1
-    m_Radius: 1
-    m_Height: 0.7
-    m_Knockback: 7
-    m_HitStop: 0.07
-    m_Lunge: 2
-  m_MoveSpeed: 5
-  m_RunThreshold: 0.6
-  m_AutoAimRange: 3.5
-  m_CancelDelay: 0.12
-  m_DashSpeed: 16
-  m_DashTime: 0.18
-  m_DashCooldown: 0.5
-  m_IsDashInvincible: 1
-  m_DashAnimSpeed: 1.6
-  m_Prefab: {fileID: 9078100684901017445, guid: d8bb4bf761c13534280b65af507d428c, type: 3}
+    <Reach>k__BackingField: 1.1
+    <Radius>k__BackingField: 1
+    <Height>k__BackingField: 0.7
+    <Knockback>k__BackingField: 7
+    <HitStop>k__BackingField: 0.07
+    <Lunge>k__BackingField: 2
+  <Prefab>k__BackingField: {fileID: 9078100684901017445, guid: d8bb4bf761c13534280b65af507d428c, type: 3}
+  <MoveSpeed>k__BackingField: 5
+  <RunThreshold>k__BackingField: 0.6
+  <AutoAimRange>k__BackingField: 3.5
+  <CancelDelay>k__BackingField: 0.12
+  <DashSpeed>k__BackingField: 16
+  <DashTime>k__BackingField: 0.18
+  <DashCooldown>k__BackingField: 0.5
+  <IsDashInvincible>k__BackingField: 1
+  <DashAnimSpeed>k__BackingField: 1.6

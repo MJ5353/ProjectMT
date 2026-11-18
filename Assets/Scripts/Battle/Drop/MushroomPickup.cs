@@ -10,7 +10,7 @@ public class MushroomPickup : MonoBehaviour
     private const float ActivateDelay = 0.5f;    // 떨어진 뒤 주울 수 있기까지(초)
     private const float SpinSpeed = 120f;        // 바닥에서 도는 속도(초당 각도)
 
-    [SerializeField] private string m_ItemID = "Mushroom_Songi";   // 인벤토리에 넣을 ID(MushroomDef ID)
+    [SerializeField] private string m_ItemID = "Mushroom_001_Songi";   // 인벤토리에 넣을 ID(MushroomDef ID)
     [SerializeField] private int m_Amount = 1;                     // 한 번에 주워지는 개수
 
     private Vector3 m_Velocity;

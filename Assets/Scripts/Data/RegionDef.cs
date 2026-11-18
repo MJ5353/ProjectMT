@@ -5,14 +5,14 @@ using UnityEngine.Serialization;
 
 // 토벌 지역 정의. 로비 토벌 지도에 노드로 찍히고, 골라서 입장하면 전투가 시작된다.
 // 깬 지역은 플래그(ClearFlag)로 저장하고, 앞 지역을 깨면 다음 지역이 열린다
-[CreateAssetMenu(menuName = "MushTaker/Data/Region", fileName = "Region_")]
+[CreateAssetMenu(menuName = "MushTaker/Data/Region", fileName = "Map_")]
 public class RegionDef : DataDef
 {
     // 맵 슬롯 하나에 나올 몬스터
     [Serializable]
     public class SpawnEntry
     {
-        [field: SerializeField, Tooltip("맵 슬롯 번호(SpawnSlot_NN의 NN)")]
+        [field: SerializeField, Tooltip("맵 슬롯 번호(SpawnSlot_NNN의 NNN)")]
         public int Slot { get; private set; } = 0;
 
         [field: SerializeField]
@@ -31,7 +31,7 @@ public class RegionDef : DataDef
         }
     }
 
-    public const string SpawnSlotPrefix = "SpawnSlot_"; // 맵 FBX의 스폰 지점 이름(SpawnSlot_01~)
+    public const string SpawnSlotPrefix = "SpawnSlot_"; // 맵 FBX의 스폰 지점 이름(SpawnSlot_001~)
     public const int DefaultPlayerSlot = 1;
 
     [field: SerializeField, FormerlySerializedAs("m_Order")]
@@ -58,7 +58,7 @@ public class RegionDef : DataDef
 
     // ------------------------------------------------
 
-    public static string GetSlotName(int slot) => $"{SpawnSlotPrefix}{slot:00}";
+    public static string GetSlotName(int slot) => $"{SpawnSlotPrefix}{slot:000}";
 
     // SpawnSlot_NN이면 NN을 돌려준다
     public static bool TryParseSlot(string objectName, out int slot)

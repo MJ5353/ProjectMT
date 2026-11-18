@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51d8908ac2bdcd74db9aae877f4ee773, type: 3}
+  m_Name: Map_002_Ice
+  m_EditorClassIdentifier: Assembly-CSharp::RegionDef
+  m_DisplayName: "\uAD6C\uB984 \uACE0\uAC1C"
+  <ID>k__BackingField: Map_002_Ice
+  <Description>k__BackingField: "\uBC84\uACF0\uC774 \uAE38\uC744 \uB9C9\uB294 \uACE0\uAC2F\uAE38.
+    \uB2E8\uB2E8\uD55C \uAD6C\uB984\uBC84\uC12F \uAC13\uC744 \uAE68\uC57C \uD55C\uB2E4."
+  <Icon>k__BackingField: {fileID: 0}
+  <Order>k__BackingField: 2
+  <RequireRegion>k__BackingField: {fileID: 11400000, guid: f150fc24e89ab06429d0c9ef7a061f99, type: 2}
+  <MapPosition>k__BackingField: {x: 0.5, y: 0.62}
+  m_ListMushroom:
+  - {fileID: 11400000, guid: f5c08f1e51dd52b47b4afe44f988d506, type: 2}
+  - {fileID: 11400000, guid: c8574fd4a7aa3ae40ae6e81d0e6971d9, type: 2}
+  <PlayerSlot>k__BackingField: 1
+  m_ListSpawn:
+  - <Slot>k__BackingField: 2
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 3
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 5
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 6
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 8
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 9
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 11
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 12
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 14
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 15
+    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 17
+    <Monster>k__BackingField: {fileID: 11400000, guid: 5c880b59f0cba5044b02df65c38989e5, type: 2}
+    <RespawnDelay>k__BackingField: 8
+  - <Slot>k__BackingField: 19
+    <Monster>k__BackingField: {fileID: 11400000, guid: 5c880b59f0cba5044b02df65c38989e5, type: 2}
+    <RespawnDelay>k__BackingField: 8

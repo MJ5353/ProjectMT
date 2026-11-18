@@ -5,12 +5,13 @@ using UnityEditor;
 using UnityEngine;
 
 // 몬스터 프리팹 일괄 제작. Data/Monsters의 MonsterDef 한 장 = 프리팹 한 개(Prefabs/Actor/{에셋 이름}.prefab).
-// 이름: 모델 Xxx.fbx → Def·프리팹 Monster_Xxx, ID도 Monster_Xxx(DataDef 기본 규칙, 에셋 이름 = ID)
+// 이름: 모델 Mon_NNN_Key.fbx → Def·프리팹 Monster_NNN_Key, ID도 Monster_NNN_Key(DataDef 기본 규칙, 에셋 이름 = ID)
 // 모델 등록과 빌드는 MushTaker/데이터 편집기에서 한다.
 // !!) 프리팹은 덮어쓴다(GUID 유지라 씬 참조는 안 끊긴다). 프리팹에 손으로 단 것은 사라지니 값은 Def에 둔다
 public static class MonsterPrefabBuilder
 {
     private const string DefPrefix = "Monster_";
+    private const string ModelPrefix = "Mon_";
     private const string SocketPrefix = "Socket_";
     private const float SizeStep = 0.05f;      // 자동 크기 반올림 단위
     private const float RadiusRate = 0.4f;     // 모델 가로·세로 중 짧은 쪽에 곱해 반지름으로
@@ -101,13 +102,19 @@ public static class MonsterPrefabBuilder
         }
     }
 
-    // 비어 있으면 에셋 이름에서 접두사를 뗀 이름(Monster_Buggi → Buggi)
+    // 비어 있으면 에셋 이름의 키에 모델 접두사를 붙인 이름(Monster_001_Buggi → Mon_001_Buggi)
     public static string GetModelName(MonsterDef def)
     {
         if (def.ModelName.E_IsNullOrEmpty() == false)
             return def.ModelName;
 
-        return def.name.StartsWith(DefPrefix) ? def.name.Substring(DefPrefix.Length) : def.name;
+        return def.name.StartsWith(DefPrefix) ? ModelPrefix + def.name.Substring(DefPrefix.Length) : def.name;
+    }
+
+    // 모델 이름에서 접두사를 뗀 키(Mon_001_Buggi → 001_Buggi). 접두사가 없으면 그대로
+    public static string GetKey(string modelName)
+    {
+        return modelName.StartsWith(ModelPrefix) ? modelName.Substring(ModelPrefix.Length) : modelName;
     }
 
     // 캡슐 크기가 0이면 모델 크기로 계산해 Def에 써 둔다(이후엔 Def 값을 손으로 고침)
@@ -171,12 +178,13 @@ public static class MonsterPrefabBuilder
             return existing;
 
         Directory.CreateDirectory(BattleSetup.MonsterDataDir);
-        string path = $"{BattleSetup.MonsterDataDir}{DefPrefix}{model.name}.asset";
-        if (File.Exists(path) || DataTools.CollectDefs().Any(candidate => candidate.ID == DefPrefix + model.name))
+        string defName = DefPrefix + GetKey(model.name);
+        string path = $"{BattleSetup.MonsterDataDir}{defName}.asset";
+        if (File.Exists(path) || DataTools.CollectDefs().Any(candidate => candidate.ID == defName))
             throw new System.InvalidOperationException($"에셋 경로 또는 ID가 이미 있습니다: {path}");
 
         MonsterDef def = ScriptableObject.CreateInstance<MonsterDef>();
-        def.EditorSetIdentity(DefPrefix + model.name, model.name);
+        def.EditorSetIdentity(defName, GetKey(model.name));
         AssetDatabase.CreateAsset(def, path);
         BattleSetup.SetString(def, nameof(MonsterDef.ModelName), model.name);
 

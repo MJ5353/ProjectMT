@@ -278,11 +278,11 @@ def build_map():
     for i, e in enumerate(elite_names()):
         add(elites[i % len(elites)], ZONES[e][:2])
     spawns[f"Spawn_{REGION['boss']}"] = ZONES['boss'][:2]
-    # 오브젝트 이름은 SpawnSlot_01부터 순번(26.11.18 대장). 순서: 플레이어 → 잡몹 무리(3마리씩) → 엘리트 → 보스.
+    # 오브젝트 이름은 SpawnSlot_001부터 순번(26.11.18 대장). 순서: 플레이어 → 잡몹 무리(3마리씩) → 엘리트 → 보스.
     # 어느 칸에 무엇이 서는지는 지역 데이터가 정한다. 생성 때 의도한 종류는 SLOTS(슬롯 이름 → 종류)로 남긴다.
     SLOT_OF.clear(); SLOTS.clear()
     for n, nm in enumerate(spawns, 1):
-        SLOT_OF[nm] = f"SpawnSlot_{n:02d}"; SLOTS[SLOT_OF[nm]] = nm
+        SLOT_OF[nm] = f"SpawnSlot_{n:03d}"; SLOTS[SLOT_OF[nm]] = nm
     for nm, (x, y) in spawns.items():
         o = bpy.data.objects.new(SLOT_OF[nm], None); o.empty_display_type = 'ARROWS'
         o.location = (x, y, 0); o.parent = root

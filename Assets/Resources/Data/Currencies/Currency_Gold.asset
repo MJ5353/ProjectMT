@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83bb4bdc3826a5448a15e7d83f251ed4, type: 3}
   m_Name: Currency_Gold
   m_EditorClassIdentifier: Assembly-CSharp::CurrencyDef
-  m_ID: Currency_Gold
   m_DisplayName: "\uACE8\uB4DC"
-  m_Description: 
-  m_Icon: {fileID: 0}
+  <ID>k__BackingField: Currency_Gold
+  <Description>k__BackingField: 
+  <Icon>k__BackingField: {fileID: 0}

@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // 전투 1단계 시험 환경을 만드는 메뉴.
-// 기존 Def로 누락 프리팹을 복구하고 Battle 씬(Map_Field01 + 스폰 지점)을 만든다.
+// 기존 Def로 누락 프리팹을 복구하고 Battle 씬(Map_001_Field + 스폰 지점)을 만든다.
 // 프리팹의 참조(Def·CharacterController·Animator·몸 렌더러)는 여기서 채워서, 런타임에는 GetComponent를 쓰지 않는다
 // !!) 초기 설정은 누락된 에셋만 복구한다. 수치와 기존 프리팹은 데이터 편집기에서 관리한다.
 public static class BattleSetup
@@ -19,12 +19,12 @@ public static class BattleSetup
     private const string AnimatorDir = PrefabDir + "Animators/";
     internal const string MonsterDataDir = "Assets/Resources/Data/Monsters/";
     private const string ScenePath = "Assets/Scenes/Battle.unity";
-    private const string MapName = "Map_Field01";
+    private const string MapName = "Map_001_Field";
     private const float ModelYaw = 180f;
 
     private const string PlayerPrefabPath = PrefabDir + "Player.prefab";
-    private const string SongiPickupPath = PrefabDir + "Pickup_Songi.prefab";
-    private const string CloudPickupPath = PrefabDir + "Pickup_Cloud.prefab";
+    private const string SongiPickupPath = PrefabDir + "Pickup_001_Songi.prefab";
+    private const string CloudPickupPath = PrefabDir + "Pickup_002_Gureum.prefab";
     private const string PlayerDataDir = "Assets/Resources/Data/Player/";
     private const string PlayerDefPath = PlayerDataDir + "Player.asset";
     private const string RegionDataDir = "Assets/Resources/Data/Regions/";
@@ -68,8 +68,8 @@ public static class BattleSetup
         Directory.CreateDirectory(HitMaterialDir);
         BuildHitMaterial(HitMaterials.FlashName);
         BuildHitMaterial(HitMaterials.ChunkName);
-        BuildPickup(SongiPickupPath, "Mush_Songi", "Mushroom_Songi", false);
-        BuildPickup(CloudPickupPath, "Mush_Cloud", "Mushroom_Cloud", false);
+        BuildPickup(SongiPickupPath, "Mush_001_Songi", "Mushroom_001_Songi", false);
+        BuildPickup(CloudPickupPath, "Mush_002_Gureum", "Mushroom_002_Gureum", false);
         MonsterPrefabBuilder.BuildAll(false);
         BuildPlayer(playerDef, false);
         if (playerDef.Prefab == null)
@@ -183,10 +183,16 @@ public static class BattleSetup
     }
 
     // 상태 이름 = 클립 이름, 기본 상태 Idle. 전이 없이 코드에서 CrossFade로 부른다
+    // 애니메이터 이름: AC_ + 모델 키(Mon_001_Buggi → AC_001_Buggi, Player → AC_Player)
+    private static string GetControllerName(string modelName)
+    {
+        return "AC_" + MonsterPrefabBuilder.GetKey(modelName);
+    }
+
     private static AnimatorController BuildController(GameObject modelAsset)
     {
         Directory.CreateDirectory(AnimatorDir);
-        string path = $"{AnimatorDir}{modelAsset.name}.controller";
+        string path = $"{AnimatorDir}{GetControllerName(modelAsset.name)}.controller";
         AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
         if (controller == null)
             controller = AnimatorController.CreateAnimatorControllerAtPath(path);
@@ -233,7 +239,7 @@ public static class BattleSetup
 
         new GameObject(nameof(BattleHud)).AddComponent<BattleHud>();
         RectTransform popupRoot = UIBuilder.CreateCanvas("BattlePopupCanvas", 110);
-        RegionDef region = AssetDatabase.LoadAssetAtPath<RegionDef>(RegionDataDir + "Region_01.asset");
+        RegionDef region = AssetDatabase.LoadAssetAtPath<RegionDef>(RegionDataDir + MapName + ".asset");
         sceneController.EditorSetup(popupRoot, region);
         sceneController.EditorSetSpawnSlots(CollectSpawnSlots(map));
 
@@ -246,7 +252,7 @@ public static class BattleSetup
         CLogger.Log("BattleSetup", $"{ScenePath} 생성. 스폰 슬롯 {slotCount}개");
     }
 
-    // Map_Field01 슬롯 배치(tools/voxel/SpawnSlots.md). 1번은 플레이어
+    // Map_001_Field 슬롯 배치(tools/voxel/SpawnSlots.md). 1번은 플레이어
     private static readonly int[] BuggiSlots = { 2, 3, 5, 6, 8, 9, 11, 12, 14, 15 };
 
     // 맵의 SpawnSlot_NN을 [NN-1] 자리에 담는다. 빠진 번호는 null
