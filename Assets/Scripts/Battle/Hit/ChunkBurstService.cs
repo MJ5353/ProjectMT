@@ -21,9 +21,12 @@ public sealed class ChunkBurstService : ServiceBase
     private const float MarkExpand = 6f;        // 도트가 중심에서 퍼지는 빠르기(중심 거리 배율, 초당)
     private const float MarkLifeTime = 0.2f;    // 타격 마크가 퍼지며 줄어들다 사라지는 시간(초)
     private const float MarkFront = 0.4f;       // 맞은 표면에 묻히지 않게 카메라 쪽으로 당기는 거리
+    private const float PartMarkPixel = 0.14f;  // 부위 타격 마크 도트 한 칸 길이. 몸보다 크게
+    private const float PartMarkLifeTime = 0.35f; // 부위 타격 마크가 남는 시간(초). 몸보다 길게
 
     private static readonly Color s_MarkCoreColor = Color.white;
     private static readonly Color s_MarkRayColor = new(1f, 0.85f, 0.2f);
+    private static readonly Color s_PartMarkOuterColor = new(1f, 0.3f, 0.1f);
 
     // 타격 마크 칸 좌표(카메라 기준 오른쪽, 위). 가운데 십자는 흰색, 바깥 빛살 8줄기는 노란색
     private static readonly Vector2Int[] s_ArrMarkCore = { new(0, 0), new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
@@ -31,6 +34,12 @@ public sealed class ChunkBurstService : ServiceBase
     {
         new(3, 0), new(4, 0), new(-3, 0), new(-4, 0), new(0, 3), new(0, 4), new(0, -3), new(0, -4),
         new(2, 2), new(3, 3), new(-2, 2), new(-3, 3), new(2, -2), new(3, -3), new(-2, -2), new(-3, -3),
+    };
+    // 부위 타격 마크에만 더하는 바깥 빨간 빛살
+    private static readonly Vector2Int[] s_ArrPartMarkOuter =
+    {
+        new(6, 0), new(7, 0), new(-6, 0), new(-7, 0), new(0, 6), new(0, 7), new(0, -6), new(0, -7),
+        new(5, 5), new(-5, 5), new(5, -5), new(-5, -5),
     };
 
     private static readonly int s_BaseColorID = Shader.PropertyToID("_BaseColor");
@@ -105,7 +114,8 @@ public sealed class ChunkBurstService : ServiceBase
     }
 
     // 맞은 자리에 도트 별 모양 마크를 띄운다. 카메라를 향한 판에 칸을 찍고, 중심에서 퍼지며 줄어든다
-    public void Mark(Vector3 point)
+    // 부위를 맞으면 도트가 크고 오래 남고, 바깥에 빨간 빛살이 더해진다
+    public void Mark(Vector3 point, bool isPart)
     {
         Camera camera = Camera.main;
         if (camera == null)
@@ -113,8 +123,12 @@ public sealed class ChunkBurstService : ServiceBase
 
         Transform cameraTransform = camera.transform;
         Vector3 center = point - cameraTransform.forward * MarkFront;
-        AddMarkPixels(s_ArrMarkCore, s_MarkCoreColor, center, cameraTransform);
-        AddMarkPixels(s_ArrMarkRay, s_MarkRayColor, center, cameraTransform);
+        float pixel = isPart ? PartMarkPixel : MarkPixel;
+        float lifeTime = isPart ? PartMarkLifeTime : MarkLifeTime;
+        AddMarkPixels(s_ArrMarkCore, s_MarkCoreColor, center, cameraTransform, pixel, lifeTime);
+        AddMarkPixels(s_ArrMarkRay, s_MarkRayColor, center, cameraTransform, pixel, lifeTime);
+        if (isPart)
+            AddMarkPixels(s_ArrPartMarkOuter, s_PartMarkOuterColor, center, cameraTransform, pixel, lifeTime);
     }
 
     // 히트스톱(timeScale 0) 중에는 deltaTime이 0이라 멈춘 채로 그려진다
@@ -154,7 +168,7 @@ public sealed class ChunkBurstService : ServiceBase
         return batch;
     }
 
-    private void AddMarkPixels(Vector2Int[] arrCell, Color color, Vector3 center, Transform cameraTransform)
+    private void AddMarkPixels(Vector2Int[] arrCell, Color color, Vector3 center, Transform cameraTransform, float pixel, float lifeTime)
     {
         ChunkBatch batch = GetBatch(color);
         foreach (Vector2Int cell in arrCell)
@@ -162,15 +176,15 @@ public sealed class ChunkBurstService : ServiceBase
             if (batch.Count >= MaxChunkPerColor)
                 return;
 
-            Vector3 offset = (cameraTransform.right * cell.x + cameraTransform.up * cell.y) * MarkPixel;
+            Vector3 offset = (cameraTransform.right * cell.x + cameraTransform.up * cell.y) * pixel;
             batch.ArrChunk[batch.Count] = new Chunk
             {
                 Position = center + offset,
                 Rotation = cameraTransform.rotation,   // 정육면체 한 면이 카메라를 향해 네모 도트로 보인다
                 Velocity = offset * MarkExpand,
                 Gravity = 0f,
-                Size = MarkPixel,
-                LifeTime = MarkLifeTime,
+                Size = pixel,
+                LifeTime = lifeTime,
                 Age = 0f,
             };
             batch.Count++;

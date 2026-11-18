@@ -168,7 +168,7 @@ public class HitFeature : UnitFeature
             ApplyHitStop(hit);
 
         if (m_HitDef.Has(EHitReaction.ChunkBurst))
-            ApplyChunkBurst(hit);
+            ApplyChunkBurst(hit, partIndex);
     }
 
     private void ApplyKnockback(in HitParams hit)
@@ -214,14 +214,14 @@ public class HitFeature : UnitFeature
     }
 
     // 전투 씬이 아니면 조각을 튀기지 않는다. 타격 마크는 실제 맞은 자리(부위 표면)에 띄운다
-    private void ApplyChunkBurst(in HitParams hit)
+    private void ApplyChunkBurst(in HitParams hit, int partIndex)
     {
         ChunkBurstService chunkBurstS = GameManager.Instance?.Chunks;
         if (chunkBurstS == null)
             return;
 
         chunkBurstS.Burst(Owner.transform.position + Vector3.up * ChunkHeight, hit.Direction, m_HitDef.ChunkColor);
-        chunkBurstS.Mark(hit.Point);
+        chunkBurstS.Mark(hit.Point, partIndex >= 0);
     }
 
     // 렌더러 머티리얼 칸 수만큼 번쩍 머티리얼을 채운 배열. 맞을 때마다 새로 만들지 않도록 미리 만든다
