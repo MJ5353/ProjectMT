@@ -263,10 +263,10 @@ def clear_pose(arm):
 
 # Unity 명명 규칙(26.11.18): 스크립트 안 이름 → 내보낼 파일 이름. 표에 없으면 그대로 쓴다
 EXPORT_NAMES = {
-    'Buggi': 'Mon_001_Buggi', 'Budeoji': 'Mon_002_Budeoji', 'Bugom': 'Mon_003_Bugom', 'Burangi': 'Mon_004_Burangi',
-    'Boss_Tree': 'Mon_005_Boss_Tree', 'Bugwin': 'Mon_006_Bugwin', 'BukBuggi': 'Mon_007_BukBuggi', 'Bubeom': 'Mon_008_Bubeom',
-    'BukBuyeou': 'Mon_009_BukBuyeou', 'Boss_BukBugom': 'Mon_010_Boss_BukBugom', 'Buraptor': 'Mon_011_Buraptor',
-    'Bupachy': 'Mon_012_Bupachy', 'Bursus': 'Mon_013_Bursus', 'Bukera': 'Mon_014_Bukera', 'Boss_Bursus': 'Mon_015_Boss_Bursus',
+    'Buggi': 'Mon_001_Rabbit', 'Budeoji': 'Mon_002_Mole', 'Bugom': 'Mon_003_Bear', 'Burangi': 'Mon_004_Tiger',
+    'Boss_Tree': 'Mon_005_Boss_Tree', 'Bugwin': 'Mon_006_Penguin', 'BukBuggi': 'Mon_007_ArcticHare', 'Bubeom': 'Mon_008_Seal',
+    'BukBuyeou': 'Mon_009_ArcticFox', 'Boss_BukBugom': 'Mon_010_Boss_PolarBear', 'Buraptor': 'Mon_011_Raptor',
+    'Bupachy': 'Mon_012_Pachycephalosaurus', 'Bursus': 'Mon_013_Saurus', 'Bukera': 'Mon_014_Triceratops', 'Boss_Bursus': 'Mon_015_Boss_Saurus',
     'Map_Field01': 'Map_001_Field', 'Map_Ice01': 'Map_002_Ice', 'Map_Dino01': 'Map_003_Dino',
 }
 for _i, _k in enumerate(['Songi', 'Cloud', 'Malbul', 'Noru', 'Pyogo', 'Paengi', 'Gwangdae', 'Seori'], 1):

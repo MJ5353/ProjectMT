@@ -57,9 +57,9 @@ for y in range(2,12):
     for x in range(24):
         if ell(12,9,8,6.5,x,y)<=1 and y<=10:
             px[x,y]= capD if y>=10 else (capH if (x+0.5-12)/8+(y+0.5-9)/6.5<-0.85 else cap)
-sprites["Icon_Songi"]=outline(im,(52,34,24,255))
+sprites["Icon_001_Songi"]=outline(im,(52,34,24,255))
 
-# 구름버섯
+# 구름버섯(Gureum)
 im=new(24,24); px=im.load()
 bands=[(0.82,(232,222,202,255)),(0.62,(122,126,144,255)),(0.42,(134,98,72,255)),(0,(86,64,52,255))]
 for cx,cy,rx,ry in ((14,9,7,5),(10,14,8,5.5),(12,19,10,6)):
@@ -70,7 +70,7 @@ for cx,cy,rx,ry in ((14,9,7,5),(10,14,8,5.5),(12,19,10,6)):
             if r>1: continue
             for th,c in bands:
                 if r>=th: px[x,y]=c; break
-sprites["Icon_Cloud"]=outline(im,(48,40,40,255))
+sprites["Icon_002_Gureum"]=outline(im,(48,40,40,255))
 
 # 말불버섯
 im=new(24,24); px=im.load()
@@ -85,7 +85,7 @@ for y in range(24):
             px[x,y]= bH if u+v<-0.9 else (bD if u+v>0.7 else b)
 for p in ((9,9),(14,8),(16,12),(10,14),(13,15),(7,12)): px[p]=dot
 px[12,5]=(120,104,84,255); px[11,5]=(120,104,84,255)
-sprites["Icon_Malbul"]=outline(im,(70,58,44,255))
+sprites["Icon_003_Malbul"]=outline(im,(70,58,44,255))
 
 # 골드
 im=new(16,16); px=im.load()
@@ -99,6 +99,99 @@ for y in range(16):
             px[x,y]=c
 for y in range(6,10): px[8,y]=(204,146,44,255)
 sprites["Icon_Gold"]=outline(im,(92,60,22,255))
+
+# 노루궁뎅이: 하얀 털뭉치 + 아래로 늘어진 가시
+im=new(24,24); px=im.load()
+nb=(240,232,208,255); nl=(252,248,236,255); nd=(214,198,160,255)
+for y in range(18,22):
+    for x in range(10,14): px[x,y]=nd
+for y in range(24):
+    for x in range(24):
+        if ell(12,10.5,9,7,x,y)<=1:
+            u=(x+0.5-12)/9; v=(y+0.5-10.5)/7
+            px[x,y]= nl if u+v<-0.8 else (nd if u+v>0.8 else nb)
+for x in range(5,20,2):
+    for d in range(1,3+(x*7)%3):
+        if px[x,17+d-1][3]==0 or d>1: px[x,16+d]= nl if x%4==1 else nb
+for p in ((8,6),(14,5),(11,9),(16,9),(7,11),(13,12)): px[p]=nl
+sprites["Icon_004_Noru"]=outline(im,(110,96,72,255))
+
+# 표고: 납작한 갈색 갓 + 흰 갈라짐
+im=new(24,24); px=im.load()
+pc=(120,74,46,255); pd=(88,52,32,255); pk=(226,206,176,255); ps=(232,220,196,255); psd=(196,180,150,255)
+for y in range(12,21):
+    for x in range(10,14): px[x,y]= psd if x==13 else ps
+for y in range(24):
+    for x in range(24):
+        if ell(12,12,10,7,x,y)<=1 and y<=11:
+            px[x,y]= pd if ell(12,12,10,7,x,y)>0.7 else pc
+for x in range(4,21): px[x,12]=psd
+for p in ((8,7),(9,7),(12,6),(13,7),(16,8),(15,8),(10,9),(6,10),(18,10),(11,5)): px[p]=pk
+sprites["Icon_005_Pyogo"]=outline(im,(56,34,20,255))
+
+# 팽이: 가는 흰 줄기 다발 + 작은 갓
+im=new(24,24); px=im.load()
+pw=(246,242,226,255); pcap=(214,186,118,255); pb=(190,160,110,255)
+stems=((7,9),(9,4),(11,7),(13,2),(15,6),(17,9))
+for sx,top in stems:
+    for y in range(top+2,20): px[sx,y]=pw
+    for dx in (-1,0,1): px[sx+dx,top+1]=pcap
+    px[sx,top]=pcap
+# 줄기 사이를 옅은 그늘로 메워 한 다발로 보이게
+for y in range(5,20):
+    xs=[x for x in range(24) if px[x,y]==pw]
+    if len(xs)<2: continue
+    for x in range(xs[0],xs[-1]+1):
+        if px[x,y][3]==0: px[x,y]=(214,206,182,255)
+for y in range(19,22):
+    for x in range(6,19): px[x,y]=pb
+sprites["Icon_006_Paengi"]=outline(im,(90,76,52,255))
+
+# 광대버섯: 빨간 갓 + 흰 점, 흰 줄기와 턱받이
+im=new(24,24); px=im.load()
+gr=(214,52,40,255); gd=(170,36,30,255); gw=(248,244,232,255); gs=(244,238,220,255); gsd=(206,198,176,255)
+for y in range(10,21):
+    for x in range(10,14): px[x,y]= gsd if x==13 else gs
+for x in range(8,16): px[x,20]=gs; px[x,21]=gsd
+for x in range(9,15): px[x,13]=gw
+for y in range(24):
+    for x in range(24):
+        if ell(12,11,9.5,8,x,y)<=1 and y<=10:
+            px[x,y]= gd if y>=10 else gr
+for p in ((8,6),(9,6),(13,4),(14,4),(16,7),(11,8),(6,9),(17,9),(12,6)): px[p]=gw
+sprites["Icon_007_Gwangdae"]=outline(im,(80,20,16,255))
+
+# 서리버섯: 옅은 푸른 고깔 갓 + 고드름
+im=new(24,24); px=im.load()
+sb=(176,214,236,255); sl=(226,242,252,255); sd=(120,166,204,255); ss=(214,230,240,255)
+for y in range(12,21):
+    for x in range(10,14): px[x,y]= sd if x==13 else ss
+for y in range(2,13):
+    hw=max(1,round(9*math.sqrt((y-1)/11)))
+    for x in range(12-hw,12+hw):
+        px[x,y]= sl if y<5 or x<12-hw+2 else (sd if x>=12+hw-2 else sb)
+for x,l in ((5,2),(8,1),(15,1),(18,2)):
+    for d in range(1,l+1): px[x,12+d]=sl
+sprites["Icon_008_Seori"]=outline(im,(60,96,130,255))
+
+# 썩은 버섯 덮개: 아이콘 위에 겹치는 곰팡이 얼룩(반투명)
+im=new(24,24); px=im.load()
+mold=(92,110,70,170); moldD=(58,70,44,210); fuzz=(196,206,170,200)
+for cx,cy,r in ((9,9,2.8),(14,13,3.2),(11,16,2.2),(15,7,2.0)):
+    for y in range(24):
+        for x in range(24):
+            if ell(cx,cy,r,r,x,y)<=1: px[x,y]= moldD if ell(cx,cy,r,r,x,y)<0.35 else mold
+for p in ((8,6),(14,10),(17,13),(11,18),(12,8),(13,15)): px[p]=fuzz
+sprites["Icon_Rotten"]=im
+
+# 변종 표시: 8x8 별
+im=new(8,8); px=im.load()
+star=["...##...","...##...","########",".######.","..####..",".##..##.",".#....#.","........"]
+for y,row in enumerate(star):
+    for x,ch in enumerate(row):
+        if ch=="#": px[x,y]=(255,214,92,255)
+px[3,2]=(255,246,200,255)
+sprites["Icon_Variant"]=outline(im,(110,70,10,255))
 
 # 탭 아이콘(흰색, 코드에서 색 입힘)
 O=(30,30,30,255)
@@ -144,7 +237,8 @@ for n,i in sprites.items(): i.save(f"{OUT}/{n}.png")
 tint={"UI_Panel":(44,59,48),"UI_Button":(217,87,59),"UI_Button_Pressed":(217,87,59),"UI_Slot":(63,82,68),"UI_GaugeFrame":(243,233,210),"UI_GaugeFill":(123,201,80)}
 for k in ("Tab_Gear","Tab_Hunt","Tab_Breed","Tab_Dispatch"): tint[k]=(243,233,210)
 names=list(sprites); sc=6; cell=24*sc+40
-pv=Image.new("RGBA",(cell*7,cell*2+10),(30,42,34,255))
+rows=(len(sprites)+6)//7
+pv=Image.new("RGBA",(cell*7,cell*rows+10),(30,42,34,255))
 for i,n in enumerate(names):
     im=sprites[n]
     if n in tint:
