@@ -210,13 +210,13 @@ public class HitFeature : UnitFeature
 
     private void ApplyHitStop(in HitParams hit)
     {
-        GameManager.Instance?.HitStop?.Request(hit.HitStop);
+        GameManager.Instance?.HitStopS?.Request(hit.HitStop);
     }
 
     // 전투 씬이 아니면 조각을 튀기지 않는다. 타격 마크는 실제 맞은 자리(부위 표면)에 띄운다
     private void ApplyChunkBurst(in HitParams hit, int partIndex)
     {
-        ChunkBurstService chunkBurstS = GameManager.Instance?.Chunks;
+        ChunkBurstService chunkBurstS = GameManager.Instance?.ChunkS;
         if (chunkBurstS == null)
             return;
 

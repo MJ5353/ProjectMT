@@ -10,7 +10,7 @@ public class Popup : MonoBehaviour
 
     // ------------------------------------------------
     
-    public void Close() => GameManager.Instance?.Popup?.Close(this);
+    public void Close() => GameManager.Instance?.PopupS?.Close(this);
 
     // virtual ---
 

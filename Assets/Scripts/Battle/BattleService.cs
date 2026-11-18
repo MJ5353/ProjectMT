@@ -81,7 +81,7 @@ public sealed class BattleService : ServiceBase
         if (m_PlayerController != null && m_PlayerController.Health != null)
             m_PlayerController.Health.Died += OnPlayerDied;
 
-        GameManager.Instance.Actors.ActorRemoved += ReleaseSpawnSlot;
+        GameManager.Instance.ActorS.ActorRemoved += ReleaseSpawnSlot;
         SEventManager.Subscribe<MonsterKilled>(OnMonsterKilled);
         SEventManager.Subscribe<LootPicked>(OnLootPicked);
 
@@ -109,7 +109,7 @@ public sealed class BattleService : ServiceBase
 
     public override void Clear()
     {
-        GameManager.Instance.Actors.ActorRemoved -= ReleaseSpawnSlot;
+        GameManager.Instance.ActorS.ActorRemoved -= ReleaseSpawnSlot;
         SEventManager.Unsubscribe<MonsterKilled>(OnMonsterKilled);
         SEventManager.Unsubscribe<LootPicked>(OnLootPicked);
 
@@ -167,7 +167,7 @@ public sealed class BattleService : ServiceBase
         Vector3 position = spawn != null ? spawn.position + Vector3.up * SpawnLift : Vector3.zero;
         Quaternion rotation = spawn != null ? GetSpawnRotation(spawn) : Quaternion.identity;
 
-        m_PlayerController = GameManager.Instance.Actors.Spawn(playerDef.Prefab, position, rotation);
+        m_PlayerController = GameManager.Instance.ActorS.Spawn(playerDef.Prefab, position, rotation);
     }
 
     // 슬롯 번호(1부터) → 맵 지점
@@ -193,7 +193,7 @@ public sealed class BattleService : ServiceBase
 
     private void Spawn(SpawnState spawn)
     {
-        MonsterController controller = GameManager.Instance.Actors.Spawn(spawn.Entry.Monster.Prefab, spawn.Point.position + Vector3.up * SpawnLift, GetSpawnRotation(spawn.Point));
+        MonsterController controller = GameManager.Instance.ActorS.Spawn(spawn.Entry.Monster.Prefab, spawn.Point.position + Vector3.up * SpawnLift, GetSpawnRotation(spawn.Point));
         if (controller == null)
             return;
 
@@ -235,7 +235,7 @@ public sealed class BattleService : ServiceBase
 
     private void OnMonsterKilled(MonsterKilled evt)
     {
-        if (State != EBattleState.Playing || evt.Actors != GameManager.Instance.Actors)
+        if (State != EBattleState.Playing || evt.Actors != GameManager.Instance.ActorS)
             return;
 
         ReleaseSpawnSlot(evt.ActorID);

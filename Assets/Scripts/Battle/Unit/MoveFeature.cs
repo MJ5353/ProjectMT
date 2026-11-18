@@ -63,7 +63,7 @@ public class MoveFeature : UnitFeature
         motion.y = m_VerticalSpeed * deltaTime;
 
         // !!) 계단 오르기가 켜져 있으면 둥근 캡슐 바닥이 다른 캐릭터를 계단으로 보고 타고 올라간다(큰 몬스터가 플레이어 위로)
-        ActorService actors = GameManager.Instance?.Actors;
+        ActorService actors = GameManager.Instance?.ActorS;
         bool isTouchingActor = actors != null && actors.IsBodyNear(m_Controller, ActorContactMargin);
 
         m_Controller.stepOffset = isTouchingActor ? 0f : m_StepOffset;

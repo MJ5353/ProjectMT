@@ -56,7 +56,7 @@ public class ResultScreen : MonoBehaviour
 
     public void Open()
     {
-        BattleService battleM = GameManager.Instance?.Battle;
+        BattleService battleM = GameManager.Instance?.BattleS;
         if (battleM == null || IsOpen)
             return;
 
@@ -177,7 +177,7 @@ public class ResultScreen : MonoBehaviour
 
     private void OnClickRetry()
     {
-        BattleService battleM = GameManager.Instance?.Battle;
+        BattleService battleM = GameManager.Instance?.BattleS;
         if (battleM == null)
             return;
 
@@ -188,7 +188,7 @@ public class ResultScreen : MonoBehaviour
 
     private void OnClickLobby()
     {
-        BattleService battleM = GameManager.Instance?.Battle;
+        BattleService battleM = GameManager.Instance?.BattleS;
         if (battleM == null)
             return;
 

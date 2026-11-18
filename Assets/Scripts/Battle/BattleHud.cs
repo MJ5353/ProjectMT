@@ -11,7 +11,7 @@ public class BattleHud : MonoBehaviour
 
     private void OnGUI()
     {
-        BattleService battleM = GameManager.Instance?.Battle;
+        BattleService battleM = GameManager.Instance?.BattleS;
         if (battleM == null)
             return;
 

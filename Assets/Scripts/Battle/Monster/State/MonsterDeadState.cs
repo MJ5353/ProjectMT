@@ -21,7 +21,7 @@ public class MonsterDeadState : MonsterState
         m_Controller.Anim.Play("Death", true);
 
         SpawnDrops();
-        ActorService actors = GameManager.Instance?.Actors;
+        ActorService actors = GameManager.Instance?.ActorS;
         
         if (actors != null)
             SEventManager.Publish(new MonsterKilled(actors, m_Controller.ActorID, Def, m_Controller.transform.position));

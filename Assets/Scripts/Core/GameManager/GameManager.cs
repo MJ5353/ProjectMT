@@ -34,11 +34,11 @@ public class GameManager : MonoSingleton<GameManager>
     public bool IsTransitioning { get; private set; }
 
     // service
-    public BattleService Battle { get; private set; }
-    public ActorService Actors { get; private set; }
-    public ChunkBurstService Chunks { get; private set; }
-    public HitStopService HitStop { get; private set; }
-    public PopupService Popup { get; private set; }
+    public BattleService BattleS { get; private set; }
+    public ActorService ActorS { get; private set; }
+    public ChunkBurstService ChunkS { get; private set; }
+    public HitStopService HitStopS { get; private set; }
+    public PopupService PopupS { get; private set; }
 
     // ------------------------------------------------
 
@@ -62,13 +62,13 @@ public class GameManager : MonoSingleton<GameManager>
                 mapDef = DebugPanel.GetDefaultMap(Database);
 #endif
 
-            Actors = Register(new ActorService());
-            Chunks = Register(new ChunkBurstService());
-            HitStop = Register(new HitStopService());
-            Battle = Register(new BattleService(mapDef));
+            ActorS = Register(new ActorService());
+            ChunkS = Register(new ChunkBurstService());
+            HitStopS = Register(new HitStopService());
+            BattleS = Register(new BattleService(mapDef));
         }
 
-        Popup = Register(new PopupService());
+        PopupS = Register(new PopupService());
         foreach (ServiceBase service in m_ListService)
         {
             service.Init();
@@ -76,12 +76,15 @@ public class GameManager : MonoSingleton<GameManager>
 
         if (Current == EGameState.None && IsTransitioning == false)
             ChangeState(GetStateByScene(scene.name));
-    }
-
-    private T Register<T>(T service) where T : ServiceBase
-    {
-        m_ListService.Add(service);
-        return service;
+        
+        return;
+        
+        // 
+        T Register<T>(T service) where T : ServiceBase
+        {
+            m_ListService.Add(service);
+            return service;
+        }
     }
 
     internal void TickSceneServices(Scene scene, float deltaTime)
@@ -106,11 +109,12 @@ public class GameManager : MonoSingleton<GameManager>
         }
 
         m_ListService.Clear();
-        Battle = null;
-        Actors = null;
-        Chunks = null;
-        HitStop = null;
-        Popup = null;
+        BattleS = null;
+        ActorS = null;
+        ChunkS = null;
+        HitStopS = null;
+        PopupS = null;
+        
         m_ServiceScene = default;
     }
 

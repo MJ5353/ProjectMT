@@ -92,7 +92,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
             feature.Tick(feature.IsUnscaledTime ? unscaledDeltaTime : deltaTime);
         }
 
-        BattleService battle = GameManager.Instance?.Battle;
+        BattleService battle = GameManager.Instance?.BattleS;
 
         // 승패가 나면 입력·AI를 멈추고 제자리에 세운다. 중력만 계속 받는다
         if (m_IsBattleOver == false && battle != null && battle.State != EBattleState.Playing)

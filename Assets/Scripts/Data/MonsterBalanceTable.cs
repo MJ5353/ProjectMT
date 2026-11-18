@@ -5,8 +5,8 @@ using UnityEngine;
 
 public enum EMonsterTier
 {
-    Normal,     // 잡몹
-    Elite,      // 엘리트
+    Normal, // 잡몹
+    Elite, // 엘리트
     Boss,
 }
 
@@ -66,10 +66,13 @@ public class MonsterBalanceTable : ScriptableObject
 
         // ------------------------------------------------
 
-        public TierStat() { }
+        public TierStat()
+        {
+        }
 
-        public TierStat(float hpRate, float damageRate,float hitStunTime, float moveSpeed, float sightRange,
-            float windupTime, float attackCooldown, int socketMin, int socketMax, Vector2 mushroomScale, int dropMin, int dropMax, float extraDropChance)
+        public TierStat(float hpRate, float damageRate, float hitStunTime, float moveSpeed, float sightRange,
+            float windupTime, float attackCooldown, int socketMin, int socketMax, Vector2 mushroomScale, int dropMin,
+            int dropMax, float extraDropChance)
         {
             HpRate = hpRate;
             DamageRate = damageRate;
@@ -87,7 +90,7 @@ public class MonsterBalanceTable : ScriptableObject
         }
     }
 
-    public const int MonstersPerMap = 5;     // 명명 규칙: 지역마다 잡몹 2 → 엘리트 2 → 보스 1 (001~005 평원)
+    public const int MonstersPerMap = 5; // 명명 규칙: 지역마다 잡몹 2 → 엘리트 2 → 보스 1 (001~005 평원)
     public const int NormalPerMap = 2;
 
     // 기준 ---

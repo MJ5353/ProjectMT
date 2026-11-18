@@ -5,11 +5,12 @@ using UnityEngine.SceneManagement;
 
 public sealed class RootManager : MonoSingleton<RootManager>
 {
+    public RectTransform UIRoot { get; private set; }
+
     private const string RootName = "[Managers]";
     private Scene m_UIScene;
-
+    
     public Transform ManagersRoot => transform;
-    public RectTransform UIRoot { get; private set; }
 
     // ------------------------------------------------
 

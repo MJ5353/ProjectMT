@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 // ==================================================
 
@@ -15,7 +15,6 @@ public class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IS
     }
 
     [SerializeField] private List<Entry> m_ListEntry = new List<Entry>();
-
     [NonSerialized] private Dictionary<TKey, TValue> m_DicSerialized = null;
 
     // ------------------------------------------------

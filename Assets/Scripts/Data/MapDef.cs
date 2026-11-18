@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
+// ==================================================
+
 // 토벌 지역 정의. 로비 토벌 지도에 노드로 찍히고, 골라서 입장하면 전투가 시작된다.
 // 깬 지역은 플래그(ClearFlag)로 저장하고, 앞 지역을 깨면 다음 지역이 열린다
 [CreateAssetMenu(menuName = "MushTaker/Data/Map", fileName = "Map_")]
@@ -34,6 +36,12 @@ public class MapDef : DataDef
     public const string SpawnSlotPrefix = "SpawnSlot_"; // 맵 FBX의 스폰 지점 이름(SpawnSlot_001~)
     public const int DefaultPlayerSlot = 1;
 
+    public IReadOnlyList<SpawnEntry> ListSpawn => m_ListSpawn;
+    public IReadOnlyList<MushroomDef> ListMushroom => m_ListMushroom;
+    public string ClearFlag => $"Clear_{ID}";
+
+    // data ---
+    
     [field: SerializeField, FormerlySerializedAs("m_Order")]
     public int Order { get; private set; } = 0;
 
@@ -55,10 +63,6 @@ public class MapDef : DataDef
     [SerializeField]
     private List<SpawnEntry> m_ListSpawn = new();
 
-    public IReadOnlyList<SpawnEntry> ListSpawn => m_ListSpawn;
-    public IReadOnlyList<MushroomDef> ListMushroom => m_ListMushroom;
-    public string ClearFlag => $"Clear_{ID}";
-
     // ------------------------------------------------
 
     public static string GetSlotName(int slot) => $"{SpawnSlotPrefix}{slot:000}";
@@ -70,8 +74,6 @@ public class MapDef : DataDef
         return objectName.StartsWith(SpawnSlotPrefix, StringComparison.Ordinal)
             && int.TryParse(objectName.Substring(SpawnSlotPrefix.Length), out slot);
     }
-
-    // ------------------------------------------------
 
 #if UNITY_EDITOR
     public void EditorSetSpawns(List<SpawnEntry> listSpawn) => m_ListSpawn = listSpawn;

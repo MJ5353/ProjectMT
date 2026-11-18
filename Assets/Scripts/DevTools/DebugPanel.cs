@@ -67,7 +67,7 @@ public class DebugPanel : MonoBehaviour
     // 전투 중일 때만 몬스터 목록을 보여 주고, 누르면 플레이어 앞에 소환한다
     private void DrawSpawn(GameManager gameM)
     {
-        if (gameM.Actors == null || gameM.Actors.Player == null || gameM.Database == null)
+        if (gameM.ActorS == null || gameM.ActorS.Player == null || gameM.Database == null)
             return;
 
         GUILayout.Label("몬스터 소환(플레이어 앞)");
@@ -77,7 +77,7 @@ public class DebugPanel : MonoBehaviour
                 continue;
 
             if (GUILayout.Button(def.ID))
-                SpawnInFront(gameM.Actors, def);
+                SpawnInFront(gameM.ActorS, def);
         }
     }
 

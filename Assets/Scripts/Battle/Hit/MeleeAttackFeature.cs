@@ -107,7 +107,7 @@ public class MeleeAttackFeature : UnitFeature
     private int Perform(AttackSpec spec)
     {
         Transform owner = Owner.transform;
-        ActorService actors = GameManager.Instance?.Actors;
+        ActorService actors = GameManager.Instance?.ActorS;
 
         if (actors == null)
             return 0;

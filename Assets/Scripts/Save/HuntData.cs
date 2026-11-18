@@ -36,6 +36,7 @@ public class HuntData : PlayerDataBase
     {
         if (mapDef == null)
             return false;
+        
         if (mapDef.RequireMap == null)
             return true;
 
