@@ -20,7 +20,6 @@ MonoBehaviour:
   <HitStunTime>k__BackingField: 0.1
   <TurnSpeed>k__BackingField: 900
   <Hit>k__BackingField: {fileID: 11400000, guid: c4d21274ae7bcaf4ca8e7b650ad32b20, type: 2}
-  <ListAttack>k__BackingField: []
   <ListSkill>k__BackingField:
   - {fileID: 11400000, guid: fb4b0f43d0504e96a3df361dea47ca19, type: 2}
   - {fileID: 11400000, guid: 050c6f0717e44daf8d3571763ca4897f, type: 2}
@@ -61,87 +60,96 @@ MonoBehaviour:
   - <Part>k__BackingField: 100
     <Radius>k__BackingField: 1.7
     <Length>k__BackingField: 0
-  m_ListMushroom:
-  - <Part>k__BackingField: 1
+  m_ListPart:
+  - <BattlePart>k__BackingField: 2
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 881e42cda7a9b51479e41bfb1cbbe2a3, type: 3}
-    <Scale>k__BackingField: 1.22
-    <Euler>k__BackingField: {x: -9.29, y: 9.33, z: 2.24}
     <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 26231ef811a21be4981c8d02027d98d8, type: 3}
+    <Drop>k__BackingField: {fileID: 118531751412590121, guid: 1a41e685feb70ae4598e846d9b8e63a5, type: 3}
+    <CountMin>k__BackingField: 1
+    <CountMax>k__BackingField: 1
+    <ScaleRange>k__BackingField: {x: 1.22, y: 1.22}
+    <TiltMax>k__BackingField: 9.290009
     <Durability>k__BackingField: 6
-    <BattlePart>k__BackingField: 2
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
-    <Drop>k__BackingField: {fileID: 118531751412590121, guid: 1a41e685feb70ae4598e846d9b8e63a5, type: 3}
-  - <Part>k__BackingField: 2
+  - <BattlePart>k__BackingField: 100
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 881e42cda7a9b51479e41bfb1cbbe2a3, type: 3}
-    <Scale>k__BackingField: 1.26
-    <Euler>k__BackingField: {x: 2.46, y: 11.02, z: 1.76}
     <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 26231ef811a21be4981c8d02027d98d8, type: 3}
+    <Drop>k__BackingField: {fileID: 118531751412590121, guid: 1a41e685feb70ae4598e846d9b8e63a5, type: 3}
+    <CountMin>k__BackingField: 1
+    <CountMax>k__BackingField: 1
+    <ScaleRange>k__BackingField: {x: 1.26, y: 1.26}
+    <TiltMax>k__BackingField: 2.46
     <Durability>k__BackingField: 4
-    <BattlePart>k__BackingField: 100
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
-    <Drop>k__BackingField: {fileID: 118531751412590121, guid: 1a41e685feb70ae4598e846d9b8e63a5, type: 3}
-  - <Part>k__BackingField: 3
+  - <BattlePart>k__BackingField: 1
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 881e42cda7a9b51479e41bfb1cbbe2a3, type: 3}
-    <Scale>k__BackingField: 1.38
-    <Euler>k__BackingField: {x: 6.83, y: 7.46, z: -11.05}
     <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 26231ef811a21be4981c8d02027d98d8, type: 3}
+    <Drop>k__BackingField: {fileID: 118531751412590121, guid: 1a41e685feb70ae4598e846d9b8e63a5, type: 3}
+    <CountMin>k__BackingField: 1
+    <CountMax>k__BackingField: 1
+    <ScaleRange>k__BackingField: {x: 1.38, y: 1.38}
+    <TiltMax>k__BackingField: 11.049988
     <Durability>k__BackingField: 5
-    <BattlePart>k__BackingField: 1
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
+  - <BattlePart>k__BackingField: 5
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 881e42cda7a9b51479e41bfb1cbbe2a3, type: 3}
+    <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 26231ef811a21be4981c8d02027d98d8, type: 3}
     <Drop>k__BackingField: {fileID: 118531751412590121, guid: 1a41e685feb70ae4598e846d9b8e63a5, type: 3}
-  - <Part>k__BackingField: 4
+    <CountMin>k__BackingField: 1
+    <CountMax>k__BackingField: 1
+    <ScaleRange>k__BackingField: {x: 1.27, y: 1.27}
+    <TiltMax>k__BackingField: 8.309998
+    <Durability>k__BackingField: 4
+    <BodyDamageScale>k__BackingField: 1
+    <RegenTime>k__BackingField: 20
+  - <BattlePart>k__BackingField: 6
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 881e42cda7a9b51479e41bfb1cbbe2a3, type: 3}
+    <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 26231ef811a21be4981c8d02027d98d8, type: 3}
+    <Drop>k__BackingField: {fileID: 118531751412590121, guid: 1a41e685feb70ae4598e846d9b8e63a5, type: 3}
+    <CountMin>k__BackingField: 1
+    <CountMax>k__BackingField: 1
+    <ScaleRange>k__BackingField: {x: 1.24, y: 1.24}
+    <TiltMax>k__BackingField: 11.2
+    <Durability>k__BackingField: 4
+    <BodyDamageScale>k__BackingField: 1
+    <RegenTime>k__BackingField: 20
+  - <BattlePart>k__BackingField: 7
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 7f086ad7928ac4b4eb84f4a6b5dc8321, type: 3}
-    <Scale>k__BackingField: 1.22
-    <Euler>k__BackingField: {x: 2.15, y: -8.95, z: -3.16}
+    <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 78fa08cb90ba7b349b5e869dc2a47395, type: 3}
+    <Drop>k__BackingField: {fileID: 127310580877431111, guid: 580b56ca90a35174981e33f7e6df73b0, type: 3}
+    <CountMin>k__BackingField: 1
+    <CountMax>k__BackingField: 1
+    <ScaleRange>k__BackingField: {x: 1.53, y: 1.53}
+    <TiltMax>k__BackingField: 7.720001
+    <Durability>k__BackingField: 4
+    <BodyDamageScale>k__BackingField: 1
+    <RegenTime>k__BackingField: 20
+  - <BattlePart>k__BackingField: 8
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 7f086ad7928ac4b4eb84f4a6b5dc8321, type: 3}
+    <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 78fa08cb90ba7b349b5e869dc2a47395, type: 3}
+    <Drop>k__BackingField: {fileID: 127310580877431111, guid: 580b56ca90a35174981e33f7e6df73b0, type: 3}
+    <CountMin>k__BackingField: 1
+    <CountMax>k__BackingField: 1
+    <ScaleRange>k__BackingField: {x: 1.57, y: 1.57}
+    <TiltMax>k__BackingField: 5.7900085
+    <Durability>k__BackingField: 4
+    <BodyDamageScale>k__BackingField: 1
+    <RegenTime>k__BackingField: 20
+  - <BattlePart>k__BackingField: 0
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 7f086ad7928ac4b4eb84f4a6b5dc8321, type: 3}
     <BrokenModel>k__BackingField: {fileID: 0}
-    <Durability>k__BackingField: 0
-    <BattlePart>k__BackingField: 0
-    <BodyDamageScale>k__BackingField: 0
-    <RegenTime>k__BackingField: 0
     <Drop>k__BackingField: {fileID: 0}
-  - <Part>k__BackingField: 7
-    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 881e42cda7a9b51479e41bfb1cbbe2a3, type: 3}
-    <Scale>k__BackingField: 1.27
-    <Euler>k__BackingField: {x: -8.31, y: 0.69, z: -2.42}
-    <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 26231ef811a21be4981c8d02027d98d8, type: 3}
-    <Durability>k__BackingField: 4
-    <BattlePart>k__BackingField: 5
+    <CountMin>k__BackingField: 1
+    <CountMax>k__BackingField: 1
+    <ScaleRange>k__BackingField: {x: 1.22, y: 1.22}
+    <TiltMax>k__BackingField: 3.1600037
+    <Durability>k__BackingField: 0
     <BodyDamageScale>k__BackingField: 1
-    <RegenTime>k__BackingField: 20
-    <Drop>k__BackingField: {fileID: 118531751412590121, guid: 1a41e685feb70ae4598e846d9b8e63a5, type: 3}
-  - <Part>k__BackingField: 8
-    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 881e42cda7a9b51479e41bfb1cbbe2a3, type: 3}
-    <Scale>k__BackingField: 1.24
-    <Euler>k__BackingField: {x: 11.2, y: 11.05, z: 7.94}
-    <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 26231ef811a21be4981c8d02027d98d8, type: 3}
-    <Durability>k__BackingField: 4
-    <BattlePart>k__BackingField: 6
-    <BodyDamageScale>k__BackingField: 1
-    <RegenTime>k__BackingField: 20
-    <Drop>k__BackingField: {fileID: 118531751412590121, guid: 1a41e685feb70ae4598e846d9b8e63a5, type: 3}
-  - <Part>k__BackingField: 100
-    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 7f086ad7928ac4b4eb84f4a6b5dc8321, type: 3}
-    <Scale>k__BackingField: 1.53
-    <Euler>k__BackingField: {x: -7.72, y: -10.6, z: 6.75}
-    <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 78fa08cb90ba7b349b5e869dc2a47395, type: 3}
-    <Durability>k__BackingField: 4
-    <BattlePart>k__BackingField: 7
-    <BodyDamageScale>k__BackingField: 1
-    <RegenTime>k__BackingField: 20
-    <Drop>k__BackingField: {fileID: 127310580877431111, guid: 580b56ca90a35174981e33f7e6df73b0, type: 3}
-  - <Part>k__BackingField: 101
-    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 7f086ad7928ac4b4eb84f4a6b5dc8321, type: 3}
-    <Scale>k__BackingField: 1.57
-    <Euler>k__BackingField: {x: -5.79, y: 1.36, z: 1.04}
-    <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 78fa08cb90ba7b349b5e869dc2a47395, type: 3}
-    <Durability>k__BackingField: 4
-    <BattlePart>k__BackingField: 8
-    <BodyDamageScale>k__BackingField: 1
-    <RegenTime>k__BackingField: 20
-    <Drop>k__BackingField: {fileID: 127310580877431111, guid: 580b56ca90a35174981e33f7e6df73b0, type: 3}
+    <RegenTime>k__BackingField: 0
+  m_ListMushroom: []
   m_ListDrop:
   - <Pickup>k__BackingField: {fileID: 118531751412590121, guid: 1a41e685feb70ae4598e846d9b8e63a5, type: 3}
     <Min>k__BackingField: 4

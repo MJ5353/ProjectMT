@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6562936206198138980}
   - component: {fileID: 435178834070498449}
+  - component: {fileID: 5698552969493646115}
   - component: {fileID: 8086556070094950349}
   m_Layer: 7
   m_Name: Monster_014_Triceratops
@@ -59,6 +60,34 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.90000004, z: 0}
+--- !u!114 &5698552969493646115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3193598229976395896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf81be93aa9909f4e983861eba970846, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnitProperty
+  <CharacterController>k__BackingField: {fileID: 435178834070498449}
+  <Animator>k__BackingField: {fileID: 872534168657049623}
+  <ListBodyRenderer>k__BackingField:
+  - {fileID: 7066962767127516987}
+  <ListBonePart>k__BackingField:
+  - <Part>k__BackingField: 2
+    <Bone>k__BackingField: {fileID: 5223315599510956014}
+    <ListSocket>k__BackingField:
+    - {fileID: 5423312165796809289}
+    - {fileID: 2554673323192587416}
+  - <Part>k__BackingField: 1
+    <Bone>k__BackingField: {fileID: 8246360605060216542}
+    <ListSocket>k__BackingField:
+    - {fileID: 96514969775699744}
+    - {fileID: 3092154638951334831}
+    - {fileID: 1579291157335931714}
 --- !u!114 &8086556070094950349
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -72,28 +101,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterController
   m_Def: {fileID: 11400000, guid: 34b898b005297b34dbc4953ef94f853b, type: 2}
-  m_CharacterController: {fileID: 435178834070498449}
-  m_Animator: {fileID: 872534168657049623}
-  m_ListBodyRenderer:
-  - {fileID: 7066962767127516987}
-  m_DicBattleBone:
-    m_ListEntry:
-    - Key: 2
-      Value: {fileID: 5223315599510956014}
-    - Key: 1
-      Value: {fileID: 8246360605060216542}
-  m_DicMushroomBone:
-    m_ListEntry:
-    - Key: 100
-      Value: {fileID: 5423312165796809289}
-    - Key: 101
-      Value: {fileID: 2554673323192587416}
-    - Key: 2
-      Value: {fileID: 96514969775699744}
-    - Key: 3
-      Value: {fileID: 3092154638951334831}
-    - Key: 11
-      Value: {fileID: 1579291157335931714}
+  m_Property: {fileID: 5698552969493646115}
 --- !u!1001 &7374360235843883172
 PrefabInstance:
   m_ObjectHideFlags: 0

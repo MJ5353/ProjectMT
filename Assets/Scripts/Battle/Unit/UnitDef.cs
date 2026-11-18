@@ -21,11 +21,6 @@ public abstract class UnitDef : DataDef
     [field: SerializeField]
     public HitDef Hit { get; private set; } = null;
 
-    // 이전 공격 목록 --- 애니 이름 정리 전 데이터. 정리하면 SkillDef(Kind Attack)로 옮기고 비운다
-    // [mj] todo) 북극곰·사우루스 보스 정리 후 필드 삭제
-    [field: SerializeField]
-    public List<AttackSpec> ListAttack { get; private set; } = new() { new AttackSpec() };
-    
     // 공격 목록 --- 기본 공격(Kind Attack)과 스킬(Kind Skill). 몬스터는 모두 후보로 두고 거리·쿨·가중치로 고른다.
     // 플레이어는 Kind Attack 순서대로 0번 기본·1번 위로 치기, 스킬은 아직 쓰지 않는다
     [field: SerializeField]
@@ -35,12 +30,9 @@ public abstract class UnitDef : DataDef
 
     // ------------------------------------------------
 
-    // 기본 공격 index번째. ListSkill의 Kind Attack 순서, 정리 전 데이터면 ListAttack
+    // 기본 공격 index번째. ListSkill의 Kind Attack 순서
     public AttackSpec GetBasicAttack(int index)
     {
-        if (ListAttack.Count > 0)
-            return index < ListAttack.Count ? ListAttack[index] : null;
-
         foreach (SkillDef skill in ListSkill)
         {
             if (skill == null || skill.Kind != ESkillKind.Attack)
@@ -55,26 +47,14 @@ public abstract class UnitDef : DataDef
         return null;
     }
 
-    // 쓸 수 있는 공격 전부(이전 목록 + SkillDef). 판정 뼈 검사·기즈모·몬스터 후보용
+    // 쓸 수 있는 공격 전부(SkillDef). 판정 뼈 검사·기즈모·몬스터 후보용
     public void CollectAttacks(List<AttackSpec> results)
     {
         results.Clear();
-        results.AddRange(ListAttack);
-        
         foreach (SkillDef skill in ListSkill)
         {
             if (skill != null)
                 results.Add(skill.Attack);
         }
     }
-
-    // ------------------------------------------------
-
-#if UNITY_EDITOR
-    // BattleSetup 메뉴가 처음 만들 때만 쓴다
-    public void EditorSetAttack(AttackSpec attack)
-    {
-        ListAttack = new List<AttackSpec> { attack };
-    }
-#endif
 }

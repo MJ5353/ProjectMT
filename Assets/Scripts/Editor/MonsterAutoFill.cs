@@ -11,7 +11,7 @@ using UnityEngine;
 // 몬스터 자동 배정. 맵(MapDef) → 버섯(지역 버섯 목록) → 몬스터(MonsterDef)를 이어서 채운다.
 //  - 밸런스: MonsterBalanceTable 공식으로 지역 순서·등급·번호에 따라 기입
 //  - 드랍: 몬스터가 사는 지역의 버섯 목록에서 추천(목록 앞쪽 = 흔한 버섯). 잡몹은 앞쪽, 엘리트는 뒤쪽, 보스는 전부
-//  - 소켓: 드랍 버섯을 무작위 소켓에 꽂는다. 누를 때마다 위치·크기·기울기가 바뀐다
+//  - 버섯: 드랍 버섯으로 장식 부위(BattlePart None)를 만든다. 위치·크기·기울기는 스폰마다 랜덤. 깨지는 부위는 건드리지 않는다
 // 지역은 MapDef 스폰 목록에서 찾고, 없으면 번호로 정한다(001~005 첫 지역). 등급은 이름(Boss_)과 번호 순서(잡몹 2 → 엘리트 2 → 보스)
 // !!) 공격 판정 프레임·거리·히트스톱 같은 손맛 수치는 건드리지 않는다
 
@@ -43,22 +43,6 @@ public static class MonsterAutoFill
         }
     }
 
-    public readonly struct SocketPick
-    {
-        public readonly MushroomDef Mushroom;   // null이면 비운다
-        public readonly Renderer Model;
-        public readonly float Scale;
-        public readonly Vector3 Euler;
-
-        public SocketPick(MushroomDef mushroom, Renderer model, float scale, Vector3 euler)
-        {
-            Mushroom = mushroom;
-            Model = model;
-            Scale = scale;
-            Euler = euler;
-        }
-    }
-
     // 몬스터 한 마리에 넣을 값
     public class Plan
     {
@@ -79,7 +63,7 @@ public static class MonsterAutoFill
         public float AttackCooldown { get; set; }
 
         public List<DropPick> ListDrop { get; } = new();
-        public List<SocketPick> ListSocket { get; } = new();
+        public List<MonsterDef.PartEntry> ListDecor { get; } = new();   // 몸 어디든 나는 장식 버섯(BattlePart None)
         public List<string> ListWarning { get; } = new();
 
         public Plan(MonsterDef def)
@@ -287,49 +271,29 @@ public static class MonsterAutoFill
         plan.ListDrop.Add(new DropPick(mushroom, min, Mathf.Max(min, max), chance));
     }
 
-    // 드랍 버섯을 무작위 소켓에 꽂는다. 고르지 않은 소켓은 비운다(소켓 이름은 그대로 둔다)
+    // 드랍 버섯으로 장식 부위를 만든다. 주 버섯은 등급 개수만큼, 나머지는 0~1개씩. 꽂을 소켓은 스폰 때 고른다
     private static void FillSockets(Plan plan, MonsterBalanceTable table, System.Random random)
     {
-        int socketCount = plan.Def.ListMushroom.Count;
-        if (socketCount == 0)
-        {
-            plan.ListWarning.Add("버섯 소켓이 없음(모델의 Socket_* 뼈 확인)");
-            return;
-        }
-
         List<MushroomDef> listMushroom = plan.ListDrop.Select(drop => drop.Mushroom).Distinct().ToList();
         if (listMushroom.Count == 0)
             return;
 
         MonsterBalanceTable.TierStat stat = table.GetTier(plan.Tier);
-        int min = Mathf.Clamp(stat.SocketMin, 1, socketCount);
-        int max = Mathf.Clamp(stat.SocketMax, min, socketCount);
-        int pickCount = random.Next(min, max + 1);
-
-        List<int> listIndex = Enumerable.Range(0, socketCount).OrderBy(_ => random.Next()).ToList();
-        HashSet<int> setPicked = new(listIndex.Take(pickCount));
-
-        for (int i = 0; i < socketCount; ++i)
+        int min = Mathf.Max(1, stat.SocketMin);
+        int max = Mathf.Max(min, stat.SocketMax);
+        for (int i = 0; i < listMushroom.Count; ++i)
         {
-            if (setPicked.Contains(i) == false)
-            {
-                plan.ListSocket.Add(new SocketPick(null, null, 1f, Vector3.zero));
-                continue;
-            }
-
-            bool isMain = listMushroom.Count == 1 || random.NextDouble() < table.MainMushroomWeight;
-            MushroomDef mushroom = isMain ? listMushroom[0] : listMushroom[1 + random.Next(listMushroom.Count - 1)];
+            MushroomDef mushroom = listMushroom[i];
             Renderer model = LoadMushroomRenderer(mushroom);
             if (model == null)
             {
-                plan.ListWarning.Add($"{mushroom.ModelName}.fbx 없음. 소켓 비움");
-                plan.ListSocket.Add(new SocketPick(null, null, 1f, Vector3.zero));
+                plan.ListWarning.Add($"{mushroom.ModelName}.fbx 없음. 건너뜀");
                 continue;
             }
 
-            float scale = Round(Mathf.Lerp(stat.MushroomScale.x, stat.MushroomScale.y, (float)random.NextDouble()));
-            Vector3 euler = new Vector3(RandomTilt(random, table.MushroomTilt), RandomTilt(random, table.MushroomTilt), RandomTilt(random, table.MushroomTilt));
-            plan.ListSocket.Add(new SocketPick(mushroom, model, scale, euler));
+            bool isMain = i == 0;
+            plan.ListDecor.Add(new MonsterDef.PartEntry(EBattlePartType.None, model, null, null, isMain ? min : 0, isMain ? max : 1,
+                stat.MushroomScale, table.MushroomTilt, 0, 1f, 0f));
         }
     }
 
@@ -353,10 +317,10 @@ public static class MonsterAutoFill
                 ApplyBalance(so, plan);
             if ((parts & EPart.Drop) != 0 && plan.ListDrop.Count > 0)
                 ApplyDrops(so, plan);
-            if ((parts & EPart.Socket) != 0 && plan.ListSocket.Count > 0)
-                ApplySockets(so, plan);
-
             so.ApplyModifiedProperties();
+            if ((parts & EPart.Socket) != 0 && plan.ListDecor.Count > 0)
+                ApplySockets(plan);
+
             EditorUtility.SetDirty(plan.Def);
         }
 
@@ -374,15 +338,7 @@ public static class MonsterAutoFill
         Find(so, nameof(MonsterDef.LoseRange)).floatValue = plan.LoseRange;
         Find(so, nameof(MonsterDef.AttackCooldown)).floatValue = plan.AttackCooldown;
 
-        // 피해·예고는 첫 기본 공격에만. 보스의 나머지 공격은 손으로 정한다
-        SerializedProperty listAttack = Find(so, nameof(UnitDef.ListAttack));
-        if (listAttack.arraySize > 0)
-        {
-            ApplyMainAttack(listAttack.GetArrayElementAtIndex(0), plan);
-            return;
-        }
-
-        // 애니 이름 정리 뒤: 첫 기본 공격 SkillDef
+        // 피해·예고는 첫 기본 공격 SkillDef에만. 보스의 나머지 공격은 손으로 정한다
         SkillDef basic = plan.Def.ListSkill.FirstOrDefault(s => s != null && s.Kind == ESkillKind.Attack);
         if (basic == null)
             return;
@@ -413,18 +369,13 @@ public static class MonsterAutoFill
         }
     }
 
-    private static void ApplySockets(SerializedObject so, Plan plan)
+    // 장식 부위만 갈아 끼우고 깨지는 부위는 그대로 둔다
+    private static void ApplySockets(Plan plan)
     {
-        SerializedProperty listSocket = so.FindProperty("m_ListMushroom");
-        int count = Mathf.Min(listSocket.arraySize, plan.ListSocket.Count);
-        for (int i = 0; i < count; ++i)
-        {
-            SocketPick pick = plan.ListSocket[i];
-            SerializedProperty element = listSocket.GetArrayElementAtIndex(i);
-            Find(element, nameof(MonsterDef.MushroomSocket.Model)).objectReferenceValue = pick.Model;
-            Find(element, nameof(MonsterDef.MushroomSocket.Scale)).floatValue = pick.Scale;
-            Find(element, nameof(MonsterDef.MushroomSocket.Euler)).vector3Value = pick.Euler;
-        }
+        Undo.RecordObject(plan.Def, "몬스터 자동 배정");
+        List<MonsterDef.PartEntry> listPart = plan.Def.ListPart.Where(entry => entry.BattlePart != EBattlePartType.None).ToList();
+        listPart.AddRange(plan.ListDecor);
+        plan.Def.EditorSetParts(listPart);
     }
 
     // 보고 ---
@@ -447,11 +398,8 @@ public static class MonsterAutoFill
                 builder.Append($" | 드랍 {string.Join(", ", drops)}");
             }
 
-            if ((parts & EPart.Socket) != 0 && plan.ListSocket.Count > 0)
-            {
-                int used = plan.ListSocket.Count(socket => socket.Mushroom != null);
-                builder.Append($" | 소켓 {used}/{plan.ListSocket.Count}");
-            }
+            if ((parts & EPart.Socket) != 0 && plan.ListDecor.Count > 0)
+                builder.Append($" | 장식 버섯 {plan.ListDecor.Count}종");
 
             builder.AppendLine();
             foreach (string warning in plan.ListWarning.Distinct())
@@ -510,7 +458,6 @@ public static class MonsterAutoFill
 
     private static float Round(float value) => Mathf.Round(value * 100f) / 100f;
 
-    private static float RandomTilt(System.Random random, float range) => Round(((float)random.NextDouble() * 2f - 1f) * range);
 
     private static SerializedProperty Find(SerializedObject so, string name)
     {

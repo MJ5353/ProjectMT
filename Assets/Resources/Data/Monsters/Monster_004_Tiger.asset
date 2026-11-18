@@ -20,7 +20,6 @@ MonoBehaviour:
   <HitStunTime>k__BackingField: 0.2
   <TurnSpeed>k__BackingField: 900
   <Hit>k__BackingField: {fileID: 11400000, guid: 42cb1a2f4fed08945bb932f6a330a98f, type: 2}
-  <ListAttack>k__BackingField: []
   <ListSkill>k__BackingField:
   - {fileID: 11400000, guid: 8d323af5061b9654895dbf2e1d91f121, type: 2}
   - {fileID: 11400000, guid: c0f2030c045ddd240bcc4c7f5eb2d954, type: 2}
@@ -38,57 +37,19 @@ MonoBehaviour:
   <BodyHeight>k__BackingField: 1.6
   <BodyRadius>k__BackingField: 0.5
   m_ListBodyShape: []
-  m_ListMushroom:
-  - <Part>k__BackingField: 1
-    <Model>k__BackingField: {fileID: 0}
-    <Scale>k__BackingField: 1
-    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
-    <BrokenModel>k__BackingField: {fileID: 0}
-    <Durability>k__BackingField: 0
-    <HitRadius>k__BackingField: 0
-    <BodyDamageScale>k__BackingField: 0
-    <RegenTime>k__BackingField: 0
-    <Drop>k__BackingField: {fileID: 0}
-  - <Part>k__BackingField: 2
-    <Model>k__BackingField: {fileID: 0}
-    <Scale>k__BackingField: 1
-    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
-    <BrokenModel>k__BackingField: {fileID: 0}
-    <Durability>k__BackingField: 0
-    <HitRadius>k__BackingField: 0
-    <BodyDamageScale>k__BackingField: 0
-    <RegenTime>k__BackingField: 0
-    <Drop>k__BackingField: {fileID: 0}
-  - <Part>k__BackingField: 3
+  m_ListPart:
+  - <BattlePart>k__BackingField: 0
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 33d5e5e40cbd5374b97af9cfcc9de2b3, type: 3}
-    <Scale>k__BackingField: 0.91
-    <Euler>k__BackingField: {x: -8.95, y: -6.38, z: -7.69}
     <BrokenModel>k__BackingField: {fileID: 0}
-    <Durability>k__BackingField: 0
-    <HitRadius>k__BackingField: 0
-    <BodyDamageScale>k__BackingField: 0
-    <RegenTime>k__BackingField: 0
     <Drop>k__BackingField: {fileID: 0}
-  - <Part>k__BackingField: 7
-    <Model>k__BackingField: {fileID: 0}
-    <Scale>k__BackingField: 1
-    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
-    <BrokenModel>k__BackingField: {fileID: 0}
+    <CountMin>k__BackingField: 2
+    <CountMax>k__BackingField: 2
+    <ScaleRange>k__BackingField: {x: 0.91, y: 1.2}
+    <TiltMax>k__BackingField: 8.950012
     <Durability>k__BackingField: 0
-    <HitRadius>k__BackingField: 0
-    <BodyDamageScale>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 0
-    <Drop>k__BackingField: {fileID: 0}
-  - <Part>k__BackingField: 8
-    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 33d5e5e40cbd5374b97af9cfcc9de2b3, type: 3}
-    <Scale>k__BackingField: 1.2
-    <Euler>k__BackingField: {x: -2.73, y: -6.06, z: 6.78}
-    <BrokenModel>k__BackingField: {fileID: 0}
-    <Durability>k__BackingField: 0
-    <HitRadius>k__BackingField: 0
-    <BodyDamageScale>k__BackingField: 0
-    <RegenTime>k__BackingField: 0
-    <Drop>k__BackingField: {fileID: 0}
+  m_ListMushroom: []
   m_ListDrop:
   - <Pickup>k__BackingField: {fileID: 8360666463547286274, guid: 25e1f7617935f0e4b9e36c4444342fa6, type: 3}
     <Min>k__BackingField: 2

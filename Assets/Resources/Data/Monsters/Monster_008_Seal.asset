@@ -20,7 +20,6 @@ MonoBehaviour:
   <HitStunTime>k__BackingField: 0.2
   <TurnSpeed>k__BackingField: 900
   <Hit>k__BackingField: {fileID: 11400000, guid: 42cb1a2f4fed08945bb932f6a330a98f, type: 2}
-  <ListAttack>k__BackingField: []
   <ListSkill>k__BackingField:
   - {fileID: 11400000, guid: 7bc37cddb48424b4f89b26ee20bf03e6, type: 2}
   - {fileID: 11400000, guid: 5b3bd43aa2ad7bd429c8ebe3ff2843df, type: 2}
@@ -38,27 +37,19 @@ MonoBehaviour:
   <BodyHeight>k__BackingField: 0.65000004
   <BodyRadius>k__BackingField: 0.3
   m_ListBodyShape: []
-  m_ListMushroom:
-  - <Part>k__BackingField: 1
+  m_ListPart:
+  - <BattlePart>k__BackingField: 0
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 881e42cda7a9b51479e41bfb1cbbe2a3, type: 3}
-    <Scale>k__BackingField: 1.11
-    <Euler>k__BackingField: {x: 11.6, y: 4.77, z: -7.65}
     <BrokenModel>k__BackingField: {fileID: 0}
-    <Durability>k__BackingField: 0
-    <HitRadius>k__BackingField: 0
-    <BodyDamageScale>k__BackingField: 0
-    <RegenTime>k__BackingField: 0
     <Drop>k__BackingField: {fileID: 0}
-  - <Part>k__BackingField: 2
-    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 881e42cda7a9b51479e41bfb1cbbe2a3, type: 3}
-    <Scale>k__BackingField: 1.15
-    <Euler>k__BackingField: {x: -5.57, y: -3.99, z: 4.06}
-    <BrokenModel>k__BackingField: {fileID: 0}
+    <CountMin>k__BackingField: 2
+    <CountMax>k__BackingField: 2
+    <ScaleRange>k__BackingField: {x: 1.11, y: 1.15}
+    <TiltMax>k__BackingField: 11.6
     <Durability>k__BackingField: 0
-    <HitRadius>k__BackingField: 0
-    <BodyDamageScale>k__BackingField: 0
+    <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 0
-    <Drop>k__BackingField: {fileID: 0}
+  m_ListMushroom: []
   m_ListDrop:
   - <Pickup>k__BackingField: {fileID: 2928097537796928298, guid: aa4959c85326e1a44be15773a7715a71, type: 3}
     <Min>k__BackingField: 2

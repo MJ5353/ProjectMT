@@ -4,18 +4,11 @@ using UnityEngine;
 // ==================================================
 
 // 플레이어와 몬스터이 같이 쓰는 몸. 이동·애니·체력·피격 부품을 직접 만들고 매 프레임 갱신한다.
-// 직렬화 참조 네 개는 에디터 메뉴(BattleSetup)가 프리팹을 만들 때 채운다
+// 직렬화 참조 둘은 에디터 메뉴(BattleSetup)가 프리팹을 만들 때 채운다. 프리팹 안의 참조는 UnitProperty에 모은다
 public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : UnitDef
 {
-    [SerializeField] private TDef m_Def = null;                                  // 수치 데이터
-    [SerializeField] private CharacterController m_CharacterController = null;   // 이동·충돌
-    [SerializeField] private Animator m_Animator = null;                         // 모델(Model 자식)의 애니메이터
-    [SerializeField] private List<Renderer> m_ListBodyRenderer = new();          // 맞을 때 하얗게 번쩍일 몸 렌더러
-
-    // 부위 뼈 --- 프리팹 굽기(BattleSetup.BuildUnit)가 BodyPartMap 표로 채운다.
-    // 손으로 넣은 값은 다시 구우면 덮이니 BodyPartMap 표에 뼈 이름을 더한다
-    [SerializeField] private SerializableDictionary<EBattlePartType, Transform> m_DicBattleBone = new();       // Hitbox_* 뼈
-    [SerializeField] private SerializableDictionary<EMushroomPartType, Transform> m_DicMushroomBone = new();   // Socket_* 뼈
+    [SerializeField] private TDef m_Def = null;                  // 수치 데이터
+    [SerializeField] private UnitProperty m_Property = null;     // 프리팹 참조(몸·애니·렌더러·부위 뼈·소켓)
 
     // core
     public int ActorID { get; private set; }   // ActorService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
@@ -39,27 +32,28 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     public MeleeAttackFeature Melee { get; private set; }
 
     public TDef Def => m_Def;
-    public Transform VisualRoot => m_Animator.transform;
-    public CharacterController HurtBody => m_CharacterController;
+    public UnitProperty Property => m_Property;
+    public Transform VisualRoot => m_Property.Animator.transform;
+    public CharacterController HurtBody => m_Property.CharacterController;
     public bool IsDead => Health.IsDead;
 
     // ------------------------------------------------
 
     protected virtual void Set()
     {
-        if (m_Def == null)
+        if (m_Def == null || m_Property == null)
         {
-            CLogger.Error(GetType().Name, $"Def가 비어 있습니다: {name}", this);
+            CLogger.Error(GetType().Name, $"Def 또는 UnitProperty가 비어 있습니다(프리팹 다시 굽기): {name}", this);
             enabled = false;
-            
+
             return;
         }
 
-        Move = AddFeature(new MoveFeature(this, m_CharacterController, m_Def.TurnSpeed));
-        Anim = AddFeature(new AnimFeature(this, m_Animator));
+        Move = AddFeature(new MoveFeature(this, m_Property.CharacterController, m_Def.TurnSpeed));
+        Anim = AddFeature(new AnimFeature(this, m_Property.Animator));
         Health = AddFeature(new HealthFeature(this, m_Def.MaxHp));
-        HitFeature = AddFeature(new HitFeature(this, Team, m_Def.Hit, Health, Move, m_ListBodyRenderer));
-        Melee = AddFeature(new MeleeAttackFeature(this, GetAttacks(), m_DicBattleBone));
+        HitFeature = AddFeature(new HitFeature(this, Team, m_Def.Hit, Health, Move, m_Property.ListBodyRenderer));
+        Melee = AddFeature(new MeleeAttackFeature(this, GetAttacks(), m_Property));
 
         // 피격 반응 수치가 없으면 체력만 깎이고 반응은 없다
         if (m_Def.Hit == null)
@@ -155,7 +149,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     // 씬 뷰에 공격 판정 범위 표시
     protected virtual void OnDrawGizmosSelected()
     {
-        if (m_Def == null)
+        if (m_Def == null || m_Property == null)
             return;
 
         Gizmos.color = new Color(1f, 0.3f, 0.2f, 0.6f);
@@ -166,7 +160,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         }
     }
 
-    // Def의 공격 전부(이전 목록 + SkillDef). 판정 뼈 검사·기즈모용이라 매번 새 목록
+    // Def의 공격 전부(SkillDef). 판정 뼈 검사·기즈모용이라 매번 새 목록
     private List<AttackSpec> GetAttacks()
     {
         List<AttackSpec> listAttack = new();
@@ -178,12 +172,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
 
     public Transform GetBattleBone(EBattlePartType part)
     {
-        return m_DicBattleBone.TryGetValue(part, out Transform bone) ? bone : null;
-    }
-
-    public Transform GetMushroomBone(EMushroomPartType part)
-    {
-        return m_DicMushroomBone.TryGetValue(part, out Transform bone) ? bone : null;
+        return m_Property.GetBattleBone(part);
     }
     
     // ==================================================

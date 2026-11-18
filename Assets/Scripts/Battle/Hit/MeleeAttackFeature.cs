@@ -10,7 +10,7 @@ public class MeleeAttackFeature : UnitFeature
 {
     private readonly List<ActorHitCandidate> m_ListCandidate = new();
     private readonly HashSet<IHitTarget> m_SetHit = new(); // 이번 공격에 이미 맞은 대상
-    private readonly IReadOnlyDictionary<EBattlePartType, Transform> m_DicBattleBone; // 주인 프리팹의 부위 뼈
+    private readonly UnitProperty m_Property; // 주인 프리팹의 부위 뼈
 
     // [mj] todo) remove?
     public AttackSpec Spec => m_Spec;
@@ -22,14 +22,14 @@ public class MeleeAttackFeature : UnitFeature
 
     // ------------------------------------------------
 
-    public MeleeAttackFeature(IActor owner, IReadOnlyList<AttackSpec> listAttack, IReadOnlyDictionary<EBattlePartType, Transform> dicBattleBone) : base(owner)
+    public MeleeAttackFeature(IActor owner, IReadOnlyList<AttackSpec> listAttack, UnitProperty property) : base(owner)
     {
-        m_DicBattleBone = dicBattleBone;
+        m_Property = property;
 
         // 판정 부위 뼈가 프리팹에 없으면 몸 앞으로 판정한다
         foreach (AttackSpec attack in listAttack)
         {
-            if (attack.HitPart != EBattlePartType.None && dicBattleBone.ContainsKey(attack.HitPart) == false)
+            if (attack.HitPart != EBattlePartType.None && property.GetBattleBone(attack.HitPart) == null)
                 CLogger.Warning("MeleeAttackFeature", $"판정 부위 뼈가 프리팹에 없음: {attack.HitPart} ({owner.transform.name})", owner.transform);
         }
     }
@@ -111,7 +111,7 @@ public class MeleeAttackFeature : UnitFeature
         if (actors == null)
             return 0;
 
-        m_DicBattleBone.TryGetValue(spec.HitPart, out Transform bone);
+        Transform bone = m_Property.GetBattleBone(spec.HitPart);
 
         Vector3 center = GetCenter(owner, spec, bone);
         ETeam team = Owner.HitFeature.Team;

@@ -22,9 +22,11 @@ public enum EMonsterState
 public class MonsterController : UnitController<MonsterDef>
 {
     private readonly StateMachine<EMonsterState> m_Fsm = new();
-    private readonly List<AttackSpec> m_ListAttackChoice = new(); // 고를 수 있는 공격: 이전 목록(Def.ListAttack) + Def.ListSkill
+    private readonly List<AttackSpec> m_ListAttackChoice = new(); // 고를 수 있는 공격: Def.ListSkill
     private readonly List<float> m_ListAttackCooldown = new();  // m_ListAttackChoice 칸마다 남은 개별 쿨
-    private readonly List<PartFeature> m_ListPart = new();      // [i] = Def.ListMushroom 칸. 버섯이 없는 칸은 null
+    private readonly List<PartFeature> m_ListPart = new();      // [i] = Def.ListPart 칸. 버섯이 없는 칸은 null
+    private readonly HashSet<Transform> m_SetUsedSocket = new(); // 스폰 때 버섯 배치용
+    private readonly List<Transform> m_ListSocketPick = new();
     private const float PartDropUpSpeed = 5f;     // 부위 버섯이 튀어 오르는 속도
     private const float PartDropSpread = 2f;      // 부위 버섯이 옆으로 퍼지는 속도
 
@@ -79,6 +81,7 @@ public class MonsterController : UnitController<MonsterDef>
             m_ListAttackCooldown[i] = 0f;
         }
 
+        PlaceMushrooms();
         m_Fsm.Change(EMonsterState.Idle);
     }
 
@@ -217,60 +220,100 @@ public class MonsterController : UnitController<MonsterDef>
         }
     }
 
-    // 버섯을 소켓 뼈에 꽂고 부위로 만든다. 일반·깨진 모델을 둘 다 붙여 두고, 맞은 부위만 번쩍이도록 부위 번호와 함께 렌더러를 넘긴다
+    // 부위마다 버섯 모델을 최대 개수만큼 미리 만든다. 맞은 부위만 번쩍이도록 부위 번호와 함께 렌더러를 넘긴다
     private void AttachMushrooms()
     {
-        IReadOnlyList<MonsterDef.MushroomSocket> listSocket = Def.ListMushroom;
-        for (int i = 0; i < listSocket.Count; i++)
+        IReadOnlyList<MonsterDef.PartEntry> listEntry = Def.ListPart;
+        for (int i = 0; i < listEntry.Count; i++)
         {
-            m_ListPart.Add(CreatePart(i, listSocket[i]));
+            m_ListPart.Add(CreatePart(i, listEntry[i]));
         }
 
         HitFeature.SetParts(m_ListPart);
     }
 
-    private PartFeature CreatePart(int index, MonsterDef.MushroomSocket socket)
+    private PartFeature CreatePart(int index, MonsterDef.PartEntry entry)
     {
-        if (socket.Model == null)
+        if (entry.Model == null || entry.CountMax <= 0)
             return null;
 
-        Transform bone = GetMushroomBone(socket.Part);
-        if (bone == null)
+        PartFeature part = AddFeature(new PartFeature(this, index, entry));
+        for (int i = 0; i < entry.CountMax; i++)
         {
-            CLogger.Warning("MonsterController", $"버섯 자리 뼈가 프리팹에 없음: {socket.Part} ({name})", this);
-            return null;
+            Renderer normal = Instantiate(entry.Model, transform);
+            Renderer broken = entry.BrokenModel != null ? Instantiate(entry.BrokenModel, transform) : null;
+            HitFeature.AddFlashRenderer(normal, index);
+            HitFeature.AddFlashRenderer(broken, index);
+            part.AddMushroom(normal, broken);
         }
 
-        Renderer normal = AttachModel(socket.Model, bone, socket);
-        Renderer broken = socket.BrokenModel != null ? AttachModel(socket.BrokenModel, bone, socket) : null;
-
-        HitFeature.AddFlashRenderer(normal, index);
-        HitFeature.AddFlashRenderer(broken, index);
-
-        PartFeature part = AddFeature(new PartFeature(this, index, socket, bone, normal, broken));
         part.Broken += OnPartBroken;
         return part;
     }
 
-    private static Renderer AttachModel(Renderer model, Transform bone, MonsterDef.MushroomSocket socket)
+    // 스폰마다 부위별로 소켓을 새로 골라 버섯을 꽂는다. 깨지는 부위 먼저, 장식(None)은 남은 소켓 어디든
+    private void PlaceMushrooms()
     {
-        Renderer instance = Instantiate(model, bone);
-        instance.transform.localPosition = Vector3.zero;
-        instance.transform.localRotation = Quaternion.Euler(socket.Euler);
-        instance.transform.localScale = Vector3.one * socket.Scale;
-        
-        return instance;
+        m_SetUsedSocket.Clear();
+        foreach (PartFeature part in m_ListPart)
+        {
+            if (part != null && part.Entry.BattlePart != EBattlePartType.None)
+                PlacePart(part);
+        }
+
+        foreach (PartFeature part in m_ListPart)
+        {
+            if (part != null && part.Entry.BattlePart == EBattlePartType.None)
+                PlacePart(part);
+        }
     }
 
-    // 살아 있을 때 깬 버섯은 상급으로 확정 드랍. 휘청·다운 전환은 보스 상태(6번)에서 붙인다
+    private void PlacePart(PartFeature part)
+    {
+        m_ListSocketPick.Clear();
+        if (part.Entry.BattlePart == EBattlePartType.None)
+        {
+            foreach (UnitProperty.BonePart bonePart in Property.ListBonePart)
+            {
+                m_ListSocketPick.AddRange(bonePart.ListSocket);
+            }
+        }
+        else
+        {
+            UnitProperty.BonePart bonePart = Property.GetBonePart(part.Entry.BattlePart);
+            if (bonePart != null)
+                m_ListSocketPick.AddRange(bonePart.ListSocket);
+        }
+
+        m_ListSocketPick.RemoveAll(socket => socket == null || m_SetUsedSocket.Contains(socket));
+
+        // 앞에서부터 count개를 무작위로 뽑아 채운다(부분 셔플)
+        int count = Mathf.Min(Random.Range(part.Entry.CountMin, part.Entry.CountMax + 1), m_ListSocketPick.Count);
+        for (int i = 0; i < count; i++)
+        {
+            int pick = Random.Range(i, m_ListSocketPick.Count);
+            (m_ListSocketPick[i], m_ListSocketPick[pick]) = (m_ListSocketPick[pick], m_ListSocketPick[i]);
+        }
+
+        m_ListSocketPick.RemoveRange(count, m_ListSocketPick.Count - count);
+
+        m_SetUsedSocket.UnionWith(m_ListSocketPick);
+        part.Place(m_ListSocketPick);
+    }
+
+    // 살아 있을 때 깬 버섯은 상급으로 확정 드랍. 꽂힌 버섯 하나마다 하나. 휘청·다운 전환은 보스 상태(6번)에서 붙인다
     private void OnPartBroken(PartFeature part)
     {
-        if (part.Socket.Drop == null)
+        if (part.Entry.Drop == null)
             return;
 
-        MushroomPickup pickup = ResourceManager.Instance.Spawn(part.Socket.Drop, part.Bone.position, Quaternion.identity);
-        Vector2 spread = Random.insideUnitCircle * PartDropSpread;
-        pickup.Launch(new Vector3(spread.x, PartDropUpSpeed, spread.y), IsDead ? EFreshness.Low : EFreshness.High);
+        for (int i = 0; i < part.PlacedCount; i++)
+        {
+            Vector3 position = part.ListMushroom[i].Socket.position;
+            MushroomPickup pickup = ResourceManager.Instance.Spawn(part.Entry.Drop, position, Quaternion.identity);
+            Vector2 spread = Random.insideUnitCircle * PartDropSpread;
+            pickup.Launch(new Vector3(spread.x, PartDropUpSpeed, spread.y), IsDead ? EFreshness.Low : EFreshness.High);
+        }
     }
 
     #region Gizmo
@@ -298,41 +341,33 @@ public class MonsterController : UnitController<MonsterDef>
         }
     }
     
-    // 버섯 칸이 걸린 몸 판정 모양 위에 상태색(초록 멀쩡, 빨강 깨짐, 회색 장식)과 남은 내구도를 그린다
+    // 깨지는 부위의 몸 판정 모양 위에 상태색(초록 멀쩡, 빨강 깨짐)과 남은 내구도를 그린다
     private void DrawPartGizmos()
     {
-        IReadOnlyList<MonsterDef.MushroomSocket> listSocket = Def.ListMushroom;
-        for (int i = 0; i < listSocket.Count; i++)
+        IReadOnlyList<MonsterDef.PartEntry> listEntry = Def.ListPart;
+        for (int i = 0; i < listEntry.Count; i++)
         {
-            MonsterDef.MushroomSocket socket = listSocket[i];
-            if (socket.BattlePart == EBattlePartType.None)
+            MonsterDef.PartEntry entry = listEntry[i];
+            if (entry.IsBreakable == false)
                 continue;
 
-            Transform bone = GetBattleBone(socket.BattlePart);
-            HitShapeDef shapeDef = FindBodyShape(socket.BattlePart);
+            Transform bone = GetBattleBone(entry.BattlePart);
+            HitShapeDef shapeDef = FindBodyShape(entry.BattlePart);
             if (bone == null || shapeDef == null)
                 continue;
 
             PartFeature part = i < m_ListPart.Count ? m_ListPart[i] : null;
-            Gizmos.color = GetPartGizmoColor(socket, part);
+            Gizmos.color = part != null && part.IsBroken ? Color.red : Color.green;
             new HitShape(bone, shapeDef, i).GetSegment(out Vector3 start, out Vector3 end);
             Gizmos.DrawWireSphere(start, shapeDef.Radius);
             Gizmos.DrawWireSphere(end, shapeDef.Radius);
             Gizmos.DrawLine(start, end);
 
 #if UNITY_EDITOR
-            string durability = part != null ? $"{part.Durability}/{socket.Durability}" : $"{socket.Durability}";
-            UnityEditor.Handles.Label(end + Vector3.up * shapeDef.Radius, $"{i}:{socket.Part}→{socket.BattlePart} {durability}");
+            string durability = part != null ? $"{part.Durability}/{entry.Durability}" : $"{entry.Durability}";
+            UnityEditor.Handles.Label(end + Vector3.up * shapeDef.Radius, $"{i}:{entry.BattlePart} {durability}");
 #endif
         }
-    }
-    
-    private static Color GetPartGizmoColor(MonsterDef.MushroomSocket socket, PartFeature part)
-    {
-        if (socket.IsBreakable == false)
-            return Color.gray;
-
-        return part != null && part.IsBroken ? Color.red : Color.green;
     }
 
     #endregion
@@ -394,17 +429,16 @@ public class MonsterController : UnitController<MonsterDef>
 
     // part ---
     
-    // 이 몸 부위를 BattlePart로 가진 깨지는 버섯 칸. 없으면 -1
-    // shortcut: 한 몸 부위에 깨지는 버섯이 여럿이면 첫 칸만 깎인다. 여럿이 필요해지면 칸 목록으로 바꾼다
+    // 이 몸 부위를 BattlePart로 가진 깨지는 부위 칸. 없으면 -1. 같은 부위 칸이 둘이면 첫 칸
     private int FindPartIndex(EBattlePartType battlePart)
     {
         if (battlePart == EBattlePartType.None)
             return -1;
 
-        IReadOnlyList<MonsterDef.MushroomSocket> listSocket = Def.ListMushroom;
-        for (int i = 0; i < listSocket.Count; i++)
+        IReadOnlyList<MonsterDef.PartEntry> listEntry = Def.ListPart;
+        for (int i = 0; i < listEntry.Count; i++)
         {
-            if (listSocket[i].BattlePart == battlePart && listSocket[i].IsBreakable)
+            if (listEntry[i].BattlePart == battlePart && listEntry[i].IsBreakable)
                 return i;
         }
 

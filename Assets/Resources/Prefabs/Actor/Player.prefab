@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6424861190710238542}
   - component: {fileID: 3413719962110073397}
+  - component: {fileID: 4475260978198073755}
   - component: {fileID: 9078100684901017445}
   m_Layer: 7
   m_Name: Player
@@ -59,6 +60,25 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.85, z: 0}
+--- !u!114 &4475260978198073755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 624180727510312146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf81be93aa9909f4e983861eba970846, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnitProperty
+  <CharacterController>k__BackingField: {fileID: 3413719962110073397}
+  <Animator>k__BackingField: {fileID: 387653541879651787}
+  <ListBodyRenderer>k__BackingField:
+  - {fileID: 41865396072069927}
+  - {fileID: 9013342732603956841}
+  - {fileID: 1905432987355084849}
+  <ListBonePart>k__BackingField: []
 --- !u!114 &9078100684901017445
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -72,12 +92,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   m_Def: {fileID: 11400000, guid: d1057f26622bc494e8f0166e20b8f821, type: 2}
-  m_CharacterController: {fileID: 3413719962110073397}
-  m_Animator: {fileID: 387653541879651787}
-  m_ListBodyRenderer:
-  - {fileID: 41865396072069927}
-  - {fileID: 9013342732603956841}
-  - {fileID: 1905432987355084849}
+  m_Property: {fileID: 4475260978198073755}
 --- !u!1001 &2698903623492880471
 PrefabInstance:
   m_ObjectHideFlags: 0

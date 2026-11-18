@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2335342178369030757}
   - component: {fileID: 7983793434658949430}
+  - component: {fileID: 2310844718376380536}
   - component: {fileID: 6238945651430959062}
   m_Layer: 7
   m_Name: Monster_013_Saurus
@@ -59,6 +60,23 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 1.25, z: 0}
+--- !u!114 &2310844718376380536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5040704575511916093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf81be93aa9909f4e983861eba970846, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnitProperty
+  <CharacterController>k__BackingField: {fileID: 7983793434658949430}
+  <Animator>k__BackingField: {fileID: 1273278913441033952}
+  <ListBodyRenderer>k__BackingField:
+  - {fileID: 6824999510592327436}
+  <ListBonePart>k__BackingField: []
 --- !u!114 &6238945651430959062
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -72,24 +90,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterController
   m_Def: {fileID: 11400000, guid: b2e5a26ca0cab5d45b13af5bf8c8c6a8, type: 2}
-  m_CharacterController: {fileID: 7983793434658949430}
-  m_Animator: {fileID: 1273278913441033952}
-  m_ListBodyRenderer:
-  - {fileID: 6824999510592327436}
-  m_DicBattleBone:
-    m_ListEntry: []
-  m_DicMushroomBone:
-    m_ListEntry:
-    - Key: 1
-      Value: {fileID: 3163957748408261145}
-    - Key: 2
-      Value: {fileID: 2667071994855255777}
-    - Key: 3
-      Value: {fileID: 3191931315046867900}
-    - Key: 4
-      Value: {fileID: 260389313841218529}
-    - Key: 11
-      Value: {fileID: 3184656936421991795}
+  m_Property: {fileID: 2310844718376380536}
 --- !u!1001 &9025546171595420941
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -150,31 +151,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1273278913441033952}
   m_SourcePrefab: {fileID: 100100000, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}
---- !u!4 &260389313841218529 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -82128158492150036, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}
-  m_PrefabInstance: {fileID: 9025546171595420941}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &2667071994855255777 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6359779443412147180, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}
-  m_PrefabInstance: {fileID: 9025546171595420941}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &3163957748408261145 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6244676992112586516, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}
-  m_PrefabInstance: {fileID: 9025546171595420941}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &3184656936421991795 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5869037969867690110, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}
-  m_PrefabInstance: {fileID: 9025546171595420941}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &3191931315046867900 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -3383000522439747919, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}
-  m_PrefabInstance: {fileID: 9025546171595420941}
-  m_PrefabAsset: {fileID: 0}
 --- !u!137 &6824999510592327436 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: 2591375770241137153, guid: 04a362b952ea39d4883eb8df0e7a0c05, type: 3}

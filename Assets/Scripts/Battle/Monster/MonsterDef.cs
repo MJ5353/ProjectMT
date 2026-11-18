@@ -11,31 +11,39 @@ using UnityEngine.Serialization;
 [CreateAssetMenu(menuName = "MushTaker/Data/Monster", fileName = "Monster_")]
 public class MonsterDef : UnitDef
 {
-    // 몸의 Socket_* 뼈에 꽂는 버섯
+    // 몸 부위 하나에 나는 버섯. 스폰할 때마다 그 부위 소켓(UnitProperty.BonePart) 중 몇 개를 골라 꽂는다.
+    // 내구도는 부위 단위라 꽂힌 버섯이 같이 깨진다. BattlePart None은 몸 어디든 나는 장식(소켓이 남는 곳)
     [Serializable]
-    public class MushroomSocket
+    public class PartEntry
     {
         [field: SerializeField]
-        public EMushroomPartType Part { get; private set; } // 꽂을 자리(프리팹 Socket_* 뼈)
+        public EBattlePartType BattlePart { get; private set; } = EBattlePartType.None; // 이 몸 부위(ListBodyShape)가 맞으면 내구도가 깎임
 
-        [field: SerializeField, FormerlySerializedAs("m_Model")]
+        // 버섯 ---
+        [field: SerializeField]
         public Renderer Model { get; private set; } = null;               // 버섯 모델(Mush_*.fbx)
 
-        [field: SerializeField, FormerlySerializedAs("m_Scale")]
-        public float Scale { get; private set; }
-
-        [field: SerializeField, FormerlySerializedAs("m_Euler")]
-        public Vector3 Euler { get; private set; } = Vector3.zero;        // 버섯이 눕는다면 여기서 돌린다
-
-        // 부위 파괴 ---
         [field: SerializeField]
         public Renderer BrokenModel { get; private set; } = null;         // 깨진 버섯 모델(Mush_*_Broken.fbx). 비면 깨지면 사라진다
 
         [field: SerializeField]
-        public int Durability { get; private set; } = 0;                  // 부위 내구도. 0이면 안 깨지는 장식
+        public MushroomPickup Drop { get; private set; } = null;          // 깨질 때 버섯 하나마다 확정으로 떨구는 픽업
 
         [field: SerializeField]
-        public EBattlePartType BattlePart { get; private set; } = EBattlePartType.None; // 이 몸 부위(ListBodyShape)가 맞으면 이 버섯 내구도가 깎임. None이면 판정 없음
+        public int CountMin { get; private set; } = 1;                    // 스폰 때 꽂을 개수(소켓 수를 넘으면 소켓 수까지)
+
+        [field: SerializeField]
+        public int CountMax { get; private set; } = 1;
+
+        [field: SerializeField]
+        public Vector2 ScaleRange { get; private set; } = Vector2.one;    // 버섯 크기 랜덤 범위
+
+        [field: SerializeField]
+        public float TiltMax { get; private set; } = 0f;                  // 축마다 랜덤으로 기울이는 최대 각도
+
+        // 부위 파괴 ---
+        [field: SerializeField]
+        public int Durability { get; private set; } = 0;                  // 부위 내구도. 0이면 안 깨지는 장식
 
         [field: SerializeField]
         public float BodyDamageScale { get; private set; } = 1f;          // 이 부위를 때릴 때 본체에 들어가는 피해 배율(구름 갑옷은 1 미만). 0 이하면 1
@@ -43,23 +51,30 @@ public class MonsterDef : UnitDef
         [field: SerializeField]
         public float RegenTime { get; private set; } = 0f;                // 깨진 뒤 다시 돋기까지(초). 0이면 재생 안 함
 
-        [field: SerializeField]
-        public MushroomPickup Drop { get; private set; } = null;          // 깨질 때 확정으로 떨구는 버섯
-        
         // get ---
         // !!) 기존 에셋에 새로 생긴 칸은 0으로 들어온다. 0을 1로 봐야 본체 피해가 사라지지 않는다
         public float BodyDamageRate => BodyDamageScale > 0f ? BodyDamageScale : 1f;
 
-        public bool IsBreakable => Durability > 0;
-        
+        public bool IsBreakable => Durability > 0 && BattlePart != EBattlePartType.None;
+
         // ------------------------------------------------
 
-        public MushroomSocket(EMushroomPartType part, Renderer model, float scale)
+#if UNITY_EDITOR
+        public PartEntry(EBattlePartType battlePart, Renderer model, Renderer brokenModel, MushroomPickup drop, int countMin, int countMax, Vector2 scaleRange, float tiltMax, int durability, float bodyDamageScale, float regenTime)
         {
-            Part = part;
+            BattlePart = battlePart;
             Model = model;
-            Scale = scale;
+            BrokenModel = brokenModel;
+            Drop = drop;
+            CountMin = countMin;
+            CountMax = countMax;
+            ScaleRange = scaleRange;
+            TiltMax = tiltMax;
+            Durability = durability;
+            BodyDamageScale = bodyDamageScale;
+            RegenTime = regenTime;
         }
+#endif
     }
 
     // 죽을 때 떨구는 버섯
@@ -139,30 +154,29 @@ public class MonsterDef : UnitDef
     public IReadOnlyList<HitShapeDef> ListBodyShape => m_ListBodyShape;
 
     // 버섯·드랍 ---
-    [SerializeField] private List<MushroomSocket> m_ListMushroom = new();
+    [SerializeField] private List<PartEntry> m_ListPart = new();
 
     [SerializeField] private List<DropEntry> m_ListDrop = new();
 
     // get ---
-    public IReadOnlyList<MushroomSocket> ListMushroom => m_ListMushroom;
+    public IReadOnlyList<PartEntry> ListPart => m_ListPart;
     public IReadOnlyList<DropEntry> ListDrop => m_ListDrop;
 
     // ------------------------------------------------
 
 #if UNITY_EDITOR
     // BattleSetup 메뉴가 만들 때만 쓴다
-    public void EditorSetup(AttackSpec attack, float fleeTime, List<DropEntry> listDrop)
+    public void EditorSetup(float fleeTime, List<DropEntry> listDrop)
     {
-        EditorSetAttack(attack);
         FleeTime = fleeTime;
         m_ListDrop = listDrop;
     }
 
     public void EditorSetPrefab(MonsterController prefab) => Prefab = prefab;
 
-    public void EditorSetMushrooms(List<MushroomSocket> listMushroom)
+    public void EditorSetParts(List<PartEntry> listPart)
     {
-        m_ListMushroom = listMushroom;
+        m_ListPart = listPart;
     }
 #endif
 }

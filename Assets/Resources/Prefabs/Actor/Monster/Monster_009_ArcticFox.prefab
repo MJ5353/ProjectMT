@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2371240291231348542}
   - component: {fileID: 2213069635439086650}
+  - component: {fileID: 7513632524539365011}
   - component: {fileID: 5275136551062244193}
   m_Layer: 7
   m_Name: Monster_009_ArcticFox
@@ -59,6 +60,33 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.675, z: 0}
+--- !u!114 &7513632524539365011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4684732177449068496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf81be93aa9909f4e983861eba970846, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnitProperty
+  <CharacterController>k__BackingField: {fileID: 2213069635439086650}
+  <Animator>k__BackingField: {fileID: 4511900848889217816}
+  <ListBodyRenderer>k__BackingField:
+  - {fileID: 532717558739324315}
+  <ListBonePart>k__BackingField:
+  - <Part>k__BackingField: 2
+    <Bone>k__BackingField: {fileID: 2656584517980585361}
+    <ListSocket>k__BackingField:
+    - {fileID: 7120953582025988620}
+  - <Part>k__BackingField: 1
+    <Bone>k__BackingField: {fileID: 3508931350904247969}
+    <ListSocket>k__BackingField:
+    - {fileID: 8543787650318271168}
+    - {fileID: 5130076782657131472}
+    - {fileID: 5267604585067369049}
 --- !u!114 &5275136551062244193
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -72,26 +100,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterController
   m_Def: {fileID: 11400000, guid: 8aafbf54a78993a4fa69dfbd6fbec8a5, type: 2}
-  m_CharacterController: {fileID: 2213069635439086650}
-  m_Animator: {fileID: 4511900848889217816}
-  m_ListBodyRenderer:
-  - {fileID: 532717558739324315}
-  m_DicBattleBone:
-    m_ListEntry:
-    - Key: 2
-      Value: {fileID: 2656584517980585361}
-    - Key: 1
-      Value: {fileID: 3508931350904247969}
-  m_DicMushroomBone:
-    m_ListEntry:
-    - Key: 1
-      Value: {fileID: 7120953582025988620}
-    - Key: 2
-      Value: {fileID: 8543787650318271168}
-    - Key: 3
-      Value: {fileID: 5130076782657131472}
-    - Key: 11
-      Value: {fileID: 5267604585067369049}
+  m_Property: {fileID: 7513632524539365011}
 --- !u!1001 &2864783314514803014
 PrefabInstance:
   m_ObjectHideFlags: 0

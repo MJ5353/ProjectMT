@@ -27,7 +27,7 @@ public class HitFeature : UnitFeature
 
     // 부위 ---
     // [mj] todo) 이거 굳이 list 써야함? 하나로 합치고 내부에서 list 관리하면 안되는지 검토
-    // [i] = MonsterDef.ListMushroom 칸. 부위가 없는 칸은 null
+    // [i] = MonsterDef.ListPart 칸. 버섯이 없는 칸은 null
     private IReadOnlyList<PartFeature> m_ListPart = null;
 
     // flag ---
@@ -109,7 +109,7 @@ public class HitFeature : UnitFeature
         {
             partIndex = hit.PartIndex;
             part.TakeDamage(hit.Damage);
-            bodyDamage = Mathf.RoundToInt(hit.Damage * part.Socket.BodyDamageRate);
+            bodyDamage = Mathf.RoundToInt(hit.Damage * part.Entry.BodyDamageRate);
         }
 
         m_Health.TakeDamage(bodyDamage);

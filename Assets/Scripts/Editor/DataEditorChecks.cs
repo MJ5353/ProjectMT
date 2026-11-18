@@ -44,7 +44,6 @@ public static class DataEditorChecks
             MonsterDef created = MonsterPrefabBuilder.CreateDef(model);
             Require(AssetDatabase.GetAssetPath(created) == defPath, "생성 경로 불일치");
             Require(created.Prefab == null, "Def 등록이 프리팹까지 생성함");
-            Require(created.ListMushroom.Count == model.GetComponentsInChildren<Transform>(true).Count(bone => bone.name.StartsWith("Socket_")), "모델 소켓 등록 실패");
             using (SerializedObject serializedDef = new SerializedObject(created))
             {
                 DataEditorUtility.FindProperty(serializedDef, nameof(UnitDef.MaxHp)).intValue = 41;
@@ -271,7 +270,7 @@ public static class DataEditorChecks
                 serializedPickup.FindProperty("m_ItemID").stringValue = mushroom.ID;
                 serializedPickup.ApplyModifiedPropertiesWithoutUndo();
             }
-            monster.EditorSetup(new AttackSpec(), 0f, new List<MonsterDef.DropEntry> { new(pickup, 1, 1, 1f), new(pickup, 2, 2, 0.5f) });
+            monster.EditorSetup(0f, new List<MonsterDef.DropEntry> { new(pickup, 1, 1, 1f), new(pickup, 2, 2, 0.5f) });
             listRelated = DataEditorUtility.FindRelatedDefs(monster, listDef);
             Require(listRelated.Count == 1 && listRelated[0] == mushroom, "픽업 ID 연관 해석 실패");
             using (SerializedObject serializedMonster = new SerializedObject(monster))

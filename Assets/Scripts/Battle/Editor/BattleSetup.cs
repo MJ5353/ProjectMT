@@ -118,7 +118,7 @@ public static class BattleSetup
         Object.DestroyImmediate(root);
     }
 
-    // 몬스터·플레이어 공통 몸: 모델 + CharacterController + 컨트롤러. 컨트롤러의 참조를 여기서 채운다
+    // 몬스터·플레이어 공통 몸: 모델 + CharacterController + UnitProperty + 컨트롤러. 참조를 여기서 채운다
     internal static GameObject BuildUnit<TController>(string name, GameObject modelAsset, float height, float radius, UnitDef def) where TController : Component
     {
         GameObject root = new GameObject(name);
@@ -151,48 +151,17 @@ public static class BattleSetup
         controller.center = new Vector3(0f, height * 0.5f, 0f);
         controller.stepOffset = Mathf.Min(0.4f, height * 0.4f);
 
+        // 프리팹 참조는 UnitProperty에 모은다. 부위 뼈 Hitbox_*와 버섯 소켓 Socket_*(가장 가까운 부위로)
+        List<UnitProperty.BonePart> listBonePart = model != null ? BodyPartMap.CollectBoneParts(model.transform, def) : new();
+        UnitProperty property = root.AddComponent<UnitProperty>();
+        property.EditorSetup(controller, animator, listRenderer, listBonePart);
+
         TController unit = root.AddComponent<TController>();
         SerializedObject so = new SerializedObject(unit);
         so.FindProperty("m_Def").objectReferenceValue = def;
-        so.FindProperty("m_CharacterController").objectReferenceValue = controller;
-        so.FindProperty("m_Animator").objectReferenceValue = animator;
-        SerializedProperty listBody = so.FindProperty("m_ListBodyRenderer");
-        listBody.arraySize = listRenderer.Count;
-        for (int i = 0; i < listRenderer.Count; i++)
-        {
-            listBody.GetArrayElementAtIndex(i).objectReferenceValue = listRenderer[i];
-        }
-
-        // 부위 뼈: 판정용 Hitbox_*는 모두, 버섯 자리 Socket_*는 몬스터만
-        Dictionary<EBattlePartType, Transform> dicBattleBone = new();
-        Dictionary<EMushroomPartType, Transform> dicMushroomBone = new();
-        if (model != null)
-        {
-            BodyPartMap.CollectBattleBones(model.transform, dicBattleBone, def);
-            if (def is MonsterDef)
-                BodyPartMap.CollectMushroomBones(model.transform, dicMushroomBone, def);
-        }
-
-        WriteBoneDictionary(so.FindProperty("m_DicBattleBone"), dicBattleBone);
-        WriteBoneDictionary(so.FindProperty("m_DicMushroomBone"), dicMushroomBone);
-
+        so.FindProperty("m_Property").objectReferenceValue = property;
         so.ApplyModifiedPropertiesWithoutUndo();
         return root;
-    }
-
-    // SerializableDictionary<enum, Transform>의 저장 목록(m_ListEntry)을 채운다
-    private static void WriteBoneDictionary<TPart>(SerializedProperty dictionary, Dictionary<TPart, Transform> dicBone) where TPart : System.Enum
-    {
-        SerializedProperty entries = dictionary.FindPropertyRelative("m_ListEntry");
-        entries.arraySize = dicBone.Count;
-        int index = 0;
-        foreach (var pair in dicBone)
-        {
-            SerializedProperty entry = entries.GetArrayElementAtIndex(index);
-            entry.FindPropertyRelative("Key").intValue = System.Convert.ToInt32(pair.Key);
-            entry.FindPropertyRelative("Value").objectReferenceValue = pair.Value;
-            index++;
-        }
     }
 
     // 상태 이름 = 클립 이름, 기본 상태 Idle. 전이 없이 코드에서 CrossFade로 부른다

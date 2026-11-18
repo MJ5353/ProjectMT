@@ -4,7 +4,6 @@ using UnityEngine;
 
 // 공격 하나. Kind로 기본 공격·스킬(쿨 있음)을 나눈다. UnitDef.ListSkill에 기본 공격 → 스킬 순으로 둔다.
 // 이름·ID: Monster_NNN_Skill_NN·Monster_NNN_Attack_NN, 플레이어 Player_Attack_NN. 이름 끝(Attack_NN·Skill_NN) = 애니 상태 = 클립 이름 = Attack.Clip
-// !!) 애니 이름 정리 전 유닛(ListAttack 사용 중)은 기본 공격 SkillDef를 ListSkill에 넣지 않는다(후보 중복)
 // 표시 이름·설명·아이콘은 DataDef 것을 쓴다. 쿨(Attack.Cooldown)과 몬스터 고르기 값(거리·가중치·예고)도 Attack 안에 있다
 
 public enum ESkillKind

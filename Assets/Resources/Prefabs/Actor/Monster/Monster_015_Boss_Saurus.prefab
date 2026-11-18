@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5222982351534216774}
   - component: {fileID: 5256400614898247624}
+  - component: {fileID: 6583410974420125534}
   - component: {fileID: 7988321381554006659}
   m_Layer: 7
   m_Name: Monster_015_Boss_Saurus
@@ -59,6 +60,55 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 2.9, z: 0}
+--- !u!114 &6583410974420125534
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7139078212798791667}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf81be93aa9909f4e983861eba970846, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnitProperty
+  <CharacterController>k__BackingField: {fileID: 5256400614898247624}
+  <Animator>k__BackingField: {fileID: 6486134999627370748}
+  <ListBodyRenderer>k__BackingField:
+  - {fileID: 7925518930242040097}
+  <ListBonePart>k__BackingField:
+  - <Part>k__BackingField: 1
+    <Bone>k__BackingField: {fileID: 4573139883021202598}
+    <ListSocket>k__BackingField:
+    - {fileID: 8157828105040912727}
+    - {fileID: 4631297568185861490}
+  - <Part>k__BackingField: 5
+    <Bone>k__BackingField: {fileID: 1193352962454372875}
+    <ListSocket>k__BackingField:
+    - {fileID: 3657472684107506315}
+  - <Part>k__BackingField: 6
+    <Bone>k__BackingField: {fileID: 7867369480017959735}
+    <ListSocket>k__BackingField:
+    - {fileID: 1359681764034266720}
+  - <Part>k__BackingField: 2
+    <Bone>k__BackingField: {fileID: 7967128124224416756}
+    <ListSocket>k__BackingField:
+    - {fileID: 3322693021156970444}
+  - <Part>k__BackingField: 100
+    <Bone>k__BackingField: {fileID: 993386868002971500}
+    <ListSocket>k__BackingField:
+    - {fileID: 3903193158270148583}
+  - <Part>k__BackingField: 4
+    <Bone>k__BackingField: {fileID: 7978135736989468849}
+    <ListSocket>k__BackingField:
+    - {fileID: 8954281320618022285}
+    - {fileID: 1566839352803387579}
+  - <Part>k__BackingField: 7
+    <Bone>k__BackingField: {fileID: 4398663057501608614}
+    <ListSocket>k__BackingField: []
+  - <Part>k__BackingField: 8
+    <Bone>k__BackingField: {fileID: 6657225426134785190}
+    <ListSocket>k__BackingField: []
 --- !u!114 &7988321381554006659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -72,46 +122,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterController
   m_Def: {fileID: 11400000, guid: 951f99df6f32cb44da664c1e1e8b2a55, type: 2}
-  m_CharacterController: {fileID: 5256400614898247624}
-  m_Animator: {fileID: 6486134999627370748}
-  m_ListBodyRenderer:
-  - {fileID: 7925518930242040097}
-  m_DicBattleBone:
-    m_ListEntry:
-    - Key: 1
-      Value: {fileID: 4573139883021202598}
-    - Key: 5
-      Value: {fileID: 1193352962454372875}
-    - Key: 6
-      Value: {fileID: 7867369480017959735}
-    - Key: 2
-      Value: {fileID: 7967128124224416756}
-    - Key: 100
-      Value: {fileID: 993386868002971500}
-    - Key: 4
-      Value: {fileID: 7978135736989468849}
-    - Key: 7
-      Value: {fileID: 4398663057501608614}
-    - Key: 8
-      Value: {fileID: 6657225426134785190}
-  m_DicMushroomBone:
-    m_ListEntry:
-    - Key: 9
-      Value: {fileID: 3657472684107506315}
-    - Key: 10
-      Value: {fileID: 1359681764034266720}
-    - Key: 1
-      Value: {fileID: 3322693021156970444}
-    - Key: 2
-      Value: {fileID: 3903193158270148583}
-    - Key: 3
-      Value: {fileID: 8157828105040912727}
-    - Key: 4
-      Value: {fileID: 4631297568185861490}
-    - Key: 11
-      Value: {fileID: 8954281320618022285}
-    - Key: 12
-      Value: {fileID: 1566839352803387579}
+  m_Property: {fileID: 6583410974420125534}
 --- !u!1001 &3761439022827192300
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -80,13 +80,6 @@ public static class DataTools
                 continue;
             }
 
-            foreach (AttackSpec attack in unit.ListAttack)
-            {
-                CheckClip(unit, attack, setClip, "기본 공격");
-                if (attack.Cooldown > 0f)
-                    CLogger.Warning("DataTools", $"기본 공격에 개별 쿨({attack.Cooldown})이 있음: {unit.name} {attack.Clip}. 쿨이 있는 공격은 스킬(SkillDef)로", unit);
-            }
-
             foreach (SkillDef skill in unit.ListSkill)
             {
                 if (skill == null)

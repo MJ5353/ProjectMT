@@ -23,7 +23,7 @@ public readonly struct HitShape
     public readonly Transform Bone;
     public readonly float Radius;
     public readonly float Length;
-    public readonly int PartIndex; // -1이면 몸, 0 이상은 부위 번호(MonsterDef.ListMushroom 칸)
+    public readonly int PartIndex; // -1이면 몸, 0 이상은 부위 번호(MonsterDef.ListPart 칸)
 
     // ------------------------------------------------
 
