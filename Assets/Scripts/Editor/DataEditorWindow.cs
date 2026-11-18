@@ -32,6 +32,8 @@ public sealed class DataEditorWindow : EditorWindow
     private Button m_BuildSelected;
     private Button m_BuildAll;
     private Button m_DeleteSelected;
+    private ToolbarMenu m_AutoFill;
+    private Button m_BuildPickup;
     private bool m_ReloadQueued;
 
     // ------------------------------------------------
@@ -119,6 +121,20 @@ public sealed class DataEditorWindow : EditorWindow
         m_BuildAll = new Button(() => BuildMonsters(true)) { text = "타입 전체 빌드" };
         actions.Add(m_BuildSelected);
         actions.Add(m_BuildAll);
+        m_AutoFill = new ToolbarMenu { text = "자동 배정", tooltip = "공식 밸런스, 지역 버섯 드랍, 소켓 버섯을 채웁니다. 적용 전에 미리 보여 줍니다." };
+        foreach (bool isAll in new[] { false, true })
+        {
+            string scope = isAll ? "타입 전체" : "선택한 몬스터";
+            m_AutoFill.menu.AppendAction($"{scope}/전부", _ => AutoFillMonsters(MonsterAutoFill.EPart.All, isAll));
+            m_AutoFill.menu.AppendAction($"{scope}/밸런스만", _ => AutoFillMonsters(MonsterAutoFill.EPart.Balance, isAll));
+            m_AutoFill.menu.AppendAction($"{scope}/드랍만", _ => AutoFillMonsters(MonsterAutoFill.EPart.Drop, isAll));
+            m_AutoFill.menu.AppendAction($"{scope}/버섯 꽂기만 (다시 굴리기)", _ => AutoFillMonsters(MonsterAutoFill.EPart.Socket, isAll));
+        }
+        m_AutoFill.menu.AppendSeparator();
+        m_AutoFill.menu.AppendAction("밸런스 공식 열기", _ => RunAction(() => Selection.activeObject = MonsterAutoFill.LoadTable()));
+        actions.Add(m_AutoFill);
+        m_BuildPickup = new Button(() => BuildPickups(false)) { text = "픽업 전체 빌드", tooltip = "버섯 Def마다 Pickup_NNN_Key 프리팹을 만들고 Def에 연결합니다. 이미 있는 픽업은 ID·연결만 맞춥니다." };
+        actions.Add(m_BuildPickup);
         center.Add(actions);
 
         m_Table = new MultiColumnListView
@@ -243,17 +259,21 @@ public sealed class DataEditorWindow : EditorWindow
             AddPropertyColumn(nameof(PlayerDef.DashCooldown), "회피 쿨타임", 90f);
         else if (type == typeof(MushroomDef))
         {
+            AddPropertyColumn(nameof(MushroomDef.DexNo), "도감 번호", 75f);
             AddPropertyColumn(nameof(MushroomDef.Rarity), "등급", 100f);
             AddPropertyColumn(nameof(MushroomDef.Tint), "색상", 100f);
+            AddLabelColumn("픽업", 80f, def => ((MushroomDef)def).Pickup != null ? "연결됨" : "빌드 필요");
         }
-        else if (type == typeof(RegionDef))
+        else if (type == typeof(MapDef))
         {
-            AddPropertyColumn(nameof(RegionDef.Order), "순서", 60f);
-            AddPropertyColumn(nameof(RegionDef.PlayerSlot), "시작 슬롯", 75f);
-            AddLabelColumn("스폰", 65f, def => ((RegionDef)def).ListSpawn.Count.ToString());
+            AddPropertyColumn(nameof(MapDef.Order), "순서", 60f);
+            AddPropertyColumn(nameof(MapDef.PlayerSlot), "시작 슬롯", 75f);
+            AddLabelColumn("스폰", 65f, def => ((MapDef)def).ListSpawn.Count.ToString());
         }
         m_BuildSelected.style.display = type == typeof(MonsterDef) ? DisplayStyle.Flex : DisplayStyle.None;
         m_BuildAll.style.display = m_BuildSelected.style.display;
+        m_AutoFill.style.display = m_BuildSelected.style.display;
+        m_BuildPickup.style.display = type == typeof(MushroomDef) ? DisplayStyle.Flex : DisplayStyle.None;
         FilterRows();
         RefreshModels();
     }
@@ -436,15 +456,20 @@ public sealed class DataEditorWindow : EditorWindow
     private void RefreshModels()
     {
         m_Models.Clear();
-        if (m_Type != typeof(MonsterDef))
+        if (m_Type != typeof(MonsterDef) && m_Type != typeof(MushroomDef))
             return;
 
-        List<GameObject> listModel = MonsterPrefabBuilder.FindUnregisteredModels(m_ListDef.OfType<MonsterDef>())
+        List<GameObject> listAvailable = m_Type == typeof(MonsterDef)
+            ? MonsterPrefabBuilder.FindUnregisteredModels(m_ListDef.OfType<MonsterDef>())
+            : MushroomDefBuilder.FindUnregisteredModels(m_ListDef.OfType<MushroomDef>());
+        List<GameObject> listModel = listAvailable
             .Where(model => string.IsNullOrWhiteSpace(m_Search) || model.name.IndexOf(m_Search, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
         Foldout section = new Foldout { text = $"미등록 모델  ·  {listModel.Count}", value = true };
-        section.Add(new Label("Def를 추가한 뒤 수치를 설정하고 프리팹을 빌드하세요.") { name = "model-hint" });
+        string hint = m_Type == typeof(MonsterDef) ? "Def를 추가한 뒤 수치를 설정하고 프리팹을 빌드하세요."
+            : "도감 번호로 기존 Def와 대조합니다. 파손 모델은 제외하며, 추가 시 모델 번호를 채웁니다.";
+        section.Add(new Label(hint) { name = "model-hint" });
         if (listModel.Count == 0)
-            section.Add(new Label("모든 모델에 Def가 있습니다.") { name = "model-hint" });
+            section.Add(new Label(string.IsNullOrWhiteSpace(m_Search) ? "모든 등록 대상 모델에 Def가 있습니다." : "검색 조건에 맞는 미등록 모델이 없습니다.") { name = "model-hint" });
         else
         {
             Button addAll = new Button(() => RegisterModels(listModel)) { text = $"미등록 {listModel.Count}개 Def 추가" };
@@ -472,14 +497,14 @@ public sealed class DataEditorWindow : EditorWindow
             int count = 0;
             foreach (GameObject model in models)
             {
-                MonsterDef def = MonsterPrefabBuilder.CreateDef(model);
+                DataDef def = m_Type == typeof(MonsterDef) ? MonsterPrefabBuilder.CreateDef(model) : MushroomDefBuilder.CreateDef(model);
                 AssetDatabase.SaveAssetIfDirty(def);
                 m_SelectedDef = def;
                 count++;
             }
             DataTools.RefreshDatabase(false);
             Reload();
-            SetStatus($"모델에서 Def {count}개 등록 완료. 수치 확인 후 빌드하세요.");
+            SetStatus(m_Type == typeof(MonsterDef) ? $"모델에서 Def {count}개 등록 완료. 수치 확인 후 빌드하세요." : $"버섯 Def {count}개 등록 완료.");
         });
     }
 
@@ -516,6 +541,34 @@ public sealed class DataEditorWindow : EditorWindow
             }
             Reload();
             SetStatus($"프리팹 {built} / {listDef.Count}개 빌드. 실패 항목은 Console에서 확인하세요.");
+        });
+    }
+
+    private void AutoFillMonsters(MonsterAutoFill.EPart parts, bool isAll)
+    {
+        List<MonsterDef> listDef = isAll ? m_ListDef.OfType<MonsterDef>().ToList() : m_Table.selectedItems.OfType<MonsterDef>().ToList();
+        if (listDef.Count == 0)
+            return;
+
+        RunAction(() =>
+        {
+            if (MonsterAutoFill.Run(listDef, parts) == false)
+                return;
+
+            Reload();
+            SetStatus($"몬스터 {listDef.Count}개 자동 배정({MonsterAutoFill.GetPartLabel(parts)}) 완료. 경고는 Console에서 확인하세요.");
+        });
+    }
+
+    private void BuildPickups(bool isForce)
+    {
+        List<MushroomDef> listDef = m_ListDef.OfType<MushroomDef>().ToList();
+
+        RunAction(() =>
+        {
+            int built = MushroomPickupBuilder.Build(listDef, isForce);
+            Reload();
+            SetStatus($"픽업 {built}개 제작, 버섯 {listDef.Count}개 연결 확인. 실패 항목은 Console에서 확인하세요.");
         });
     }
 

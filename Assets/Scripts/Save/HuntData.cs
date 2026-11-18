@@ -5,7 +5,7 @@ public class HuntData : PlayerDataBase
 {
     private readonly FlagData m_Flag;
 
-    public RegionDef SelectedRegion { get; private set; }
+    public MapDef SelectedMap { get; private set; }
 
     // ------------------------------------------------
 
@@ -16,37 +16,37 @@ public class HuntData : PlayerDataBase
 
     public override void Clear()
     {
-        SelectedRegion = null;
+        SelectedMap = null;
     }
 
-    public void Select(RegionDef region)
+    public void Select(MapDef mapDef)
     {
-        SelectedRegion = region;
+        SelectedMap = mapDef;
     }
 
-    public bool IsCleared(RegionDef region)
+    public bool IsCleared(MapDef mapDef)
     {
-        if (region == null)
+        if (mapDef == null)
             return false;
 
-        return m_Flag.Has(region.ClearFlag);
+        return m_Flag.Has(mapDef.ClearFlag);
     }
 
-    public bool IsUnlocked(RegionDef region)
+    public bool IsUnlocked(MapDef mapDef)
     {
-        if (region == null)
+        if (mapDef == null)
             return false;
-        if (region.RequireRegion == null)
+        if (mapDef.RequireMap == null)
             return true;
 
-        return IsCleared(region.RequireRegion);
+        return IsCleared(mapDef.RequireMap);
     }
 
-    public void MarkCleared(RegionDef region)
+    public void MarkCleared(MapDef mapDef)
     {
-        if (region == null)
+        if (mapDef == null)
             return;
 
-        m_Flag.Set(region.ClearFlag);
+        m_Flag.Set(mapDef.ClearFlag);
     }
 }

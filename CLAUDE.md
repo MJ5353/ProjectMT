@@ -44,13 +44,13 @@ Assets/
 
 ## 명명 규칙
 
-26.11.18 대장 확정. 콘텐츠마다 `NNN_Key` 하나를 키로 정하고(번호 3자리 + 로마자 이름), 에셋 종류 접두사만 바꿔 붙인다. 숫자는 모두 3자리.
+26.11.18 대장 확정. 콘텐츠마다 `NNN_Key` 하나를 키로 정하고(번호 3자리 + 이름), 에셋 종류 접두사만 바꿔 붙인다. 숫자는 모두 3자리.
 
 | 종류 | 형식 | 예 |
 |---|---|---|
-| 몬스터 모델 | `Mon_NNN_Key` | `Mon_001_Buggi`, `Mon_005_Boss_Tree` |
-| 몬스터 Def·ID·프리팹 | `Monster_NNN_Key` | `Monster_001_Buggi` |
-| 애니메이터 | `AC_NNN_Key` (플레이어는 `AC_Player`) | `AC_001_Buggi` |
+| 몬스터 모델 | `Mon_NNN_Key` | `Mon_001_Rabbit`, `Mon_005_Boss_Tree` |
+| 몬스터 Def·ID·프리팹 | `Monster_NNN_Key` | `Monster_001_Rabbit` |
+| 애니메이터 | `AC_NNN_Key` (플레이어는 `AC_Player`) | `AC_001_Rabbit` |
 | 버섯 모델 | `Mush_NNN_Key` (깨진 버전 `_Broken`) | `Mush_001_Songi` |
 | 버섯 Def·ID | `Mushroom_NNN_Key` | `Mushroom_002_Gureum` |
 | 버섯 픽업·아이콘 | `Pickup_NNN_Key`, `Icon_NNN_Key` | `Pickup_001_Songi` |
@@ -58,7 +58,8 @@ Assets/
 | 지역 Def·맵 모델 | `Map_NNN_Key` (둘이 같은 이름) | `Map_001_Field` |
 | 맵 스폰 지점 | `SpawnSlot_NNN` | `SpawnSlot_001` |
 
-- 키는 로마자로 쓴다(영어 이름 금지: Cloud → Gureum). 보스는 키에 `Boss_`를 넣는다.
+- 몬스터 키는 원래 종족의 영어 이름(Rabbit, Raptor), 표시 이름(도감명)은 "버"가 들어간 이름(버끼, 버랩터). 보스는 키에 `Boss_`를 넣는다.
+- 버섯 키는 한글 로마자(Cloud가 아니라 Gureum).
 - 몬스터 번호는 지역 순서대로 잡몹 → 엘리트 → 보스(평원 001~005, 얼음 006~010, 공룡 011~015).
 - 지역 번호: 001 Field, 002 Ice, 003 Dino.
 - 버섯 Def의 `DexNo`(도감 번호)는 이름의 NNN과 같게 둔다.

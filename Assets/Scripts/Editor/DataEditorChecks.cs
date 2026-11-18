@@ -26,7 +26,7 @@ public static class DataEditorChecks
             CheckRelationsAndUndo();
             CheckTypeSwitching(listOriginal);
             List<Type> listType = DataEditorUtility.CollectTypes();
-            Require(listType.Contains(typeof(MonsterDef)) && listType.Contains(typeof(RegionDef)) && listType.Contains(typeof(CurrencyDef)), "Def 타입 탐색 실패");
+            Require(listType.Contains(typeof(MonsterDef)) && listType.Contains(typeof(MapDef)) && listType.Contains(typeof(CurrencyDef)), "Def 타입 탐색 실패");
             Require(listType.All(type => type.IsAbstract == false), "추상 타입이 생성 목록에 포함됨");
             RequireThrows(() => DataEditorUtility.CreateDef(typeof(DataDef), "Assets/Invalid.asset"), "추상 Def 생성 허용");
             RequireThrows(() => DataEditorUtility.CreateDef(typeof(MushroomDef), "Assets/../Invalid.asset"), "Assets 밖 경로 허용");
@@ -87,13 +87,81 @@ public static class DataEditorChecks
 
     // ------------------------------------------------
 
+    public static void RunMushroomRegistration()
+    {
+        string name = "DataEditorMushroomCheck_" + Guid.NewGuid().ToString("N");
+        List<MushroomDef> listOriginal = DataTools.CollectDefs().OfType<MushroomDef>().ToList();
+        Dictionary<string, string> dicOriginal = listOriginal.ToDictionary(AssetDatabase.GetAssetPath, def => File.ReadAllText(AssetDatabase.GetAssetPath(def)));
+        int dexNo = Enumerable.Range(900000, 1000).First(number => listOriginal.All(def => def.DexNo != number));
+        string modelName = $"Mush_{dexNo}_{name}";
+        string dataID = $"Mushroom_{dexNo}_{name}";
+        string folder = MushroomDefBuilder.ModelDir + name;
+        string defPath = MushroomDefBuilder.DataDir + dataID + ".asset";
+        string renamedPath = MushroomDefBuilder.DataDir + name + ".asset";
+        try
+        {
+            Require(MushroomDefBuilder.TryGetIdentity("Mush_003_Malbul", out string parsedID, out int parsedNo)
+                && parsedID == "Mushroom_003_Malbul" && parsedNo == 3, "버섯 이름·번호 해석 실패");
+            Require(MushroomDefBuilder.TryGetIdentity("Mush_003_Malbul_Broken", out _, out _) == false, "파손 모델 등록 허용");
+            Require(MushroomDefBuilder.TryGetIdentity("Mush_000_Invalid", out _, out _) == false, "잘못된 도감 번호 허용");
+            Require(MushroomDefBuilder.TryGetIdentity("Mush_Songi", out _, out _) == false, "번호 없는 모델 등록 허용");
+
+            string sourcePath = AssetDatabase.FindAssets("t:Model", new[] { MushroomDefBuilder.ModelDir.TrimEnd('/') })
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .First(path => path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase)
+                    && MushroomDefBuilder.TryGetIdentity(Path.GetFileNameWithoutExtension(path), out _, out _));
+            AssetDatabase.CreateFolder(MushroomDefBuilder.ModelDir.TrimEnd('/'), name);
+            string modelPath = folder + "/" + modelName + ".fbx";
+            string brokenPath = folder + "/" + modelName + "_Broken.fbx";
+            Require(AssetDatabase.CopyAsset(sourcePath, modelPath) && AssetDatabase.CopyAsset(sourcePath, brokenPath), "임시 버섯 모델 복사 실패");
+            AssetDatabase.ImportAsset(modelPath, ImportAssetOptions.ForceSynchronousImport);
+            AssetDatabase.ImportAsset(brokenPath, ImportAssetOptions.ForceSynchronousImport);
+            GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+            GameObject broken = AssetDatabase.LoadAssetAtPath<GameObject>(brokenPath);
+            List<GameObject> listSuggested = MushroomDefBuilder.FindUnregisteredModels(listOriginal);
+            Require(listSuggested.Contains(model) && listSuggested.Contains(broken) == false, "원형 제안·파손 모델 제외 실패");
+            RequireThrows(() => MushroomDefBuilder.CreateDef(broken), "파손 모델 Def 생성 허용");
+
+            MushroomDef created = MushroomDefBuilder.CreateDef(model);
+            Require(created.ID == dataID && created.DexNo == dexNo && AssetDatabase.GetAssetPath(created) == defPath, "버섯 Def ID·도감 번호·경로 불일치");
+            created.EditorSetIdentity(name + "_CustomID", "직접 수정한 이름");
+            using (SerializedObject serializedDef = new SerializedObject(created))
+            {
+                DataEditorUtility.FindProperty(serializedDef, nameof(MushroomDef.Rarity)).enumValueIndex = (int)ERarity.Rare;
+                serializedDef.ApplyModifiedProperties();
+            }
+            AssetDatabase.SaveAssetIfDirty(created);
+            Require(string.IsNullOrEmpty(AssetDatabase.RenameAsset(defPath, name)), "임시 Def 이름 변경 실패");
+            Require(MushroomDefBuilder.CreateDef(model) == created && created.DisplayName == "직접 수정한 이름" && created.Rarity == ERarity.Rare, "재등록이 기존 값을 덮어씀");
+            Require(MushroomDefBuilder.FindUnregisteredModels(DataTools.CollectDefs().OfType<MushroomDef>()).Contains(model) == false, "같은 도감 번호가 중복 제안됨");
+            AssetDatabase.ImportAsset(renamedPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+            Require(AssetDatabase.LoadAssetAtPath<MushroomDef>(renamedPath).DexNo == dexNo, "저장 후 도감 번호 유지 실패");
+
+            Require(DataEditorUtility.DeleteDefs(new DataDef[] { created }).Count == 0, "임시 버섯 Def 삭제 실패");
+            Require(MushroomDefBuilder.FindUnregisteredModels(DataTools.CollectDefs().OfType<MushroomDef>()).Contains(model), "삭제 후 모델이 다시 제안되지 않음");
+            foreach (var pair in dicOriginal)
+            {
+                Require(File.ReadAllText(pair.Key) == pair.Value, "기존 버섯 Def 파일 변경: " + pair.Key);
+            }
+            Debug.Log("DataEditorChecks 버섯 등록 검사 통과: 이름·번호, 파손 제외, 모델 제안, 등록·저장, 중복 방지, 수치 보존, 삭제 후 재제안");
+        }
+        finally
+        {
+            foreach (string path in new[] { defPath, renamedPath, folder })
+            {
+                if (string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(path)) == false)
+                    AssetDatabase.DeleteAsset(path);
+            }
+        }
+    }
+
     public static void RunDeletion()
     {
         string name = "DataEditorDeleteCheck_" + Guid.NewGuid().ToString("N");
         string folder = "Assets/" + name;
         string targetPath = folder + "/" + name + "_Mushroom.asset";
         string otherPath = folder + "/" + name + "_Currency.asset";
-        string regionPath = folder + "/" + name + "_Region.asset";
+        string mapPath = folder + "/" + name + "_Map.asset";
         string pickupPath = folder + "/Pickup.prefab";
         Scene preview = EditorSceneManager.NewPreviewScene();
         MushroomDef transient = ScriptableObject.CreateInstance<MushroomDef>();
@@ -102,10 +170,10 @@ public static class DataEditorChecks
             AssetDatabase.CreateFolder("Assets", name);
             MushroomDef target = (MushroomDef)DataEditorUtility.CreateDef(typeof(MushroomDef), targetPath);
             CurrencyDef other = (CurrencyDef)DataEditorUtility.CreateDef(typeof(CurrencyDef), otherPath);
-            RegionDef region = (RegionDef)DataEditorUtility.CreateDef(typeof(RegionDef), regionPath);
-            region.EditorSetup(1, null, Vector2.zero, new List<MushroomDef> { target });
-            EditorUtility.SetDirty(region);
-            AssetDatabase.SaveAssetIfDirty(region);
+            MapDef mapDef = (MapDef)DataEditorUtility.CreateDef(typeof(MapDef), mapPath);
+            mapDef.EditorSetup(1, null, Vector2.zero, new List<MushroomDef> { target });
+            EditorUtility.SetDirty(mapDef);
+            AssetDatabase.SaveAssetIfDirty(mapDef);
 
             GameObject pickupObject = new GameObject(name);
             SceneManager.MoveGameObjectToScene(pickupObject, preview);
@@ -117,9 +185,9 @@ public static class DataEditorChecks
             }
             PrefabUtility.SaveAsPrefabAsset(pickupObject, pickupPath);
             List<string> listReference = DataEditorUtility.FindDeleteReferences(new DataDef[] { target });
-            Require(listReference.Contains(regionPath), "삭제 대상의 SO 참조 누락");
+            Require(listReference.Contains(mapPath), "삭제 대상의 SO 참조 누락");
             Require(listReference.Contains(pickupPath), "삭제 대상의 픽업 ID 참조 누락");
-            Require(DataEditorUtility.FindDeleteReferences(new DataDef[] { target, region }).Contains(regionPath) == false, "같이 삭제할 Def가 외부 참조로 표시됨");
+            Require(DataEditorUtility.FindDeleteReferences(new DataDef[] { target, mapDef }).Contains(mapPath) == false, "같이 삭제할 Def가 외부 참조로 표시됨");
 
             MushroomDef child = ScriptableObject.CreateInstance<MushroomDef>();
             child.name = name + "_SubAsset";
@@ -130,14 +198,14 @@ public static class DataEditorChecks
             RequireThrows(() => DataEditorUtility.DeleteDefs(Array.Empty<DataDef>()), "빈 선택 삭제 허용");
 
             string targetID = target.ID;
-            string regionContents = File.ReadAllText(regionPath);
+            string mapContents = File.ReadAllText(mapPath);
             Require(DataEditorUtility.DeleteDefs(new DataDef[] { target, other, target }).Count == 0, "다중 Def 삭제 실패");
             Require(File.Exists(targetPath) == false && File.Exists(targetPath + ".meta") == false
                 && File.Exists(otherPath) == false && File.Exists(otherPath + ".meta") == false, "Def 또는 메타 파일이 남음");
             Require(DataTools.CollectDefs().Any(def => def.ID == targetID) == false, "삭제 후 데이터 수집에 남음");
-            Require(File.Exists(pickupPath) && File.ReadAllText(regionPath) == regionContents, "삭제가 참조 에셋까지 변경함");
+            Require(File.Exists(pickupPath) && File.ReadAllText(mapPath) == mapContents, "삭제가 참조 에셋까지 변경함");
             Require(AssetDatabase.LoadAssetAtPath<GameObject>(pickupPath).GetComponent<MushroomPickup>().ItemID == targetID, "기존 문자열 ID를 변경함");
-            Require(DataEditorUtility.DeleteDefs(new DataDef[] { region }).Count == 0 && File.Exists(regionPath) == false, "단일 Def 삭제 실패");
+            Require(DataEditorUtility.DeleteDefs(new DataDef[] { mapDef }).Count == 0 && File.Exists(mapPath) == false, "단일 Def 삭제 실패");
             Debug.Log("DataEditorChecks 삭제 검사 통과: SO·픽업 ID 참조, 동시 삭제 참조 제외, 전체 대상 사전 검증, 단일·다중 삭제, 메타 정리, 다른 에셋 보존");
         }
         finally
@@ -176,7 +244,7 @@ public static class DataEditorChecks
     {
         MushroomDef mushroom = ScriptableObject.CreateInstance<MushroomDef>();
         MonsterDef monster = ScriptableObject.CreateInstance<MonsterDef>();
-        RegionDef region = ScriptableObject.CreateInstance<RegionDef>();
+        MapDef mapDef = ScriptableObject.CreateInstance<MapDef>();
         Scene preview = EditorSceneManager.NewPreviewScene();
         GameObject pickupObject = new GameObject("DataEditorCheckPickup");
         SceneManager.MoveGameObjectToScene(pickupObject, preview);
@@ -191,10 +259,10 @@ public static class DataEditorChecks
             Require(DataEditorUtility.MatchesSearch(monster, "없는 값") == false, "빈 ID 검색 실패");
             monster.EditorSetIdentity("Check_Monster", "검사 몬스터");
 
-            region.EditorSetup(1, region, Vector2.zero, new List<MushroomDef> { mushroom, mushroom });
-            region.EditorSetSpawns(new List<RegionDef.SpawnEntry> { new(2, monster, 1f), new(3, monster, 1f) });
-            List<DataDef> listDef = new() { mushroom, monster, region };
-            List<DataDef> listRelated = DataEditorUtility.FindRelatedDefs(region, listDef);
+            mapDef.EditorSetup(1, mapDef, Vector2.zero, new List<MushroomDef> { mushroom, mushroom });
+            mapDef.EditorSetSpawns(new List<MapDef.SpawnEntry> { new(2, monster, 1f), new(3, monster, 1f) });
+            List<DataDef> listDef = new() { mushroom, monster, mapDef };
+            List<DataDef> listRelated = DataEditorUtility.FindRelatedDefs(mapDef, listDef);
             Require(listRelated.Count == 2 && listRelated.Contains(mushroom) && listRelated.Contains(monster), "직접 연관의 중복 제거·자기 참조 제외 실패");
 
             MushroomPickup pickup = pickupObject.AddComponent<MushroomPickup>();
@@ -223,7 +291,7 @@ public static class DataEditorChecks
         finally
         {
             Undo.ClearUndo(monster);
-            UnityEngine.Object.DestroyImmediate(region);
+            UnityEngine.Object.DestroyImmediate(mapDef);
             UnityEngine.Object.DestroyImmediate(monster);
             UnityEngine.Object.DestroyImmediate(mushroom);
             EditorSceneManager.ClosePreviewScene(preview);

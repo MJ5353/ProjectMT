@@ -5,8 +5,8 @@ using UnityEngine.Serialization;
 
 // 토벌 지역 정의. 로비 토벌 지도에 노드로 찍히고, 골라서 입장하면 전투가 시작된다.
 // 깬 지역은 플래그(ClearFlag)로 저장하고, 앞 지역을 깨면 다음 지역이 열린다
-[CreateAssetMenu(menuName = "MushTaker/Data/Region", fileName = "Map_")]
-public class RegionDef : DataDef
+[CreateAssetMenu(menuName = "MushTaker/Data/Map", fileName = "Map_")]
+public class MapDef : DataDef
 {
     // 맵 슬롯 하나에 나올 몬스터
     [Serializable]
@@ -37,8 +37,8 @@ public class RegionDef : DataDef
     [field: SerializeField, FormerlySerializedAs("m_Order")]
     public int Order { get; private set; } = 0;
 
-    [field: SerializeField, Tooltip("이 지역을 깨야 열린다. 비우면 처음부터 열림"), FormerlySerializedAs("m_RequireRegion")]
-    public RegionDef RequireRegion { get; private set; } = null;
+    [field: SerializeField, Tooltip("이 지역을 깨야 열린다. 비우면 처음부터 열림")]
+    public MapDef RequireMap { get; private set; } = null;
 
     [field: SerializeField, Tooltip("토벌 지도 위 위치(0~1)"), FormerlySerializedAs("m_MapPosition")]
     public Vector2 MapPosition { get; private set; } = new Vector2(0.5f, 0.5f);
@@ -54,7 +54,7 @@ public class RegionDef : DataDef
 
     public IReadOnlyList<SpawnEntry> ListSpawn => m_ListSpawn;
     public IReadOnlyList<MushroomDef> ListMushroom => m_ListMushroom;
-    public string ClearFlag => $"Region_Clear_{ID}";
+    public string ClearFlag => $"Clear_{ID}";
 
     // ------------------------------------------------
 
@@ -73,10 +73,10 @@ public class RegionDef : DataDef
 #if UNITY_EDITOR
     public void EditorSetSpawns(List<SpawnEntry> listSpawn) => m_ListSpawn = listSpawn;
 
-    public void EditorSetup(int order, RegionDef requireRegion, Vector2 mapPosition, List<MushroomDef> listMushroom)
+    public void EditorSetup(int order, MapDef requireMap, Vector2 mapPosition, List<MushroomDef> listMushroom)
     {
         Order = order;
-        RequireRegion = requireRegion;
+        RequireMap = requireMap;
         MapPosition = mapPosition;
         m_ListMushroom = listMushroom;
     }

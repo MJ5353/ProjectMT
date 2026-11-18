@@ -31,7 +31,7 @@ public static class DataEditorUtility
             return "플레이어";
         if (type == typeof(MushroomDef))
             return "버섯";
-        if (type == typeof(RegionDef))
+        if (type == typeof(MapDef))
             return "지역";
         if (type == typeof(CurrencyDef))
             return "재화";

@@ -19,11 +19,11 @@ public class HuntTabView : TabView
     [SerializeField] private UIItemSlot m_MushroomTemplate = null;
     [SerializeField] private Button m_EnterButton = null;
 
-    private readonly List<RegionDef> m_ListRegion = new();
+    private readonly List<MapDef> m_ListMap = new();
     private readonly List<Button> m_ListNode = new();
     private readonly List<UIItemSlot> m_ListMushroomSlot = new();
 
-    private RegionDef m_Selected;
+    private MapDef m_Selected;
 
     // ==================================================
 
@@ -46,9 +46,9 @@ public class HuntTabView : TabView
             return;
 
         // 마지막에 고른 지역, 없으면 열린 지역 중 가장 뒤
-        RegionDef target = hunt.SelectedRegion;
-        if (target == null || m_ListRegion.Contains(target) == false)
-            target = m_ListRegion.LastOrDefault(hunt.IsUnlocked);
+        MapDef target = hunt.SelectedMap;
+        if (target == null || m_ListMap.Contains(target) == false)
+            target = m_ListMap.LastOrDefault(hunt.IsUnlocked);
 
         Select(target);
     }
@@ -61,30 +61,30 @@ public class HuntTabView : TabView
         if (gameM == null || gameM.Database == null)
             return;
 
-        m_ListRegion.AddRange(gameM.Database.GetAll<RegionDef>().OrderBy(r => r.Order));
+        m_ListMap.AddRange(gameM.Database.GetAll<MapDef>().OrderBy(r => r.Order));
 
-        foreach (RegionDef region in m_ListRegion)
+        foreach (MapDef mapDef in m_ListMap)
         {
             Button node = Instantiate(m_NodeTemplate, m_MapRoot);
-            node.name = $"Node_{region.ID}";
+            node.name = $"Node_{mapDef.ID}";
             node.gameObject.SetActive(true);
 
             RectTransform rt = (RectTransform)node.transform;
-            rt.anchorMin = region.MapPosition;
-            rt.anchorMax = region.MapPosition;
+            rt.anchorMin = mapDef.MapPosition;
+            rt.anchorMax = mapDef.MapPosition;
             rt.anchoredPosition = Vector2.zero;
 
-            node.GetComponentInChildren<TMP_Text>().text = region.DisplayName;
+            node.GetComponentInChildren<TMP_Text>().text = mapDef.DisplayName;
 
-            RegionDef captured = region;
+            MapDef captured = mapDef;
             node.onClick.AddListener(() => Select(captured));
             m_ListNode.Add(node);
         }
     }
 
-    private void Select(RegionDef region)
+    private void Select(MapDef mapDef)
     {
-        m_Selected = region;
+        m_Selected = mapDef;
         RefreshNodes();
         RefreshInfo();
     }
@@ -97,17 +97,17 @@ public class HuntTabView : TabView
 
         for (int i = 0; i < m_ListNode.Count; i++)
         {
-            RegionDef region = m_ListRegion[i];
+            MapDef mapDef = m_ListMap[i];
             Button node = m_ListNode[i];
 
             Color color = UIStyle.PanelLight;
-            if (hunt.IsCleared(region))
+            if (hunt.IsCleared(mapDef))
                 color = UIStyle.Gold;
-            else if (hunt.IsUnlocked(region))
+            else if (hunt.IsUnlocked(mapDef))
                 color = UIStyle.Accent;
 
             node.targetGraphic.color = color;
-            node.transform.localScale = region == m_Selected ? Vector3.one * 1.2f : Vector3.one;
+            node.transform.localScale = mapDef == m_Selected ? Vector3.one * 1.2f : Vector3.one;
         }
     }
 
@@ -124,7 +124,7 @@ public class HuntTabView : TabView
         {
             m_InfoName.text = "지역 없음";
             m_InfoState.text = string.Empty;
-            m_InfoDesc.text = "MushTaker/데이터 편집기에서 RegionDef를 준비하세요.";
+            m_InfoDesc.text = "MushTaker/데이터 편집기에서 MapDef를 준비하세요.";
             m_EnterButton.interactable = false;
             return;
         }
@@ -139,7 +139,7 @@ public class HuntTabView : TabView
         else if (isUnlocked)
             m_InfoState.text = "토벌 가능";
         else
-            m_InfoState.text = $"잠김 · {m_Selected.RequireRegion.DisplayName}을(를) 먼저 토벌";
+            m_InfoState.text = $"잠김 · {m_Selected.RequireMap.DisplayName}을(를) 먼저 토벌";
 
         m_InfoState.color = isUnlocked ? UIStyle.Gold : UIStyle.TextDim;
         m_EnterButton.interactable = isUnlocked;
