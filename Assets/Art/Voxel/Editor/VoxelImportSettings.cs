@@ -89,6 +89,13 @@ public class VoxelImportSettings : AssetPostprocessor
             if (meshFilter.name == "Map_Bounds" && meshFilter.TryGetComponent<MeshRenderer>(out MeshRenderer renderer))
                 renderer.enabled = false;
         }
+
+        // !!) 빈 오브젝트(SpawnSlot)는 bakeAxisConversion이 적용되지 않아 X 90도로 누운 채 들어온다. 수평 방향(yaw)만 남긴다
+        foreach (Transform child in model.GetComponentsInChildren<Transform>())
+        {
+            if (child.name.StartsWith(MapDef.SpawnSlotPrefix))
+                child.rotation = BattleService.GetSpawnRotation(child);
+        }
     }
 
     // ==================================================

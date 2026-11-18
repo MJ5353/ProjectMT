@@ -622,7 +622,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneController
   m_UIRoot: {fileID: 1479169397}
-  m_DefaultRegion: {fileID: 11400000, guid: f150fc24e89ab06429d0c9ef7a061f99, type: 2}
+  m_DefaultMap: {fileID: 0}
   m_SpawnSlots:
   - {fileID: 658614366}
   - {fileID: 658614365}
@@ -958,6 +958,30 @@ PrefabInstance:
       propertyPath: m_sharedMaterial
       value: 
       objectReference: {fileID: -4995738922971843444, guid: f9847f429b72b294992ae194842ea13d, type: 2}
+    - target: {fileID: 6962764819724674619, guid: 6a56b8a1f3e546c4f94289bd304f577f, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6962764819724674619, guid: 6a56b8a1f3e546c4f94289bd304f577f, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6962764819724674619, guid: 6a56b8a1f3e546c4f94289bd304f577f, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6962764819724674619, guid: 6a56b8a1f3e546c4f94289bd304f577f, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6962764819724674619, guid: 6a56b8a1f3e546c4f94289bd304f577f, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6962764819724674619, guid: 6a56b8a1f3e546c4f94289bd304f577f, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8433551327616421359, guid: 6a56b8a1f3e546c4f94289bd304f577f, type: 3}
       propertyPath: m_fontAsset
       value: 
