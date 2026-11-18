@@ -13,7 +13,7 @@ public static class UIBuilder
     public const string FontPath = FontDir + "/Galmuri11.ttf";
     public const string FontAssetPath = FontDir + "/Galmuri11 SDF.asset";
 
-    public const string PrefabDir = "Assets/Prefabs/UI/Common";
+    public const string PrefabDir = "Assets/Resources/Prefabs/UI/Common";
     public const string GaugePrefabPath = PrefabDir + "/UIGauge.prefab";
     public const string ItemSlotPrefabPath = PrefabDir + "/UIItemSlot.prefab";
     public const string ButtonPrefabPath = PrefabDir + "/UIButton.prefab";

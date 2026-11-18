@@ -167,6 +167,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 344696536398315722, guid: fc5bcd1dcb09a2241a213da09fe5ea8c, type: 3}
+      propertyPath: m_Name
+      value: Spawn_Boss
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: fc5bcd1dcb09a2241a213da09fe5ea8c, type: 3}
       propertyPath: m_Name
       value: Map_Field01
@@ -778,7 +782,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca41729fafa0474b84f14bd2ca562e40, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneController
   m_UIRoot: {fileID: 2138330206}
   m_DefaultRegion: {fileID: 11400000, guid: f150fc24e89ab06429d0c9ef7a061f99, type: 2}
@@ -811,7 +815,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
   m_IgnoreReversedGraphics: 1
   m_BlockingObjects: 0
@@ -828,7 +832,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
@@ -930,7 +934,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2dc278bae68e51048aee39703a020b28, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UISafeArea
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

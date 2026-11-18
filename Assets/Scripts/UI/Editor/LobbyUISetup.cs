@@ -12,8 +12,8 @@ using UnityEngine.UI;
 public static class LobbyUISetup
 {
     private const string ScenePath = "Assets/Scenes/" + SceneNames.Lobby + ".unity";
-    private const string RegionDir = "Assets/Data/Regions";
-    private const string MushroomDir = "Assets/Data/Mushrooms";
+    private const string RegionDir = "Assets/Resources/Data/Regions";
+    private const string MushroomDir = "Assets/Resources/Data/Mushrooms";
 
     private const float TopBarHeight = 110f;
     private const float TabBarHeight = 150f;

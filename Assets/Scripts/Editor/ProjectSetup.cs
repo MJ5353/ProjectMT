@@ -9,9 +9,9 @@ public static class ProjectSetup
     [MenuItem("MushTaker/Setup/샘플 데이터 만들기")]
     public static void CreateSampleData()
     {
-        CreateDef<CurrencyDef>("Assets/Data/Currencies", "Currency_Gold", "골드");
-        CreateDef<MushroomDef>("Assets/Data/Mushrooms", "Mushroom_Songi", "송이");
-        CreateDef<MushroomDef>("Assets/Data/Mushrooms", "Mushroom_FlyAgaric", "광대버섯");
+        CreateDef<CurrencyDef>("Assets/Resources/Data/Currencies", "Currency_Gold", "골드");
+        CreateDef<MushroomDef>("Assets/Resources/Data/Mushrooms", "Mushroom_Songi", "송이");
+        CreateDef<MushroomDef>("Assets/Resources/Data/Mushrooms", "Mushroom_FlyAgaric", "광대버섯");
 
         AssetDatabase.SaveAssets();
         DataTools.RefreshDatabase(true);

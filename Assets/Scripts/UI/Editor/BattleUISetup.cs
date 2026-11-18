@@ -8,7 +8,7 @@ using UnityEngine.UI;
 // 전투 씬 UI(결과 화면 등)를 만들어 붙이는 메뉴. 프리팹이 이미 있으면 다시 만들지 않고 씬에만 넣는다
 public static class BattleUISetup
 {
-    public const string PrefabDir = "Assets/Prefabs/UI/Battle";
+    public const string PrefabDir = "Assets/Resources/Prefabs/UI/Battle";
     public const string ResultPrefabPath = PrefabDir + "/ResultScreen.prefab";
 
     private const int ResultSortingOrder = 100;

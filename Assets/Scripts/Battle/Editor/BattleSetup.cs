@@ -15,9 +15,9 @@ public static class BattleSetup
 {
     internal const string ModelDir = "Assets/Art/Voxel/Models/";              // 하위 폴더(Actor·Mushroom·Map 등)까지 이름으로 찾는다
     internal const string MonsterModelDir = ModelDir + "Actor/Monster/";
-    internal const string PrefabDir = "Assets/Prefabs/Actor/";
+    internal const string PrefabDir = "Assets/Resources/Prefabs/Actor/";
     private const string AnimatorDir = PrefabDir + "Animators/";
-    internal const string MonsterDataDir = "Assets/Data/Monsters/";
+    internal const string MonsterDataDir = "Assets/Resources/Data/Monsters/";
     private const string ScenePath = "Assets/Scenes/Battle.unity";
     private const string MapName = "Map_Field01";
     private const float ModelYaw = 180f;
@@ -29,10 +29,10 @@ public static class BattleSetup
     private const string BugomPrefabPath = PrefabDir + "Monster_Bugom.prefab";
     private const string CloudPickupPath = PrefabDir + "Pickup_Cloud.prefab";
     private const string BugomDefPath = MonsterDataDir + "Monster_Bugom.asset";
-    private const string MushroomDataDir = "Assets/Data/Mushrooms/";
-    private const string PlayerDataDir = "Assets/Data/Player/";
+    private const string MushroomDataDir = "Assets/Resources/Data/Mushrooms/";
+    private const string PlayerDataDir = "Assets/Resources/Data/Player/";
     private const string PlayerDefPath = PlayerDataDir + "Player.asset";
-    private const string RegionDataDir = "Assets/Data/Regions/";
+    private const string RegionDataDir = "Assets/Resources/Data/Regions/";
     private const string HitMaterialDir = "Assets/Resources/" + HitMaterials.ResourceDir;
 
     // ------------------------------------------------
