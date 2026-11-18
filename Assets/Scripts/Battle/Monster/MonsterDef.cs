@@ -79,13 +79,10 @@ public class MonsterDef : UnitDef
     public float WanderRadius { get; private set; } = 4f;    // 처음 자리에서 배회하는 반경
 
     [field: SerializeField, FormerlySerializedAs("m_AttackRange")]
-    public float AttackRange { get; private set; } = 1.4f;   // 이 거리 안이면 공격을 시작
-
-    [field: SerializeField, FormerlySerializedAs("m_WindupTime")]
-    public float WindupTime { get; private set; } = 0.45f;   // 공격 전에 움츠리는 시간(예고)
+    public float AttackRange { get; private set; } = 1.4f;   // 추적을 멈추고 마주 보는 거리. 공격 선택은 AttackSpec.MinRange·MaxRange
 
     [field: SerializeField, FormerlySerializedAs("m_AttackCooldown")]
-    public float AttackCooldown { get; private set; } = 1.2f;
+    public float AttackCooldown { get; private set; } = 1.2f; // 공격 하나가 끝난 뒤 다음 공격까지 공용 쿨(초)
 
     [field: SerializeField, FormerlySerializedAs("m_FleeTime")]
     public float FleeTime { get; private set; } = 0f;        // 맞은 뒤 도망치는 시간. 0이면 바로 반격

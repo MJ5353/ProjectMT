@@ -124,14 +124,17 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         }
     }
 
-    // 씬 뷰에 기본 공격 판정 범위 표시
+    // 씬 뷰에 공격 판정 범위 표시
     private void OnDrawGizmosSelected()
     {
         if (m_Def == null)
             return;
 
         Gizmos.color = new Color(1f, 0.3f, 0.2f, 0.6f);
-        Gizmos.DrawWireSphere(MeleeAttackFeature.GetCenter(transform, m_Def.Attack), m_Def.Attack.Radius);
+        foreach (AttackSpec attack in m_Def.ListAttack)
+        {
+            Gizmos.DrawWireSphere(MeleeAttackFeature.GetCenter(transform, attack), attack.Radius);
+        }
     }
     
     // ==================================================

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -15,11 +16,13 @@ public abstract class UnitDef : DataDef
 
     // 피격 반응(넉백·번쩍·히트스톱·조각·무적) 수치. 여러 유닛이 같은 에셋을 같이 쓴다
     [field: SerializeField]
-    public HitDef Hit { get; private set; } = null;
+    public HitDef Hit { get; private set; } = null; 
 
-    // 기본 공격 ---
-    [field: SerializeField, FormerlySerializedAs("m_Attack")]
-    public AttackSpec Attack { get; private set; } = new();
+    // 공격 목록 --- 플레이어는 첫 칸만, 몬스터는 거리·쿨·가중치로 고른다
+    [field: SerializeField]
+    public List<AttackSpec> ListAttack { get; private set; } = new() { new AttackSpec() };
+    
+    public AttackSpec MainAttack => ListAttack.Count > 0 ? ListAttack[0] : null; // 첫 칸. 없으면 null
 
     // ------------------------------------------------
 
@@ -27,7 +30,7 @@ public abstract class UnitDef : DataDef
     // BattleSetup 메뉴가 처음 만들 때만 쓴다
     public void EditorSetAttack(AttackSpec attack)
     {
-        Attack = attack;
+        ListAttack = new List<AttackSpec> { attack };
     }
 #endif
 }

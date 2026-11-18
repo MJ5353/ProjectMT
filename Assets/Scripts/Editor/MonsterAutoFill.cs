@@ -368,13 +368,20 @@ public static class MonsterAutoFill
     {
         Find(so, nameof(UnitDef.MaxHp)).intValue = plan.Hp;
         Find(so, nameof(UnitDef.HitStunTime)).floatValue = plan.HitStunTime;
-        Find(Find(so, nameof(UnitDef.Attack)), nameof(AttackSpec.Damage)).intValue = plan.Damage;
         Find(so, nameof(MonsterDef.MoveSpeed)).floatValue = plan.MoveSpeed;
         Find(so, nameof(MonsterDef.WanderSpeed)).floatValue = plan.WanderSpeed;
         Find(so, nameof(MonsterDef.SightRange)).floatValue = plan.SightRange;
         Find(so, nameof(MonsterDef.LoseRange)).floatValue = plan.LoseRange;
-        Find(so, nameof(MonsterDef.WindupTime)).floatValue = plan.WindupTime;
         Find(so, nameof(MonsterDef.AttackCooldown)).floatValue = plan.AttackCooldown;
+
+        // 피해·예고는 첫 공격에만. 보스의 나머지 공격은 손으로 정한다
+        SerializedProperty listAttack = Find(so, nameof(UnitDef.ListAttack));
+        if (listAttack.arraySize == 0)
+            return;
+
+        SerializedProperty mainAttack = listAttack.GetArrayElementAtIndex(0);
+        Find(mainAttack, nameof(AttackSpec.Damage)).intValue = plan.Damage;
+        Find(mainAttack, nameof(AttackSpec.WindupTime)).floatValue = plan.WindupTime;
     }
 
     private static void ApplyDrops(SerializedObject so, Plan plan)

@@ -30,7 +30,6 @@ public class PlayerController : UnitController<PlayerDef>
     private EPlayerState m_State;
     private float m_TimeInState;
     private float m_AttackLength;
-    private bool m_IsHitDone;
     private bool m_IsAttackQueued;
     private Vector3 m_DashDirection;
     private float m_DashCooldownRemain;
@@ -138,6 +137,7 @@ public class PlayerController : UnitController<PlayerDef>
     private void ChangeState(EPlayerState next)
     {
         Anim.SetSpeed(1f);
+        Melee.End();
         m_State = next;
         m_TimeInState = 0f;
 
@@ -184,32 +184,35 @@ public class PlayerController : UnitController<PlayerDef>
 
     private void EnterAttack()
     {
-        m_IsHitDone = false;
+        AttackSpec attack = Def.MainAttack;
         m_IsAttackQueued = false;
-        m_AttackLength = Anim.GetLength(Def.Attack.Clip);
+        m_AttackLength = Anim.GetLength(attack.Clip);
 
+        Melee.Begin(attack);
         Move.Stop();
+
         Vector3 aimDirection = FindAimDirection();
         Move.FaceTo(aimDirection, true);
-        Anim.Play(Def.Attack.Clip, true);
+        Anim.Play(attack.Clip, true);
 
-        if (Def.Attack.Lunge > 0f)
-            Move.AddImpulse(transform.forward * Def.Attack.Lunge);
+        if (attack.Lunge > 0f)
+            Move.AddImpulse(transform.forward * attack.Lunge);
     }
 
     private void UpdateAttack(bool isAttackPressed)
     {
-        if (m_IsHitDone == false && m_TimeInState >= Def.Attack.HitTime)
-        {
-            m_IsHitDone = true;
-            Melee.Perform(Def.Attack);
-        }
+        // 판정 구간 동안 앞으로 돌진
+        AttackSpec attack = Melee.Spec;
+        if (attack.ActiveMoveSpeed > 0f)
+            Move.SetVelocity(Melee.IsActive(m_TimeInState) ? transform.forward * attack.ActiveMoveSpeed : Vector3.zero);
+
+        Melee.Tick(m_TimeInState);
 
         if (isAttackPressed)
             m_IsAttackQueued = true;
 
         // 판정이 끝난 뒤 입력이 있으면 다음 공격으로 끊는다
-        bool canCancel = m_IsHitDone && m_TimeInState >= Def.Attack.HitTime + Def.CancelDelay;
+        bool canCancel = Melee.IsDone(m_TimeInState) && m_TimeInState >= attack.HitEndTime + Def.CancelDelay;
         if (canCancel && m_IsAttackQueued)
         {
             ChangeState(EPlayerState.Attack);
@@ -231,7 +234,7 @@ public class PlayerController : UnitController<PlayerDef>
             case EPlayerState.Move:
                 return true;
             case EPlayerState.Attack:
-                return m_IsHitDone;
+                return Melee.IsDone(m_TimeInState);
             default:
                 return false;
         }
