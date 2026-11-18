@@ -18,3 +18,5 @@
 | 26.11.18 | NamingMigration 제거, 남은 Region 직렬화 이름(씬·밸런스 에셋 키, FormerlySerializedAs) 정리 | 쓸모없는 마이그레이션 삭제와 region 이름 마저 변경 지시 | 에셋·씬 키를 새 이름으로 직접 바꾼 뒤 FormerlySerializedAs 제거. 옛 세이브 이전용 키 문자열과 #region은 유지. |
 | 26.11.18 | 옛 세이브 이전 코드 삭제 | 세이브 초기화 전제로 이전 문자열 삭제 지시 | SaveService의 옛 키 표와 이름 바꾸기 제거, Migrate는 빈 목록 보정만 남김. 버전 3 미만 세이브는 클리어·버섯 키가 안 맞으니 세이브 초기화 필요. |
 | 26.11.18 | 자동 배정 컴파일 오류 수정 | KnockbackScale이 HitDef로 옮겨져 MonsterAutoFill이 깨짐 | HitDef는 여러 유닛이 같이 쓰는 별도 에셋이라 자동 배정이 쓰면 다른 몬스터까지 바뀜. 대장 지시로 자동 배정·밸런스 표·MonsterBalance.asset에서 KnockbackScale 삭제, 넉백은 HitDef 에셋에서만 정함. |
+| 26.11.18 | 전투 HUD 도트 스프라이트: 조이스틱 바닥·손잡이, 공격·대시 아이콘 | 리소스 목록 중 전투 HUD 4장 제작 지시 | 탭 아이콘처럼 흰색으로 그려 코드에서 색·투명도를 입히는 방식. 조이스틱 바닥은 반투명 원과 방향 눈금, 생성은 tools/ui/make_ui_sprites.py에 추가. |
+| 26.11.18 | 맵 스폰 자동 배정 코드, Voxel 메뉴 이동 | 지역 SpawnSlot에 몬스터 자동 배정 코드와 Tools/Voxel 메뉴를 MushTaker로 옮기라고 지시 | MapSpawnAutoFill 추가: 맵 FBX 슬롯을 읽어 SpawnSlots.md 배치(잡몹 A A B, 엘리트 A B 4칸, 마지막 보스)대로 번호 순 지역 몬스터 5종을 배정. 기존 슬롯 리스폰 유지, 새 슬롯은 4/8/-1. 데이터 편집기 맵 탭 버튼과 MushTaker 메뉴로 실행. 미리보기만 확인했고 적용은 대장이 실행. |

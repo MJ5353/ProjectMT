@@ -34,6 +34,7 @@ public sealed class DataEditorWindow : EditorWindow
     private Button m_DeleteSelected;
     private ToolbarMenu m_AutoFill;
     private Button m_BuildPickup;
+    private ToolbarMenu m_SpawnFill;
     private bool m_ReloadQueued;
 
     // ------------------------------------------------
@@ -135,6 +136,10 @@ public sealed class DataEditorWindow : EditorWindow
         actions.Add(m_AutoFill);
         m_BuildPickup = new Button(() => BuildPickups(false)) { text = "픽업 전체 빌드", tooltip = "버섯 Def마다 Pickup_NNN_Key 프리팹을 만들고 Def에 연결합니다. 이미 있는 픽업은 ID·연결만 맞춥니다." };
         actions.Add(m_BuildPickup);
+        m_SpawnFill = new ToolbarMenu { text = "스폰 자동 배정", tooltip = "맵 FBX의 SpawnSlot에 지역 몬스터를 채웁니다. 적용 전에 미리 보여 줍니다." };
+        m_SpawnFill.menu.AppendAction("선택한 맵", _ => AutoFillSpawns(false));
+        m_SpawnFill.menu.AppendAction("타입 전체", _ => AutoFillSpawns(true));
+        actions.Add(m_SpawnFill);
         center.Add(actions);
 
         m_Table = new MultiColumnListView
@@ -274,6 +279,7 @@ public sealed class DataEditorWindow : EditorWindow
         m_BuildAll.style.display = m_BuildSelected.style.display;
         m_AutoFill.style.display = m_BuildSelected.style.display;
         m_BuildPickup.style.display = type == typeof(MushroomDef) ? DisplayStyle.Flex : DisplayStyle.None;
+        m_SpawnFill.style.display = type == typeof(MapDef) ? DisplayStyle.Flex : DisplayStyle.None;
         FilterRows();
         RefreshModels();
     }
@@ -557,6 +563,22 @@ public sealed class DataEditorWindow : EditorWindow
 
             Reload();
             SetStatus($"몬스터 {listDef.Count}개 자동 배정({MonsterAutoFill.GetPartLabel(parts)}) 완료. 경고는 Console에서 확인하세요.");
+        });
+    }
+
+    private void AutoFillSpawns(bool isAll)
+    {
+        List<MapDef> listMap = isAll ? m_ListDef.OfType<MapDef>().ToList() : m_Table.selectedItems.OfType<MapDef>().ToList();
+        if (listMap.Count == 0)
+            return;
+
+        RunAction(() =>
+        {
+            if (MapSpawnAutoFill.Run(listMap) == false)
+                return;
+
+            Reload();
+            SetStatus($"맵 {listMap.Count}개 스폰 자동 배정 완료. 경고는 Console에서 확인하세요.");
         });
     }
 

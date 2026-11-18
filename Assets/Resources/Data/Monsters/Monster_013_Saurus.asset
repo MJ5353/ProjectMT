@@ -45,25 +45,25 @@ MonoBehaviour:
   <BodyRadius>k__BackingField: 0.75
   m_ListMushroom:
   - <SocketName>k__BackingField: Socket_Head
-    <Model>k__BackingField: {fileID: -7511558181221131132, guid: a9c956f23fb2bbd488cf1cd6d0aa7b08, type: 3}
-    <Scale>k__BackingField: 1.02
-    <Euler>k__BackingField: {x: 4.28, y: 1.97, z: -4.4}
+    <Model>k__BackingField: {fileID: 0}
+    <Scale>k__BackingField: 1
+    <Euler>k__BackingField: {x: 0, y: 0, z: 0}
   - <SocketName>k__BackingField: Socket_Back1
     <Model>k__BackingField: {fileID: 0}
     <Scale>k__BackingField: 1
     <Euler>k__BackingField: {x: 0, y: 0, z: 0}
   - <SocketName>k__BackingField: Socket_Back2
-    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 9196e6d3e40aa4a4b8854c2eb45eea2c, type: 3}
-    <Scale>k__BackingField: 1.18
-    <Euler>k__BackingField: {x: -11.09, y: 10.93, z: 8.01}
-  - <SocketName>k__BackingField: Socket_Back3
-    <Model>k__BackingField: {fileID: -7511558181221131132, guid: a9c956f23fb2bbd488cf1cd6d0aa7b08, type: 3}
-    <Scale>k__BackingField: 1.17
-    <Euler>k__BackingField: {x: 1.54, y: 7.35, z: 2.62}
-  - <SocketName>k__BackingField: Socket_Tail
     <Model>k__BackingField: {fileID: 0}
     <Scale>k__BackingField: 1
     <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+  - <SocketName>k__BackingField: Socket_Back3
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 9196e6d3e40aa4a4b8854c2eb45eea2c, type: 3}
+    <Scale>k__BackingField: 1.29
+    <Euler>k__BackingField: {x: 11.45, y: -6.76, z: 7.39}
+  - <SocketName>k__BackingField: Socket_Tail
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: a9c956f23fb2bbd488cf1cd6d0aa7b08, type: 3}
+    <Scale>k__BackingField: 1.25
+    <Euler>k__BackingField: {x: 7.48, y: 6.34, z: 8.86}
   m_ListDrop:
   - <Pickup>k__BackingField: {fileID: 6116324105684739401, guid: 8d86c47187962c8478df36aa0c2aeed9, type: 3}
     <Min>k__BackingField: 2

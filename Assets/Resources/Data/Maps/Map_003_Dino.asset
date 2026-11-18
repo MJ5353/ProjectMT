@@ -27,38 +27,62 @@ MonoBehaviour:
   <PlayerSlot>k__BackingField: 1
   m_ListSpawn:
   - <Slot>k__BackingField: 2
-    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <Monster>k__BackingField: {fileID: 11400000, guid: 76c59206fd92447439b2afa70442f16b, type: 2}
     <RespawnDelay>k__BackingField: 4
   - <Slot>k__BackingField: 3
-    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <Monster>k__BackingField: {fileID: 11400000, guid: 76c59206fd92447439b2afa70442f16b, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 4
+    <Monster>k__BackingField: {fileID: 11400000, guid: 9ea595b40d1601248a047cad98fa8fd5, type: 2}
     <RespawnDelay>k__BackingField: 4
   - <Slot>k__BackingField: 5
-    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <Monster>k__BackingField: {fileID: 11400000, guid: 76c59206fd92447439b2afa70442f16b, type: 2}
     <RespawnDelay>k__BackingField: 4
   - <Slot>k__BackingField: 6
-    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <Monster>k__BackingField: {fileID: 11400000, guid: 76c59206fd92447439b2afa70442f16b, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 7
+    <Monster>k__BackingField: {fileID: 11400000, guid: 9ea595b40d1601248a047cad98fa8fd5, type: 2}
     <RespawnDelay>k__BackingField: 4
   - <Slot>k__BackingField: 8
-    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <Monster>k__BackingField: {fileID: 11400000, guid: 76c59206fd92447439b2afa70442f16b, type: 2}
     <RespawnDelay>k__BackingField: 4
   - <Slot>k__BackingField: 9
-    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <Monster>k__BackingField: {fileID: 11400000, guid: 76c59206fd92447439b2afa70442f16b, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 10
+    <Monster>k__BackingField: {fileID: 11400000, guid: 9ea595b40d1601248a047cad98fa8fd5, type: 2}
     <RespawnDelay>k__BackingField: 4
   - <Slot>k__BackingField: 11
-    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <Monster>k__BackingField: {fileID: 11400000, guid: 76c59206fd92447439b2afa70442f16b, type: 2}
     <RespawnDelay>k__BackingField: 4
   - <Slot>k__BackingField: 12
-    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <Monster>k__BackingField: {fileID: 11400000, guid: 76c59206fd92447439b2afa70442f16b, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 13
+    <Monster>k__BackingField: {fileID: 11400000, guid: 9ea595b40d1601248a047cad98fa8fd5, type: 2}
     <RespawnDelay>k__BackingField: 4
   - <Slot>k__BackingField: 14
-    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <Monster>k__BackingField: {fileID: 11400000, guid: 76c59206fd92447439b2afa70442f16b, type: 2}
     <RespawnDelay>k__BackingField: 4
   - <Slot>k__BackingField: 15
-    <Monster>k__BackingField: {fileID: 11400000, guid: 1e220716b84822c43b0104dd6394ec72, type: 2}
+    <Monster>k__BackingField: {fileID: 11400000, guid: 76c59206fd92447439b2afa70442f16b, type: 2}
+    <RespawnDelay>k__BackingField: 4
+  - <Slot>k__BackingField: 16
+    <Monster>k__BackingField: {fileID: 11400000, guid: 9ea595b40d1601248a047cad98fa8fd5, type: 2}
     <RespawnDelay>k__BackingField: 4
   - <Slot>k__BackingField: 17
-    <Monster>k__BackingField: {fileID: 11400000, guid: 5c880b59f0cba5044b02df65c38989e5, type: 2}
+    <Monster>k__BackingField: {fileID: 11400000, guid: b2e5a26ca0cab5d45b13af5bf8c8c6a8, type: 2}
+    <RespawnDelay>k__BackingField: 8
+  - <Slot>k__BackingField: 18
+    <Monster>k__BackingField: {fileID: 11400000, guid: 34b898b005297b34dbc4953ef94f853b, type: 2}
     <RespawnDelay>k__BackingField: 8
   - <Slot>k__BackingField: 19
-    <Monster>k__BackingField: {fileID: 11400000, guid: 5c880b59f0cba5044b02df65c38989e5, type: 2}
+    <Monster>k__BackingField: {fileID: 11400000, guid: b2e5a26ca0cab5d45b13af5bf8c8c6a8, type: 2}
     <RespawnDelay>k__BackingField: 8
+  - <Slot>k__BackingField: 20
+    <Monster>k__BackingField: {fileID: 11400000, guid: 34b898b005297b34dbc4953ef94f853b, type: 2}
+    <RespawnDelay>k__BackingField: 8
+  - <Slot>k__BackingField: 21
+    <Monster>k__BackingField: {fileID: 11400000, guid: 951f99df6f32cb44da664c1e1e8b2a55, type: 2}
+    <RespawnDelay>k__BackingField: -1

@@ -45,13 +45,13 @@ MonoBehaviour:
   <BodyRadius>k__BackingField: 0.3
   m_ListMushroom:
   - <SocketName>k__BackingField: Socket_Head
-    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 33d5e5e40cbd5374b97af9cfcc9de2b3, type: 3}
-    <Scale>k__BackingField: 0.83
-    <Euler>k__BackingField: {x: 2.85, y: 11.92, z: 4.78}
-  - <SocketName>k__BackingField: Socket_Back
     <Model>k__BackingField: {fileID: 0}
     <Scale>k__BackingField: 1
     <Euler>k__BackingField: {x: 0, y: 0, z: 0}
+  - <SocketName>k__BackingField: Socket_Back
+    <Model>k__BackingField: {fileID: -7511558181221131132, guid: 33d5e5e40cbd5374b97af9cfcc9de2b3, type: 3}
+    <Scale>k__BackingField: 0.76
+    <Euler>k__BackingField: {x: -1.78, y: 7.23, z: -3.75}
   m_ListDrop:
   - <Pickup>k__BackingField: {fileID: 8360666463547286274, guid: 25e1f7617935f0e4b9e36c4444342fa6, type: 3}
     <Min>k__BackingField: 1
