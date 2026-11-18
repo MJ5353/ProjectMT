@@ -12,8 +12,8 @@ public class MonsterDef : UnitDef
     [Serializable]
     public class MushroomSocket
     {
-        [field: SerializeField, FormerlySerializedAs("m_SocketName")]
-        public string SocketName { get; private set; } = "Socket_Head";   // 꽂을 뼈 이름
+        [field: SerializeField]
+        public EMushroomPartType Part { get; private set; } = EMushroomPartType.Head; // 꽂을 자리(프리팹 Socket_* 뼈)
 
         [field: SerializeField, FormerlySerializedAs("m_Model")]
         public Renderer Model { get; private set; } = null;               // 버섯 모델(Mush_*.fbx)
@@ -26,9 +26,9 @@ public class MonsterDef : UnitDef
 
         // ------------------------------------------------
 
-        public MushroomSocket(string socketName, Renderer model, float scale)
+        public MushroomSocket(EMushroomPartType part, Renderer model, float scale)
         {
-            SocketName = socketName;
+            Part = part;
             Model = model;
             Scale = scale;
         }

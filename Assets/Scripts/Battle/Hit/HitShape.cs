@@ -16,7 +16,7 @@ public enum EHitAxis
 [Serializable]
 public class HitShapeDef
 {
-    [field: SerializeField] public string BoneName { get; private set; } = null; // 따라갈 뼈 이름
+    [field: SerializeField] public EBattlePartType Part { get; private set; } = EBattlePartType.Body; // 따라갈 부위 뼈(프리팹 Hitbox_*)
 
     [field: SerializeField] public float Radius { get; private set; } = 0.5f; // 반지름(m)
 

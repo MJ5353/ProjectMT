@@ -51,82 +51,86 @@ public static class SerializableDictionaryChecks
 
     // ------------------------------------------------
 
+    // 프리팹 MonsterController의 부위 뼈 사전(m_DicBattleBone)을 인스펙터처럼 편집·저장한다.
+    // 프리팹 안의 Transform 참조가 저장 후에도 같은 프리팹의 뼈를 가리키는지까지 본다
     public static void RunInspector()
     {
-        string path = "Assets/SerializableDictionaryCheck_" + Guid.NewGuid().ToString("N");
-        string prefabPath = path + ".prefab";
-        string defPath = path + ".asset";
+        string prefabPath = "Assets/SerializableDictionaryCheck_" + Guid.NewGuid().ToString("N") + ".prefab";
         GameObject root = new GameObject("DictionaryCheck");
         GameObject head = new GameObject("Head");
         head.transform.SetParent(root.transform);
-        MonsterDef def = null;
+        MonsterController unit = root.AddComponent<MonsterController>();
         try
         {
-            GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
-            Transform bone = prefab.transform.Find("Head");
-            def = ScriptableObject.CreateInstance<MonsterDef>();
-            AssetDatabase.CreateAsset(def, defPath);
-            using (SerializedObject serialized = new SerializedObject(def))
+            using (SerializedObject serialized = new SerializedObject(unit))
             {
-                SerializedProperty dictionary = serialized.FindProperty("<DicBodyBone>k__BackingField");
-                Require(dictionary != null, "MonsterDef의 딕셔너리 필드 없음");
+                SerializedProperty dictionary = serialized.FindProperty("m_DicBattleBone");
+                Require(dictionary != null, "UnitController의 부위 뼈 사전 필드 없음");
                 dictionary.isExpanded = true;
                 SerializableDictionaryDrawer drawer = new SerializableDictionaryDrawer();
                 Require(drawer.GetPropertyHeight(dictionary, GUIContent.none) > EditorGUIUtility.singleLineHeight && drawer.CreatePropertyGUI(dictionary) != null, "Inspector 생성 실패");
 
                 SerializedProperty entries = dictionary.FindPropertyRelative("m_ListEntry");
                 SerializableDictionaryDrawer.AddEntry(entries);
-                entries.GetArrayElementAtIndex(0).FindPropertyRelative("Key").intValue = (int)EBodyPart.Head;
-                entries.GetArrayElementAtIndex(0).FindPropertyRelative("Value").objectReferenceValue = bone;
+                entries.GetArrayElementAtIndex(0).FindPropertyRelative("Key").intValue = (int)EBattlePartType.Head;
+                entries.GetArrayElementAtIndex(0).FindPropertyRelative("Value").objectReferenceValue = head.transform;
                 serialized.ApplyModifiedProperties();
-                Require(def.DicBodyBone.Count == 1 && def.DicBodyBone[EBodyPart.Head] == bone, "Inspector 편집 반영 실패");
+                Require(unit.GetBattleBone(EBattlePartType.Head) == head.transform, "Inspector 편집 반영 실패");
 
                 Undo.IncrementCurrentGroup();
                 SerializableDictionaryDrawer.AddEntry(entries);
-                Require(entries.GetArrayElementAtIndex(1).FindPropertyRelative("Key").intValue != (int)EBodyPart.Head, "사용 중인 enum 키 자동 선택");
+                Require(entries.GetArrayElementAtIndex(1).FindPropertyRelative("Key").intValue != (int)EBattlePartType.Head, "사용 중인 enum 키 자동 선택");
                 Require(entries.GetArrayElementAtIndex(1).FindPropertyRelative("Value").objectReferenceValue == null, "추가한 Transform 값이 이전 행을 복제함");
-                entries.GetArrayElementAtIndex(1).FindPropertyRelative("Key").intValue = (int)EBodyPart.Tail;
+                entries.GetArrayElementAtIndex(1).FindPropertyRelative("Key").intValue = (int)EBattlePartType.Tail;
                 serialized.ApplyModifiedProperties();
                 Undo.FlushUndoRecordObjects();
                 Undo.PerformUndo();
                 serialized.Update();
-                Require(entries.arraySize == 1 && def.DicBodyBone.Count == 1, "행 추가 Undo 실패");
+                Require(entries.arraySize == 1, "행 추가 Undo 실패");
                 Undo.PerformRedo();
                 serialized.Update();
-                Require(entries.arraySize == 2 && def.DicBodyBone.ContainsKey(EBodyPart.Tail), "행 추가 Redo 실패");
+                Require(entries.arraySize == 2 && entries.GetArrayElementAtIndex(1).FindPropertyRelative("Key").intValue == (int)EBattlePartType.Tail, "행 추가 Redo 실패");
 
                 SerializableDictionaryDrawer.AddEntry(entries);
-                entries.GetArrayElementAtIndex(2).FindPropertyRelative("Key").intValue = (int)EBodyPart.Head;
+                entries.GetArrayElementAtIndex(2).FindPropertyRelative("Key").intValue = (int)EBattlePartType.Head;
                 serialized.ApplyModifiedProperties();
                 Require(string.IsNullOrEmpty(SerializableDictionaryDrawer.GetWarning(entries)) == false, "중복 키 경고 없음");
-                EditorJsonUtility.ToJson(def);
+                EditorJsonUtility.ToJson(unit);
                 serialized.Update();
-                Require(entries.arraySize == 3 && def.DicBodyBone.Count == 2, "중복 행 보존 실패");
-                entries.GetArrayElementAtIndex(2).FindPropertyRelative("Key").intValue = (int)EBodyPart.Neck;
+                Require(entries.arraySize == 3, "중복 행 보존 실패");
+                entries.GetArrayElementAtIndex(2).FindPropertyRelative("Key").intValue = (int)EBattlePartType.Back;
                 serialized.ApplyModifiedProperties();
-                Require(def.DicBodyBone.Count == 3 && string.IsNullOrEmpty(SerializableDictionaryDrawer.GetWarning(entries)), "중복 키 수정 실패");
+                Require(string.IsNullOrEmpty(SerializableDictionaryDrawer.GetWarning(entries)), "중복 키 수정 실패");
 
                 entries.MoveArrayElement(2, 0);
                 serialized.ApplyModifiedProperties();
                 entries.DeleteArrayElementAtIndex(0);
                 serialized.ApplyModifiedProperties();
-                Require(def.DicBodyBone.Count == 2 && def.DicBodyBone.ContainsKey(EBodyPart.Neck) == false, "순서 변경·삭제 반영 실패");
+                Require(unit.GetBattleBone(EBattlePartType.Head) == head.transform && entries.arraySize == 2, "순서 변경·삭제 반영 실패");
             }
 
-            Undo.ClearUndo(def);
-            AssetDatabase.SaveAssetIfDirty(def);
-            Resources.UnloadAsset(def);
-            def = AssetDatabase.LoadAssetAtPath<MonsterDef>(defPath);
-            Require(def.DicBodyBone.Count == 2 && def.DicBodyBone[EBodyPart.Head] == bone && def.DicBodyBone[EBodyPart.Tail] == null, "Def 저장·재로드 후 Transform 참조 유지 실패");
-            Debug.Log("SerializableDictionary Inspector 검사 통과: enum·Transform 편집·추가·중복 행 보존·Undo/Redo·정렬·삭제·에셋 재로드");
+            Undo.ClearUndo(unit);
+            GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+            MonsterController saved = prefab.GetComponent<MonsterController>();
+            Require(saved.GetBattleBone(EBattlePartType.Head) == prefab.transform.Find("Head") && saved.GetBattleBone(EBattlePartType.Back) == null, "프리팹 저장 후 같은 프리팹 뼈 참조 유지 실패");
+
+            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            try
+            {
+                MonsterController spawned = instance.GetComponent<MonsterController>();
+                Require(spawned.GetBattleBone(EBattlePartType.Head) == instance.transform.Find("Head"), "인스턴스가 자기 뼈를 가리키지 않음");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(instance);
+            }
+
+            Debug.Log("SerializableDictionary Inspector 검사 통과: enum·Transform 편집·추가·중복 행 보존·Undo/Redo·정렬·삭제·프리팹 저장·인스턴스 뼈 참조");
         }
         finally
         {
-            if (def != null)
-                Undo.ClearUndo(def);
-
+            Undo.ClearUndo(unit);
             UnityEngine.Object.DestroyImmediate(root);
-            AssetDatabase.DeleteAsset(defPath);
             AssetDatabase.DeleteAsset(prefabPath);
         }
     }

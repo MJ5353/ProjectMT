@@ -76,6 +76,14 @@ MonoBehaviour:
   m_Animator: {fileID: 6792055994558119069}
   m_ListBodyRenderer:
   - {fileID: 3625676170799015784}
+  m_DicBattleBone:
+    m_ListEntry: []
+  m_DicMushroomBone:
+    m_ListEntry:
+    - Key: 1
+      Value: {fileID: 1452473167667360074}
+    - Key: 2
+      Value: {fileID: 5648784998829517882}
 --- !u!1001 &8626400761760251982
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -136,9 +144,19 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 6792055994558119069}
   m_SourcePrefab: {fileID: 100100000, guid: 4860a46136298b7419b19f26aee35f49, type: 3}
+--- !u!4 &1452473167667360074 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7178484296699113732, guid: 4860a46136298b7419b19f26aee35f49, type: 3}
+  m_PrefabInstance: {fileID: 8626400761760251982}
+  m_PrefabAsset: {fileID: 0}
 --- !u!137 &3625676170799015784 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: 5037237207492192038, guid: 4860a46136298b7419b19f26aee35f49, type: 3}
+  m_PrefabInstance: {fileID: 8626400761760251982}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5648784998829517882 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -5056515648580424588, guid: 4860a46136298b7419b19f26aee35f49, type: 3}
   m_PrefabInstance: {fileID: 8626400761760251982}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &8087788407781877669 stripped

@@ -210,15 +210,15 @@ public class MonsterController : UnitController<MonsterDef>
         return distance >= attack.MinRange && distance <= attack.MaxRange;
     }
 
-    // 몸 판정 표의 뼈를 한 번 찾아 판정 모양으로 등록한다
+    // 몸 판정 표의 부위 뼈로 판정 모양을 등록한다
     private void AddBodyShapes()
     {
         foreach (HitShapeDef shapeDef in Def.ListBodyShape)
         {
-            Transform bone = transform.E_FindDeep(shapeDef.BoneName);
+            Transform bone = GetBattleBone(shapeDef.Part);
             if (bone == null)
             {
-                CLogger.Warning("MonsterController", $"판정 뼈를 찾지 못함: {shapeDef.BoneName} ({name})", this);
+                CLogger.Warning("MonsterController", $"판정 부위 뼈가 프리팹에 없음: {shapeDef.Part} ({name})", this);
                 continue;
             }
 
@@ -236,7 +236,7 @@ public class MonsterController : UnitController<MonsterDef>
         Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.8f);
         foreach (HitShapeDef shapeDef in Def.ListBodyShape)
         {
-            Transform bone = transform.E_FindDeep(shapeDef.BoneName);
+            Transform bone = GetBattleBone(shapeDef.Part);
             if (bone == null)
                 continue;
 
@@ -255,10 +255,10 @@ public class MonsterController : UnitController<MonsterDef>
             if (socket.Model == null)
                 continue;
 
-            Transform bone = transform.E_FindDeep(socket.SocketName);
+            Transform bone = GetMushroomBone(socket.Part);
             if (bone == null)
             {
-                CLogger.Warning("MonsterController", $"소켓을 찾지 못함: {socket.SocketName} ({name})", this);
+                CLogger.Warning("MonsterController", $"버섯 자리 뼈가 프리팹에 없음: {socket.Part} ({name})", this);
                 continue;
             }
 

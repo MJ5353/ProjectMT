@@ -31,7 +31,7 @@ MonoBehaviour:
     <Lunge>k__BackingField: 0
     <HitEndFrame>k__BackingField: 0
     <ActiveMoveSpeed>k__BackingField: 0
-    <HitBone>k__BackingField: 
+    <HitPart>k__BackingField: 0
     <MinRange>k__BackingField: 0
     <MaxRange>k__BackingField: 1.4
     <Cooldown>k__BackingField: 0
@@ -51,11 +51,11 @@ MonoBehaviour:
   <BodyHeight>k__BackingField: 1.1
   <BodyRadius>k__BackingField: 0.2
   m_ListMushroom:
-  - <SocketName>k__BackingField: Socket_Head
+  - <Part>k__BackingField: 1
     <Model>k__BackingField: {fileID: 0}
     <Scale>k__BackingField: 1
     <Euler>k__BackingField: {x: 0, y: 0, z: 0}
-  - <SocketName>k__BackingField: Socket_Back
+  - <Part>k__BackingField: 2
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
     <Scale>k__BackingField: 0.79
     <Euler>k__BackingField: {x: 5.48, y: -0.85, z: -1.23}

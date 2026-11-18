@@ -76,6 +76,14 @@ MonoBehaviour:
   m_Animator: {fileID: 2838786461876077647}
   m_ListBodyRenderer:
   - {fileID: 8491492894617295285}
+  m_DicBattleBone:
+    m_ListEntry: []
+  m_DicMushroomBone:
+    m_ListEntry:
+    - Key: 1
+      Value: {fileID: 1142968165617092142}
+    - Key: 2
+      Value: {fileID: 7804237019786079544}
 --- !u!1001 &8693753571122805864
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -136,6 +144,16 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2838786461876077647}
   m_SourcePrefab: {fileID: 100100000, guid: 4a984734624f1cc4fb806487bc7e23f8, type: 3}
+--- !u!4 &1142968165617092142 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -613956632461624762, guid: 4a984734624f1cc4fb806487bc7e23f8, type: 3}
+  m_PrefabInstance: {fileID: 8693753571122805864}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7804237019786079544 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -7716826739870822064, guid: 4a984734624f1cc4fb806487bc7e23f8, type: 3}
+  m_PrefabInstance: {fileID: 8693753571122805864}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &8387676259987210553 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 4a984734624f1cc4fb806487bc7e23f8, type: 3}

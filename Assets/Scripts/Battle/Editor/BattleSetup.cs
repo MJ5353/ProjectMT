@@ -157,8 +157,36 @@ public static class BattleSetup
             listBody.GetArrayElementAtIndex(i).objectReferenceValue = listRenderer[i];
         }
 
+        // 부위 뼈: 판정용 Hitbox_*는 모두, 버섯 자리 Socket_*는 몬스터만
+        Dictionary<EBattlePartType, Transform> dicBattleBone = new();
+        Dictionary<EMushroomPartType, Transform> dicMushroomBone = new();
+        if (model != null)
+        {
+            BodyPartMap.CollectBattleBones(model.transform, dicBattleBone, def);
+            if (def is MonsterDef)
+                BodyPartMap.CollectMushroomBones(model.transform, dicMushroomBone, def);
+        }
+
+        WriteBoneDictionary(so.FindProperty("m_DicBattleBone"), dicBattleBone);
+        WriteBoneDictionary(so.FindProperty("m_DicMushroomBone"), dicMushroomBone);
+
         so.ApplyModifiedPropertiesWithoutUndo();
         return root;
+    }
+
+    // SerializableDictionary<enum, Transform>의 저장 목록(m_ListEntry)을 채운다
+    private static void WriteBoneDictionary<TPart>(SerializedProperty dictionary, Dictionary<TPart, Transform> dicBone) where TPart : System.Enum
+    {
+        SerializedProperty entries = dictionary.FindPropertyRelative("m_ListEntry");
+        entries.arraySize = dicBone.Count;
+        int index = 0;
+        foreach (var pair in dicBone)
+        {
+            SerializedProperty entry = entries.GetArrayElementAtIndex(index);
+            entry.FindPropertyRelative("Key").intValue = System.Convert.ToInt32(pair.Key);
+            entry.FindPropertyRelative("Value").objectReferenceValue = pair.Value;
+            index++;
+        }
     }
 
     // 상태 이름 = 클립 이름, 기본 상태 Idle. 전이 없이 코드에서 CrossFade로 부른다

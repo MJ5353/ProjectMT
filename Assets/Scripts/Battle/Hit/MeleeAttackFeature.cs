@@ -10,7 +10,7 @@ public class MeleeAttackFeature : UnitFeature
 {
     private readonly List<ActorHitCandidate> m_ListCandidate = new();
     private readonly HashSet<IHitTarget> m_SetHit = new(); // 이번 공격에 이미 맞은 대상
-    private readonly Dictionary<AttackSpec, Transform> m_DicHitBone = new(); // HitBone이 있는 공격의 판정 뼈. 생성 때 한 번 찾는다
+    private readonly IReadOnlyDictionary<EBattlePartType, Transform> m_DicBattleBone; // 주인 프리팹의 부위 뼈
 
     public AttackSpec Spec => m_Spec;
     private AttackSpec m_Spec;
@@ -20,13 +20,15 @@ public class MeleeAttackFeature : UnitFeature
 
     // ------------------------------------------------
 
-    public MeleeAttackFeature(IActor owner, IReadOnlyList<AttackSpec> listAttack) : base(owner)
+    public MeleeAttackFeature(IActor owner, IReadOnlyList<AttackSpec> listAttack, IReadOnlyDictionary<EBattlePartType, Transform> dicBattleBone) : base(owner)
     {
+        m_DicBattleBone = dicBattleBone;
+
+        // 판정 부위 뼈가 프리팹에 없으면 몸 앞으로 판정한다
         foreach (AttackSpec attack in listAttack)
         {
-            Transform bone = FindHitBone(owner.transform, attack);
-            if (bone != null)
-                m_DicHitBone[attack] = bone;
+            if (attack.HitPart != EBattlePartType.None && dicBattleBone.ContainsKey(attack.HitPart) == false)
+                CLogger.Warning("MeleeAttackFeature", $"판정 부위 뼈가 프리팹에 없음: {attack.HitPart} ({owner.transform.name})", owner.transform);
         }
     }
 
@@ -47,19 +49,6 @@ public class MeleeAttackFeature : UnitFeature
             return bone.position;
 
         return owner.position + Vector3.up * spec.Height + owner.forward * spec.Reach;
-    }
-
-    // HitBone 이름으로 뼈를 찾는다. 비었거나 못 찾으면 null(못 찾으면 경고)
-    public static Transform FindHitBone(Transform owner, AttackSpec spec)
-    {
-        if (string.IsNullOrEmpty(spec.HitBone))
-            return null;
-
-        Transform bone = owner.E_FindDeep(spec.HitBone);
-        if (bone == null)
-            CLogger.Warning("MeleeAttackFeature", $"판정 뼈를 찾지 못함: {spec.HitBone} ({owner.name})", owner);
-
-        return bone;
     }
 
     public void Begin(AttackSpec spec)
@@ -111,7 +100,7 @@ public class MeleeAttackFeature : UnitFeature
         if (actors == null)
             return 0;
 
-        m_DicHitBone.TryGetValue(spec, out Transform bone);
+        m_DicBattleBone.TryGetValue(spec.HitPart, out Transform bone);
         Vector3 center = GetCenter(owner, spec, bone);
         ETeam team = Owner.HitFeature.Team;
         actors.CollectNearbyEnemies(center, spec.Radius, team, m_ListCandidate);

@@ -47,9 +47,8 @@ public class AttackSpec
     [field: SerializeField]
     public float ActiveMoveSpeed { get; private set; } = 0f; // 판정 구간 동안 앞으로 가는 속도(돌진). 0이면 제자리
 
-    // !!) 3번 단계(뼈 판정)부터 쓴다. 지금은 무시하고 몸 앞(Reach·Height)으로 판정
     [field: SerializeField]
-    public string HitBone { get; private set; } = null; // 판정 중심 뼈 이름. 비면 몸 앞
+    public EBattlePartType HitPart { get; private set; } = EBattlePartType.None; // 판정 중심 부위 뼈. None이면 몸 앞(Height·Reach)
 
     // 몬스터 공격 고르기 --- 플레이어는 쓰지 않는다
     [field: SerializeField]
