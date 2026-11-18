@@ -23,6 +23,12 @@ REGION = {
     'trees': {'tree_red': 2, 'tree_brown': 3, 'tree_violet': 2},
     'small': {'log': 3, 'mush_cluster': 4, 'rock_big': 2, 'Deco_Rock': 3, 'Deco_Stump': 2},
     'grass_tries': 550,
+    'path': 'path', 'accent': 'mycel',                   # 길 타일, 엘리트·보스 자리 무늬 타일
+    'lake': None, 'lakes': [],                           # 호수 타일과 (x, y, 반지름) 목록(소품 없음)
+    'deco': {'Deco_Grass': 0.82, 'Deco_Flower': 0.18},   # 바닥 장식(충돌 없음)과 비율
+    # 스폰 지점 이름. 잡몹은 무리마다 [첫째, 첫째, 둘째] 섞음, 엘리트는 자리마다 번갈아
+    'mob': ['Buggi', 'Budeoji'], 'elite': ['Bugom', 'Burangi'], 'boss': 'Boss_Tree',
+    'boss_prop': ['log', 'mush_cluster', 'log', 'tree_brown'],   # 보스 자리 둘레(쓰러진 고목·버섯 군락)
 }
 
 W = H = REGION['size']   # 블록 수(1블록 = 1m). 지면은 평탄, 높이 0
@@ -50,24 +56,30 @@ def seg_dist(px, py, a, b):
 def elite_names():
     return [n for n in ZONES if n.startswith('elite')]
 
+def in_lake(x, y, pad=0.0):
+    return any(math.hypot(x - lx, y - ly) * (1 + 0.15 * math.sin(math.atan2(y - ly, x - lx) * 3 + lx)) < r + pad
+               for lx, ly, r in REGION['lakes'])
+
 def layout():
     hgt, top = {}, {}
     for x in range(W):
         for y in range(H):
             px, py = x + .5, y + .5
             t = REGION['ground']
+            if in_lake(px, py):
+                t = REGION['lake']
             if min(seg_dist(px, py, a, b) for a, b in PATHS) < 1.4 + 0.5 * math.sin(px * 0.4 + py * 0.3):
-                t = 'path'
+                t = REGION['path']
             if any(zdist(e, x, y) < 0.55 and _h(x, y, 2) % 4 != 0 for e in elite_names()):
-                t = 'mycel'
+                t = REGION['accent']
             d = zdist('boss', x, y)
             if 0.55 < d < 0.85 and _h(x // 2, y // 2, 3) % 3 != 0:
-                t = 'mycel'
+                t = REGION['accent']
             hgt[(x, y)] = GROUND; top[(x, y)] = t
     return hgt, top
 
-SIDE = {'grass': 'grass_side', 'path': 'dirt', 'mycel': 'mycel_side'}
-TOPT = {'grass': 'grass_top', 'path': 'path', 'mycel': 'mycel_top'}
+SIDE = {'grass': 'grass_side', 'path': 'dirt', 'mycel': 'mycel_side', 'snow': 'snow_side', 'snow_path': 'snow_side', 'ice': 'snow_side'}
+TOPT = {'grass': 'grass_top', 'path': 'path', 'mycel': 'mycel_top', 'snow': 'snow_top', 'snow_path': 'snow_path', 'ice': 'ice_top'}
 
 def terrain_mesh(hgt, top, m):
     bm = bmesh.new(); uvl = bm.loops.layers.uv.new('UVMap')
@@ -182,6 +194,8 @@ def scatter(rnd, n, ok, taken, min_d):
         taken.append((x, y, min_d)); out.append((x, y))
     return out
 
+SLOT_OF, SLOTS = {}, {}   # 생성 때 이름(Spawn_종류_n) ↔ 슬롯 이름
+
 def build_map():
     hgt, top = layout()
     tm = L.material('M_Terrain', B.ATLAS_PATH)
@@ -192,7 +206,7 @@ def build_map():
     ground = lambda x, y: 0.0
     inside = lambda x, y: min(x, y, W - x, H - y) > BORDER + 1
     def clear(x, y, pad=2.5):
-        return (min(seg_dist(x, y, a, b) for a, b in PATHS) > pad and zdist('start', x, y) > 1.1 and
+        return (min(seg_dist(x, y, a, b) for a, b in PATHS) > pad and not in_lake(x, y, 1.5) and zdist('start', x, y) > 1.1 and
                 zdist('boss', x, y) > 1.1 and zdist('hub', x, y) > 1.2 and
                 all(zdist(e, x, y) > 1.05 for e in elite_names()) and
                 all(math.hypot(x - gx, y - gy) > 5 for gx, gy in GROUPS))
@@ -200,7 +214,7 @@ def build_map():
         ks = list(table); return rnd.choices(ks, weights=[table[k] for k in ks])[0]
     taken, props, small = [], [], []
     # 가장자리 숲 띠
-    for x, y in scatter(rnd, 110, lambda x, y: 1 < min(x, y, W - x, H - y) < BORDER and zdist('start', x, y) > 1.2, taken, 3.3):
+    for x, y in scatter(rnd, 110, lambda x, y: 1 < min(x, y, W - x, H - y) < BORDER and zdist('start', x, y) > 1.2 and not in_lake(x, y, 1), taken, 3.3):
         props.append((pick(REGION['trees']), x, y))
     # 들판의 작은 숲(나무 2~4그루씩)
     for cx, cy in scatter(rnd, 9, lambda x, y: inside(x, y) and clear(x, y, 6), [], 14):
@@ -216,14 +230,15 @@ def build_map():
         for a in rnd.sample(range(0, 360, 45), 4):
             x, y = cx + math.cos(math.radians(a)) * r * 1.2, cy + math.sin(math.radians(a)) * r * 1.2
             if min(seg_dist(x, y, p, q) for p, q in PATHS) > 2:
-                props.append((rnd.choice(['rock_big', 'log', 'mush_cluster']), x, y)); taken.append((x, y, 2))
+                props.append((rnd.choice(REGION.get('elite_props', ['rock_big', 'log', 'mush_cluster'])), x, y)); taken.append((x, y, 2))
     # 보스 자리: 큰 바위 둘레(남쪽 입구 제외)
     cx, cy, r = ZONES['boss']
     for a in range(0, 360, 24):
         if 245 < a < 295:
             continue
         x, y = cx + math.cos(math.radians(a)) * r * 1.12, cy + math.sin(math.radians(a)) * r * 1.12
-        props.append(('rock_big', x, y)); taken.append((x, y, 2))
+        bp = REGION.get('boss_prop', 'rock_big')
+        props.append((bp if isinstance(bp, str) else bp[(a // 24) % len(bp)], x, y)); taken.append((x, y, 2))
     cache = {k: fn() for k, fn in PROPS.items()}
     dcache = {k: fn() for k, fn in B.DECOS.items()}
     items = [(cache[k], PROP, (x, y, 0), rnd.randrange(4)) for k, x, y in props]
@@ -233,9 +248,12 @@ def build_map():
     grass = []
     for _ in range(REGION['grass_tries']):
         x, y = rnd.uniform(BORDER - 1, W - BORDER + 1), rnd.uniform(BORDER - 1, H - BORDER + 1)
-        if top[(int(x), int(y))] != 'grass' or zdist('boss', x, y) < 0.9:
+        if top[(int(x), int(y))] != REGION['ground'] or zdist('boss', x, y) < 0.9:
             continue
-        k = 'Deco_Flower' if rnd.random() < 0.18 else 'Deco_Grass'
+        if 'Deco_Grass' in REGION['deco']:            # 기존 평원과 같은 난수 순서 유지
+            k = 'Deco_Flower' if rnd.random() < REGION['deco'].get('Deco_Flower', 0) else 'Deco_Grass'
+        else:
+            ks = list(REGION['deco']); k = rnd.choices(ks, weights=[REGION['deco'][d] for d in ks])[0]
         grass.append((dcache[k], B.DECO_SIZE, (x, y, 0), rnd.randrange(4)))
     merged('Map_Grass', grass, vm).parent = root
     # 보이지 않는 경계 벽(Unity에서 렌더러 꺼짐)
@@ -248,15 +266,25 @@ def build_map():
     bo.hide_render = True
     # 스폰 지점 (빈 오브젝트, 위치만 사용). 엘리트 = 버곰
     spawns = {'Spawn_Player': ZONES['start'][:2]}
-    n = 0
+    as_list = lambda v: [v] if isinstance(v, str) else list(v)
+    mobs, elites = as_list(REGION['mob']), as_list(REGION['elite'])
+    count = {}
+    def add(kind, pos):
+        count[kind] = count.get(kind, 0) + 1
+        spawns[f"Spawn_{kind}_{count[kind]}"] = pos
     for gx, gy in GROUPS:
-        for dx, dy in [(-1.5, -1), (1.5, -0.5), (0, 1.5)]:
-            n += 1; spawns[f'Spawn_Buggi_{n}'] = (gx + dx, gy + dy)
+        for slot, (dx, dy) in enumerate([(-1.5, -1), (1.5, -0.5), (0, 1.5)]):
+            add(mobs[-1] if slot == 2 and len(mobs) > 1 else mobs[0], (gx + dx, gy + dy))
     for i, e in enumerate(elite_names()):
-        spawns[f'Spawn_Bugom_{i + 1}'] = ZONES[e][:2]
-    spawns['Spawn_Bursus'] = ZONES['boss'][:2]
+        add(elites[i % len(elites)], ZONES[e][:2])
+    spawns[f"Spawn_{REGION['boss']}"] = ZONES['boss'][:2]
+    # 오브젝트 이름은 SpawnSlot_01부터 순번(26.11.18 대장). 순서: 플레이어 → 잡몹 무리(3마리씩) → 엘리트 → 보스.
+    # 어느 칸에 무엇이 서는지는 지역 데이터가 정한다. 생성 때 의도한 종류는 SLOTS(슬롯 이름 → 종류)로 남긴다.
+    SLOT_OF.clear(); SLOTS.clear()
+    for n, nm in enumerate(spawns, 1):
+        SLOT_OF[nm] = f"SpawnSlot_{n:02d}"; SLOTS[SLOT_OF[nm]] = nm
     for nm, (x, y) in spawns.items():
-        o = bpy.data.objects.new(nm, None); o.empty_display_type = 'ARROWS'
+        o = bpy.data.objects.new(SLOT_OF[nm], None); o.empty_display_type = 'ARROWS'
         o.location = (x, y, 0); o.parent = root
         bpy.context.scene.collection.objects.link(o)
     return root, spawns, ground
@@ -274,21 +302,23 @@ def main():
     if B.PREVIEW:
         preview(root, spawns, ground)
 
-def preview(root, spawns, ground):
+def preview(root, spawns, ground, actors=None, preview_mush=None, boss_scale=1.5):
     L.setup_render(1400, 16)
-    who = {'Spawn_Player': ('body_player', None), 'Spawn_Bursus': ('body_bursus', None)}
+    actors = actors or {'Player': B.body_player, 'Buggi': B.body_buggi, 'Bugom': B.body_bugom, 'Bursus': B.body_bursus}
+    preview_mush = preview_mush or B.PREVIEW_MUSH
+    boss_spawn = f"Spawn_{REGION['boss']}"
     for n in spawns:
-        if n.startswith('Spawn_Buggi'): who[n] = ('body_buggi', None)
-        if n.startswith('Spawn_Bugom'): who[n] = ('body_bugom', None)
-    for n, (fn, _) in who.items():
-        arm, objs, _ = B.build_character(getattr(B, fn), with_anims=False)
-        e = bpy.data.objects[n]
+        fn = actors.get(n[len('Spawn_'):].rsplit('_', 1)[0] if n[-1].isdigit() else n[len('Spawn_'):])
+        if fn is None:
+            continue
+        arm, objs, _ = B.build_character(fn, with_anims=False)
+        e = bpy.data.objects[SLOT_OF[n]]
         arm.location = e.location
         arm.rotation_euler = (0, 0, math.radians(180 if n == 'Spawn_Player' else 0))
-        if n == 'Spawn_Bursus':
-            arm.scale = (1.5, 1.5, 1.5)
+        if n == boss_spawn:
+            arm.scale = (boss_scale,) * 3
         bpy.context.view_layer.update()
-        for s, (m, sc) in B.PREVIEW_MUSH.get(arm.name.split('.')[0], {}).items():
+        for s, (m, sc) in preview_mush.get(arm.name.split('.')[0], {}).items():
             B.attach_mush(arm, s, m, sc)
     bpy.data.images['VoxelPalette.png'].reload()
     L.aim_camera(Vector((W / 2, H / 2 - 2, 0)), 108, view=(-0.55, -1.0, 1.25))

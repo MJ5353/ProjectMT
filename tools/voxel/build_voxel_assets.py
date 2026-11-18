@@ -73,7 +73,84 @@ def mush_malbul():
             v.pop((i, j, top), None); v[(i, j, top - 1)] = '!puff_pore'
     return v
 
-MUSHROOMS = {'Mush_Songi': mush_songi, 'Mush_Cloud': mush_cloud, 'Mush_Malbul': mush_malbul}
+def mush_noru():
+    """노루궁뎅이: 하얀 털뭉치 공 + 아래로 늘어진 가시."""
+    v = {}
+    cyl(v, 0, 0, 1.4, 0, 2, 'noru_dk')
+    def c(i, j, k):
+        return 'noru_lt' if _h(i, j, 1) % 3 == 0 else ('noru_dk' if _h(i, j, k) % 7 == 0 else 'noru')
+    ell(v, (0, 0, 5.6), (3.8, 3.8, 3.4), c)
+    bottom = {}
+    for (i, j, k) in v:
+        if k >= 3:
+            bottom[(i, j)] = min(k, bottom.get((i, j), 99))
+    for (i, j), k in bottom.items():
+        if (i + .5) ** 2 + (j + .5) ** 2 >= 4 and _h(i, j, 5) % 2 == 0:        # 가장자리 가시
+            for d in range(1, 2 + _h(i, j, 6) % 3):
+                v.setdefault((i, j, k - d), 'noru_lt' if _h(i, j, 1) % 3 == 0 else 'noru')
+    return v
+
+def mush_pyogo():
+    """표고: 납작한 갈색 갓 + 흰 갈라짐 무늬."""
+    v = {}
+    cyl(v, 0, 0, 1.3, 0, 5, 'pyogo_stem')
+    def cap(i, j, k):
+        if k <= 4:
+            return 'pyogo_stem'                                          # 갓 아래 주름
+        if _h(i // 2, j // 2, 3) % 5 == 0 and _h(i, j, 4) % 2 == 0:
+            return 'pyogo_crk'
+        return 'pyogo_dk' if (i + .5) ** 2 + (j + .5) ** 2 > 12 else 'pyogo'
+    ell(v, (0, 0, 5.0), (4.4, 4.4, 2.8), cap, cut=lambda x, y, z: z >= 4.2)
+    return v
+
+def mush_paengi():
+    """팽이: 가늘고 긴 흰 줄기 다발 + 작은 갓."""
+    v = {}
+    cyl(v, 0, 0, 2.2, 0, 1.5, 'paengi_base')
+    for n, (x, y, h) in enumerate([(0, 0, 10), (-2, 0, 9), (1, 1, 9), (1, -2, 8), (-1, 2, 8), (2, 0, 7), (-2, -2, 7), (-1, -1, 9)]):
+        lean = (n % 3) - 1
+        for k in range(1, h):
+            v[(x + (lean if k > h * 0.6 else 0), y, k)] = 'paengi'
+        cx = x + lean
+        for (a, b) in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+            v[(cx + a, y + b, h)] = 'paengi_cap'
+        v[(cx, y, h + 1)] = 'paengi_cap'
+    return v
+
+def mush_gwangdae():
+    """광대버섯: 빨간 갓 + 흰 점, 흰 줄기와 턱받이."""
+    v = {}
+    cyl(v, 0, 0, 1.3, 0, 7, 'gwang_stem')
+    ell(v, (0, 0, 1.0), (2.0, 2.0, 1.4), 'gwang_stem', cut=lambda x, y, z: z >= 0)
+    cyl(v, 0, 0, 2.0, 4.5, 5.2, 'gwang_dot')                           # 턱받이
+    def cap(i, j, k):
+        if k <= 6:
+            return 'gwang_dot'
+        if _h(i // 2, j // 2, k // 2) % 4 == 0 and _h(i, j, k) % 2 == 0:
+            return '!gwang_dot'
+        return 'gwang_dk' if k <= 7 else 'gwang'
+    ell(v, (0, 0, 7.4), (4.2, 4.2, 3.4), cap, cut=lambda x, y, z: z >= 6.6)
+    return v
+
+def mush_seori():
+    """서리버섯(얼음 지역용 가상 버섯): 옅은 푸른 고깔 갓 + 고드름."""
+    v = {}
+    cyl(v, 0, 0, 1.2, 0, 6, 'seori_stem')
+    def cap(i, j, k):
+        if k >= 10:
+            return 'seori_lt'
+        return 'seori_dk' if _h(i, j, k) % 6 == 0 else 'seori'
+    L._fill(v, ((-4, 4), (-4, 4), (5, 12)),
+            lambda x, y, z: x * x + y * y <= (3.8 * (1 - (z - 5.5) / 6.5)) ** 2 and z >= 5.5, cap)
+    for (i, j) in [(-4, 0), (3, 0), (0, -4), (0, 3), (-3, -3), (2, 2), (2, -3), (-3, 2)]:
+        if _h(i, j, 2) % 3:
+            for k in range(3, 6):
+                v.setdefault((i, j, k), '!seori_lt')
+    return v
+
+MUSHROOMS = {'Mush_Songi': mush_songi, 'Mush_Cloud': mush_cloud, 'Mush_Malbul': mush_malbul,
+             'Mush_Noru': mush_noru, 'Mush_Pyogo': mush_pyogo, 'Mush_Paengi': mush_paengi,
+             'Mush_Gwangdae': mush_gwangdae, 'Mush_Seori': mush_seori}
 
 # =====================================================================
 # 몸 3종 + 플레이어
@@ -285,6 +362,7 @@ def body_player():
         ('ArmL', (4, 0, 9), 'Body', None), ('ArmR', (-4, 0, 9), 'Body', None),
         ('LegL', (1.5, 0, 4.5), 'Root', None), ('LegR', (-1.5, 0, 4.5), 'Root', None),
         ('Weapon', (-4, 0, 5.5), 'ArmR', None),
+        ('Socket_Pet', (0, 2.9, 9.6), 'Body', None),     # 등 바구니 위: 펫(버구리) 태우는 자리
     ]
     meshes = {'Player_Body': [(body, 'Body'), (head, 'Head'), (armL, 'ArmL'), (armR, 'ArmR'), (legL, 'LegL'), (legR, 'LegR')],
               'Player_Hat': [(hat, 'Head')], 'Player_Weapon': [(weapon, 'Weapon')]}
@@ -320,7 +398,9 @@ PREVIEW_MUSH = {
 # 지형: 블록(1m, 원점=중심) + 장식(복셀, 원점=밑면 중심)
 # =====================================================================
 TILE, CELL, AT_N = 10, 16, 4   # 10px 타일, 16px 칸(가장자리 3px 늘림), 4x4 칸 = 64px
-TILES = ['grass_top', 'grass_side', 'dirt', 'stone', 'mycel_top', 'mycel_side', 'path']
+TILES = ['grass_top', 'grass_side', 'dirt', 'stone', 'mycel_top', 'mycel_side', 'path',
+         'snow_top', 'snow_side', 'snow_path', 'ice_top',
+         'jungle_top', 'jungle_side', 'ash_path', 'basalt', 'lava_top']     # 뒤에만 추가(앞 타일 위치 유지)
 
 def make_atlas():
     from PIL import Image
@@ -351,6 +431,30 @@ def make_atlas():
                     row = y // 3
                     edge = y % 3 == 2 or (x + row * 4) % 6 == 0
                     c = SD if edge else (SL if rnd.random() < 0.15 else SB)
+                elif name == 'snow_top':
+                    c = (250, 252, 255) if rnd.random() < 0.08 else ((222, 232, 244) if (x * 5 + y * 3) % 11 == 0 else (238, 244, 250))
+                elif name == 'snow_side':
+                    c = (110, 104, 112) if y % 4 == 3 and (x + y // 4 * 3) % 7 not in (0, 1) else ((150, 140, 140) if rnd.random() < 0.12 else (128, 118, 120))
+                elif name == 'snow_path':
+                    c = (198, 208, 222) if (x // 3 + y // 2) % 4 == 0 and y % 2 == 0 else ((216, 224, 236) if rnd.random() < 0.2 else (206, 216, 230))
+                elif name == 'ice_top':
+                    c = (236, 248, 255) if (x + y) % 7 == 0 or (x - y) % 9 == 0 else ((150, 200, 230) if rnd.random() < 0.15 else (172, 216, 240))
+                elif name == 'jungle_top':                                  # 짙은 밀림 이끼(고사리 잎 자국)
+                    c = (60, 112, 62)
+                    if (x - y) % 6 == 0 and x % 2 == 0: c = (44, 88, 50)
+                    elif (x + y) % 6 == 3 and y % 2 == 1: c = (84, 140, 70)
+                    elif rnd.random() < 0.06: c = (96, 150, 74)
+                elif name == 'jungle_side':
+                    c = (84, 62, 50) if y % 4 == 3 and (x + y // 4 * 3) % 7 not in (0, 1) else ((112, 84, 64) if rnd.random() < 0.12 else (98, 72, 56))
+                elif name == 'ash_path':                                    # 화산재 자갈길
+                    c = (70, 66, 70) if (x * 3 + y * 5) % 7 == 0 else ((112, 106, 108) if rnd.random() < 0.14 else (90, 86, 90))
+                elif name == 'basalt':                                      # 현무암(틈에 용암빛)
+                    row = y // 3
+                    edge = y % 3 == 2 or (x + row * 4) % 5 == 0
+                    c = ((236, 120, 40) if (x + y) % 9 == 0 else (40, 36, 42)) if edge else ((72, 66, 74) if rnd.random() < 0.15 else (56, 52, 60))
+                elif name == 'lava_top':                                    # 용암(굳은 껍질 조각)
+                    c = (52, 40, 40) if ((x // 3) * 7 + (y // 3) * 5) % 6 == 0 and (x + y) % 3 else (
+                        (255, 214, 90) if rnd.random() < 0.12 else ((244, 140, 40) if (x + 2 * y) % 5 else (220, 84, 30)))
                 else:
                     c = rnd.choice(SOIL)
                 px[y][x] = c
@@ -359,6 +463,16 @@ def make_atlas():
                 depth = 3 + round(1.2 * math.sin(x * 1.3))
                 for y in range(depth):
                     px[y][x] = GL if y == 0 else (GD if y == depth - 1 else GB)
+        if name == 'jungle_side':
+            for x in range(TILE):
+                depth = 3 + round(1.2 * math.sin(x * 1.5 + 2))
+                for y in range(depth):
+                    px[y][x] = (84, 140, 70) if y == 0 else ((44, 88, 50) if y == depth - 1 else (60, 112, 62))
+        if name == 'snow_side':
+            for x in range(TILE):
+                depth = 3 + round(1.2 * math.sin(x * 1.1 + 1))
+                for y in range(depth):
+                    px[y][x] = (250, 252, 255) if y == 0 else ((214, 226, 240) if y == depth - 1 else (238, 244, 250))
         if name in ('mycel_top', 'mycel_side'):
             if name == 'mycel_side':
                 for x in range(TILE):
@@ -395,6 +509,11 @@ BLOCKS = {
     'Block_Dirt': ('dirt', 'dirt', 'dirt'),
     'Block_Stone': ('stone', 'stone', 'stone'),
     'Block_Mycel': ('mycel_top', 'mycel_side', 'dirt'),
+    'Block_Snow': ('snow_top', 'snow_side', 'dirt'),
+    'Block_Ice': ('ice_top', 'ice_top', 'ice_top'),
+    'Block_Jungle': ('jungle_top', 'jungle_side', 'dirt'),
+    'Block_Basalt': ('basalt', 'basalt', 'basalt'),
+    'Block_Lava': ('lava_top', 'basalt', 'basalt'),
 }
 
 def block_mesh(name, tiles, m):
@@ -456,13 +575,22 @@ DECOS = {'Deco_Grass': deco_grass, 'Deco_Flower': deco_flower, 'Deco_Rock': deco
 # =====================================================================
 # 빌드
 # =====================================================================
+HOLD_CLIPS = {'Death', 'Burrow'}   # 끝 자세를 유지하는 클립
+
 def build_character(fn, with_anims=True):
     name, S, bones, meshes, anims = fn()
+    # 다리가 몸통과 같은 칸을 차지하면 면이 겹쳐 검게 깨진다 → 겹친 칸을 다리에서 뺀다
+    for parts in meshes.values():
+        body = parts[0][0]
+        for vox, bone in parts[1:]:
+            if bone.startswith(('Leg', 'Paw', 'Foot')):
+                for key in [key for key in vox if key in body]:
+                    del vox[key]
     arm, objs = L.rig_character(name, S, bones, meshes, mat())
     if with_anims:
         for an, (length, loop, keys) in anims.items():
             L.clear_pose(arm)
-            L.make_action(arm, an, length, keys, loop, hold=(an == 'Death'))
+            L.make_action(arm, an, length, keys, loop, hold=(an in HOLD_CLIPS))
         arm.animation_data.action = None
         L.clear_pose(arm)
     return arm, objs, anims

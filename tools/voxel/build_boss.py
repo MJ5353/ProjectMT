@@ -147,6 +147,8 @@ PREVIEW_MUSH = {
 }
 
 def broken(fn, cut):
+    if cut is None:                       # 따로 만든 깨짐 모양
+        return fn()
     """버섯 갓이 꺾여 나간 모습: 밑동만 남기고 윗면을 들쭉날쭉하게."""
     v = fn()
     out = {}
@@ -154,6 +156,18 @@ def broken(fn, cut):
         lim = cut + (_h(i, j, 3) % 3) - 1
         if k <= lim:
             out[(i, j, k)] = c
+    # 밑동과 이어지지 않은 조각(고드름·턱받이 등)은 버린다
+    keep, stack = set(), [p for p in out if p[2] == 0]
+    while stack:
+        p = stack.pop()
+        if p in keep:
+            continue
+        keep.add(p)
+        for d in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
+            q = (p[0] + d[0], p[1] + d[1], p[2] + d[2])
+            if q in out and q not in keep:
+                stack.append(q)
+    out = {p: out[p] for p in keep}
     tops = {}
     for (i, j, k) in out:
         tops[(i, j)] = max(k, tops.get((i, j), -1))
@@ -161,7 +175,23 @@ def broken(fn, cut):
         out[(i, j, k)] = 'songi_cap_dk' if _h(i, j, 9) % 2 else 'puff_pore'
     return out
 
-BROKEN = {'Mush_Songi_Broken': (B.mush_songi, 3), 'Mush_Cloud_Broken': (B.mush_cloud, 2), 'Mush_Malbul_Broken': (B.mush_malbul, 3)}
+def broken_pyogo():
+    """표고 깨짐: 갓은 남기고 윗면에 X자로 파인 홈(바닥에 흰 속살)."""
+    v = {p: ('pyogo' if c == 'pyogo_crk' else c) for p, c in B.mush_pyogo().items()}   # 원래 잔무늬는 지워 X자가 보이게
+    tops = {}
+    for (i, j, k) in v:
+        tops[(i, j)] = max(k, tops.get((i, j), -1))
+    for (i, j), k in tops.items():
+        x, y = i + .5, j + .5
+        if k >= 5 and (i - j in (0, 1) or i + j in (-1, 0)):            # 계단식으로 이어진 X자
+            v.pop((i, j, k), None); v.pop((i, j, k - 1), None)            # 두 칸 파냄
+            if (i, j, k - 2) in v:
+                v[(i, j, k - 2)] = '!pyogo_crk'                         # 홈 바닥 흰 속살
+    return v
+
+BROKEN = {'Mush_Songi_Broken': (B.mush_songi, 3), 'Mush_Cloud_Broken': (B.mush_cloud, 2), 'Mush_Malbul_Broken': (B.mush_malbul, 3),
+          'Mush_Noru_Broken': (B.mush_noru, 3), 'Mush_Pyogo_Broken': (broken_pyogo, None), 'Mush_Paengi_Broken': (B.mush_paengi, 3),
+          'Mush_Gwangdae_Broken': (B.mush_gwangdae, 3), 'Mush_Seori_Broken': (B.mush_seori, 3)}
 
 def main():
     pv = B.PREVIEW
@@ -174,7 +204,7 @@ def main():
     L.reset()
     arm, objs, anims = B.build_character(body_boss)
     L.write_palette(B.PAL_PATH)
-    L.export_fbx(os.path.join(B.MOD, 'Bursus_Boss.fbx'), True)
+    L.export_fbx(os.path.join(B.MOD, 'Boss_Bursus.fbx'), True)   # Unity에서 대장이 Boss_Bursus로 이름 바꿈
     mn, mx = L.world_bbox(objs)
     print('Bursus_Boss', len(objs[0].data.polygons), 'faces', 'size', [round(v, 2) for v in (mx - mn)], list(anims))
     if B.PREVIEW:

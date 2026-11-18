@@ -23,6 +23,11 @@ COLORS = {
     'songi_stem': (236, 226, 204), 'songi_cap': (128, 84, 52), 'songi_cap_dk': (92, 60, 38), 'songi_cap_lt': (164, 118, 78),
     'cloud_1': (92, 78, 70), 'cloud_2': (150, 138, 124), 'cloud_3': (96, 110, 132), 'cloud_4': (226, 220, 206),
     'cloud_under': (236, 230, 214),
+    'noru': (240, 232, 208), 'noru_lt': (252, 248, 236), 'noru_dk': (214, 198, 160),
+    'pyogo': (120, 74, 46), 'pyogo_dk': (88, 52, 32), 'pyogo_crk': (226, 206, 176), 'pyogo_stem': (232, 220, 196),
+    'paengi': (246, 242, 226), 'paengi_cap': (236, 222, 170), 'paengi_base': (190, 160, 110),
+    'gwang': (214, 52, 40), 'gwang_dk': (170, 36, 30), 'gwang_dot': (248, 244, 232), 'gwang_stem': (244, 238, 220),
+    'seori': (176, 214, 236), 'seori_lt': (226, 242, 252), 'seori_dk': (120, 166, 204), 'seori_stem': (214, 230, 240),
     'puff': (240, 234, 218), 'puff_wart': (214, 202, 172), 'puff_base': (196, 180, 140), 'puff_pore': (96, 84, 56),
     # 지형 장식
     'grass1': (96, 156, 78), 'grass2': (120, 178, 88), 'grass3': (70, 126, 66), 'petal_y': (240, 206, 80),
@@ -43,7 +48,17 @@ def shade(name, i, j, k):
 
 # ---------------- 팔레트 텍스처 ----------------
 PAL_N = 32
+# 색 → 팔레트 칸 번호를 파일에 고정해 둔다. 빌드 순서가 바뀌어도 이미 만든 FBX의 색이 어긋나지 않게(추가만 하고 순서는 안 바꿈).
+PAL_INDEX_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'palette_index.json')
 PAL = {}
+
+def _load_pal():
+    import json
+    if os.path.exists(PAL_INDEX_PATH):
+        with open(PAL_INDEX_PATH) as f:
+            for k, v in json.load(f).items():
+                PAL[tuple(int(c) for c in k.split(','))] = v
+_load_pal()
 
 def pal_uv(rgb):
     idx = PAL.setdefault(rgb, len(PAL))
@@ -52,11 +67,14 @@ def pal_uv(rgb):
     return ((x + 0.5) / PAL_N, 1.0 - (y + 0.5) / PAL_N)
 
 def write_palette(path):
+    import json
     from PIL import Image
     img = Image.new('RGBA', (PAL_N, PAL_N), (255, 0, 255, 255))
     for rgb, idx in PAL.items():
         img.putpixel((idx % PAL_N, idx // PAL_N), rgb + (255,))
     img.save(path)
+    with open(PAL_INDEX_PATH, 'w') as f:
+        json.dump({','.join(map(str, k)): v for k, v in sorted(PAL.items(), key=lambda kv: kv[1])}, f, indent=0)
 
 # ---------------- 도형 ----------------
 def _fill(v, bounds, test, col):
