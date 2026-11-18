@@ -279,10 +279,100 @@ rect(px,8,10,13,13)
 rect(px,2,7,7,7); rect(px,4,11,6,12); rect(px,2,16,7,16)
 sprites["HUD_Dash"]=outline(im,O)
 
+# 시장 UI: 문자 격자를 팔레트로 칠한다('.'은 투명)
+def grid(rows,pal):
+    im=new(len(rows[0]),len(rows)); px=im.load()
+    for y,row in enumerate(rows):
+        for x,ch in enumerate(row):
+            if ch!=".": px[x,y]=pal[ch]
+    return im
+
+# 자물쇠: 잠긴 지역 위에 올림
+sprites["Icon_Lock"]=outline(grid([
+"................",
+".....ssssss.....",
+"....ss....ss....",
+"....s......s....",
+"....s......s....",
+"....s......s....",
+"..hhhhhhhhhhhh..",
+"..hbbbbbbbbbbd..",
+"..bbbbbkkbbbbd..",
+"..bbbbbkkbbbbd..",
+"..bbbbbkkbbbbd..",
+"..bbbbbbbbbbbd..",
+"..bbbbbbbbbbbd..",
+"..dddddddddddd..",
+"................",
+"................"],{"s":(186,190,200,255),"h":(255,240,170,255),"b":(242,193,78,255),"d":(204,146,44,255),"k":(92,60,22,255)}),(92,60,22,255))
+
+# 말풍선(9-slice): 꼬리를 왼쪽 아래 모서리 칸(테두리 7x6) 안에 둬서 늘려도 꼬리는 그대로
+sprites["UI_SpeechBubble"]=grid([
+".KKKKKKKKKKKKKK.",
+"KWWWWWWWWWWWWWWK",
+"KWWWWWWWWWWWWWWK",
+"KWWWWWWWWWWWWWWK",
+"KWWWWWWWWWWWWWWK",
+"KWWWWWWWWWWWWWWK",
+"KWWWWWWWWWWWWWWK",
+"KWWWWWWWWWWWWWWK",
+"KWWWWWWWWWWWWWWK",
+"KWWWWWWWWWWWWWWK",
+"KSSSSSSSSSSSSSSK",
+".KKSSSKKKKKKKKK.",
+"..KSSK..........",
+"..KSK...........",
+"..KK............",
+"................"],{"K":K,"W":W,"S":S})
+
+# 경쟁: 교차한 두 칼
+im=new(16,16); px=im.load()
+bl=(230,232,240,255); bd=(150,156,170,255); hg=(242,193,78,255); hb=(139,94,60,255)
+for m in (lambda x:x, lambda x:15-x):                    # 두 번째 칼은 좌우 반전
+    for i in range(2,11): px[m(i),i]=bl; px[m(i+1),i]=bd
+    for x,y in ((8,12),(9,11),(11,9),(12,8)): px[m(x),y]=hg  # 가드
+    for i in (11,12,13): px[m(i),i]=hb; px[m(i+1),i]=hb    # 손잡이
+    px[m(14),14]=hg
+sprites["Icon_Compete"]=outline(im,(48,48,60,255))
+
+# 담합: 맞물린 사슬 고리 두 개
+im=new(16,16); px=im.load()
+cl=(230,232,240,255); cm=(186,190,200,255); cd=(120,124,136,255)
+def link(cx,cy,half):
+    for y in range(16):
+        for x in range(16):
+            e=ell(cx,cy,4,4,x,y)
+            if not 0.5<=e<=1: continue
+            if half and not half(x,y): continue
+            u=(x+0.5-cx)+(y+0.5-cy)
+            px[x,y]= cl if u<-2 else (cd if u>2 else cm)
+link(10,10,None); link(6,6,None)                          # 왼 위 고리가 위
+link(10,10,lambda x,y:x<y)                                # 반대쪽 교차는 오른 아래 고리가 위 → 맞물림
+sprites["Icon_Collude"]=outline(im,(48,48,60,255))
+
+# 기다리기: 모래시계
+sprites["Icon_Wait"]=outline(grid([
+"................",
+"..wwwwwwwwwwww..",
+"..dddddddddddd..",
+"...gggggggggg...",
+"...gssssssssg...",
+"....gssssssg....",
+".....gssssg.....",
+"......gssg......",
+"......gsgg......",
+".....ggsggg.....",
+"....gggsgggg....",
+"...gggssssggg...",
+"...gssssssssg...",
+"..wwwwwwwwwwww..",
+"..dddddddddddd..",
+"................"],{"w":(176,120,72,255),"d":(124,80,44,255),"g":(214,236,246,255),"s":(232,196,120,255)}),(70,48,30,255))
+
 for n,i in sprites.items(): i.save(f"{OUT}/{n}.png")
 
 # 미리보기: 6배, 틀류는 색 입혀서
-tint={"UI_Panel":(44,59,48),"UI_Button":(217,87,59),"UI_Button_Pressed":(217,87,59),"UI_Slot":(63,82,68),"UI_GaugeFrame":(243,233,210),"UI_GaugeFill":(123,201,80)}
+tint={"UI_Panel":(44,59,48),"UI_Button":(217,87,59),"UI_Button_Pressed":(217,87,59),"UI_Slot":(63,82,68),"UI_GaugeFrame":(243,233,210),"UI_GaugeFill":(123,201,80),"UI_SpeechBubble":(243,233,210)}
 for k in ("Tab_Gear","Tab_Hunt","Tab_Breed","Tab_Dispatch","HUD_JoystickBase","HUD_JoystickKnob","HUD_Attack","HUD_Dash"): tint[k]=(243,233,210)
 names=list(sprites); sc=6; cell=24*sc+40
 rows=(len(sprites)+6)//7
