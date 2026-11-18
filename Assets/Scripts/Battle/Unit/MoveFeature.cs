@@ -1,15 +1,18 @@
 using UnityEngine;
 
+// ==================================================
+
 // CharacterController 이동. 주인이 원하는 수평 속도를 넣고, 넉백 같은 순간 속도는 따로 더해 감쇠시킨다.
 // 주인의 판단(입력·AI)이 정한 속도로 움직여야 해서 LateTick에서 이동한다
 public class MoveFeature : UnitFeature
 {
     private const float MaxDeltaTime = 1f / 20f;
     private const float Gravity = -25f;
-    private const float GroundedSpeed = -2f;   // 땅에 붙어 있도록 누르는 속도
-    private const float ImpulseDamping = 9f;   // 넉백이 줄어드는 빠르기
-    private const float TurnSpeed = 900f;      // 초당 회전 각도
+    private const float GroundedSpeed = -2f; // 땅에 붙어 있도록 누르는 속도
+    private const float ImpulseDamping = 9f; // 넉백이 줄어드는 빠르기
+    private const float TurnSpeed = 900f; // 초당 회전 각도
 
+    // readonly
     private readonly CharacterController m_Controller;
     private readonly Transform m_Transform;
 
@@ -20,7 +23,7 @@ public class MoveFeature : UnitFeature
     public bool IsKnockedBack => m_Impulse.sqrMagnitude > 0.5f;
     public Vector3 Velocity => m_Desired + m_Impulse;
 
-    // ==================================================
+    // ------------------------------------------------
 
     public MoveFeature(IActor owner, CharacterController controller) : base(owner)
     {
@@ -65,15 +68,15 @@ public class MoveFeature : UnitFeature
         Stop();
     }
 
+    public void Stop()
+    {
+        m_Desired = Vector3.zero;
+    }
+    
     public void SetVelocity(Vector3 velocity)
     {
         velocity.y = 0f;
         m_Desired = velocity;
-    }
-
-    public void Stop()
-    {
-        m_Desired = Vector3.zero;
     }
 
     public void AddImpulse(Vector3 impulse)
@@ -94,9 +97,7 @@ public class MoveFeature : UnitFeature
             return;
 
         Quaternion target = Quaternion.LookRotation(direction);
-        m_Transform.rotation = instant
-            ? target
-            : Quaternion.RotateTowards(m_Transform.rotation, target, TurnSpeed * Time.deltaTime);
+        m_Transform.rotation = instant ? target : Quaternion.RotateTowards(m_Transform.rotation, target, TurnSpeed * Time.deltaTime);
     }
 
     public void SetCollision(bool isOn)

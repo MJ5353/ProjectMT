@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// ==================================================
+
 // 클립 이름으로 애니를 트는 얇은 래퍼. 애니메이터 컨트롤러는 상태 이름 = 클립 이름으로 만든다(BattleSetup 메뉴).
 public class AnimFeature : UnitFeature
 {
@@ -9,12 +11,12 @@ public class AnimFeature : UnitFeature
 
     private readonly Animator m_Animator;
     private readonly Dictionary<string, float> m_DicLength = new();
+    
+    public string Current => m_Current;
     private string m_Current;
 
-    public string Current => m_Current;
-
-    // ==================================================
-
+    // ------------------------------------------------
+    
     public AnimFeature(IActor owner, Animator animator) : base(owner)
     {
         m_Animator = animator;
@@ -63,7 +65,7 @@ public class AnimFeature : UnitFeature
 
     public void SetSpeed(float speed)
     {
-        if (m_Animator == null)
+        if (m_Animator.E_Alive() == false)
             return;
 
         m_Animator.speed = speed;

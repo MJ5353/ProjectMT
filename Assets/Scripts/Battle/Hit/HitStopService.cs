@@ -1,6 +1,9 @@
 using UnityEngine;
 
+// ==================================================
+
 // 전투 중 전체 시간을 잠깐 멈춘다. 겹친 요청은 더 긴 쪽을 따른다.
+
 public sealed class HitStopService : ServiceBase
 {
     private float m_Remain;

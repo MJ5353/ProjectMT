@@ -29,9 +29,9 @@ public class MonsterController : UnitController<MonsterDef>
 
     // ------------------------------------------------
 
-    protected override void Awake()
+    protected override void Set()
     {
-        base.Awake();
+        base.Set();
         if (enabled == false)
             return;
 

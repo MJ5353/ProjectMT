@@ -41,10 +41,10 @@ public class PlayerController : UnitController<PlayerDef>
 
     // ------------------------------------------------
 
-    protected override void Awake()
+    protected override void Set()
     {
         InitInput();
-        base.Awake();
+        base.Set();
     }
 
 

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// ==================================================
+
 // 플레이어와 몬스터이 같이 쓰는 몸. 이동·애니·체력·피격 부품을 직접 만들고 매 프레임 갱신한다.
 // 직렬화 참조 네 개는 에디터 메뉴(BattleSetup)가 프리팹을 만들 때 채운다
 public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : UnitDef
@@ -31,12 +33,13 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
 
     // ------------------------------------------------
 
-    protected virtual void Awake()
+    protected virtual void Set()
     {
         if (m_Def == null)
         {
             CLogger.Error(GetType().Name, $"Def가 비어 있습니다: {name}", this);
             enabled = false;
+            
             return;
         }
 
@@ -56,6 +59,12 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
 
         HitFeature.Hit += OnHit;
         Health.Died += OnDied;
+        
+        T AddFeature<T>(T feature) where T : UnitFeature
+        {
+            m_ListFeature.Add(feature);
+            return feature;
+        }
     }
 
     protected virtual void OnDisable()
@@ -67,14 +76,16 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     {
         float deltaTime = Time.deltaTime;
         float unscaledDeltaTime = Time.unscaledDeltaTime;
+        
         for (int i = 0; i < m_ListFeature.Count; ++i)
         {
             UnitFeature feature = m_ListFeature[i];
             feature.Tick(feature.IsUnscaledTime ? unscaledDeltaTime : deltaTime);
         }
 
-        // 승패가 나면 입력·AI를 멈추고 제자리에 세운다. 중력만 계속 받는다
         BattleService battle = GameManager.Instance?.Battle;
+
+        // 승패가 나면 입력·AI를 멈추고 제자리에 세운다. 중력만 계속 받는다
         if (m_IsBattleOver == false && battle != null && battle.State != EBattleState.Playing)
         {
             m_IsBattleOver = true;
@@ -85,10 +96,36 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         if (m_IsBattleOver == false)
             OnUpdate(deltaTime);
 
-        for (int i = 0; i < m_ListFeature.Count; ++i)
+        foreach (var feature in m_ListFeature)
         {
-            UnitFeature feature = m_ListFeature[i];
             feature.LateTick(feature.IsUnscaledTime ? unscaledDeltaTime : deltaTime);
+        }
+    }
+    
+    // ActorFactory가 풀에서 꺼낸 직후. 처음 상태로 되돌린다
+    public void OnSpawn(int actorID)
+    {
+        if (m_ListFeature.Count == 0)
+            Set();
+
+        ActorID = actorID;
+        m_IsBattleOver = false;
+
+        foreach (var feature in m_ListFeature)
+        {
+            feature.Reset();
+        }
+
+        OnSpawned();
+    }
+
+    // 풀로 돌아가기 직전
+    public void OnDespawn()
+    {
+        ActorID = 0;
+        foreach (var feature in m_ListFeature)
+        {
+            feature.Clear();
         }
     }
 
@@ -101,44 +138,10 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         Gizmos.color = new Color(1f, 0.3f, 0.2f, 0.6f);
         Gizmos.DrawWireSphere(MeleeAttackFeature.GetCenter(transform, m_Def.Attack), m_Def.Attack.Radius);
     }
-
-    // 부품을 수명 주기 목록에 넣고 그대로 돌려준다
-    protected T AddFeature<T>(T feature) where T : UnitFeature
-    {
-        m_ListFeature.Add(feature);
-        return feature;
-    }
-
-    // ActorFactory가 풀에서 꺼낸 직후. 처음 상태로 되돌린다
-    public void OnSpawn(int actorID)
-    {
-        ActorID = actorID;
-        m_IsBattleOver = false;
-
-        for (int i = 0; i < m_ListFeature.Count; ++i)
-        {
-            m_ListFeature[i].Reset();
-        }
-
-        OnSpawned();
-    }
-
-    // 풀로 돌아가기 직전
-    public void OnDespawn()
-    {
-        ActorID = 0;
-        for (int i = 0; i < m_ListFeature.Count; ++i)
-        {
-            m_ListFeature[i].Clear();
-        }
-    }
-
+    
     // ==================================================
 
     // virtual ---
-
-    protected abstract void OnSpawned();
-    protected abstract void OnUpdate(float deltaTime);
 
     // 전투가 끝난 순간 한 번. 기본은 애니 배속을 되돌리고, 살아 있으면 Idle
     protected virtual void OnBattleEnded()
@@ -148,6 +151,8 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
             Anim.Play("Idle");
     }
 
+    protected abstract void OnSpawned();
+    protected abstract void OnUpdate(float deltaTime);
     protected abstract void OnHit(HitParams hit);
     protected abstract void OnDied();
 }

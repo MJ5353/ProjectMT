@@ -1,10 +1,12 @@
 using UnityEngine;
 using UnityEngine.Serialization;
 
+// ==================================================
+
 // 플레이어와 몬스터이 같이 쓰는 몸 수치. 몬스터은 MonsterDef, 플레이어는 PlayerDef가 이어받는다
+
 public abstract class UnitDef : DataDef
 {
-    // 몸 ---
     [field: SerializeField, FormerlySerializedAs("m_MaxHp")]
     public int MaxHp { get; private set; } = 3;                    // 최대 체력
 

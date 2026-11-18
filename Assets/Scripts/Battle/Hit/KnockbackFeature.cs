@@ -1,11 +1,15 @@
+
+// ==================================================
+
 // 넉백 반응. 맞은 방향으로 MoveFeature에 순간 속도를 더한다.
+
 public class KnockbackFeature : UnitFeature, IHitReaction
 {
     private readonly MoveFeature m_Move;
     private readonly float m_Scale;   // 1이면 그대로, 0이면 안 밀림
 
-    // ==================================================
-
+    // ------------------------------------------------
+    
     public KnockbackFeature(IActor owner, MoveFeature move, float scale) : base(owner)
     {
         m_Move = move;

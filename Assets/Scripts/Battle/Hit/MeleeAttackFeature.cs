@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// ==================================================
+
 // 공격 프레임에 공격 구체와 후보 액터의 몸을 비교한다.
+
 public class MeleeAttackFeature : UnitFeature
 {
     private readonly List<ActorHitCandidate> m_ListCandidate = new();
@@ -19,6 +22,7 @@ public class MeleeAttackFeature : UnitFeature
     {
         Transform owner = Owner.transform;
         ActorService actors = GameManager.Instance?.Actors;
+        
         if (actors == null)
             return 0;
 
@@ -29,8 +33,8 @@ public class MeleeAttackFeature : UnitFeature
         int hitCount = 0;
         foreach (ActorHitCandidate candidate in m_ListCandidate)
         {
-            CharacterController body = candidate.Actor.HurtBody;
-            if (body == null || body.enabled == false || body.gameObject.activeInHierarchy == false)
+            CharacterController controller = candidate.Actor.HurtBody;
+            if (controller == null || controller.enabled == false || controller.gameObject.activeInHierarchy == false)
                 continue;
 
             if (candidate.OverlapsSphere(center, spec.Radius, out Vector3 point) == false)
