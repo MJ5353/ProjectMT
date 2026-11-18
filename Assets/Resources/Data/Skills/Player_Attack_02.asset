@@ -18,9 +18,9 @@ MonoBehaviour:
   <Icon>k__BackingField: {fileID: 0}
   <Kind>k__BackingField: 0
   <Attack>k__BackingField:
-    <Clip>k__BackingField: Attack_01
+    <Clip>k__BackingField: Attack_02
     <Damage>k__BackingField: 1
-    m_HitFrame: 9
+    m_HitFrame: 7
     <HitEndFrame>k__BackingField: 0
     <Reach>k__BackingField: 0.9
     <Radius>k__BackingField: 1.2

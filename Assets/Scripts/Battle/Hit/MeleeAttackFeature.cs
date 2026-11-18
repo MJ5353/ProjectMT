@@ -17,6 +17,7 @@ public class MeleeAttackFeature : UnitFeature
     
     // 판정을 한 번이라도 했는지(한 프레임 판정 보장)
     private bool m_IsTicked; 
+    private int m_HitRound; // 다시 맞히기 회차(AttackSpec.RehitFrame). 바뀌면 맞은 대상 목록을 비운다
 
     // ------------------------------------------------
 
@@ -55,6 +56,7 @@ public class MeleeAttackFeature : UnitFeature
     {
         m_Spec = spec;
         m_IsTicked = false;
+        m_HitRound = 0;
         m_SetHit.Clear();
     }
 
@@ -87,6 +89,16 @@ public class MeleeAttackFeature : UnitFeature
             return 0;
 
         m_IsTicked = true;
+        if (m_Spec.RehitTime > 0f)
+        {
+            int round = Mathf.FloorToInt((time - m_Spec.HitTime) / m_Spec.RehitTime);
+            if (round != m_HitRound)
+            {
+                m_HitRound = round;
+                m_SetHit.Clear();
+            }
+        }
+
         return Perform(m_Spec);
     }
 

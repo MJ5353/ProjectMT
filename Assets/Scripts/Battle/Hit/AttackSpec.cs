@@ -48,6 +48,11 @@ public class AttackSpec
     public float ActiveMoveSpeed { get; private set; } = 0f; // 판정 구간 동안 앞으로 가는 속도(돌진). 0이면 제자리
 
     [field: SerializeField]
+    public int RehitFrame { get; private set; } = 0; // 판정 구간 안에서 이 프레임마다 같은 대상을 다시 맞힐 수 있다(회오리 두 바퀴). 0이면 한 번만
+
+    public float RehitTime => RehitFrame / Fps;
+
+    [field: SerializeField]
     public EBattlePartType HitPart { get; private set; } = EBattlePartType.None; // 판정 중심 부위 뼈. None이면 몸 앞(Height·Reach)
 
     // 몬스터 공격 고르기 --- 플레이어는 쓰지 않는다

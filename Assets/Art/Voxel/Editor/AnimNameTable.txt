@@ -24,3 +24,17 @@ Mon_014_Triceratops|Attack|Attack_01
 Mon_014_Triceratops|Charge|Skill_01
 Mon_014_Triceratops|Stomp|Skill_02
 Player|Attack|Attack_01
+Mon_010_Boss_PolarBear|Swipe|Attack_01
+Mon_010_Boss_PolarBear|Bite|Skill_01
+Mon_010_Boss_PolarBear|Slam|Skill_02
+Mon_010_Boss_PolarBear|Charge|Skill_03
+Mon_015_Boss_Saurus|Bite|Attack_01
+Mon_015_Boss_Saurus|TailSwipe|Skill_01
+Mon_015_Boss_Saurus|Stomp|Skill_02
+Mon_015_Boss_Saurus|Charge|Skill_03
+Player|Attack_Up|Attack_02
+Player|Attack_SlashL|Attack_03
+Player|Attack_SlashR|Attack_04
+Player|Attack_Finish|Attack_05
+Player|Attack_RunSlash|Attack_06
+Player|Attack_Whirlwind|Attack_07

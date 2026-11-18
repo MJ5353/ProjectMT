@@ -19,8 +19,8 @@ public static class SkillDefAutoFill
     // 공격이 아닌 클립(이동·반응·연출). 애매한 동작은 일단 여기 둔다
     private static readonly HashSet<string> s_SetNotAttack = new() { "Idle", "Walk", "Run", "Hit", "Death", "Roar", "Down", "PartBreak", "Burrow", "Emerge", "Underground", "Call" };
 
-    // [mj] todo) 북극곰·사우루스 보스는 보류
-    internal static readonly HashSet<string> s_SetHold = new() { "Monster_010_Boss_PolarBear", "Monster_015_Boss_Saurus" };
+    // 보류할 몬스터. 북극곰·사우루스 보스는 26.11.18 손으로 SkillDef 연결
+    internal static readonly HashSet<string> s_SetHold = new();
 
     private class Entry
     {

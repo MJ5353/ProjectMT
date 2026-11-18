@@ -42,7 +42,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Bite
+      name: Attack_01
       takeName: Bursus_Boss|Bite
       internalID: -1554742453522470609
       firstFrame: 0
@@ -71,7 +71,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Charge
+      name: Skill_03
       takeName: Bursus_Boss|Charge
       internalID: 5079125309518940014
       firstFrame: 0
@@ -303,7 +303,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Stomp
+      name: Skill_02
       takeName: Bursus_Boss|Stomp
       internalID: 6861626677527703805
       firstFrame: 0
@@ -332,7 +332,7 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: TailSwipe
+      name: Skill_01
       takeName: Bursus_Boss|TailSwipe
       internalID: -1049817586506961063
       firstFrame: 0

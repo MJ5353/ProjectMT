@@ -5,7 +5,7 @@ using UnityEngine;
 // ==================================================
 
 // 맞는 쪽 입구이자 피격 반응 처리. 팀·무적·사망을 거른 뒤 체력을 깎고, HitDef에서 켠 반응을 정해진 순서로 처리한다.
-// 순서: 부위 → 체력 → 넉백 → 번쩍 → 히트스톱 → 조각
+// 순서: 부위 → 체력 → 넉백 → 번쩍 → 히트스톱 → 조각·타격 마크
 // 번쩍이 히트스톱 중에도 끝나야 해서 실제 시간(unscaled)으로 돌고, 무적 시간만 게임 시간으로 바꿔 깎는다
 
 public class HitFeature : UnitFeature
@@ -213,7 +213,7 @@ public class HitFeature : UnitFeature
         GameManager.Instance?.HitStop?.Request(hit.HitStop);
     }
 
-    // 전투 씬이 아니면 조각을 튀기지 않는다
+    // 전투 씬이 아니면 조각을 튀기지 않는다. 타격 마크는 실제 맞은 자리(부위 표면)에 띄운다
     private void ApplyChunkBurst(in HitParams hit)
     {
         ChunkBurstService chunkBurstS = GameManager.Instance?.Chunks;
@@ -221,6 +221,7 @@ public class HitFeature : UnitFeature
             return;
 
         chunkBurstS.Burst(Owner.transform.position + Vector3.up * ChunkHeight, hit.Direction, m_HitDef.ChunkColor);
+        chunkBurstS.Mark(hit.Point);
     }
 
     // 렌더러 머티리얼 칸 수만큼 번쩍 머티리얼을 채운 배열. 맞을 때마다 새로 만들지 않도록 미리 만든다
