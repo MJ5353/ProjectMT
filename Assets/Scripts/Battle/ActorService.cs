@@ -83,6 +83,7 @@ public sealed class ActorService : ServiceBase
     {
         IHitTarget nearest = null;
         float nearestDistanceSq = range * range;
+        
         foreach (IActor actor in m_DicActor.Values)
         {
             if (IsEnemy(actor, team) == false)
@@ -114,7 +115,7 @@ public sealed class ActorService : ServiceBase
         }
     }
 
-    // 다른 몸(팀 무관)과 margin 안으로 붙어 있는지. 수평 거리 + 높이 범위만 본다
+    // 다른 몸(팀 무관)과 margin 안으로 붙어 있는지. 수평 거리 + 높이 범위만 본다 -> 겹치지 않기용
     public bool IsBodyNear(CharacterController self, float margin)
     {
         Vector3 position = self.transform.position;
@@ -130,6 +131,7 @@ public sealed class ActorService : ServiceBase
 
             Vector3 offset = otherPosition - position;
             offset.y = 0f;
+            
             float range = self.radius + self.skinWidth + body.radius + margin;
             if (offset.sqrMagnitude < range * range)
                 return true;
@@ -159,13 +161,15 @@ public readonly struct ActorHitCandidate
 
     public ActorHitCandidate(IHitTarget actor, CharacterController body)
     {
-        Actor = actor;
         Transform bodyTransform = body.transform;
-        Vector3 scale = bodyTransform.lossyScale;
         Center = bodyTransform.TransformPoint(body.center);
         Axis = bodyTransform.up;
+        
+        Vector3 scale = bodyTransform.lossyScale;
         Radius = body.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
         HalfHeight = Mathf.Max(Radius, body.height * Mathf.Abs(scale.y) * 0.5f);
+        
+        Actor = actor;
     }
 
     // 대충 가까운지. 뼈 모양이 있으면 감싸는 반지름, 없으면 CharacterController 캡슐 기준(부위만 있는 몹은 둘 다)
@@ -199,9 +203,7 @@ public readonly struct ActorHitCandidate
         float halfAxis = HalfHeight - Radius;
         return HitMath.SphereVsCapsule(Center - Axis * halfAxis, Center + Axis * halfAxis, Radius, center, radius, out point, out float _);
     }
-
-    // ==================================================
-
+    
     private bool TryOverlapShapes(Vector3 center, float radius, bool isPart, out Vector3 point, out int partIndex)
     {
         point = default;

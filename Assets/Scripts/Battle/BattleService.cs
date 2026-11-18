@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -39,21 +38,23 @@ public sealed class BattleService : ServiceBase
     private const int GoalKillCount = 10; // 이만큼 잡으면 승리 (보스가 들어오기 전 임시 조건)
     private const string DefaultPlayerID = "Player";
 
-    private Transform[] m_SpawnSlots; // [i] = SpawnSlot_{i+1}. 생성한 맵에서 받는다
     private readonly Dictionary<string, int> m_DicLoot = new();
     private readonly List<SpawnState> m_ListSpawn = new();
-
-    public IReadOnlyDictionary<string, int> DicLoot => m_DicLoot;
     private readonly Dictionary<int, SpawnState> m_DicSpawnByActorID = new();
 
-    public PlayerController Player => m_PlayerController;
+    private Transform[] m_SpawnSlots; // [i] = SpawnSlot_{i+1}. 생성한 맵에서 받는다
     private PlayerController m_PlayerController;
 
+    // public ---
+    
     public MapDef Map { get; }
     public EBattleState State { get; private set; } = EBattleState.Playing;
     public int KillCount { get; private set; }
-    public int KillGoal => GoalKillCount;
     public float ElapsedTime { get; private set; }
+
+    public int KillGoal => GoalKillCount;
+    public PlayerController Player => m_PlayerController;
+    public IReadOnlyDictionary<string, int> DicLoot => m_DicLoot;
 
     // ------------------------------------------------
 
@@ -161,6 +162,7 @@ public sealed class BattleService : ServiceBase
 
         int playerSlot = Map != null ? Map.PlayerSlot : MapDef.DefaultPlayerSlot;
         Transform spawn = GetSlot(playerSlot);
+
         if (spawn == null)
             CLogger.Warning("BattleService", $"플레이어 슬롯 {MapDef.GetSlotName(playerSlot)}이 맵에 없어 원점에서 시작합니다.");
 
@@ -182,6 +184,7 @@ public sealed class BattleService : ServiceBase
 
     // 지점의 수평 방향(yaw)만 쓴다
     // !!) 맵 FBX의 SpawnSlot은 X 90도로 누워 있다. 그대로 쓰면 캐릭터 컨트롤러 center도 같이 돌아 캡슐이 땅 밑에서 시작해 떨어진다
+    // [mj] todo) fbx를 고치는 방법은?
     public static Quaternion GetSpawnRotation(Transform slot)
     {
         Vector3 forward = Vector3.ProjectOnPlane(slot.forward, Vector3.up);
@@ -240,6 +243,7 @@ public sealed class BattleService : ServiceBase
 
         ReleaseSpawnSlot(evt.ActorID);
         KillCount++;
+        
         if (KillCount >= GoalKillCount)
             End(true);
     }
