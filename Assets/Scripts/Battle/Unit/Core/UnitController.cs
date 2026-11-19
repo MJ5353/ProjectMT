@@ -28,7 +28,6 @@ public abstract class UnitController : PoolableMono
     public TargetFeature TargetF { get; private set; }      // 대상 찾기·기억·거리
     public BrainFeature BrainF { get; private set; }        // 판단 층(플레이어 입력·몬스터 AI). 마지막에 등록
     public PartFeature PartF { get; protected set; }        // 버섯 부위. 없으면 null
-    public HitBoxFeature HitBoxF { get; protected set; }    // 뼈 판정 모양. 없으면 null
 
     // get
     public bool IsDead => HealthF.IsDead;                   // 사망 여부는 밖에서 여기로만 본다

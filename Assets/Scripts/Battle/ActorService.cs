@@ -194,7 +194,7 @@ public readonly struct ActorHitCandidate
     public readonly float Radius;
 
     // 몸 판정 표가 있으면 캡슐 대신 그것만 쓴다(버섯이 걸린 몸 부위도 몸 판정 표다)
-    private bool HasBodyShape() => Actor?.HitBoxF?.HasShape ?? false;
+    private bool HasBodyShape() => Actor?.HitF?.HasShape ?? false;
     
     // ------------------------------------------------
     
@@ -221,7 +221,7 @@ public readonly struct ActorHitCandidate
         if (HasBodyShape() == false)
             return false;
 
-        float shapeRange = radius + Actor.HitBoxF.BoundRadius;
+        float shapeRange = radius + Actor.HitF.BoundRadius;
         return (Actor.transform.position - center).sqrMagnitude <= shapeRange * shapeRange;
     }
 
@@ -254,7 +254,7 @@ public readonly struct ActorHitCandidate
         if (HasBodyShape() == false)
             return false;
 
-        foreach (HitShape shape in Actor.HitBoxF.ListShape)
+        foreach (HitShape shape in Actor.HitF.ListShape)
         {
             if ((shape.PartIndex >= 0) != isPart)
                 continue;

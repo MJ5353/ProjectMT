@@ -4,17 +4,23 @@ using UnityEngine;
 
 // ==================================================
 
-// 맞는 쪽 입구이자 피격 반응 처리. 팀·무적·사망을 거른 뒤 체력을 깎고, HitDef에서 켠 반응을 정해진 순서로 처리한다.
+// 맞는 쪽 전부. 어디를 맞을 수 있나(몸 판정 모양)와 맞았을 때 처리(팀·무적·사망 거르기 → 체력 → HitDef 반응)를 맡는다.
+// 판정 모양: 뼈마다 구·캡슐. 목록이 비면 HurtBody 캡슐로 맞는다(플레이어·잡몹). 버섯 부위가 걸린 뼈는 부위 번호를 달아 부위 판정이 된다
 // 순서: 부위 → 체력 → 넉백 → 번쩍 → 히트스톱 → 조각·타격 마크
 // 번쩍이 히트스톱 중에도 끝나야 해서 실제 시간(unscaled)으로 돌고, 무적 시간만 게임 시간으로 바꿔 깎는다
 
 public class HitFeature : UnitFeature
 {
     private const float ChunkHeight = 0.5f;   // 조각이 튀어나오는 높이
+    private const float BoundMargin = 1.3f;   // 애니로 뼈가 뻗는 만큼 감싸는 반지름에 더 주는 배율
 
     private readonly HitDef m_HitDef;
+    private readonly List<HitShape> m_ListShape = new(); // 만들 때 한 번 정하고 풀 재사용 때도 그대로
 
-    // 번쩍 ---
+    public event Action<HitParams> Hit;
+    public float BoundRadius { get; private set; }  // 몸 중심(transform)에서 모양들을 감싸는 반지름. 후보 거르기용
+
+    // 번쩍
     private readonly List<Renderer> m_ListFlashRenderer = new();
     private readonly List<Material[]> m_ListOriginalMaterial = new();
     private readonly List<Material[]> m_ListFlashMaterial = new();
@@ -22,15 +28,14 @@ public class HitFeature : UnitFeature
     private static readonly int s_BaseColorID = Shader.PropertyToID("_BaseColor");
     private static MaterialPropertyBlock s_FlashBlock; // 번쩍 색. 같은 흰 머티리얼에 색만 얹는다
 
-    // flag ---
+    // flag
     private float m_InvincibleRemain;
     private float m_FlashRemain;
-
-    // hit ---
-    public event Action<HitParams> Hit;
     
-    // get ---
+    // get
     public bool IsInvincible => m_InvincibleRemain > 0f;
+    public IReadOnlyList<HitShape> ListShape => m_ListShape;
+    public bool HasShape => m_ListShape.Count > 0;
     public override bool IsUnscaledTime => true;
 
     // ------------------------------------------------
@@ -68,6 +73,33 @@ public class HitFeature : UnitFeature
     public override void Clear()
     {
         RestoreFlash();
+    }
+
+    // 몸 판정 모양을 만든다. 부위 번호를 쓰므로 PartFeature를 만든 뒤 주인이 부른다. 감싸는 반지름은 지금(만들 때) 자세 기준
+    // shortcut: 애니로 뼈가 BoundMargin보다 멀리 뻗으면 후보에서 빠진다. 그러면 매 프레임 재계산으로 바꾼다
+    public void SetShapes(IReadOnlyList<HitShapeDef> listShapeDef)
+    {
+        m_ListShape.Clear();
+        BoundRadius = 0f;
+
+        Vector3 center = Owner.transform.position;
+        foreach (HitShapeDef shapeDef in listShapeDef)
+        {
+            Transform bone = Owner.Property.GetBattleBone(shapeDef.Part);
+            if (bone == null)
+            {
+                CLogger.Warning("HitFeature", $"판정 부위 뼈가 프리팹에 없음: {shapeDef.Part} ({Owner.transform.name})", Owner.transform);
+                continue;
+            }
+
+            int partIndex = Owner.PartF != null ? Owner.PartF.FindIndex(shapeDef.Part) : -1;
+            HitShape shape = new HitShape(bone, shapeDef, partIndex);
+            m_ListShape.Add(shape);
+
+            shape.GetSegment(out Vector3 start, out Vector3 end);
+            float reach = Mathf.Max((start - center).magnitude, (end - center).magnitude) + shape.Radius;
+            BoundRadius = Mathf.Max(BoundRadius, reach * BoundMargin);
+        }
     }
 
     // 대시 같은 무적 구간. 남은 무적보다 길 때만 늘린다

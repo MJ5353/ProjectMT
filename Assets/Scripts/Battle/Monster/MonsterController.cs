@@ -17,7 +17,7 @@ public class MonsterController : UnitController<MonsterDef>
     protected override void SetFeatures()
     {
         PartF = AddFeature(new PartFeature(this, Def.ListPart));       // 버섯 부위(스폰 때 소켓을 골라 꽂는다)
-        HitBoxF = AddFeature(new HitBoxFeature(this, Def.ListBodyShape)); // 뼈 판정 모양. 부위 번호를 쓰므로 Parts 다음
+        HitF.SetShapes(Def.ListBodyShape);                              // 뼈 판정 모양. 부위 번호를 쓰므로 Parts 다음
         AttackChoiceF = AddFeature(new AttackChoiceFeature(this, Def, Def.AttackCooldown));
     }
 
