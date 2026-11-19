@@ -2,22 +2,12 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
-// ==================================================    
-
-public enum EPlayerState
-{
-    Move,
-    Attack,
-    Dash,
-    Hit,
-    Dead,
-}
-
 // ==================================================
 
 // 채집꾼 조작. 입력은 프로젝트 입력 에셋(Assets/InputSystem_Actions)의 Player 맵 Move·Attack·Dash를 쓴다.
 // 키 배치는 에셋에서 바꾼다(기본: 이동 WASD·방향키·왼스틱, 공격 클릭·스페이스·J·패드 A/X, 대시 Shift·패드 B).
 // 공격 버튼을 누르면 가까운 몬스터 쪽으로 자동으로 돌아서 벤다(모바일 대비). 연타하면 Def.ComboStart부터 AttackSpec.Next 순서, 달리는 중이면 Def.RunAttack. 수치는 PlayerDef
+
 public class PlayerController : UnitController<PlayerDef>
 {
     private const string PlayerMapName = "Player";
@@ -28,19 +18,15 @@ public class PlayerController : UnitController<PlayerDef>
 
     private Transform m_CameraTransform;
 
-    private InputAction m_MoveAction;
-    private InputAction m_AttackAction;
-    private InputAction m_AttackUpAction;
-    private InputAction m_DashAction;
-
-    private EPlayerState m_State;
-    private float m_TimeInState;
     private AttackSpec m_QueuedAttack; // 다음에 낼 공격. null이면 입력 없음
     private AttackSpec m_ComboNext;    // 다음에 낼 콤보 타. null이면 첫 타(Def.ComboStart)
     private float m_AttackHoldTime;    // 공격 버튼을 누르고 있는 시간
 
-    public EPlayerState State => m_State;
-    public DashFeature Dash { get; private set; }
+    // input
+    private InputAction m_MoveAction;
+    private InputAction m_AttackAction;
+    private InputAction m_AttackUpAction;
+    private InputAction m_DashAction;
 
     protected override ETeam Team => ETeam.Player;
 
@@ -54,43 +40,22 @@ public class PlayerController : UnitController<PlayerDef>
         if (enabled == false)
             return;
 
-        Dash = AddFeature(new DashFeature(this, Def.DashSpeed, Def.DashTime, Def.DashCooldown, Def.IsDashInvincible, Def.DashAnimSpeed));
+        Action.EnableDash(Def.DashSpeed, Def.DashTime, Def.DashCooldown, Def.IsDashInvincible, Def.DashAnimSpeed);
+        Action.Attack.CancelDelay = Def.CancelDelay;
     }
 
+    // 판단만 한다: 입력을 읽어 행동 층(Action)에 요청한다. 히트스톱 중(deltaTime 0)에는 입력을 받지 않는다
     protected override void OnUpdate(float deltaTime)
     {
-        if (deltaTime <= 0f)
-            return;
-
-        m_TimeInState += deltaTime;
-
-        if (m_MoveAction == null)
+        if (deltaTime <= 0f || m_MoveAction == null)
             return;
 
         AttackSpec pressedAttack = GetPressedAttack(deltaTime);
-        if (m_DashAction.WasPressedThisFrame() && CanDash())
-        {
-            ChangeState(EPlayerState.Dash);
+        if (m_DashAction.WasPressedThisFrame() && Action.RequestDash(GetDashDirection()))
             return;
-        }
 
-        switch (m_State)
-        {
-            case EPlayerState.Move:
-                UpdateMove(pressedAttack);
-                break;
-            case EPlayerState.Attack:
-                UpdateAttack(pressedAttack);
-                break;
-            case EPlayerState.Dash:
-                UpdateDash();
-                break;
-            case EPlayerState.Hit:
-                if (m_TimeInState >= Def.HitStunTime)
-                    ChangeState(EPlayerState.Move);
-
-                break;
-        }
+        UpdateAttackInput(pressedAttack);
+        UpdateMoveInput();
     }
 
     protected override void OnSpawned()
@@ -104,8 +69,6 @@ public class PlayerController : UnitController<PlayerDef>
     {
         if (Camera.main != null)
             m_CameraTransform = Camera.main.transform;
-
-        ChangeState(EPlayerState.Move);
     }
     
     // 몬스터가 노리거나 버섯이 빨려 들 수 있는 상태인지. 판단 기준은 여기서만 정한다
@@ -119,16 +82,17 @@ public class PlayerController : UnitController<PlayerDef>
         if (IsDead)
             return;
 
-        ChangeState(EPlayerState.Hit);
+        Action.RequestHit();
     }
 
     protected override void OnDied()
     {
-        ChangeState(EPlayerState.Dead);
+        Action.RequestDead();
     }
     
     // ---
-    
+
+    // [mj] todo) 이쪽 대체?
     // 프로젝트 입력 에셋(Project Settings > Input System Package)의 액션을 찾는다. 여러 곳이 같이 쓰므로 끄거나 지우지 않는다
     private void InitInput()
     {
@@ -147,110 +111,28 @@ public class PlayerController : UnitController<PlayerDef>
         actions.FindActionMap(PlayerMapName, true).Enable();
     }
 
-    private void ChangeState(EPlayerState next)
+    // 대기 중엔 바로, 공격 중엔 판정 시작 뒤 누른 것만 다음 타로 예약한다. 행동 층이 끊기를 허락해도 보낸다
+    private void UpdateAttackInput(AttackSpec pressedAttack)
     {
-        Anim.SetSpeed(1f);
-        Melee.End();
-        m_State = next;
-        m_TimeInState = 0f;
-
-        // [mj] todo) 이건 정말 끔찍함...
-        switch (next)
-        {
-            case EPlayerState.Attack:
-            {
-                EnterAttack();
-                break;
-            }
-            case EPlayerState.Dash:
-            {
-                EnterDash();
-                break;
-            }
-            case EPlayerState.Hit:
-            {
-                Move.Stop();
-                Anim.Play("Hit", true);
-                break;
-            }
-            case EPlayerState.Dead:
-            {
-                Move.Stop();
-                Anim.Play("Death", true);
-                break;
-            }
-        }
-    }
-
-    private void UpdateMove(AttackSpec pressedAttack)
-    {
-        if (pressedAttack != null)
-        {
+        bool canBuffer = Action.IsIdle || (Action.Current == EActionType.Attack && Action.Attack.CanBufferNext);
+        if (pressedAttack != null && canBuffer)
             m_QueuedAttack = pressedAttack;
-            ChangeState(EPlayerState.Attack);
+
+        if (m_QueuedAttack == null || Action.CanRequest(EActionType.Attack) == false)
             return;
-        }
 
-        Vector3 input = GetMoveInput();
-        float strength = Mathf.Clamp01(input.magnitude);
-
-        if (strength < 0.1f)
-        {
-            Move.Stop();
-            Anim.Play("Idle");
-            return;
-        }
-
-        Move.SetVelocity(input.normalized * (Def.MoveSpeed * strength));
-        Move.FaceTo(input);
-        Anim.Play(strength >= Def.RunThreshold ? "Run" : "Walk");
-    }
-
-    private void EnterAttack()
-    {
-        AttackSpec attack = m_QueuedAttack ?? Def.MainAttack;
+        AttackSpec attack = m_QueuedAttack;
         m_QueuedAttack = null;
         m_ComboNext = attack.NextAttack; // 막타·콤보 밖 공격(Next 없음) 다음은 첫 타
-
-        Move.FaceTo(FindAimDirection(), true);
-        Melee.StartAttack(attack, Def.AttackBlendTime);
+        Action.RequestAttack(attack, FindAimDirection());
     }
 
-    private void UpdateAttack(AttackSpec pressedAttack)
-    {
-        AttackSpec attack = Melee.Spec;
-        Melee.UpdateAttack(m_TimeInState);
-
-        // 판정 시작 뒤에 누른 것만 다음 타로 받는다(너무 이른 연타는 무시)
-        if (pressedAttack != null && m_TimeInState >= attack.HitTime)
-            m_QueuedAttack = pressedAttack;
-
-        // 판정이 끝난 뒤 입력이 있으면 다음 공격으로 끊는다
-        bool canCancel = Melee.IsDone(m_TimeInState) && m_TimeInState >= attack.HitEndTime + Def.CancelDelay;
-        if (canCancel && m_QueuedAttack != null)
-        {
-            ChangeState(EPlayerState.Attack);
-            return;
-        }
-
-        if (Melee.IsFinished(m_TimeInState))
-            ChangeState(EPlayerState.Move);
-    }
-
-    // 입력 방향으로, 입력이 없으면 지금 앞으로
-    private void EnterDash()
+    private void UpdateMoveInput()
     {
         Vector3 input = GetMoveInput();
-        Dash.StartDash(input.sqrMagnitude > 0.01f ? input.normalized : transform.forward);
-    }
-
-    private void UpdateDash()
-    {
-        if (Dash.IsDashing)
-            return;
-
-        Move.Stop();
-        ChangeState(EPlayerState.Move);
+        float strength = Mathf.Clamp01(input.magnitude);
+        float speed = strength < 0.1f ? 0f : Def.MoveSpeed * strength;
+        Action.SetMove(input, speed, strength >= Def.RunThreshold);
     }
     
     // get ---
@@ -274,14 +156,14 @@ public class PlayerController : UnitController<PlayerDef>
     // 달리는 중이면 달리다 베기, 아니면 콤보 다음 타. 콤보가 없으면 기본 공격
     private AttackSpec GetNextAttack()
     {
-        if (m_State == EPlayerState.Move && Def.RunAttack != null && GetMoveInput().magnitude >= Def.RunThreshold)
+        if (Action.IsIdle && Def.RunAttack != null && GetMoveInput().magnitude >= Def.RunThreshold)
             return Def.RunAttack.Attack;
 
         if (Def.ComboStart == null)
             return Def.MainAttack;
 
         // 공격이 끝나고 리셋 시간이 지나면 첫 타부터
-        if (m_State != EPlayerState.Attack && m_TimeInState > Def.ComboResetTime)
+        if (Action.Current != EActionType.Attack && Action.TimeInAction > Def.ComboResetTime)
             m_ComboNext = null;
 
         return m_ComboNext ?? Def.ComboStart.Attack;
@@ -314,21 +196,11 @@ public class PlayerController : UnitController<PlayerDef>
         return input.sqrMagnitude > 0.01f ? input : transform.forward;
     }
     
-    // 이동 중이나 공격 판정이 끝난 뒤에만 대시로 끊을 수 있다
-    private bool CanDash()
+    // 입력 방향으로, 입력이 없으면 지금 앞으로
+    private Vector3 GetDashDirection()
     {
-        if (Dash.IsReady == false)
-            return false;
-
-        switch (m_State)
-        {
-            case EPlayerState.Move:
-                return true;
-            case EPlayerState.Attack:
-                return Melee.IsDone(m_TimeInState);
-            default:
-                return false;
-        }
+        Vector3 input = GetMoveInput();
+        return input.sqrMagnitude > 0.01f ? input.normalized : transform.forward;
     }
 
     // 누른 시간이 HoldTime을 넘은 그 프레임만 true. 떼면 다시 잰다

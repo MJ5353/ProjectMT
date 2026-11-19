@@ -9,7 +9,6 @@ public class MonsterFleeState : MonsterState
 
     public override void Enter()
     {
-        m_Controller.Anim.Play("Walk");
         m_Controller.Anim.SetSpeed(1.6f);
     }
 
@@ -17,12 +16,12 @@ public class MonsterFleeState : MonsterState
     {
         if (TimeInState >= Def.FleeTime)
         {
-            m_Controller.ChangeState(EMonsterState.Chase);
+            m_Controller.ChangeState(EAIState.Chase);
             return;
         }
 
         Vector3 away = -m_Controller.GetTargetDirection();
-        m_Controller.MoveTo(away, Def.FleeSpeed);
+        m_Controller.Action.SetMove(away, Def.FleeSpeed);
     }
 
     public override void Exit()

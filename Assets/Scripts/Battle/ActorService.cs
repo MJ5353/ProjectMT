@@ -18,6 +18,9 @@ public interface IActor : IHitTarget
     MoveFeature Move { get; }
     AnimFeature Anim { get; }
     HealthFeature Health { get; }
+    MeleeAttackFeature Melee { get; }
+    ActionFeature Action { get; }
+    PartFeature Parts { get; }   // 버섯 부위가 없는 유닛은 null
 }
 
 // ==================================================

@@ -14,6 +14,8 @@ public class PartFeature : UnitFeature
 {
     private const float RegrowTime = 1.5f;         // [mj] todo) 임시값. 다시 돋은 뒤 원래 크기까지 자라는 시간(초)
     private const float RegrowStartScale = 0.3f;   // 다시 돋을 때 처음 크기 배율
+    private const float DropUpSpeed = 5f;          // 깨진 버섯 픽업이 튀어 오르는 속도
+    private const float DropSpread = 2f;           // 깨진 버섯 픽업이 옆으로 퍼지는 속도
 
     // 꽂힌 버섯 하나. 일반·깨진 모델을 둘 다 소켓에 붙여 두고 켜고 끈다
     public class Mushroom
@@ -181,23 +183,27 @@ public class PartFeature : UnitFeature
         }
     }
 
+    private readonly IReadOnlyList<MonsterDef.PartEntry> m_ListEntry; // Def 데이터(읽기 전용)
     private readonly List<Part> m_ListPart = new();               // [i] = MonsterDef.ListPart 칸. 버섯이 없는 칸은 null
     private readonly HashSet<Transform> m_SetUsedSocket = new();  // 스폰 때 버섯 배치용
     private readonly List<Transform> m_ListSocketPick = new();
 
     public IReadOnlyList<Part> ListPart => m_ListPart;
 
-    public event Action<Part> Broken;
+    public event Action<Part> Broken;   // 드롭은 여기서 끝낸 뒤 알린다(휘청 같은 다른 반응용)
 
     // ------------------------------------------------
 
     // 부위마다 버섯 모델을 최대 개수만큼 미리 만든다. 맞은 부위만 번쩍이도록 부위 번호와 함께 렌더러를 넘긴다
     public PartFeature(IActor owner, IReadOnlyList<MonsterDef.PartEntry> listEntry) : base(owner)
     {
+        m_ListEntry = listEntry;
         for (int i = 0; i < listEntry.Count; i++)
         {
             m_ListPart.Add(CreatePart(i, listEntry[i], owner));
         }
+
+        owner.HitFeature.SetParts(this);
     }
 
     // 풀에서 다시 꺼낼 때 원상복구하고 소켓을 새로 골라 꽂는다
@@ -231,7 +237,10 @@ public class PartFeature : UnitFeature
         bodyDamageRate = part.Entry.BodyDamageRate;
         
         if (part.TakeDamage(damage))
+        {
+            SpawnDrops(part);
             Broken?.Invoke(part);
+        }
 
         return true;
     }
@@ -241,7 +250,38 @@ public class PartFeature : UnitFeature
         return index >= 0 && index < m_ListPart.Count ? m_ListPart[index] : null;
     }
 
+    // 이 몸 부위를 BattlePart로 가진 깨지는 부위 칸. 없으면 -1. 같은 부위 칸이 둘이면 첫 칸(판정 모양에 부위 번호를 달 때)
+    public int FindIndex(EBattlePartType battlePart)
+    {
+        if (battlePart == EBattlePartType.None)
+            return -1;
+
+        for (int i = 0; i < m_ListEntry.Count; i++)
+        {
+            if (m_ListEntry[i].BattlePart == battlePart && m_ListEntry[i].IsBreakable)
+                return i;
+        }
+
+        return -1;
+    }
+
     // ==================================================
+
+    // 꽂힌 버섯 하나마다 확정 드롭. 살아 있을 때 깨면 상급, 죽은 뒤면 하급
+    private void SpawnDrops(Part part)
+    {
+        if (part.Entry.Drop == null)
+            return;
+
+        EFreshness freshness = Owner.Health.IsDead ? EFreshness.Low : EFreshness.High;
+        for (int i = 0; i < part.PlacedCount; i++)
+        {
+            Vector3 position = part.ListMushroom[i].Socket.position;
+            MushroomPickup pickup = ResourceManager.Instance.Spawn(part.Entry.Drop, position, Quaternion.identity);
+            Vector2 spread = Random.insideUnitCircle * DropSpread;
+            pickup.Launch(new Vector3(spread.x, DropUpSpeed, spread.y), freshness);
+        }
+    }
 
     private static Part CreatePart(int index, MonsterDef.PartEntry entry, IActor owner)
     {

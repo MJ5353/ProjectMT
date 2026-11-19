@@ -12,8 +12,7 @@ public class MonsterIdleState : MonsterState
 
     public override void Enter()
     {
-        m_Controller.Move.Stop();
-        m_Controller.Anim.Play("Idle");
+        m_Controller.Action.SetMove(Vector3.zero, 0f);
         m_Duration = Random.Range(1f, 2.5f);
     }
 
@@ -21,11 +20,11 @@ public class MonsterIdleState : MonsterState
     {
         if (m_Controller.CanSeeTarget())
         {
-            m_Controller.ChangeState(EMonsterState.Chase);
+            m_Controller.ChangeState(EAIState.Chase);
             return;
         }
 
         if (TimeInState >= m_Duration)
-            m_Controller.ChangeState(EMonsterState.Wander);
+            m_Controller.ChangeState(EAIState.Wander);
     }
 }

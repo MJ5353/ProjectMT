@@ -16,9 +16,7 @@ public class MonsterDeadState : MonsterState
     public override void Enter()
     {
         m_IsCollisionOff = false;
-        m_Controller.Move.Stop();
-        m_Controller.Anim.SetSpeed(1f);
-        m_Controller.Anim.Play("Death", true);
+        m_Controller.Anim.SetSpeed(1f); // 멈춤·Death 애니는 사망 행동(DeadAction)이 한다
 
         SpawnDrops();
         ActorService actors = GameManager.Instance?.ActorS;

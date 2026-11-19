@@ -17,12 +17,10 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
     private bool m_IsBattleOver;
     
-    // hit
-    public IReadOnlyList<HitShape> ListHitShape => m_ListHitShape;
-    private readonly List<HitShape> m_ListHitShape = new();     // 뼈 판정 모양. Set에서 한 번 만들고 풀 재사용 때도 그대로
-    
-    public float HitBoundRadius { get; private set; }
-    private const float HitBoundMargin = 1.3f; // 애니로 뼈가 뻗는 만큼 감싸는 반지름에 더 주는 배율
+    // hit --- 뼈 판정 모양이 없으면 빈 목록(HurtBody 캡슐로 맞는다)
+    private static readonly List<HitShape> s_EmptyHitShape = new();
+    public IReadOnlyList<HitShape> ListHitShape => HitBox != null ? HitBox.ListShape : s_EmptyHitShape;
+    public float HitBoundRadius => HitBox != null ? HitBox.BoundRadius : 0f;
     
     // feature
     public MoveFeature Move { get; private set; }
@@ -30,6 +28,9 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     public HealthFeature Health { get; private set; }
     public HitFeature HitFeature { get; private set; }
     public MeleeAttackFeature Melee { get; private set; }
+    public ActionFeature Action { get; private set; }        // 행동 층(이동·공격·대시·피격·사망). 판단 쪽은 여기에 요청만 한다
+    public PartFeature Parts { get; protected set; }         // 버섯 부위. 없으면 null
+    public HitBoxFeature HitBox { get; protected set; }      // 뼈 판정 모양. 없으면 null
 
     public TDef Def => m_Def;
     public UnitProperty Property => m_Property;
@@ -54,6 +55,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         Health = AddFeature(new HealthFeature(this, m_Def.MaxHp));
         HitFeature = AddFeature(new HitFeature(this, Team, m_Def.Hit, m_Property.ListBodyRenderer));
         Melee = AddFeature(new MeleeAttackFeature(this, GetAttacks()));
+        Action = AddFeature(new ActionFeature(this, m_Def));
 
         // 피격 반응 수치가 없으면 체력만 깎이고 반응은 없다
         if (m_Def.Hit == null)
@@ -93,6 +95,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         if (m_IsBattleOver == false && battle != null && battle.State != EBattleState.Playing)
         {
             m_IsBattleOver = true;
+            Action.Interrupt();
             Move.Stop();
             OnBattleEnded();
         }
@@ -131,19 +134,6 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         {
             feature.Clear();
         }
-    }
-
-    // hit shape ---
-    
-    // 뼈 판정 모양 추가. 감싸는 반지름은 지금(Set 시점) 자세 기준
-    // shortcut: 애니로 뼈가 HitBoundMargin보다 멀리 뻗으면 후보에서 빠진다. 그러면 매 프레임 재계산으로 바꾼다
-    protected void AddHitShape(HitShape shape)
-    {
-        m_ListHitShape.Add(shape);
-
-        shape.GetSegment(out Vector3 start, out Vector3 end);
-        float reach = Mathf.Max((start - transform.position).magnitude, (end - transform.position).magnitude) + shape.Radius;
-        HitBoundRadius = Mathf.Max(HitBoundRadius, reach * HitBoundMargin);
     }
 
     // 씬 뷰에 공격 판정 범위 표시

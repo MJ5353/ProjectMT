@@ -3,36 +3,19 @@ using UnityEngine;
 
 // ==================================================
 
-public enum EMonsterState
-{
-    Idle,
-    Wander,
-    Chase,
-    Windup,
-    Attack,
-    Hit,
-    Flee,
-    Dead,
-}
-
-// ==================================================
-
-// 몬스터 하나의 두뇌. 몸(UnitController)에 FSM과 몸에 꽂는 버섯을 더한다.
-// 상태 클래스는 State/ 폴더(상태마다 파일 하나), 수치는 MonsterDef
+// 몬스터 조립 허브. 몸(UnitController)에 판단(AIFeature)·공격 고르기·버섯 부위를 붙이고, 행동이 끝났을 때 다음 판단을 정한다.
+// 판단 상태 클래스는 State/ 폴더(상태마다 파일 하나), 실행은 행동 층(ActionFeature), 수치는 MonsterDef
 public class MonsterController : UnitController<MonsterDef>
 {
-    private readonly StateMachine<EMonsterState> m_Fsm = new();
-    private const float PartDropUpSpeed = 5f;     // 부위 버섯이 튀어 오르는 속도
-    private const float PartDropSpread = 2f;      // 부위 버섯이 옆으로 퍼지는 속도
-
-    public Transform Target { get; private set; }
+    public IHitTarget TargetActor { get; private set; }         // 노리는 적(다른 팀). 죽거나 사라지면 시야 안에서 다시 찾는다
+    public Transform Target => IsTargetValid() ? TargetActor.transform : null;
     public Vector3 HomePosition { get; private set; }
     public Vector3 LastHitDirection { get; private set; }
     public AttackChoiceFeature AttackChoice { get; private set; } // 공격 고르기·쿨·콤보
     
-    public EMonsterState State => m_Fsm.Current;
-    public float TimeInState => m_Fsm.TimeInState;
-    public PartFeature Parts { get; private set; }             // 몸에 꽂힌 버섯 부위
+    public AIFeature AI { get; private set; }                   // 판단(대기·배회·추적·도망·사망 뒤)
+    public EAIState State => AI.State;
+    public float TimeInState => AI.TimeInState;
     protected override ETeam Team => ETeam.Monster;
 
     // ------------------------------------------------
@@ -44,43 +27,40 @@ public class MonsterController : UnitController<MonsterDef>
         if (enabled == false)
             return;
 
-        AttachMushrooms();
-        AddBodyShapes();
+        Parts = AddFeature(new PartFeature(this, Def.ListPart));       // 버섯 부위(스폰 때 소켓을 골라 꽂는다)
+        HitBox = AddFeature(new HitBoxFeature(this, Def.ListBodyShape)); // 뼈 판정 모양. 부위 번호를 쓰므로 Parts 다음
 
         AttackChoice = AddFeature(new AttackChoiceFeature(this, Def, Def.AttackCooldown));
 
-        m_Fsm.Add(EMonsterState.Idle, new MonsterIdleState(this));
-        m_Fsm.Add(EMonsterState.Wander, new MonsterWanderState(this));
-        m_Fsm.Add(EMonsterState.Chase, new MonsterChaseState(this));
-        m_Fsm.Add(EMonsterState.Windup, new MonsterWindupState(this));
-        m_Fsm.Add(EMonsterState.Attack, new MonsterAttackState(this));
-        m_Fsm.Add(EMonsterState.Hit, new MonsterHitState(this));
-        m_Fsm.Add(EMonsterState.Flee, new MonsterFleeState(this));
-        m_Fsm.Add(EMonsterState.Dead, new MonsterDeadState(this));
+        AI = AddFeature(new AIFeature(this));
+        AI.Add(EAIState.Idle, new MonsterIdleState(this));
+        AI.Add(EAIState.Wander, new MonsterWanderState(this));
+        AI.Add(EAIState.Chase, new MonsterChaseState(this));
+        AI.Add(EAIState.Flee, new MonsterFleeState(this));
+        AI.Add(EAIState.Dead, new MonsterDeadState(this));
+
+        Action.Ended += OnActionEnded;
     }
 
     protected override void OnSpawned()
     {
         HomePosition = transform.position;
-        Target = null;
+        TargetActor = null;
         LastHitDirection = Vector3.zero;
-
-        m_Fsm.Change(EMonsterState.Idle);
     }
 
     protected override void OnUpdate(float deltaTime)
     {
-        PlayerController player = GetValidPlayer();
-        if (Target == null && player != null)
-            Target = player.transform;
+        if (IsTargetValid() == false)
+            TargetActor = GameManager.Instance?.ActorS?.FindNearestEnemy(transform.position, Def.SightRange, Team);
 
-        m_Fsm.Update(deltaTime);
+        AI.UpdateAI(deltaTime);
     }
     
-    // 진행 중인 상태를 Exit로 정리(움츠림 크기·애니 배속 복구)하고 AI를 끈다
+    // 진행 중인 상태를 Exit로 정리(애니 배속 복구)하고 AI를 끈다
     protected override void OnBattleEnded()
     {
-        m_Fsm.Stop();
+        AI.Stop();
         base.OnBattleEnded();
     }
 
@@ -90,23 +70,45 @@ public class MonsterController : UnitController<MonsterDef>
             return;
 
         LastHitDirection = hit.Direction;
-        if (hit.Attacker != null)
-            Target = hit.Attacker.transform;
+        if (hit.Attacker != null && hit.Attacker.TryGetComponent(out IActor attacker))
+            TargetActor = attacker;
 
-        // [mj] todo) 더 나은 대안...? 
-        m_Fsm.Change(EMonsterState.Hit);
+        Action.RequestHit();
     }
 
     protected override void OnDied()
     {
-        m_Fsm.Change(EMonsterState.Dead);
+        Action.RequestDead();
+        AI.Change(EAIState.Dead);
+    }
+
+    // 행동이 끝난 뒤 판단. 공격은 끝날 때마다 쿨을 걸고, 끝까지 했으면 콤보 다음 타. 피격 경직이 풀리면 도망 또는 추적
+    private void OnActionEnded(EActionType action, bool isFinished)
+    {
+        if (IsDead)
+            return;
+
+        switch (action)
+        {
+            case EActionType.Attack:
+                AttackChoice.StartCooldown();
+                if (isFinished && AttackChoice.TryContinueCombo())
+                    Action.RequestAttack(AttackChoice.Current, Vector3.zero, Target);
+
+                break;
+            case EActionType.Hit:
+                if (isFinished)
+                    AI.Change(Def.FleeTime > 0f ? EAIState.Flee : EAIState.Chase);
+
+                break;
+        }
     }
     
     // ---
     
-    public void ChangeState(EMonsterState next)
+    public void ChangeState(EAIState next)
     {
-        m_Fsm.Change(next);
+        AI.Change(next);
     }
 
     // 죽은 뒤 사라질 때. 등록돼 있으면 ActorService가 지운다
@@ -120,54 +122,6 @@ public class MonsterController : UnitController<MonsterDef>
         }
 
         Destroy(gameObject);
-    }
-
-    public void MoveTo(Vector3 direction, float speed)
-    {
-        direction.y = 0f;
-        Move.SetVelocity(direction.normalized * speed);
-        Move.FaceTo(direction);
-    }
-
-    // part ---
-
-    // 몸 판정 표의 부위 뼈로 판정 모양을 등록한다. 버섯 칸이 걸린 부위는 그 칸 번호를 달아 부위 판정이 된다
-    private void AddBodyShapes()
-    {
-        foreach (HitShapeDef shapeDef in Def.ListBodyShape)
-        {
-            Transform bone = GetBattleBone(shapeDef.Part);
-            if (bone == null)
-            {
-                CLogger.Warning("MonsterController", $"판정 부위 뼈가 프리팹에 없음: {shapeDef.Part} ({name})", this);
-                continue;
-            }
-
-            AddHitShape(new HitShape(bone, shapeDef, FindPartIndex(shapeDef.Part)));
-        }
-    }
-
-    // 버섯 부위. 스폰 때 PartFeature가 소켓을 골라 꽂는다
-    private void AttachMushrooms()
-    {
-        Parts = AddFeature(new PartFeature(this, Def.ListPart));
-        Parts.Broken += OnPartBroken;
-        HitFeature.SetParts(Parts);
-    }
-
-    // 살아 있을 때 깬 버섯은 상급으로 확정 드랍. 꽂힌 버섯 하나마다 하나. 휘청·다운 전환은 보스 상태(6번)에서 붙인다
-    private void OnPartBroken(PartFeature.Part part)
-    {
-        if (part.Entry.Drop == null)
-            return;
-
-        for (int i = 0; i < part.PlacedCount; i++)
-        {
-            Vector3 position = part.ListMushroom[i].Socket.position;
-            MushroomPickup pickup = ResourceManager.Instance.Spawn(part.Entry.Drop, position, Quaternion.identity);
-            Vector2 spread = Random.insideUnitCircle * PartDropSpread;
-            pickup.Launch(new Vector3(spread.x, PartDropUpSpeed, spread.y), IsDead ? EFreshness.Low : EFreshness.High);
-        }
     }
 
     #region Gizmo
@@ -254,7 +208,7 @@ public class MonsterController : UnitController<MonsterDef>
 
     public bool CanSeeTarget()
     {
-        if (Target == null || GetValidPlayer() == null)
+        if (Target == null)
             return false;
 
         return GetTargetDistance() <= Def.SightRange;
@@ -262,34 +216,17 @@ public class MonsterController : UnitController<MonsterDef>
 
     // attack ---
     
-    // 노릴 수 있는 플레이어. 없거나 PlayerController.IsValid()가 false면 null
-    public PlayerController GetValidPlayer()
+    // 노리는 적이 아직 살아 있는지(풀로 돌아갔거나 죽었으면 false)
+    private bool IsTargetValid()
     {
-        PlayerController player = GameManager.Instance?.ActorS?.Player;
-        if (player == null || player.IsValid() == false)
-            return null;
+        if (TargetActor == null || (TargetActor is Object behaviour && behaviour == null))
+            return false;
 
-        return player;
+        return TargetActor.HitFeature.IsDead == false && TargetActor.HitFeature.Team != Team;
     }
     
 
     // part ---
-    
-    // 이 몸 부위를 BattlePart로 가진 깨지는 부위 칸. 없으면 -1. 같은 부위 칸이 둘이면 첫 칸
-    private int FindPartIndex(EBattlePartType battlePart)
-    {
-        if (battlePart == EBattlePartType.None)
-            return -1;
-
-        IReadOnlyList<MonsterDef.PartEntry> listEntry = Def.ListPart;
-        for (int i = 0; i < listEntry.Count; i++)
-        {
-            if (listEntry[i].BattlePart == battlePart && listEntry[i].IsBreakable)
-                return i;
-        }
-
-        return -1;
-    }
     
     private HitShapeDef FindBodyShape(EBattlePartType battlePart)
     {

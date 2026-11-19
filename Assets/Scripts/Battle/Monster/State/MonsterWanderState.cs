@@ -15,14 +15,13 @@ public class MonsterWanderState : MonsterState
     {
         Vector2 offset = Random.insideUnitCircle * Def.WanderRadius;
         m_Destination = m_Controller.HomePosition + new Vector3(offset.x, 0f, offset.y);
-        m_Controller.Anim.Play("Walk");
     }
 
     public override void Update(float deltaTime)
     {
         if (m_Controller.CanSeeTarget())
         {
-            m_Controller.ChangeState(EMonsterState.Chase);
+            m_Controller.ChangeState(EAIState.Chase);
             return;
         }
 
@@ -30,10 +29,10 @@ public class MonsterWanderState : MonsterState
         diff.y = 0f;
         if (diff.magnitude < 0.3f || TimeInState >= MaxDuration)
         {
-            m_Controller.ChangeState(EMonsterState.Idle);
+            m_Controller.ChangeState(EAIState.Idle);
             return;
         }
 
-        m_Controller.MoveTo(diff, Def.WanderSpeed);
+        m_Controller.Action.SetMove(diff, Def.WanderSpeed);
     }
 }
