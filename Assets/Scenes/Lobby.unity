@@ -1522,7 +1522,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uD1A0\uBC8C \uC9C0\uB3C4"
+  m_text: "\uBC84\uC12F \uC9C0\uB3C4 - Chapter.1"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f9847f429b72b294992ae194842ea13d, type: 2}
   m_sharedMaterial: {fileID: -4995738922971843444, guid: f9847f429b72b294992ae194842ea13d, type: 2}
@@ -1659,7 +1659,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB098\uC624\uB294 \uBC84\uC12F"
+  m_text: "\uD68D\uB4DD \uAC00\uB2A5"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f9847f429b72b294992ae194842ea13d, type: 2}
   m_sharedMaterial: {fileID: -4995738922971843444, guid: f9847f429b72b294992ae194842ea13d, type: 2}
@@ -1877,7 +1877,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: MushTaker
+  m_text: "\uBC84\uC12F\uC744 \uC90D\uC790!"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f9847f429b72b294992ae194842ea13d, type: 2}
   m_sharedMaterial: {fileID: -4995738922971843444, guid: f9847f429b72b294992ae194842ea13d, type: 2}
@@ -2256,7 +2256,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uD1A0\uBC8C \uAC00\uB2A5"
+  m_text: "\uC0AC\uB0E5 \uAC00\uB2A5"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f9847f429b72b294992ae194842ea13d, type: 2}
   m_sharedMaterial: {fileID: -4995738922971843444, guid: f9847f429b72b294992ae194842ea13d, type: 2}
@@ -3872,7 +3872,7 @@ GameObject:
   - component: {fileID: 1699102292}
   - component: {fileID: 1699102291}
   m_Layer: 0
-  m_Name: "View_\uC57C\uC2DC\uC7A5"
+  m_Name: "View_\uC815\uBE44"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4283,6 +4283,14 @@ PrefabInstance:
       propertyPath: m_TextStyleHashCode
       value: -1183493901
       objectReference: {fileID: 0}
+    - target: {fileID: 3520230334917131973, guid: 5f784768b71cceb4a9a6ddf294acc1ff, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: f9847f429b72b294992ae194842ea13d, type: 2}
+    - target: {fileID: 3520230334917131973, guid: 5f784768b71cceb4a9a6ddf294acc1ff, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: -4995738922971843444, guid: f9847f429b72b294992ae194842ea13d, type: 2}
     - target: {fileID: 3520230334917131973, guid: 5f784768b71cceb4a9a6ddf294acc1ff, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4292012531
@@ -4816,7 +4824,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC57C\uC2DC\uC7A5\n<size=33>\uC900\uBE44 \uC911</size>"
+  m_text: "\uC815\uBE44\n<size=33>\uC900\uBE44 \uC911</size>"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f9847f429b72b294992ae194842ea13d, type: 2}
   m_sharedMaterial: {fileID: -4995738922971843444, guid: f9847f429b72b294992ae194842ea13d, type: 2}
@@ -5083,7 +5091,7 @@ GameObject:
   - component: {fileID: 2064243848}
   - component: {fileID: 2064243847}
   m_Layer: 0
-  m_Name: "View_\uD1A0\uBC8C"
+  m_Name: "View_\uC0AC\uB0E5"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5172,7 +5180,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c558063ee2504700880c64b62d60d33e, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LobbySceneController
   m_UIRoot: {fileID: 1711432594}
   m_MainCamera: {fileID: 1493345826}
