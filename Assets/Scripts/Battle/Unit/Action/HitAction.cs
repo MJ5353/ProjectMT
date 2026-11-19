@@ -23,7 +23,7 @@ public class HitAction : UnitAction
 
     protected override void Enter()
     {
-        Owner.Move.Stop();
-        Owner.Anim.Play("Hit", true);
+        Owner.MoveF.Stop();
+        Owner.AnimF.Play("Hit", true);
     }
 }

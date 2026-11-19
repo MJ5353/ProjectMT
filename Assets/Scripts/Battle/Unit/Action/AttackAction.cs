@@ -12,7 +12,7 @@ public class AttackAction : UnitAction
     private readonly float m_BlendTime;    // 공격 애니로 넘어갈 때 섞는 시간(UnitDef.AttackBlendTime)
 
     public override EActionType Type => EActionType.Attack;
-    public override bool IsFinished => m_IsStarted && Owner.Melee.IsFinished(AttackTime);
+    public override bool IsFinished => m_IsStarted && Owner.MeleeF.IsFinished(AttackTime);
 
     public AttackSpec Spec { get; private set; }
     public float CancelDelay { get; set; }  // 판정 뒤 이 시간이 지나면 다음 공격으로 끊을 수 있다. 0이면 판정 끝나자마자
@@ -45,9 +45,9 @@ public class AttackAction : UnitAction
         switch (next)
         {
             case EActionType.Attack:
-                return m_IsStarted && Owner.Melee.IsDone(AttackTime) && AttackTime >= Spec.HitEndTime + CancelDelay;
+                return m_IsStarted && Owner.MeleeF.IsDone(AttackTime) && AttackTime >= Spec.HitEndTime + CancelDelay;
             case EActionType.Dash:
-                return m_IsStarted && Owner.Melee.IsDone(AttackTime);
+                return m_IsStarted && Owner.MeleeF.IsDone(AttackTime);
             default:
                 return base.CanInterruptBy(next);
         }
@@ -57,7 +57,7 @@ public class AttackAction : UnitAction
     {
         m_IsStarted = false;
         if (m_Direction.sqrMagnitude > 0.0001f)
-            Owner.Move.FaceTo(m_Direction, true);
+            Owner.MoveF.FaceTo(m_Direction, true);
 
         if (Spec.WindupTime <= 0f)
         {
@@ -66,8 +66,8 @@ public class AttackAction : UnitAction
         }
 
         // 예고: 멈춰서 움츠린다. 방향은 TurnSpeed로만 맞추고, 공격 중에는 고정해서 옆으로 빠질 틈을 준다
-        Owner.Move.Stop();
-        Owner.Anim.Play("Idle");
+        Owner.MoveF.Stop();
+        Owner.AnimF.Play("Idle");
         m_BaseScale = VisualRoot.localScale;
     }
 
@@ -75,12 +75,12 @@ public class AttackAction : UnitAction
     {
         if (m_IsStarted)
         {
-            Owner.Melee.UpdateAttack(AttackTime);
+            Owner.MeleeF.UpdateAttack(AttackTime);
             return;
         }
 
         if (m_FaceTarget != null)
-            Owner.Move.FaceTo(m_FaceTarget.position - Owner.transform.position);
+            Owner.MoveF.FaceTo(m_FaceTarget.position - Owner.transform.position);
 
         float t = Mathf.Clamp01(Time / Spec.WindupTime);
         VisualRoot.localScale = Vector3.Scale(m_BaseScale, Vector3.Lerp(Vector3.one, s_SquashScale, t));
@@ -96,8 +96,8 @@ public class AttackAction : UnitAction
         if (m_IsStarted == false && Spec.WindupTime > 0f)
             VisualRoot.localScale = m_BaseScale;
 
-        Owner.Move.Stop();
-        Owner.Melee.End();
+        Owner.MoveF.Stop();
+        Owner.MeleeF.End();
     }
 
     // ==================================================
@@ -107,6 +107,6 @@ public class AttackAction : UnitAction
     private void StartClip()
     {
         m_IsStarted = true;
-        Owner.Melee.StartAttack(Spec, m_BlendTime);
+        Owner.MeleeF.StartAttack(Spec, m_BlendTime);
     }
 }

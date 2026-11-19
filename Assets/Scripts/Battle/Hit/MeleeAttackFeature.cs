@@ -57,13 +57,13 @@ public class MeleeAttackFeature : UnitFeature
     public void StartAttack(AttackSpec spec, float blendTime = -1f)
     {
         Begin(spec);
-        m_Length = Owner.Anim.GetLength(spec.Clip);
+        m_Length = Owner.AnimF.GetLength(spec.Clip);
 
-        Owner.Move.Stop();
-        Owner.Anim.Play(spec.Clip, true, blendTime);
+        Owner.MoveF.Stop();
+        Owner.AnimF.Play(spec.Clip, true, blendTime);
 
         if (spec.Lunge > 0f)
-            Owner.Move.AddImpulse(Owner.transform.forward * spec.Lunge);
+            Owner.MoveF.AddImpulse(Owner.transform.forward * spec.Lunge);
     }
 
     // 공격 중 매 프레임(time = 공격 시작부터 지난 시간): 판정 구간 동안 앞으로 돌진하고 판정한다
@@ -73,7 +73,7 @@ public class MeleeAttackFeature : UnitFeature
             return;
 
         if (m_Spec.ActiveMoveSpeed > 0f)
-            Owner.Move.SetVelocity(IsActive(time) ? Owner.transform.forward * m_Spec.ActiveMoveSpeed : Vector3.zero);
+            Owner.MoveF.SetVelocity(IsActive(time) ? Owner.transform.forward * m_Spec.ActiveMoveSpeed : Vector3.zero);
 
         TickAttack(time);
     }
@@ -165,7 +165,7 @@ public class MeleeAttackFeature : UnitFeature
         Transform bone = Owner.Property.GetBattleBone(spec.HitPart);
 
         Vector3 center = GetCenter(owner, spec, bone);
-        ETeam team = Owner.HitFeature.Team;
+        ETeam team = Owner.HitF.Team;
         actors.CollectNearbyEnemies(center, spec.Radius, team, m_ListCandidate);
 
         int hitCount = 0;
@@ -187,7 +187,7 @@ public class MeleeAttackFeature : UnitFeature
 
             // 무적 등으로 막히면 구간 안에서 다시 노린다
             HitParams hit = new(owner.gameObject, team, spec.Damage, direction, spec.Knockback, spec.HitStop, point, partIndex);
-            if (candidate.Actor.HitFeature.Receive(hit) == false)
+            if (candidate.Actor.HitF.Receive(hit) == false)
                 continue;
 
             m_SetHit.Add(candidate.Actor);

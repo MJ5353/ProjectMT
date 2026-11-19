@@ -16,7 +16,7 @@ public class AIDeadState : AIState
     public override void Enter()
     {
         m_IsCollisionOff = false;
-        m_Controller.Anim.SetSpeed(1f); // 멈춤·Death 애니는 사망 행동(DeadAction)이 한다
+        m_Controller.AnimF.SetSpeed(1f); // 멈춤·Death 애니는 사망 행동(DeadAction)이 한다
 
         SpawnDrops();
         PlayDeathEffect();
@@ -32,7 +32,7 @@ public class AIDeadState : AIState
         if (m_IsCollisionOff == false && TimeInState >= CollisionOffTime)
         {
             m_IsCollisionOff = true;
-            m_Controller.Move.SetCollision(false);
+            m_Controller.MoveF.SetCollision(false);
         }
 
         if (TimeInState >= DestroyTime)

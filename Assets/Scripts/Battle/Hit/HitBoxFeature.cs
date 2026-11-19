@@ -32,7 +32,7 @@ public class HitBoxFeature : UnitFeature
                 continue;
             }
 
-            int partIndex = owner.Parts != null ? owner.Parts.FindIndex(shapeDef.Part) : -1;
+            int partIndex = owner.PartF != null ? owner.PartF.FindIndex(shapeDef.Part) : -1;
             HitShape shape = new HitShape(bone, shapeDef, partIndex);
             m_ListShape.Add(shape);
 

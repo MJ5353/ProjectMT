@@ -35,7 +35,7 @@ public class HitFeature : UnitFeature
     
     // get ---
     public ETeam Team => m_Team;
-    public bool IsDead => Owner.Health.IsDead;
+    public bool IsDead => Owner.HealthF.IsDead;
     public bool IsInvincible => m_InvincibleRemain > 0f;
     public override bool IsUnscaledTime => true;
 
@@ -103,7 +103,7 @@ public class HitFeature : UnitFeature
             bodyDamage = Mathf.RoundToInt(hit.Damage * bodyDamageRate);
         }
 
-        Owner.Health.TakeDamage(bodyDamage);
+        Owner.HealthF.TakeDamage(bodyDamage);
         ApplyReactions(hit, partIndex);
 
         if (m_HitDef != null)
@@ -171,7 +171,7 @@ public class HitFeature : UnitFeature
         if (m_HitDef.KnockbackScale <= 0f)
             return;
 
-        Owner.Move.AddImpulse(hit.Direction * (hit.Knockback * m_HitDef.KnockbackScale));
+        Owner.MoveF.AddImpulse(hit.Direction * (hit.Knockback * m_HitDef.KnockbackScale));
     }
 
     // 몸을 맞으면 몸 렌더러만, 부위를 맞으면 그 부위 버섯만 번쩍인다

@@ -53,18 +53,18 @@ public class DashAction : UnitAction
     {
         m_CooldownRemain = m_Cooldown + m_Duration;
 
-        Owner.Move.FaceTo(m_Direction, true);
-        Owner.Move.SetVelocity(m_Direction * m_Speed);
-        Owner.Anim.SetSpeed(m_AnimSpeed);
-        Owner.Anim.Play(DashClip, true);
+        Owner.MoveF.FaceTo(m_Direction, true);
+        Owner.MoveF.SetVelocity(m_Direction * m_Speed);
+        Owner.AnimF.SetSpeed(m_AnimSpeed);
+        Owner.AnimF.Play(DashClip, true);
 
         if (m_IsInvincible)
-            Owner.HitFeature.SetInvincible(m_Duration);
+            Owner.HitF.SetInvincible(m_Duration);
     }
 
     public override void Exit()
     {
-        Owner.Move.Stop();
-        Owner.Anim.SetSpeed(1f);
+        Owner.MoveF.Stop();
+        Owner.AnimF.SetSpeed(1f);
     }
 }

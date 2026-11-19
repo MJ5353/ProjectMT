@@ -203,7 +203,7 @@ public class PartFeature : UnitFeature
             m_ListPart.Add(CreatePart(i, listEntry[i], owner));
         }
 
-        owner.HitFeature.SetParts(this);
+        owner.HitF.SetParts(this);
     }
 
     // 풀에서 다시 꺼낼 때 원상복구하고 소켓을 새로 골라 꽂는다
@@ -287,7 +287,7 @@ public class PartFeature : UnitFeature
         if (part.Entry.Drop == null)
             return;
 
-        EFreshness freshness = Owner.Health.IsDead ? EFreshness.Low : EFreshness.High;
+        EFreshness freshness = Owner.HealthF.IsDead ? EFreshness.Low : EFreshness.High;
         for (int i = 0; i < part.PlacedCount; i++)
         {
             Vector3 position = part.ListMushroom[i].Socket.position;
@@ -308,8 +308,8 @@ public class PartFeature : UnitFeature
             Renderer normal = Object.Instantiate(entry.Model, owner.transform);
             Renderer broken = entry.BrokenModel != null ? Object.Instantiate(entry.BrokenModel, owner.transform) : null;
 
-            owner.HitFeature.AddFlashRenderer(normal, index);
-            owner.HitFeature.AddFlashRenderer(broken, index);
+            owner.HitF.AddFlashRenderer(normal, index);
+            owner.HitF.AddFlashRenderer(broken, index);
             part.AddMushroom(normal, broken);
         }
 

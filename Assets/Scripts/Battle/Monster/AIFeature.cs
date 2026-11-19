@@ -62,7 +62,7 @@ public class AIFeature : UnitFeature
     // 공격·피격·대시는 행동 층이 끝까지 맡는다. 사망은 사망 뒤 처리(드롭·사라짐)를 위해 판단을 계속 돈다
     private bool IsActing()
     {
-        EActionType action = Owner.Action.Current;
+        EActionType action = Owner.ActionF.Current;
         return action == EActionType.Attack || action == EActionType.Hit || action == EActionType.Dash;
     }
 }

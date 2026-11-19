@@ -30,8 +30,8 @@ public class MonsterController : UnitController<MonsterDef>
         if (enabled == false)
             return;
 
-        Parts = AddFeature(new PartFeature(this, Def.ListPart));       // 버섯 부위(스폰 때 소켓을 골라 꽂는다)
-        HitBox = AddFeature(new HitBoxFeature(this, Def.ListBodyShape)); // 뼈 판정 모양. 부위 번호를 쓰므로 Parts 다음
+        PartF = AddFeature(new PartFeature(this, Def.ListPart));       // 버섯 부위(스폰 때 소켓을 골라 꽂는다)
+        HitBoxF = AddFeature(new HitBoxFeature(this, Def.ListBodyShape)); // 뼈 판정 모양. 부위 번호를 쓰므로 Parts 다음
 
         AttackChoice = AddFeature(new AttackChoiceFeature(this, Def, Def.AttackCooldown));
 
@@ -42,7 +42,7 @@ public class MonsterController : UnitController<MonsterDef>
         AI.Add(EAIState.Flee, new AIFleeState(this));
         AI.Add(EAIState.Dead, new AIDeadState(this));
 
-        Action.Ended += OnActionEnded;
+        ActionF.Ended += OnActionFEnded;
     }
 
     protected override void OnSpawned()
@@ -69,12 +69,12 @@ public class MonsterController : UnitController<MonsterDef>
         if (hit.Attacker != null && hit.Attacker.TryGetComponent(out UnitController attacker))
             TargetActor = attacker;
 
-        Action.RequestHit();
+        ActionF.RequestHit();
     }
 
     protected override void OnDied()
     {
-        Action.RequestDead();
+        ActionF.RequestDead();
         AI.Change(EAIState.Dead);
     }
     
@@ -86,7 +86,7 @@ public class MonsterController : UnitController<MonsterDef>
     }
     
     // 행동이 끝난 뒤 판단. 공격은 끝날 때마다 쿨을 걸고, 끝까지 했으면 콤보 다음 타. 피격 경직이 풀리면 도망 또는 추적
-    private void OnActionEnded(EActionType action, bool isFinished)
+    private void OnActionFEnded(EActionType action, bool isFinished)
     {
         if (IsDead)
             return;
@@ -96,7 +96,7 @@ public class MonsterController : UnitController<MonsterDef>
             case EActionType.Attack:
                 AttackChoice.StartCooldown();
                 if (isFinished && AttackChoice.TryContinueCombo())
-                    Action.RequestAttack(AttackChoice.Current, Vector3.zero, Target);
+                    ActionF.RequestAttack(AttackChoice.Current, Vector3.zero, Target);
 
                 break;
             case EActionType.Hit:
@@ -154,7 +154,7 @@ public class MonsterController : UnitController<MonsterDef>
             if (bone == null || shapeDef == null)
                 continue;
 
-            PartFeature.Part part = Parts?.GetPart(i);
+            PartFeature.Part part = PartF?.GetPart(i);
             Gizmos.color = part != null && part.IsBroken ? Color.red : Color.green;
             new HitShape(bone, shapeDef, i).GetSegment(out Vector3 start, out Vector3 end);
             Gizmos.DrawWireSphere(start, shapeDef.Radius);
@@ -210,7 +210,7 @@ public class MonsterController : UnitController<MonsterDef>
         if (TargetActor == null)
             return false;
 
-        return TargetActor.HitFeature.IsDead == false && TargetActor.HitFeature.Team != Team;
+        return TargetActor.HitF.IsDead == false && TargetActor.HitF.Team != Team;
     }
 
     // part ---

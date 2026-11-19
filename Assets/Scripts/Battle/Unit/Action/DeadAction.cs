@@ -17,7 +17,7 @@ public class DeadAction : UnitAction
 
     protected override void Enter()
     {
-        Owner.Move.Stop();
-        Owner.Anim.Play("Death", true);
+        Owner.MoveF.Stop();
+        Owner.AnimF.Play("Death", true);
     }
 }

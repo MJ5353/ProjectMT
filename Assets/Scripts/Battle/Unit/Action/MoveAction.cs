@@ -20,13 +20,13 @@ public class MoveAction : UnitAction
         velocity.y = 0f;
         if (velocity.sqrMagnitude < StopSpeed)
         {
-            Owner.Move.Stop();
-            Owner.Anim.Play("Idle");
+            Owner.MoveF.Stop();
+            Owner.AnimF.Play("Idle");
             return;
         }
 
-        Owner.Move.SetVelocity(velocity);
-        Owner.Move.FaceTo(velocity);
-        Owner.Anim.Play(isRun ? "Run" : "Walk");
+        Owner.MoveF.SetVelocity(velocity);
+        Owner.MoveF.FaceTo(velocity);
+        Owner.AnimF.Play(isRun ? "Run" : "Walk");
     }
 }

@@ -79,8 +79,8 @@ public sealed class BattleService : ServiceBase
         SpawnMap();
         SpawnPlayer();
         
-        if (m_PlayerController != null && m_PlayerController.Health != null)
-            m_PlayerController.Health.Died += OnPlayerDied;
+        if (m_PlayerController != null && m_PlayerController.HealthF != null)
+            m_PlayerController.HealthF.Died += OnPlayerDied;
 
         GameManager.Instance.ActorS.ActorRemoved += ReleaseSpawnSlot;
         SEventManager.Subscribe<MonsterKilled>(OnMonsterKilled);
@@ -114,7 +114,7 @@ public sealed class BattleService : ServiceBase
         SEventManager.Unsubscribe<MonsterKilled>(OnMonsterKilled);
         SEventManager.Unsubscribe<LootPicked>(OnLootPicked);
 
-        HealthFeature health = m_PlayerController?.Health;
+        HealthFeature health = m_PlayerController?.HealthF;
         if (health != null)
             health.Died -= OnPlayerDied;
 
@@ -266,7 +266,7 @@ public sealed class BattleService : ServiceBase
 
         State = isWin ? EBattleState.Won : EBattleState.Lost;
         if (m_PlayerController != null)
-            m_PlayerController.Health.Died -= OnPlayerDied;
+            m_PlayerController.HealthF.Died -= OnPlayerDied;
 
         // [mj] todo) 패배 시 보상 규칙. 지금은 주운 것을 그대로 준다
         PlayerDataManager playerDataM = PlayerDataManager.Instance;

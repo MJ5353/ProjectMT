@@ -40,8 +40,8 @@ public class PlayerController : UnitController<PlayerDef>
         if (enabled == false)
             return;
 
-        Action.EnableDash(Def.DashSpeed, Def.DashTime, Def.DashCooldown, Def.IsDashInvincible, Def.DashAnimSpeed);
-        Action.Attack.CancelDelay = Def.CancelDelay;
+        ActionF.EnableDash(Def.DashSpeed, Def.DashTime, Def.DashCooldown, Def.IsDashInvincible, Def.DashAnimSpeed);
+        ActionF.Attack.CancelDelay = Def.CancelDelay;
     }
 
     // 판단만 한다: 입력을 읽어 행동 층(Action)에 요청한다. 히트스톱 중(deltaTime 0)에는 입력을 받지 않는다
@@ -51,7 +51,7 @@ public class PlayerController : UnitController<PlayerDef>
             return;
 
         AttackSpec pressedAttack = GetPressedAttack(deltaTime);
-        if (m_DashAction.WasPressedThisFrame() && Action.RequestDash(GetDashDirection()))
+        if (m_DashAction.WasPressedThisFrame() && ActionF.RequestDash(GetDashDirection()))
             return;
 
         UpdateAttackInput(pressedAttack);
@@ -82,12 +82,12 @@ public class PlayerController : UnitController<PlayerDef>
         if (IsDead)
             return;
 
-        Action.RequestHit();
+        ActionF.RequestHit();
     }
 
     protected override void OnDied()
     {
-        Action.RequestDead();
+        ActionF.RequestDead();
     }
     
     // ---
@@ -114,17 +114,17 @@ public class PlayerController : UnitController<PlayerDef>
     // 대기 중엔 바로, 공격 중엔 판정 시작 뒤 누른 것만 다음 타로 예약한다. 행동 층이 끊기를 허락해도 보낸다
     private void UpdateAttackInput(AttackSpec pressedAttack)
     {
-        bool canBuffer = Action.IsIdle || (Action.Current == EActionType.Attack && Action.Attack.CanBufferNext);
+        bool canBuffer = ActionF.IsIdle || (ActionF.Current == EActionType.Attack && ActionF.Attack.CanBufferNext);
         if (pressedAttack != null && canBuffer)
             m_QueuedAttack = pressedAttack;
 
-        if (m_QueuedAttack == null || Action.CanRequest(EActionType.Attack) == false)
+        if (m_QueuedAttack == null || ActionF.CanRequest(EActionType.Attack) == false)
             return;
 
         AttackSpec attack = m_QueuedAttack;
         m_QueuedAttack = null;
         m_ComboNext = attack.NextAttack; // 막타·콤보 밖 공격(Next 없음) 다음은 첫 타
-        Action.RequestAttack(attack, FindAimDirection());
+        ActionF.RequestAttack(attack, FindAimDirection());
     }
 
     private void UpdateMoveInput()
@@ -132,7 +132,7 @@ public class PlayerController : UnitController<PlayerDef>
         Vector3 input = GetMoveInput();
         float strength = Mathf.Clamp01(input.magnitude);
         float speed = strength < 0.1f ? 0f : Def.MoveSpeed * strength;
-        Action.SetMove(input, speed, strength >= Def.RunThreshold);
+        ActionF.SetMove(input, speed, strength >= Def.RunThreshold);
     }
     
     // get ---
@@ -156,14 +156,14 @@ public class PlayerController : UnitController<PlayerDef>
     // 달리는 중이면 달리다 베기, 아니면 콤보 다음 타. 콤보가 없으면 기본 공격
     private AttackSpec GetNextAttack()
     {
-        if (Action.IsIdle && Def.RunAttack != null && GetMoveInput().magnitude >= Def.RunThreshold)
+        if (ActionF.IsIdle && Def.RunAttack != null && GetMoveInput().magnitude >= Def.RunThreshold)
             return Def.RunAttack.Attack;
 
         if (Def.ComboStart == null)
             return Def.MainAttack;
 
         // 공격이 끝나고 리셋 시간이 지나면 첫 타부터
-        if (Action.Current != EActionType.Attack && Action.TimeInAction > Def.ComboResetTime)
+        if (ActionF.Current != EActionType.Attack && ActionF.TimeInAction > Def.ComboResetTime)
             m_ComboNext = null;
 
         return m_ComboNext ?? Def.ComboStart.Attack;

@@ -36,7 +36,7 @@ public class BattleHud : MonoBehaviour
 
         PlayerController player = battleM.Player;
         if (player != null)
-            GUILayout.Label($"HP {player.Health.Current} / {player.Health.MaxHp}", m_LabelStyle);
+            GUILayout.Label($"HP {player.HealthF.Current} / {player.HealthF.MaxHp}", m_LabelStyle);
 
         GUILayout.Label($"처치 {battleM.KillCount} / {battleM.KillGoal}", m_LabelStyle);
         foreach (var pair in battleM.DicLoot)

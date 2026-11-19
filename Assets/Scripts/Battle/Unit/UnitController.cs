@@ -6,29 +6,29 @@ using UnityEngine;
 // 플레이어와 몬스터이 같이 쓰는 몸. 이동·애니·체력·피격 부품을 직접 만들고 매 프레임 갱신한다.
 // 직렬화 참조 둘은 에디터 메뉴(BattleSetup)가 프리팹을 만들 때 채운다. 프리팹 안의 참조는 UnitProperty에 모은다
 // 제네릭이 아니라서 "아무 유닛"을 담을 때(Feature의 Owner, ActorService 목록, 타깃, 판정 후보) 이 타입을 쓴다
+
 public abstract class UnitController : PoolableMono
 {
     [SerializeField] private UnitProperty m_Property = null;     // 프리팹 참조(몸·애니·렌더러·부위 뼈·소켓)
-    
     private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
     private bool m_IsBattleOver;
 
     public int ActorID { get; private set; }   // ActorService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
+    protected abstract UnitDef BaseDef { get; }             // 몸 수치. 타입 있는 Def는 UnitController<TDef>.Def
     protected abstract ETeam Team { get; }
     
     // feature
-    public MoveFeature Move { get; private set; }
-    public AnimFeature Anim { get; private set; }
-    public HealthFeature Health { get; private set; }
-    public HitFeature HitFeature { get; private set; }
-    public MeleeAttackFeature Melee { get; private set; }
-    public ActionFeature Action { get; private set; }        // 행동 층(이동·공격·대시·피격·사망). 판단 쪽은 여기에 요청만 한다
-    public PartFeature Parts { get; protected set; }         // 버섯 부위. 없으면 null
-    public HitBoxFeature HitBox { get; protected set; }      // 뼈 판정 모양. 없으면 null
-    protected abstract UnitDef BaseDef { get; }                  // 몸 수치. 타입 있는 Def는 UnitController<TDef>.Def
+    public HealthFeature HealthF { get; private set; }
+    public MoveFeature MoveF { get; private set; }
+    public AnimFeature AnimF { get; private set; }
+    public HitFeature HitF { get; private set; }
+    public ActionFeature ActionF { get; private set; }      // 행동 층(이동·공격·대시·피격·사망). 판단 쪽은 여기에 요청만 한다
+    public MeleeAttackFeature MeleeF { get; private set; }
+    public PartFeature PartF { get; protected set; }        // 버섯 부위. 없으면 null
+    public HitBoxFeature HitBoxF { get; protected set; }    // 뼈 판정 모양. 없으면 null
 
     // get
-    public bool IsDead => Health.IsDead;
+    public bool IsDead => HealthF.IsDead;
     public UnitProperty Property => m_Property;
     public Transform VisualRoot => m_Property.Animator.transform;
     public CharacterController HurtBody => m_Property.CharacterController;
@@ -45,19 +45,19 @@ public abstract class UnitController : PoolableMono
             return;
         }
 
-        Move = AddFeature(new MoveFeature(this, m_Property.CharacterController, BaseDef.TurnSpeed));
-        Anim = AddFeature(new AnimFeature(this, m_Property.Animator));
-        Health = AddFeature(new HealthFeature(this, BaseDef.MaxHp));
-        HitFeature = AddFeature(new HitFeature(this, Team, BaseDef.Hit, m_Property.ListBodyRenderer));
-        Melee = AddFeature(new MeleeAttackFeature(this, GetAttacks()));
-        Action = AddFeature(new ActionFeature(this, BaseDef));
+        MoveF = AddFeature(new MoveFeature(this, m_Property.CharacterController, BaseDef.TurnSpeed));
+        AnimF = AddFeature(new AnimFeature(this, m_Property.Animator));
+        HealthF = AddFeature(new HealthFeature(this, BaseDef.MaxHp));
+        HitF = AddFeature(new HitFeature(this, Team, BaseDef.Hit, m_Property.ListBodyRenderer));
+        MeleeF = AddFeature(new MeleeAttackFeature(this, GetAttacks()));
+        ActionF = AddFeature(new ActionFeature(this, BaseDef));
 
         // 피격 반응 수치가 없으면 체력만 깎이고 반응은 없다
         if (BaseDef.Hit == null)
             CLogger.Warning(GetType().Name, $"{BaseDef.name}의 HitDef가 비어 있어 피격 반응이 없습니다", this);
 
-        HitFeature.Hit += OnHit;
-        Health.Died += OnDied;
+        HitF.Hit += OnHit;
+        HealthF.Died += OnDied;
     }
 
     protected T AddFeature<T>(T feature) where T : UnitFeature
@@ -84,8 +84,8 @@ public abstract class UnitController : PoolableMono
         if (m_IsBattleOver == false && battle != null && battle.State != EBattleState.Playing)
         {
             m_IsBattleOver = true;
-            Action.Interrupt();
-            Move.Stop();
+            ActionF.Interrupt();
+            MoveF.Stop();
             OnBattleEnded();
         }
 
@@ -148,15 +148,15 @@ public abstract class UnitController : PoolableMono
     protected virtual void OnBattleEnded()
     {
         // 전투가 끝난 순간 한 번. 기본은 애니 배속을 되돌리고, 살아 있으면 Idle
-        Anim.SetSpeed(1f);
+        AnimF.SetSpeed(1f);
         
         if (IsDead == false)
-            Anim.Play("Idle");
+            AnimF.Play("Idle");
     }
     
     protected virtual void OnDisable()
     {
-        HitFeature?.RestoreFlash();
+        HitF?.RestoreFlash();
     }
     
     protected virtual void OnDrawGizmosSelected()

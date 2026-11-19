@@ -12,7 +12,7 @@ public class AIFleeState : AIState
     
     public override void Enter()
     {
-        m_Controller.Anim.SetSpeed(1.6f);
+        m_Controller.AnimF.SetSpeed(1.6f);
     }
 
     public override void Update(float deltaTime)
@@ -24,11 +24,11 @@ public class AIFleeState : AIState
         }
 
         Vector3 away = -m_Controller.GetTargetDirection();
-        m_Controller.Action.SetMove(away, Def.FleeSpeed);
+        m_Controller.ActionF.SetMove(away, Def.FleeSpeed);
     }
 
     public override void Exit()
     {
-        m_Controller.Anim.SetSpeed(1f);
+        m_Controller.AnimF.SetSpeed(1f);
     }
 }
