@@ -165,7 +165,7 @@ public class MeleeAttackFeature : UnitFeature
         Transform bone = Owner.Property.GetBattleBone(spec.HitPart);
 
         Vector3 center = GetCenter(owner, spec, bone);
-        ETeam team = Owner.HitF.Team;
+        ETeam team = Owner.Team;
         actors.CollectNearbyEnemies(center, spec.Radius, team, m_ListCandidate);
 
         int hitCount = 0;
@@ -186,7 +186,7 @@ public class MeleeAttackFeature : UnitFeature
             direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : owner.forward;
 
             // 무적 등으로 막히면 구간 안에서 다시 노린다
-            HitParams hit = new(owner.gameObject, team, spec.Damage, direction, spec.Knockback, spec.HitStop, point, partIndex);
+            HitParams hit = new(Owner, team, spec.Damage, direction, spec.Knockback, spec.HitStop, point, partIndex);
             if (candidate.Actor.HitF.Receive(hit) == false)
                 continue;
 

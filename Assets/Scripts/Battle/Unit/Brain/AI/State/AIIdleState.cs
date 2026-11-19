@@ -8,7 +8,7 @@ public class AIIdleState : AIState
 
     // ------------------------------------------------
 
-    public AIIdleState(MonsterController controller) : base(controller) { }
+    public AIIdleState(AIFeature ai) : base(ai) { }
 
     public override void Enter()
     {
@@ -18,13 +18,13 @@ public class AIIdleState : AIState
 
     public override void Update(float deltaTime)
     {
-        if (m_Controller.CanSeeTarget())
+        if (TargetF.IsInRange(Def.SightRange))
         {
-            m_Controller.ChangeState(EAIState.Chase);
+            m_AI.Change(EAIState.Chase);
             return;
         }
 
         if (TimeInState >= m_Duration)
-            m_Controller.ChangeState(EAIState.Wander);
+            m_AI.Change(EAIState.Wander);
     }
 }

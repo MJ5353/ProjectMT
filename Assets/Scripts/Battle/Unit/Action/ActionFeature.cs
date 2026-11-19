@@ -21,6 +21,7 @@ public class ActionFeature : UnitFeature
     public float TimeInAction => m_Current.Time;
     public bool IsIdle => m_Current == m_Move;
     public AttackAction Attack => m_Attack;     // 지금 공격(Spec)·다음 타 버퍼 가능 여부를 볼 때
+    public AttackSpec ComboNext => m_Attack.Spec?.NextAttack; // 마지막 공격의 콤보 다음 타(AttackSpec.Next). 없으면 null
 
     // 행동이 끝날 때(끝까지 했으면 isFinished, 다른 행동에 끊겼으면 false). 그 뒤 할 일은 판단 쪽이 정한다
     public event Action<EActionType, bool> Ended;
@@ -44,6 +45,7 @@ public class ActionFeature : UnitFeature
     public override void Reset()
     {
         m_Dash?.ResetCooldown();
+        m_Attack.ClearSpec();
         m_Current = m_Move;
         m_Move.Begin();
     }

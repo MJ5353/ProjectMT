@@ -12,7 +12,6 @@ public class HitFeature : UnitFeature
 {
     private const float ChunkHeight = 0.5f;   // 조각이 튀어나오는 높이
 
-    private readonly ETeam m_Team;
     private readonly HitDef m_HitDef;
 
     // 번쩍 ---
@@ -23,9 +22,6 @@ public class HitFeature : UnitFeature
     private static readonly int s_BaseColorID = Shader.PropertyToID("_BaseColor");
     private static MaterialPropertyBlock s_FlashBlock; // 번쩍 색. 같은 흰 머티리얼에 색만 얹는다
 
-    // 부위 ---
-    private PartFeature m_Parts = null; // 버섯 부위가 있는 유닛(몬스터)만
-
     // flag ---
     private float m_InvincibleRemain;
     private float m_FlashRemain;
@@ -34,16 +30,13 @@ public class HitFeature : UnitFeature
     public event Action<HitParams> Hit;
     
     // get ---
-    public ETeam Team => m_Team;
-    public bool IsDead => Owner.HealthF.IsDead;
     public bool IsInvincible => m_InvincibleRemain > 0f;
     public override bool IsUnscaledTime => true;
 
     // ------------------------------------------------
 
-    public HitFeature(UnitController owner, ETeam team, HitDef hitDef, List<Renderer> listFlashRenderer) : base(owner)
+    public HitFeature(UnitController owner, HitDef hitDef, List<Renderer> listFlashRenderer) : base(owner)
     {
-        m_Team = team;
         m_HitDef = hitDef;
 
         foreach (Renderer meshRenderer in listFlashRenderer)
@@ -86,10 +79,10 @@ public class HitFeature : UnitFeature
     // 맞았으면 true
     public bool Receive(in HitParams hit)
     {
-        if (hit.Team == m_Team)
+        if (hit.Team == Owner.Team)
             return false;
 
-        if (IsDead || IsInvincible)
+        if (Owner.IsDead || IsInvincible)
             return false;
 
         // 부위를 맞으면 부위 내구도와 본체 체력이 함께 깎인다. 본체 쪽은 부위의 몸 피해 배율을 곱한다
@@ -97,7 +90,8 @@ public class HitFeature : UnitFeature
         
         int bodyDamage = hit.Damage;
         int partIndex = -1;
-        if (m_Parts != null && m_Parts.TryHit(hit.PartIndex, hit.Damage, out float bodyDamageRate))
+        PartFeature parts = Owner.PartF; // 버섯 부위가 있는 유닛(몬스터)만
+        if (parts != null && parts.TryHit(hit.PartIndex, hit.Damage, out float bodyDamageRate))
         {
             partIndex = hit.PartIndex;
             bodyDamage = Mathf.RoundToInt(hit.Damage * bodyDamageRate);
@@ -112,11 +106,6 @@ public class HitFeature : UnitFeature
         Hit?.Invoke(hit);
 
         return true;
-    }
-
-    public void SetParts(PartFeature parts)
-    {
-        m_Parts = parts;
     }
 
     // 번쩍 ---

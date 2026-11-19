@@ -14,7 +14,7 @@ public class AttackAction : UnitAction
     public override EActionType Type => EActionType.Attack;
     public override bool IsFinished => m_IsStarted && Owner.MeleeF.IsFinished(AttackTime);
 
-    public AttackSpec Spec { get; private set; }
+    public AttackSpec Spec { get; private set; }  // 지금(끝난 뒤엔 마지막) 공격. 콤보 다음 타를 여기서 읽는다
     public float CancelDelay { get; set; }  // 판정 뒤 이 시간이 지나면 다음 공격으로 끊을 수 있다. 0이면 판정 끝나자마자
     public bool CanBufferNext => m_IsStarted && AttackTime >= Spec.HitTime; // 판정 시작 뒤에 누른 것만 다음 타로 받는다(너무 이른 연타는 무시)
 
@@ -38,6 +38,12 @@ public class AttackAction : UnitAction
         Spec = spec;
         m_Direction = direction;
         m_FaceTarget = faceTarget;
+    }
+
+    // 풀에서 다시 꺼낼 때 마지막 공격을 잊는다(콤보가 이어지지 않게)
+    public void ClearSpec()
+    {
+        Spec = null;
     }
 
     public override bool CanInterruptBy(EActionType next)
@@ -67,7 +73,7 @@ public class AttackAction : UnitAction
 
         // 예고: 멈춰서 움츠린다. 방향은 TurnSpeed로만 맞추고, 공격 중에는 고정해서 옆으로 빠질 틈을 준다
         Owner.MoveF.Stop();
-        Owner.AnimF.Play("Idle");
+        Owner.AnimF.Play(AnimKey.Idle);
         m_BaseScale = VisualRoot.localScale;
     }
 

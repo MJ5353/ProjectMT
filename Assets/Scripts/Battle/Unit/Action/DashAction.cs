@@ -6,8 +6,6 @@ using UnityEngine;
 
 public class DashAction : UnitAction
 {
-    private const string DashClip = "Run";
-
     private readonly float m_Speed;
     private readonly float m_Duration;      // 대시 지속 시간(초)
     private readonly float m_Cooldown;      // 대시가 끝난 뒤 다시 쓰기까지
@@ -56,7 +54,7 @@ public class DashAction : UnitAction
         Owner.MoveF.FaceTo(m_Direction, true);
         Owner.MoveF.SetVelocity(m_Direction * m_Speed);
         Owner.AnimF.SetSpeed(m_AnimSpeed);
-        Owner.AnimF.Play(DashClip, true);
+        Owner.AnimF.Play(AnimKey.Run, true);
 
         if (m_IsInvincible)
             Owner.HitF.SetInvincible(m_Duration);

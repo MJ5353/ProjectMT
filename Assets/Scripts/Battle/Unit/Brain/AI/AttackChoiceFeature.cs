@@ -4,7 +4,7 @@ using UnityEngine;
 // ==================================================
 
 // 몬스터 공격 고르기. 후보(Def의 공격 전부)마다 개별 쿨을, 몬스터 전체에 공용 쿨을 돌리고
-// 거리·가중치로 이번 공격(Current)을 고른다. 콤보(AttackSpec.Next)면 다음 타로 넘어간다.
+// 거리·가중치로 이번 공격(Current)을 고른다. 콤보 다음 타는 행동 층(ActionFeature.ComboNext)이 알려 준다.
 // 언제 고를지는 상태(추적·공격)가 정하고, 여기는 고르기와 쿨만 한다
 
 public class AttackChoiceFeature : UnitFeature
@@ -13,7 +13,7 @@ public class AttackChoiceFeature : UnitFeature
     private readonly List<float> m_ListCooldown = new();      // m_ListChoice 칸마다 남은 개별 쿨
     private readonly float m_SharedCooldown;                  // 공격이 끝날 때 거는 공용 쿨(MonsterDef.AttackCooldown)
 
-    public AttackSpec Current { get; private set; }           // 추적에서 고른, 이번에 쓸 공격
+    public AttackSpec Current { get; private set; }           // 추적에서 고른 공격(콤보면 첫 타). 쿨은 이 공격에 건다
     public float CooldownRemain { get; private set; }         // 공용 쿨
 
     // ------------------------------------------------
@@ -79,17 +79,6 @@ public class AttackChoiceFeature : UnitFeature
                 break;
         }
 
-        return true;
-    }
-
-    // 콤보 다음 타가 있으면 Current를 넘기고 true
-    public bool TryContinueCombo()
-    {
-        AttackSpec next = Current?.NextAttack;
-        if (next == null)
-            return false;
-
-        Current = next;
         return true;
     }
 

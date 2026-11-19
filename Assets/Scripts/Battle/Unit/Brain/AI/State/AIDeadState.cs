@@ -11,7 +11,7 @@ public class AIDeadState : AIState
 
     // ------------------------------------------------
 
-    public AIDeadState(MonsterController controller) : base(controller) { }
+    public AIDeadState(AIFeature ai) : base(ai) { }
 
     public override void Enter()
     {

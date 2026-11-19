@@ -15,7 +15,7 @@ public enum ETeam
 
 public readonly struct HitParams
 {
-    public readonly GameObject Attacker;
+    public readonly UnitController Attacker; // 때린 유닛. 맞은 쪽 판단이 노릴 대상으로 쓴다
     public readonly ETeam Team;
     public readonly int Damage;
     
@@ -25,7 +25,7 @@ public readonly struct HitParams
     public readonly Vector3 Point;
     public readonly int PartIndex; // 맞은 부위 번호. -1이면 몸
 
-    public HitParams(GameObject attacker, ETeam team, int damage, Vector3 direction, float knockback, float hitStop, Vector3 point, int partIndex = -1)
+    public HitParams(UnitController attacker, ETeam team, int damage, Vector3 direction, float knockback, float hitStop, Vector3 point, int partIndex = -1)
     {
         Attacker = attacker;
         Team = team;

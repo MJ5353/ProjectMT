@@ -179,7 +179,7 @@ public sealed class ActorService : ServiceBase
         if (actor == null)
             return false;
 
-        return actor.HitF.IsDead == false && actor.HitF.Team != team;
+        return actor.IsDead == false && actor.Team != team;
     }
 }
 

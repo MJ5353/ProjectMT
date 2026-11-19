@@ -9,19 +9,19 @@ public class AIWanderState : AIState
 
     // ------------------------------------------------
 
-    public AIWanderState(MonsterController controller) : base(controller) { }
+    public AIWanderState(AIFeature ai) : base(ai) { }
 
     public override void Enter()
     {
         Vector2 offset = Random.insideUnitCircle * Def.WanderRadius;
-        m_Destination = m_Controller.HomePosition + new Vector3(offset.x, 0f, offset.y);
+        m_Destination = m_AI.HomePosition + new Vector3(offset.x, 0f, offset.y);
     }
 
     public override void Update(float deltaTime)
     {
-        if (m_Controller.CanSeeTarget())
+        if (TargetF.IsInRange(Def.SightRange))
         {
-            m_Controller.ChangeState(EAIState.Chase);
+            m_AI.Change(EAIState.Chase);
             return;
         }
 
@@ -29,7 +29,7 @@ public class AIWanderState : AIState
         diff.y = 0f;
         if (diff.magnitude < 0.3f || TimeInState >= MaxDuration)
         {
-            m_Controller.ChangeState(EAIState.Idle);
+            m_AI.Change(EAIState.Idle);
             return;
         }
 

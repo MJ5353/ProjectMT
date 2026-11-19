@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class AIFleeState : AIState
 {
-    public AIFleeState(MonsterController controller) : base(controller) { }
+    public AIFleeState(AIFeature ai) : base(ai) { }
 
     // ------------------------------------------------
     
@@ -19,11 +19,11 @@ public class AIFleeState : AIState
     {
         if (TimeInState >= Def.FleeTime)
         {
-            m_Controller.ChangeState(EAIState.Chase);
+            m_AI.Change(EAIState.Chase);
             return;
         }
 
-        Vector3 away = -m_Controller.GetTargetDirection();
+        Vector3 away = -TargetF.GetDirection();
         m_Controller.ActionF.SetMove(away, Def.FleeSpeed);
     }
 

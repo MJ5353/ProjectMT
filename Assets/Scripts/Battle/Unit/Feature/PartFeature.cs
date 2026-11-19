@@ -202,8 +202,6 @@ public class PartFeature : UnitFeature
         {
             m_ListPart.Add(CreatePart(i, listEntry[i], owner));
         }
-
-        owner.HitF.SetParts(this);
     }
 
     // 풀에서 다시 꺼낼 때 원상복구하고 소켓을 새로 골라 꽂는다
@@ -287,7 +285,7 @@ public class PartFeature : UnitFeature
         if (part.Entry.Drop == null)
             return;
 
-        EFreshness freshness = Owner.HealthF.IsDead ? EFreshness.Low : EFreshness.High;
+        EFreshness freshness = Owner.IsDead ? EFreshness.Low : EFreshness.High;
         for (int i = 0; i < part.PlacedCount; i++)
         {
             Vector3 position = part.ListMushroom[i].Socket.position;

@@ -24,6 +24,6 @@ public class HitAction : UnitAction
     protected override void Enter()
     {
         Owner.MoveF.Stop();
-        Owner.AnimF.Play("Hit", true);
+        Owner.AnimF.Play(AnimKey.Hit, true);
     }
 }
