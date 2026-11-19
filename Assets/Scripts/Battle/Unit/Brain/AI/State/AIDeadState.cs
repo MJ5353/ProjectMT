@@ -2,7 +2,7 @@ using UnityEngine;
 
 // ==================================================
 
-public class AIDeadState : AIState
+public class AIDeadState : MonsterState
 {
     private const float CollisionOffTime = 0.4f;
     private const float DestroyTime = 2f;
@@ -11,7 +11,7 @@ public class AIDeadState : AIState
 
     // ------------------------------------------------
 
-    public AIDeadState(AIBrain ai) : base(ai) { }
+    public AIDeadState(MonsterBrain ai) : base(ai) { }
 
     public override void Enter()
     {
