@@ -4907,4 +4907,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c55b92f825aa3984f8f8aa19a71dd888, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AttackEffect
+  m_Particle: {fileID: 3537664902353672948}
   <IsOnGround>k__BackingField: 0

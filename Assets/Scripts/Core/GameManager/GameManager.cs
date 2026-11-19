@@ -36,7 +36,7 @@ public class GameManager : MonoSingleton<GameManager>
     // service
     public BattleService BattleS { get; private set; }
     public ActorService ActorS { get; private set; }
-    public ChunkBurstService ChunkS { get; private set; }
+    public EffectService EffectS { get; private set; }
     public HitStopService HitStopS { get; private set; }
     public PopupService PopupS { get; private set; }
 
@@ -63,7 +63,7 @@ public class GameManager : MonoSingleton<GameManager>
 #endif
 
             ActorS = Register(new ActorService());
-            ChunkS = Register(new ChunkBurstService());
+            EffectS = Register(new EffectService());
             HitStopS = Register(new HitStopService());
             BattleS = Register(new BattleService(mapDef));
         }
@@ -111,7 +111,7 @@ public class GameManager : MonoSingleton<GameManager>
         m_ListService.Clear();
         BattleS = null;
         ActorS = null;
-        ChunkS = null;
+        EffectS = null;
         HitStopS = null;
         PopupS = null;
         

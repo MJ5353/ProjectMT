@@ -6,9 +6,9 @@ using UnityEngine.Rendering;
 
 // 피격 복셀 조각과 타격 마크(맞은 자리의 도트 별)를 한곳에서 움직이고 그린다. 조각마다 게임 오브젝트를 만들지 않는다.
 // 색마다 미리 잡아 둔 배열을 재사용하고, Graphics.RenderMeshInstanced로 색 하나당 한 번에 그린다.
-// GameManager가 매 프레임 갱신하고 전투 씬이 닫힐 때 정리한다.
+// EffectService가 들고 매 프레임 갱신하고, 전투 씬이 닫힐 때 정리한다.
 
-public sealed class ChunkBurstService : ServiceBase
+public sealed class ChunkRenderer
 {
     private const int MaxChunkPerColor = 256;   // 색 하나에 동시에 떠 있을 수 있는 조각 수. 넘치면 새 조각을 건너뛴다
     private const int BurstCount = 6;           // 한 번 맞을 때 튀는 조각 수
@@ -112,10 +112,12 @@ public sealed class ChunkBurstService : ServiceBase
         }
     }
 
-    // 맞은 자리에 도트 별 모양 마크를 띄운다. 카메라를 향한 판에 칸을 찍고, 중심에서 퍼지며 줄어든다
-    // 부위를 맞으면 도트가 크고 오래 남고, 바깥에 빨간 빛살이 더해진다
     public void Mark(Vector3 point, bool isPart)
     {
+        // 맞은 자리에 도트 별 모양 마크를 띄운다. 카메라를 향한 판에 칸을 찍고, 중심에서 퍼지며 줄어든다
+        // 부위를 맞으면 도트가 크고 오래 남고, 바깥에 빨간 빛살이 더해진다
+
+        // [mj] todo) camera manager
         Camera camera = Camera.main;
         if (camera == null)
             return;
@@ -134,7 +136,7 @@ public sealed class ChunkBurstService : ServiceBase
     }
 
     // 히트스톱(timeScale 0) 중에는 deltaTime이 0이라 멈춘 채로 그려진다
-    public override void Tick(float deltaTime)
+    public void Tick(float deltaTime)
     {
         foreach (ChunkBatch batch in m_DicBatch.Values)
         {
@@ -148,7 +150,7 @@ public sealed class ChunkBurstService : ServiceBase
         }
     }
 
-    public override void Clear()
+    public void Clear()
     {
         m_DicBatch.Clear();
         m_Material = null;   // 에셋(Resources)이라 지우지 않는다
@@ -191,6 +193,7 @@ public sealed class ChunkBurstService : ServiceBase
                 LifeTime = lifeTime,
                 Age = 0f,
             };
+            
             batch.Count++;
         }
     }

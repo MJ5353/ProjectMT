@@ -142,7 +142,8 @@ public class MeleeAttackFeature : UnitFeature
     // 판정 자리(땅 이펙트는 발밑)에 주인 방향으로 터뜨리고 판정 반지름만큼 키운다
     private void PlayEffect(AttackSpec spec)
     {
-        if (spec.Effect == null)
+        EffectService effectS = GameManager.Instance?.EffectS;
+        if (spec.Effect == null || effectS == null)
             return;
 
         Transform owner = Owner.transform;
@@ -150,7 +151,7 @@ public class MeleeAttackFeature : UnitFeature
         if (spec.Effect.IsOnGround)
             position.y = owner.position.y;
 
-        EffectController.Play(spec.Effect, position, owner.rotation, spec.Radius);
+        effectS.Play(spec.Effect, position, owner.rotation, spec.Radius);
     }
 
     private int Perform(AttackSpec spec)

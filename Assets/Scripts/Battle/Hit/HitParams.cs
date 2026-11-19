@@ -48,6 +48,5 @@ public interface IHitTarget
     Transform transform { get; }
     HitFeature HitFeature { get; }
     CharacterController HurtBody { get; }
-    IReadOnlyList<HitShape> ListHitShape { get; } // 뼈 판정 모양. 비면 HurtBody 캡슐로 판정
-    float HitBoundRadius { get; }                 // 몸 중심(transform)에서 모양들을 감싸는 반지름. 후보 거르기용
+    HitBoxFeature HitBox { get; }                 // 뼈 판정 모양. 없거나 비면 HurtBody 캡슐로 판정
 }

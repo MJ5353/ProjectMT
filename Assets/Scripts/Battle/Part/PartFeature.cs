@@ -238,6 +238,7 @@ public class PartFeature : UnitFeature
         
         if (part.TakeDamage(damage))
         {
+            PlayBreakEffect(part);
             SpawnDrops(part);
             Broken?.Invoke(part);
         }
@@ -266,6 +267,19 @@ public class PartFeature : UnitFeature
     }
 
     // ==================================================
+
+    // 꽂힌 버섯 자리마다 깨짐 이펙트
+    private static void PlayBreakEffect(Part part)
+    {
+        EffectService effectS = GameManager.Instance?.EffectS;
+        if (effectS == null)
+            return;
+
+        for (int i = 0; i < part.PlacedCount; i++)
+        {
+            effectS.Play(effectS.PartBreak, part.ListMushroom[i].Socket.position, Quaternion.identity);
+        }
+    }
 
     // 꽂힌 버섯 하나마다 확정 드롭. 살아 있을 때 깨면 상급, 죽은 뒤면 하급
     private void SpawnDrops(Part part)

@@ -110,4 +110,11 @@ public class ResourceManager : MonoSingleton<ResourceManager>
         if (m_PoolRoot != null)
             Destroy(m_PoolRoot.gameObject);
     }
+    
+    // static ---
+
+    public static void S_Despawn(PoolableMono instance)
+    {
+        Instance?.Despawn(instance);
+    }
 }

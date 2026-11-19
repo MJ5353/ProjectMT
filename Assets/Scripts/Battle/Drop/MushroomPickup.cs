@@ -22,7 +22,7 @@ public class MushroomPickup : PoolableMono
     private const float ActivateDelay = 0.5f;    // 떨어진 뒤 주울 수 있기까지(초)
     private const float SpinSpeed = 120f;        // 바닥에서 도는 속도(초당 각도)
 
-    [SerializeField] private string m_ItemID = "Mushroom_001_Songi";   // 인벤토리에 넣을 ID(MushroomDef ID)
+    [SerializeField] private string m_ItemID = string.Empty;       // 인벤토리에 넣을 ID(MushroomDef ID)
     [SerializeField] private int m_Amount = 1;                     // 한 번에 주워지는 개수
 
     private Vector3 m_Velocity;
@@ -78,8 +78,11 @@ public class MushroomPickup : PoolableMono
         // 땅에 닿으면 멈춘다(콜라이더가 있는 지형만)
         Vector3 rayStart = transform.position + Vector3.up * 0.5f;
         float rayLength = 0.5f + Mathf.Max(0f, -m_Velocity.y * deltaTime) + 0.05f;
-        if (m_Velocity.y < 0f && Physics.Raycast(rayStart, Vector3.down, out RaycastHit hitInfo, rayLength, ~0, QueryTriggerInteraction.Ignore)
-            && hitInfo.collider.GetComponentInParent<CharacterController>() == null) // !!) 보류: 콜라이더에서 대상 찾기. 레이어 검사로 바꿀지 검토
+
+        // [mj] todo) 콜라이더에서 대상 찾기. 레이어 검사로 바꿀지 검토
+        if (m_Velocity.y < 0f &&
+            Physics.Raycast(rayStart, Vector3.down, out RaycastHit hitInfo, rayLength, ~0, QueryTriggerInteraction.Ignore) &&
+            hitInfo.collider.GetComponentInParent<CharacterController>() == null)
         {
             next.y = hitInfo.point.y;
             m_GroundY = next.y;
@@ -108,6 +111,7 @@ public class MushroomPickup : PoolableMono
 
         Vector3 target = player.transform.position + Vector3.up * 0.8f;
         transform.position = Vector3.MoveTowards(transform.position, target, MagnetSpeed * deltaTime);
+        
         if (Vector3.Distance(transform.position, target) > CollectDistance)
             return;
 
@@ -126,6 +130,9 @@ public class MushroomPickup : PoolableMono
     private void Collect()
     {
         SEventManager.Publish(new LootPicked(m_ItemID, m_Amount, Freshness));
-        ResourceManager.Instance.Despawn(this);
+        EffectService effectS = GameManager.Instance?.EffectS;
+        effectS?.Play(effectS.Pickup, transform.position, Quaternion.identity);
+        
+        ResourceManager.S_Despawn(this);
     }
 }
