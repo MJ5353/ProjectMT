@@ -15,7 +15,7 @@ public sealed class EffectService : ServiceBase
     public EffectController PartBreak { get; private set; } // 부위(버섯) 깨짐
     public EffectController Death { get; private set; }     // 몬스터 사망. 발밑
     public EffectController Pickup { get; private set; }    // 버섯 줍기
-
+    
     // ------------------------------------------------
 
     public override void Init()

@@ -7,10 +7,44 @@ using UnityEngine;
 
 public class CameraManager : MonoSingleton<CameraManager>
 {
+    private const float ShakeInRatio = 0.2f; // 흔들림 시간 중 다가가는 구간 비율. 나머지는 부드럽게 복귀
+
     public Camera Main { get; private set; }
+    private float m_ShakeStrength;
+    private float m_ShakeTime;
+    private float m_ShakeStart;
+    
     public Transform MainTransform => Main != null ? Main.transform : null;
 
+    // 지금 카메라가 다가가 있는 정도(카메라 거리 비율). 실제 시간 기준이라 히트스톱 중에도 움직인다
+    public float ShakeAmount
+    {
+        get
+        {
+            if (m_ShakeTime <= 0f)
+                return 0f;
+
+            float t = (Time.unscaledTime - m_ShakeStart) / m_ShakeTime;
+            if (t >= 1f)
+                return 0f;
+
+            float curve = t < ShakeInRatio ? t / ShakeInRatio : Mathf.SmoothStep(0f, 1f, (1f - t) / (1f - ShakeInRatio));
+            return m_ShakeStrength * curve;
+        }
+    }
+
     // ------------------------------------------------
+
+    // 겹친 요청은 지금 다가가 있는 정도보다 셀 때만 새로 시작한다
+    public void Shake(float strength, float duration)
+    {
+        if (strength <= 0f || duration <= 0f || strength < ShakeAmount)
+            return;
+
+        m_ShakeStrength = strength;
+        m_ShakeTime = duration;
+        m_ShakeStart = Time.unscaledTime;
+    }
 
     public void SetMain(Camera mainCamera)
     {
@@ -26,10 +60,9 @@ public class CameraManager : MonoSingleton<CameraManager>
             Main = null;
     }
 
-    // virtual ---
-
     protected override void OnClear()
     {
         Main = null;
+        m_ShakeTime = 0f;
     }
 }

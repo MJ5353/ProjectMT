@@ -244,7 +244,7 @@ public class AttackAction : UnitAction
             direction.y = 0f;
             direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : owner.forward;
 
-            HitParams hit = new(Owner, team, Spec.Damage, direction, Spec.Knockback, Spec.HitStop, point, partIndex, Spec.Break);
+            HitParams hit = new(Owner, team, Spec, direction, point, partIndex);
             if (candidate.Unit.HitF.Receive(hit))
                 m_SetHit.Add(candidate.Unit);
         }

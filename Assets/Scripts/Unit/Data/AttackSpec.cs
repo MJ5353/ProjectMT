@@ -42,6 +42,8 @@ public class AttackSpec
     public float HitStop { get; private set; } = 0.06f; // 맞을 때 화면이 멈추는 시간(초)
 
     [field: SerializeField]
+    public float Shake { get; private set; } = 0.025f; // 맞을 때 카메라가 다가오는 세기(카메라 거리 비율). 0이면 안 흔듦. 막타 등 강한 타격은 높게
+    [field: SerializeField]
     public float Break { get; private set; } = 1f; // 경직 가중치. 맞은 쪽에 쌓여 UnitDef.BreakImmune을 넘으면 경직. 막타·회오리 등은 높게
 
     [field: SerializeField, FormerlySerializedAs("m_Lunge")]

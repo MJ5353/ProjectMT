@@ -14,7 +14,6 @@ public static class CommonPath
     public const string PartBreakEffect = EffectDir + "FX_PartBreak";
     public const string DeathEffect = EffectDir + "FX_Death";
     public const string PickupEffect = EffectDir + "FX_Pickup";
-
     // 콘텐츠 리소스는 폴더 + 이름(Def ID)으로 찾는다. Def는 프리팹을 참조하지 않는다
     public const string ActorDir = "Prefabs/Actor/";           // 플레이어 프리팹(Player)
     public const string MonsterDir = ActorDir + "Monster/";    // 몬스터 프리팹(Monster_NNN_Key)

@@ -14,8 +14,9 @@ public enum EHitReaction
     Flash = 1 << 1,        // 몸이 하얗게 번쩍
     HitStop = 1 << 2,      // 화면 잠깐 멈춤
     ChunkBurst = 1 << 3,   // 복셀 조각 튀김
+    CameraShake = 1 << 4,  // 카메라가 잠깐 다가왔다 복귀
 
-    Default = Knockback | Flash | HitStop | ChunkBurst,
+    Default = Knockback | Flash | HitStop | ChunkBurst | CameraShake,
 }
 
 // ==================================================
@@ -46,6 +47,9 @@ public class HitDef : DataDef
 
     [field: SerializeField]
     public Color ChunkColor { get; private set; } = new(0.85f, 0.75f, 0.6f);      // 튀는 복셀 조각 색
+
+    [field: SerializeField]
+    public float ShakeTime { get; private set; } = 0.15f;                         // 카메라 흔들림 시간(실제 초). 세기는 공격 쪽 AttackSpec.Shake
 
     // ------------------------------------------------
 

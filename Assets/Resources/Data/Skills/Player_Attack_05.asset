@@ -27,6 +27,7 @@ MonoBehaviour:
     <Height>k__BackingField: 0.7
     <Knockback>k__BackingField: 9
     <HitStop>k__BackingField: 0.1
+    <Shake>k__BackingField: 0.025
     <Lunge>k__BackingField: 2
     <ActiveMoveSpeed>k__BackingField: 0
     <RehitFrame>k__BackingField: 0

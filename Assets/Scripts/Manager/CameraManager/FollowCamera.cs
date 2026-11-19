@@ -15,6 +15,7 @@ public class FollowCamera : MonoBehaviour
 
     private Transform m_Target;
     private Vector3 m_Velocity;
+    private Vector3 m_BasePosition; // 흔들림을 뺀 추적 위치. 흔들림이 SmoothDamp에 섞이지 않게 따로 든다
 
     // ------------------------------------------------
 
@@ -30,8 +31,11 @@ public class FollowCamera : MonoBehaviour
         if (m_Target == null)
             return;
 
-        transform.position = Vector3.SmoothDamp(transform.position, GetDesiredPosition(), ref m_Velocity, SmoothTime);
-        transform.rotation = GetRotation();
+        m_BasePosition = Vector3.SmoothDamp(m_BasePosition, GetDesiredPosition(), ref m_Velocity, SmoothTime);
+        
+        float shake = CameraManager.Instance?.ShakeAmount ?? 0f;
+        Quaternion rotation = GetRotation();
+        transform.SetPositionAndRotation(m_BasePosition + rotation * Vector3.forward * (Distance * shake), rotation);
     }
 
     public void SetTarget(Transform target)
@@ -40,7 +44,8 @@ public class FollowCamera : MonoBehaviour
         if (m_Target == null)
             return;
 
-        transform.SetPositionAndRotation(GetDesiredPosition(), GetRotation());
+        m_BasePosition = GetDesiredPosition();
+        transform.SetPositionAndRotation(m_BasePosition, GetRotation());
     }
 
     private static Quaternion GetRotation()

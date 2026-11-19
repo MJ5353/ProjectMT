@@ -12,14 +12,14 @@ using UnityEngine;
 
 public class HitFeature : UnitFeature
 {
-    private const float ChunkHeight = 0.5f;   // 조각이 튀어나오는 높이
-    private const float BoundMargin = 1.3f;   // 애니로 뼈가 뻗는 만큼 감싸는 반지름에 더 주는 배율
+    private const float ChunkHeight = 0.5f; // 조각이 튀어나오는 높이
+    private const float BoundMargin = 1.3f; // 애니로 뼈가 뻗는 만큼 감싸는 반지름에 더 주는 배율
 
     private readonly HitDef m_HitDef;
     private readonly List<HitShape> m_ListShape = new(); // 만들 때 한 번 정하고 풀 재사용 때도 그대로
 
     public event Action<HitParams, bool> Hit; // bool: 경직하는 타격인지
-    public float BoundRadius { get; private set; }  // 몸 중심(transform)에서 모양들을 감싸는 반지름. 후보 거르기용
+    public float BoundRadius { get; private set; } // 몸 중심(transform)에서 모양들을 감싸는 반지름. 후보 거르기용
 
     // 번쩍
     private readonly List<Renderer> m_ListFlashRenderer = new();
@@ -32,12 +32,12 @@ public class HitFeature : UnitFeature
     // flag
     private float m_InvincibleRemain;
     private float m_FlashRemain;
-    private float m_BreakStack;     // 쌓인 경직
-    private float m_BreakIdleTime;  // 마지막 타격 뒤 지난 게임 시간
-    
+    private float m_BreakStack; // 쌓인 경직
+    private float m_BreakIdleTime; // 마지막 타격 뒤 지난 게임 시간
+
     // get
     public bool IsInvincible => m_InvincibleRemain > 0f;
-    public bool IsHidden { get; private set; }      // 숨음(땅속 등): 맞지 않고 대상 찾기·조준에서도 빠진다
+    public bool IsHidden { get; private set; } // 숨음(땅속 등): 맞지 않고 대상 찾기·조준에서도 빠진다
     public IReadOnlyList<HitShape> ListShape => m_ListShape;
     public bool HasShape => m_ListShape.Count > 0;
     public override bool IsUnscaledTime => true;
@@ -138,7 +138,7 @@ public class HitFeature : UnitFeature
 
         // 부위를 맞으면 부위 내구도와 본체 체력이 함께 깎인다. 본체 쪽은 부위의 몸 피해 배율을 곱한다
         // 깨졌거나 자라는 중이거나 장식인 부위는 몸으로 친다(번쩍도 몸)
-        
+
         int bodyDamage = hit.Damage;
         int partIndex = -1;
         PartFeature parts = Owner.PartF; // 버섯 부위가 있는 유닛(몬스터)만
@@ -168,7 +168,7 @@ public class HitFeature : UnitFeature
 
         m_BreakStack += breakPower;
         m_BreakIdleTime = 0f;
-        
+
         if (m_BreakStack <= Owner.Def.BreakImmune)
             return false;
 
@@ -221,6 +221,9 @@ public class HitFeature : UnitFeature
 
         if (m_HitDef.Has(EHitReaction.ChunkBurst))
             ApplyChunkBurst(hit, partIndex);
+
+        if (m_HitDef.Has(EHitReaction.CameraShake))
+            ApplyCameraShake(hit);
     }
 
     private void ApplyKnockback(in HitParams hit)
@@ -255,6 +258,11 @@ public class HitFeature : UnitFeature
     private void ApplyHitStop(in HitParams hit)
     {
         GameManager.Instance?.HitStopS?.Request(hit.HitStop);
+    }
+
+    private void ApplyCameraShake(in HitParams hit)
+    {
+        CameraManager.Instance?.Shake(hit.Shake, m_HitDef.ShakeTime);
     }
 
     // 전투 씬이 아니면 조각을 튀기지 않는다. 타격 마크는 실제 맞은 자리(부위 표면)에 띄운다

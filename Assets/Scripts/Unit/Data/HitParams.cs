@@ -25,18 +25,20 @@ public readonly struct HitParams
     public readonly Vector3 Point;
     public readonly int PartIndex; // 맞은 부위 번호. -1이면 몸
     public readonly float Break; // 경직 가중치(AttackSpec.Break)
-
-    public HitParams(UnitController attacker, ETeam team, int damage, Vector3 direction, float knockback, float hitStop, Vector3 point, int partIndex = -1, float breakPower = 1f)
+    public readonly float Shake; // 카메라 흔들림 세기(AttackSpec.Shake)
+    
+    // 공격 수치는 AttackSpec에서 채운다. AttackSpec 없는 피해(함정 등)가 생기면 생성자를 따로 둔다
+    public HitParams(UnitController attacker, ETeam team, AttackSpec spec, Vector3 direction, Vector3 point, int partIndex = -1)
     {
         Attacker = attacker;
         Team = team;
-        Damage = damage;
-        
+        Damage = spec.Damage;
+
         Direction = direction;
-        Knockback = knockback;
-        HitStop = hitStop;
+        Knockback = spec.Knockback;
+        HitStop = spec.HitStop;
         Point = point;
         PartIndex = partIndex;
-        Break = breakPower;
-    }
+        Break = spec.Break;
+        Shake = spec.Shake;    }
 }
