@@ -194,7 +194,7 @@ public static class BattleSetup
     private static void BuildScene()
     {
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
-        SceneController sceneController = new GameObject(nameof(SceneController)).AddComponent<SceneController>();
+        BattleSceneController sceneController = new GameObject(nameof(BattleSceneController)).AddComponent<BattleSceneController>();
 
         // 맵·플레이어는 씬에 두지 않고 플레이 때 BattleService가 만든다
         Camera cam = Object.FindAnyObjectByType<Camera>();
@@ -207,7 +207,7 @@ public static class BattleSetup
         new GameObject(nameof(BattleHud)).AddComponent<BattleHud>();
         RectTransform popupRoot = UIBuilder.CreateCanvas("BattlePopupCanvas", 110);
         MapDef mapDef = AssetDatabase.LoadAssetAtPath<MapDef>(CommonPath.DefaultMapDef);
-        sceneController.EditorSetup(popupRoot, mapDef);
+        sceneController.EditorSetup(popupRoot, cam, mapDef);
 
         // 결과 화면(UI 스레드 담당)
         BattleUISetup.AddResultScreen();

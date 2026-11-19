@@ -79,10 +79,6 @@ public sealed class EffectService : ServiceBase
 
     private static EffectController Load(string resourcePath)
     {
-        EffectController prefab = Resources.Load<EffectController>(resourcePath);
-        if (prefab == null)
-            CLogger.Warning("EffectService", $"Resources/{resourcePath} 이펙트 프리팹이 없습니다.");
-
-        return prefab;
+        return ResourceManager.Instance?.Load<EffectController>(resourcePath);
     }
 }

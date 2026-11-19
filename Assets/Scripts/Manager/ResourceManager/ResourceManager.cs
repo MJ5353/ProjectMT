@@ -5,7 +5,8 @@ using UnityEngine.SceneManagement;
 // ==================================================
 
 // PoolableMono를 만들고, 돌려받고, 다시 꺼내 쓴다. 프리팹마다 꺼 둔 인스턴스를 쌓아 둔다.
-// [Managers] 루트 아래에 있어 씬이 바뀌어도 남는다(SceneController가 Create).
+// Resources 에셋 로드(Load)도 여기서 한 번만 하고 캐시한다. 경로는 CommonPath.
+// [Managers] 루트 아래에 있어 씬이 바뀌어도 남는다(SceneControllerBase가 Create).
 // 돌려받은 인스턴스는 이 오브젝트 아래(Pool)에 보관해서 씬이 바뀌어도 다시 쓴다
 
 public class ResourceManager : MonoSingleton<ResourceManager>
@@ -14,8 +15,24 @@ public class ResourceManager : MonoSingleton<ResourceManager>
     private Transform m_PoolRoot;
     
     private readonly Dictionary<int, Stack<PoolableMono>> m_DicPool = new();   // 프리팹 InstanceID → 꺼 둔 인스턴스
+    private readonly Dictionary<string, Object> m_DicLoaded = new();          // Resources 경로 → 로드한 에셋(없으면 null로 남겨 에러를 한 번만)
 
     // ------------------------------------------------
+
+    // Resources에서 한 번만 로드해 캐시한다. 없으면 null(에러는 경로마다 한 번)
+    public T Load<T>(string resourcePath, string missingHint = null) where T : Object
+    {
+        if (m_DicLoaded.TryGetValue(resourcePath, out Object cached))
+            return cached as T;
+
+        T asset = Resources.Load<T>(resourcePath);
+        m_DicLoaded.Add(resourcePath, asset);
+        
+        if (asset == null)
+            CLogger.Error("ResourceManager", $"Resources/{resourcePath} 에셋이 없습니다. {missingHint}");
+
+        return asset;
+    }
 
     // 풀에 있으면 꺼내 켜고, 없으면 새로 만든다. 켜기 전에 위치를 옮겨서 CharacterController가 덮어쓰지 않게 한다
     public T Spawn<T>(T prefab, Vector3 position, Quaternion rotation) where T : PoolableMono
@@ -106,6 +123,7 @@ public class ResourceManager : MonoSingleton<ResourceManager>
         }
 
         m_DicPool.Clear();
+        m_DicLoaded.Clear();
         
         if (m_PoolRoot != null)
             Destroy(m_PoolRoot.gameObject);

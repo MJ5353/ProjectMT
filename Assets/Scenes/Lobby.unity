@@ -5171,11 +5171,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 2138330100}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ca41729fafa0474b84f14bd2ca562e40, type: 3}
+  m_Script: {fileID: 11500000, guid: c558063ee2504700880c64b62d60d33e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::SceneController
+  m_EditorClassIdentifier: Assembly-CSharp::LobbySceneController
   m_UIRoot: {fileID: 1711432594}
-  m_DefaultRegion: {fileID: 0}
+  m_MainCamera: {fileID: 1493345826}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

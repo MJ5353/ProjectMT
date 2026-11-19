@@ -42,7 +42,8 @@ public class GameManager : MonoSingleton<GameManager>
 
     // ------------------------------------------------
 
-    internal void InitSceneServices(Scene scene, MapDef defaultMap)
+    // 씬 전용 Service는 씬 컨트롤러가 정하고(RegisterServices), 공용(팝업)은 여기서 넣는다
+    internal void InitSceneServices(Scene scene, SceneControllerBase sceneController)
     {
         if (m_ServiceScene == scene)
             return;
@@ -50,24 +51,7 @@ public class GameManager : MonoSingleton<GameManager>
         ClearSceneServices(m_ServiceScene);
         m_ServiceScene = scene;
 
-        if (GetStateByScene(scene.name) == EGameState.Battle)
-        {
-            MapDef mapDef = PlayerDataManager.Instance?.Hunt.SelectedMap;
-            if (mapDef == null)
-                mapDef = defaultMap;
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            // Battle 씬을 바로 실행하면 고른 지역이 없다. 개발용 기본 지역을 쓴다
-            if (mapDef == null)
-                mapDef = DebugPanel.GetDefaultMap(Database);
-#endif
-
-            UnitS = Register(new UnitService());
-            EffectS = Register(new EffectService());
-            HitStopS = Register(new HitStopService());
-            BattleS = Register(new BattleService(mapDef));
-        }
-
+        sceneController.RegisterServices(this);
         PopupS = Register(new PopupService());
         foreach (ServiceBase service in m_ListService)
         {
@@ -75,16 +59,22 @@ public class GameManager : MonoSingleton<GameManager>
         }
 
         if (Current == EGameState.None && IsTransitioning == false)
-            ChangeState(GetStateByScene(scene.name));
-        
-        return;
-        
-        // 
-        T Register<T>(T service) where T : ServiceBase
-        {
-            m_ListService.Add(service);
-            return service;
-        }
+            ChangeState(sceneController.State);
+    }
+
+    // BattleSceneController가 부른다
+    public void RegisterBattleServices(MapDef mapDef)
+    {
+        UnitS = Register(new UnitService());
+        EffectS = Register(new EffectService());
+        HitStopS = Register(new HitStopService());
+        BattleS = Register(new BattleService(mapDef));
+    }
+
+    private T Register<T>(T service) where T : ServiceBase
+    {
+        m_ListService.Add(service);
+        return service;
     }
 
     internal void TickSceneServices(Scene scene, float deltaTime)
@@ -131,15 +121,6 @@ public class GameManager : MonoSingleton<GameManager>
             default: // 결과(Result)처럼 씬이 따로 없는 상태는 null
                 return null;
         }
-    }
-
-    public static EGameState GetStateByScene(string sceneName)
-    {
-        // 에디터에서 아무 씬이나 바로 플레이해도 흐름이 맞게 시작하도록 씬 이름으로 상태를 추정한다
-        if (sceneName == SceneNames.Battle)
-            return EGameState.Battle;
-
-        return EGameState.Lobby;
     }
 
     public bool CanChange(EGameState next)
@@ -218,10 +199,8 @@ public class GameManager : MonoSingleton<GameManager>
 
     protected override void OnInit()
     {
-        Database = Resources.Load<GameDatabase>(CommonPath.GameDatabase);
-        if (Database == null)
-            CLogger.Error("GameManager", $"Resources/{CommonPath.GameDatabase} 데이터베이스가 없습니다. MushTaker/데이터 편집기에서 DB 갱신을 실행하세요.");
-        else
+        Database = ResourceManager.Instance?.Load<GameDatabase>(CommonPath.GameDatabase, "MushTaker/데이터 편집기에서 DB 갱신을 실행하세요.");
+        if (Database != null)
             Database.Init();
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

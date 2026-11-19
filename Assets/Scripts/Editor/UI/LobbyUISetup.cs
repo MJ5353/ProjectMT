@@ -43,7 +43,7 @@ public static class LobbyUISetup
     private static void BuildScene()
     {
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-        SceneController sceneController = new GameObject(nameof(SceneController)).AddComponent<SceneController>();
+        LobbySceneController sceneController = new GameObject(nameof(LobbySceneController)).AddComponent<LobbySceneController>();
 
         // UI만 있는 씬이라 카메라는 바탕색만 칠한다
         Camera cam = new GameObject("Main Camera", typeof(Camera)).GetComponent<Camera>();
@@ -70,7 +70,7 @@ public static class LobbyUISetup
         BuildTabBar(safe, listView);
 
         RectTransform popupRoot = UIBuilder.Stretch("PopupRoot", safe);
-        sceneController.EditorSetup(popupRoot);
+        sceneController.EditorSetup(popupRoot, cam);
 
         EditorSceneManager.SaveScene(scene, CommonPath.LobbyScene);
         AddToBuildSettings();

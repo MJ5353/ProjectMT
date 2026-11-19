@@ -117,8 +117,7 @@ public sealed class ChunkRenderer
         // 맞은 자리에 도트 별 모양 마크를 띄운다. 카메라를 향한 판에 칸을 찍고, 중심에서 퍼지며 줄어든다
         // 부위를 맞으면 도트가 크고 오래 남고, 바깥에 빨간 빛살이 더해진다
 
-        // [mj] todo) camera manager
-        Camera camera = Camera.main;
+        Camera camera = CameraManager.Instance?.Main;
         if (camera == null)
             return;
 

@@ -149,3 +149,9 @@
 - 17일은 당시 이력으로 간단히 복원하고, 18일은 핵심 판단 위주로 줄여 보조 작업을 작은 주제로 통합.
 - 확정한 목록 형식·주제 통합·중요도별 분량 기준을 에이전트 지침과 문서 관리 규칙에 반영.
 - 커밋·푸시·추가 검증·테스트 안 함.
+
+## 입력·카메라·씬 컨트롤러 정리
+
+- 직접 1118 점검 잔여 항목을 논의하고 입력 생성 클래스·CameraManager·씬 컨트롤러 분리를 결정, 생성 클래스는 직접 만들고 자리(InputManager·CameraManager)를 잡음.
+- AI가 InputManager·CameraManager 구현, PlayerBrain 입력·카메라 교체, ResourceManager.Load 통일, SceneController를 Base·Battle·Lobby로 나누고 씬 파일 스크립트 참조를 옮김.
+- 씬 이름 분기는 각 씬 컨트롤러가 Service를 정하는 방식으로 바꿈. 컴파일·플레이·커밋 안 함.

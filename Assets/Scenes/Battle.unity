@@ -501,10 +501,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1020315745}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ca41729fafa0474b84f14bd2ca562e40, type: 3}
+  m_Script: {fileID: 11500000, guid: 3bfac63b03764c7f9eaf9c81ba4a1af2, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SceneController
+  m_EditorClassIdentifier: Assembly-CSharp::BattleSceneController
   m_UIRoot: {fileID: 1479169397}
+  m_MainCamera: {fileID: 325547326}
   m_DefaultMap: {fileID: 0}
 --- !u!4 &1020315747
 Transform:

@@ -6,27 +6,12 @@ using UnityEngine;
 // 에셋은 MushTaker/초기 설정/누락 전투 에셋 복구에서 만든다.
 // Resources에 있는 머티리얼은 빌드에 셰이더와 함께 들어간다
 
-// [mj] todo) resource manager?
+// 로드·캐시는 ResourceManager가 한다
 
 public static class HitMaterials
 {
-    public static Material Flash => Load(ref s_Flash, CommonPath.HitFlashMaterial);
-    private static Material s_Flash;
+    private const string MissingHint = "MushTaker/초기 설정/누락 전투 에셋 복구를 실행하세요.";
 
-    public static Material Chunk => Load(ref s_Chunk, CommonPath.HitChunkMaterial);
-    private static Material s_Chunk;
-
-    // ==================================================
-
-    private static Material Load(ref Material cache, string resourcePath)
-    {
-        if (cache != null)
-            return cache;
-
-        cache = Resources.Load<Material>(resourcePath);
-        if (cache == null)
-            CLogger.Error("HitMaterials", $"Resources/{resourcePath} 머티리얼이 없습니다. MushTaker/초기 설정/누락 전투 에셋 복구를 실행하세요.");
-
-        return cache;
-    }
+    public static Material Flash => ResourceManager.Instance?.Load<Material>(CommonPath.HitFlashMaterial, MissingHint);
+    public static Material Chunk => ResourceManager.Instance?.Load<Material>(CommonPath.HitChunkMaterial, MissingHint);
 }
