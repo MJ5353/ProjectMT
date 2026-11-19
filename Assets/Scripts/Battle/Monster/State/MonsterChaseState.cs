@@ -15,9 +15,9 @@ public class MonsterChaseState : MonsterState
         }
 
         // 쓸 수 있는 공격이 있으면 예고(없으면 바로 공격)
-        if (m_Controller.TryPickAttack(distance))
+        if (m_Controller.AttackChoice.TryPick(distance))
         {
-            bool hasWindup = m_Controller.CurrentAttack.WindupTime > 0f;
+            bool hasWindup = m_Controller.AttackChoice.Current.WindupTime > 0f;
             m_Controller.ChangeState(hasWindup ? EMonsterState.Windup : EMonsterState.Attack);
             return;
         }

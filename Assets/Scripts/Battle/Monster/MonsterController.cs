@@ -22,16 +22,13 @@ public enum EMonsterState
 public class MonsterController : UnitController<MonsterDef>
 {
     private readonly StateMachine<EMonsterState> m_Fsm = new();
-    private readonly List<AttackSpec> m_ListAttackChoice = new(); // 고를 수 있는 공격: Def.ListSkill
-    private readonly List<float> m_ListAttackCooldown = new();  // m_ListAttackChoice 칸마다 남은 개별 쿨
     private const float PartDropUpSpeed = 5f;     // 부위 버섯이 튀어 오르는 속도
     private const float PartDropSpread = 2f;      // 부위 버섯이 옆으로 퍼지는 속도
 
     public Transform Target { get; private set; }
     public Vector3 HomePosition { get; private set; }
     public Vector3 LastHitDirection { get; private set; }
-    public float CooldownRemain { get; set; }                  // 공용 쿨
-    public AttackSpec CurrentAttack { get; private set; }      // 추적에서 고른, 이번에 쓸 공격
+    public AttackChoiceFeature AttackChoice { get; private set; } // 공격 고르기·쿨·콤보
     
     public EMonsterState State => m_Fsm.Current;
     public float TimeInState => m_Fsm.TimeInState;
@@ -43,17 +40,14 @@ public class MonsterController : UnitController<MonsterDef>
     protected override void Set()
     {
         base.Set();
+        
         if (enabled == false)
             return;
 
         AttachMushrooms();
         AddBodyShapes();
 
-        Def.CollectAttacks(m_ListAttackChoice);
-        for (int i = 0; i < m_ListAttackChoice.Count; i++)
-        {
-            m_ListAttackCooldown.Add(0f);
-        }
+        AttackChoice = AddFeature(new AttackChoiceFeature(this, Def, Def.AttackCooldown));
 
         m_Fsm.Add(EMonsterState.Idle, new MonsterIdleState(this));
         m_Fsm.Add(EMonsterState.Wander, new MonsterWanderState(this));
@@ -70,28 +64,12 @@ public class MonsterController : UnitController<MonsterDef>
         HomePosition = transform.position;
         Target = null;
         LastHitDirection = Vector3.zero;
-        CooldownRemain = 0f;
-        CurrentAttack = null;
-
-        for (int i = 0; i < m_ListAttackCooldown.Count; i++)
-        {
-            m_ListAttackCooldown[i] = 0f;
-        }
 
         m_Fsm.Change(EMonsterState.Idle);
     }
 
     protected override void OnUpdate(float deltaTime)
     {
-        if (CooldownRemain > 0f)
-            CooldownRemain -= deltaTime;
-
-        for (int i = 0; i < m_ListAttackCooldown.Count; i++)
-        {
-            if (m_ListAttackCooldown[i] > 0f)
-                m_ListAttackCooldown[i] -= deltaTime;
-        }
-
         PlayerController player = GetValidPlayer();
         if (Target == null && player != null)
             Target = player.transform;
@@ -149,60 +127,6 @@ public class MonsterController : UnitController<MonsterDef>
         direction.y = 0f;
         Move.SetVelocity(direction.normalized * speed);
         Move.FaceTo(direction);
-    }
-
-    // attack ---
-    
-    // 공용 쿨이 돌았으면 개별 쿨이 돌고 거리가 맞는 공격(기본 + 스킬) 중 가중치로 하나 골라 CurrentAttack에 둔다
-    public bool TryPickAttack(float distance)
-    {
-        if (CooldownRemain > 0f)
-            return false;
-
-        IReadOnlyList<AttackSpec> listAttack = m_ListAttackChoice;
-        float totalWeight = 0f;
-        
-        for (int i = 0; i < listAttack.Count; i++)
-        {
-            if (CanUseAttack(i, distance))
-                totalWeight += listAttack[i].Weight;
-        }
-
-        if (totalWeight <= 0f)
-            return false;
-
-        float roll = Random.value * totalWeight;
-        
-        for (int i = 0; i < listAttack.Count; i++)
-        {
-            if (CanUseAttack(i, distance) == false)
-                continue;
-
-            CurrentAttack = listAttack[i];
-
-            roll -= CurrentAttack.Weight;
-            if (roll <= 0f)
-                break;
-        }
-
-        return true;
-    }
-
-    // 콤보 다음 타로 넘어간다(AttackSpec.Next). 공격 상태를 다시 들어가 처음부터 낸다
-    public void ContinueCombo()
-    {
-        CurrentAttack = CurrentAttack.NextAttack;
-        ChangeState(EMonsterState.Attack);
-    }
-
-    // 공격이 끝날 때. 공용 쿨과 쓴 공격의 개별 쿨을 건다
-    public void StartAttackCooldown()
-    {
-        CooldownRemain = Def.AttackCooldown;
-
-        int index = m_ListAttackChoice.IndexOf(CurrentAttack);
-        if (index >= 0)
-            m_ListAttackCooldown[index] = CurrentAttack.Cooldown;
     }
 
     // part ---
@@ -348,14 +272,6 @@ public class MonsterController : UnitController<MonsterDef>
         return player;
     }
     
-    private bool CanUseAttack(int index, float distance)
-    {
-        AttackSpec attack = m_ListAttackChoice[index];
-        if (attack.Weight <= 0f || m_ListAttackCooldown[index] > 0f)
-            return false;
-
-        return distance >= attack.MinRange && distance <= attack.MaxRange;
-    }
 
     // part ---
     

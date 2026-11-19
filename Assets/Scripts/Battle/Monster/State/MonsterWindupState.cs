@@ -23,7 +23,7 @@ public class MonsterWindupState : MonsterState
     {
         m_Controller.Move.FaceTo(m_Controller.GetTargetDirection());
 
-        float windupTime = m_Controller.CurrentAttack.WindupTime;
+        float windupTime = m_Controller.AttackChoice.Current.WindupTime;
         float t = windupTime > 0f ? Mathf.Clamp01(TimeInState / windupTime) : 1f;
         m_Controller.VisualRoot.localScale = Vector3.Scale(m_BaseScale, Vector3.Lerp(Vector3.one, s_SquashScale, t));
 
