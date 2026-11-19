@@ -26,15 +26,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b64e08050cbbc8f4e95917f3fd7d0344, type: 2}
   - {fileID: 11400000, guid: f3faef6fad01bae4e9bbc0d3a83457de, type: 2}
   <MoveSpeed>k__BackingField: 2.2
-  <WanderSpeed>k__BackingField: 0.88
-  <Brain>k__BackingField: 2
-  <SightRange>k__BackingField: 14
-  <LoseRange>k__BackingField: 19
-  <WanderRadius>k__BackingField: 4
-  <AttackRange>k__BackingField: 1.4
-  <AttackCooldown>k__BackingField: 2
-  <FleeTime>k__BackingField: 0
-  <FleeSpeed>k__BackingField: 4
+  <AI>k__BackingField: {fileID: 11400000, guid: bd4e763ec76d472ebcf254679b501f0f, type: 2}
   <Prefab>k__BackingField: {fileID: 3321796980609354128, guid: fb4c0120730a40b49b4efe3a6672e3f9, type: 3}
   <ModelName>k__BackingField: Mon_005_Boss_Tree
   <BodyHeight>k__BackingField: 7.15

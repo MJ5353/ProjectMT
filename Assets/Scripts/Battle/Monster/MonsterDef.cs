@@ -5,17 +5,7 @@ using UnityEngine.Serialization;
 
 // ==================================================
 
-// 몬스터 판단 종류. MonsterController가 이 값으로 판단을 만든다
-public enum EMonsterBrain
-{
-    Normal,     // MonsterBrain: 대기·배회·추적·도망
-    Burrow,     // BurrowBrain: 맞으면 땅속에 숨었다가 대상 근처에서 나온다(버더지)
-    Boss,       // BossBrain: 첫 발견·분노 때 포효, 부위가 깨지면 쓰러짐, 체력이 줄면 분노
-}
-
-// ==================================================
-
-// 몬스터 정의. 몸 수치(UnitDef)에 이동·AI 거리·몸에 꽂는 버섯·드랍을 더한다.
+// 몬스터 정의. 몸 수치(UnitDef, 이동 속도·AI 프리셋 포함)에 프리팹·몸 판정·몸에 꽂는 버섯·드랍을 더한다.
 // 새 몬스터은 이 에셋 한 장 + 프리팹으로 늘린다
 
 [CreateAssetMenu(menuName = "MushTaker/Data/Monster", fileName = "Monster_")]
@@ -116,53 +106,6 @@ public class MonsterDef : UnitDef
 
     // ------------------------------------------------
     
-    // 이동 ---
-    [field: SerializeField, FormerlySerializedAs("m_MoveSpeed")]
-    public float MoveSpeed { get; private set; } = 3f;       // 추적 속도
-
-    [field: SerializeField, FormerlySerializedAs("m_WanderSpeed")]
-    public float WanderSpeed { get; private set; } = 1.2f;   // 배회 속도
-
-    // AI ---
-    [field: SerializeField]
-    public EMonsterBrain Brain { get; private set; } = EMonsterBrain.Normal; // 판단 종류
-
-    [field: SerializeField, FormerlySerializedAs("m_SightRange")]
-    public float SightRange { get; private set; } = 7f;      // 플레이어를 알아채는 거리
-
-    [field: SerializeField, FormerlySerializedAs("m_LoseRange")]
-    public float LoseRange { get; private set; } = 12f;      // 추적을 포기하는 거리
-
-    [field: SerializeField, FormerlySerializedAs("m_WanderRadius")]
-    public float WanderRadius { get; private set; } = 4f;    // 처음 자리에서 배회하는 반경
-
-    [field: SerializeField, FormerlySerializedAs("m_AttackRange")]
-    public float AttackRange { get; private set; } = 1.4f;   // 추적을 멈추고 마주 보는 거리. 공격 선택은 AttackSpec.MinRange·MaxRange
-
-    [field: SerializeField, FormerlySerializedAs("m_AttackCooldown")]
-    public float AttackCooldown { get; private set; } = 1.2f; // 공격 하나가 끝난 뒤 다음 공격까지 공용 쿨(초)
-
-    [field: SerializeField, FormerlySerializedAs("m_FleeTime")]
-    public float FleeTime { get; private set; } = 0f;        // 맞은 뒤 도망치는 시간. 0이면 바로 반격
-
-    [field: SerializeField, FormerlySerializedAs("m_FleeSpeed")]
-    public float FleeSpeed { get; private set; } = 4f;
-
-    [field: SerializeField]
-    public float HideTime { get; private set; } = 1.5f;      // Burrow: 땅속에서 대상 쪽으로 파고드는 시간(초). 이동은 MoveSpeed
-
-    // 보스 --- Brain이 Boss일 때만 쓴다
-    [field: SerializeField]
-    public float DownTime { get; private set; } = 2.5f;      // 부위가 깨진 뒤 쓰러져 있는 시간(초). PartBreak 애니 뒤에 Down 애니
-
-    [field: SerializeField]
-    public float EnrageHpRate { get; private set; } = 0.5f;  // 체력이 이 비율 이하가 되면 분노. 0이면 분노 없음
-
-    [field: SerializeField]
-    public float EnrageCooldownRate { get; private set; } = 0.6f; // 분노 뒤 공용 쿨(AttackCooldown) 배율
-
-    [SerializeField] private List<SkillDef> m_ListEnrageSkill = new(); // 분노 뒤에만 후보에 드는 공격. 애니 상태가 있어야 한다
-
     // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽고, 구운 프리팹을 Prefab에 채운다
     [field: SerializeField]
     public MonsterController Prefab { get; private set; } = null;
@@ -189,15 +132,13 @@ public class MonsterDef : UnitDef
     // get ---
     public IReadOnlyList<PartEntry> ListPart => m_ListPart;
     public IReadOnlyList<DropEntry> ListDrop => m_ListDrop;
-    public IReadOnlyList<SkillDef> ListEnrageSkill => m_ListEnrageSkill;
 
     // ------------------------------------------------
 
 #if UNITY_EDITOR
     // BattleSetup 메뉴가 만들 때만 쓴다
-    public void EditorSetup(float fleeTime, List<DropEntry> listDrop)
+    public void EditorSetup(List<DropEntry> listDrop)
     {
-        FleeTime = fleeTime;
         m_ListDrop = listDrop;
     }
 

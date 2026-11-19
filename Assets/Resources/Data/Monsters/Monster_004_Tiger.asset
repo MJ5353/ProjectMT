@@ -24,14 +24,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8d323af5061b9654895dbf2e1d91f121, type: 2}
   - {fileID: 11400000, guid: c0f2030c045ddd240bcc4c7f5eb2d954, type: 2}
   <MoveSpeed>k__BackingField: 2.4
-  <WanderSpeed>k__BackingField: 0.96
-  <SightRange>k__BackingField: 8
-  <LoseRange>k__BackingField: 13
-  <WanderRadius>k__BackingField: 4
-  <AttackRange>k__BackingField: 1.4
-  <AttackCooldown>k__BackingField: 1.7
-  <FleeTime>k__BackingField: 0
-  <FleeSpeed>k__BackingField: 4
+  <AI>k__BackingField: {fileID: 11400000, guid: a368ac48d0494309a0c94cc831f89bb2, type: 2}
   <Prefab>k__BackingField: {fileID: 2949555666539789154, guid: 1aed1bc9abdda734ca62781ad123e94d, type: 3}
   <ModelName>k__BackingField: Mon_004_Tiger
   <BodyHeight>k__BackingField: 1.6

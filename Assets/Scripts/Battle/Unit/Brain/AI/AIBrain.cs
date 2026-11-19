@@ -9,49 +9,93 @@ public enum EAIState
     Wander,
     Chase,
     Flee,
-    Hide,       // 땅속에 숨었다 나오기(BurrowBrain)
-    Roar,       // 포효(BossBrain: 첫 발견·분노)
-    Down,       // 부위가 깨져 쓰러짐(BossBrain)
-    Follow,     // 주인 따라가기(PetBrain)
+    Hide,       // 땅속에 숨었다 나오기(Burrow)
+    Roar,       // 포효(Boss: 첫 발견·분노)
+    Down,       // 부위가 깨져 쓰러짐(Boss)
+    Follow,     // 주인 따라가기(Pet)
     Dead,
 }
 
 // ==================================================
 
-// AI 판단의 기반(몬스터·동료). 상태 머신·대상(Target)·스폰 자리만 갖고, 행동 층(ActionLayer)에 요청만 한다.
-// 이어받은 판단이 생성자에서 SetState로 상태를 등록하고, 감지(Sense)·피격·행동 끝 훅을 덮는다.
-//   AIBrain ─ MonsterBrain(공격 고르기·추적·도망·드롭) ─ BurrowBrain(숨기) / BossBrain(포효·쓰러짐·분노)
-//           └ PetBrain(따라가기)
-// 공격·피격·대시 행동 중에는 상태를 돌리지 않는다. 상태 클래스는 State/ 폴더(상태마다 파일 하나)
+// 공통 Idle·Wander·Chase·Dead
+//  | Normal +Flee
+//  | Burrow +Hide
+//  | Boss +Roar·Down
+//  | Pet은 Follow·Dead만
 
-public abstract class AIBrain : BrainLayer
+// AI 판단(몬스터·보스·동료 공통). 대상(Target)·공격 고르기(AttackChoice)·상태 머신·스폰 자리를 갖고 행동 층(ActionLayer)에 요청만 한다.
+// 종류 차이는 클래스가 아니라 AI 프리셋(AIDef.Type)에 따라 등록하는 상태 묶음으로 낸다(SetStates). 상태는 State/ 폴더, 수치는 AIDef.
+// 공격·피격·대시 행동 중에는 상태를 돌리지 않고, 감지(대상·쿨·보스 분노)만 계속한다
+
+public class AIBrain : BrainLayer
 {
+    private readonly UnitDef m_UnitDef;
     private readonly StateMachine<EAIState> m_Fsm = new();
+    private UnitController m_Leader;
+
+    public AIDef Def { get; }
+    public AttackChoice AttackChoice { get; }                   // 공격 고르기·쿨
     public Vector3 HomePosition { get; private set; }           // 스폰 자리. 배회 기준
     public Vector3 LastHitDirection { get; private set; }
+    public bool IsEnraged { get; private set; }
 
+    // boss
+    private bool m_IsRoarPending;   // 다음에 쫓을 때 포효
+    private bool m_IsDownPending;   // 행동(피격 경직)이 끝나면 쓰러짐
+
+    public UnitController Controller => Owner;
+    public float MoveSpeed => m_UnitDef.MoveSpeed;                       // 추적·땅속 이동·따라가기
+    public float WanderSpeed => m_UnitDef.MoveSpeed * Def.WanderSpeedRate;
     public EAIState State => m_Fsm.Current;
     public float TimeInState => m_Fsm.TimeInState;
-    public UnitController Controller => Owner;
-    protected virtual EAIState StartState => EAIState.Idle;     // 스폰할 때 들어갈 상태
 
     // ------------------------------------------------
 
-    protected AIBrain(UnitController owner) : base(owner) { }
+    public AIBrain(UnitController owner, UnitDef unitDef) : base(owner)
+    {
+        m_UnitDef = unitDef;
+        Def = unitDef.AI;
+        
+        if (Def == null)
+        {
+            CLogger.Error("AIBrain", $"{unitDef.name}의 AI 프리셋(UnitDef.AI)이 비어 있어 기본값으로 움직입니다", owner);
+            Def = ScriptableObject.CreateInstance<AIDef>();
+        }
+
+        AttackChoice = new AttackChoice(unitDef, Def.AttackCooldown);
+        SetStates(Def.Type);
+
+        // 부위는 판단보다 먼저 붙는다(MonsterController.SetFeatures)
+        if (Def.Type == EAIType.Boss && owner.PartF != null)
+            owner.PartF.Broken += OnPartBroken;
+    }
 
     public override void Reset()
     {
         base.Reset();
-        
+        AttackChoice.Reset();
+
+        m_IsRoarPending = Def.Type == EAIType.Boss;
+        m_IsDownPending = false;
+        IsEnraged = false;
         HomePosition = Owner.transform.position;
         LastHitDirection = Vector3.zero;
-        m_Fsm.Change(StartState);
+
+        m_Fsm.Change(Def.Type == EAIType.Pet ? EAIState.Follow : EAIState.Idle);
     }
 
     // 감지는 행동 중에도, 상태는 행동이 없을 때만 돌린다
     protected override void Think(float deltaTime)
     {
-        Sense(deltaTime);
+        AttackChoice.Tick(deltaTime);
+        
+        if (Def.Type != EAIType.Pet)
+            Target.Refresh(Def.SightRange);
+        
+        if (Def.Type == EAIType.Boss)
+            UpdateBoss();
+
         if (IsActing())
             return;
 
@@ -63,6 +107,36 @@ public abstract class AIBrain : BrainLayer
         m_Fsm.Change(next);
     }
 
+    // 종류별 상태 묶음. 상태는 어느 종류에나 끼울 수 있다
+    private void SetStates(EAIType type)
+    {
+        m_Fsm.Add(EAIState.Dead, new AIDeadStateBase(this));
+        if (type == EAIType.Pet)
+        {
+            m_Fsm.Add(EAIState.Follow, new AIFollowStateBase(this));
+            return;
+        }
+
+        m_Fsm.Add(EAIState.Idle, new AIIdleStateBase(this));
+        m_Fsm.Add(EAIState.Wander, new AIWanderStateBase(this));
+        m_Fsm.Add(EAIState.Chase, new AIChaseStateBase(this));
+        switch (type)
+        {
+            case EAIType.Burrow:
+                m_Fsm.Add(EAIState.Hide, new AIHideStateBase(this));
+                break;
+            case EAIType.Boss:
+                m_Fsm.Add(EAIState.Roar, new AIRoarStateBase(this));
+                m_Fsm.Add(EAIState.Down, new AIDownStateBase(this));
+                break;
+            default:
+                m_Fsm.Add(EAIState.Flee, new AIFleeStateBase(this));
+                break;
+        }
+    }
+    
+    #region OnAction
+    
     // 맞으면 때린 쪽을 노린다
     public override void OnHit(HitParams hit)
     {
@@ -70,10 +144,37 @@ public abstract class AIBrain : BrainLayer
         Target.SetTarget(hit.Attacker);
     }
 
-    // Dead 상태가 없는 판단(동료)은 그대로 둔다
     public override void OnDied()
     {
         m_Fsm.Change(EAIState.Dead);
+    }
+
+    // 공격은 끝날 때마다 쿨을 걸고, 끝까지 했으면 콤보 다음 타. 피격 경직이 풀리면 종류별 다음 상태(쓰러져 있으면 계속 누워 있음)
+    protected override void OnActionEnded(EActionType action, bool isFinished)
+    {
+        if (Owner.IsDead)
+            return;
+
+        switch (action)
+        {
+            case EActionType.Attack:
+            {
+                AttackChoice.StartCooldown();
+                AttackSpec comboNext = Owner.ActionLayer.ComboNext;
+
+                if (isFinished && comboNext != null)
+                    Owner.ActionLayer.RequestAttack(comboNext, Vector3.zero, Target.TargetTransform);
+
+                break;
+            }
+            case EActionType.Hit:
+            {
+                if (isFinished && State != EAIState.Down)
+                    m_Fsm.Change(GetStateAfterHit());
+
+                break;
+            }
+        }
     }
 
     // 진행 중인 상태를 Exit로 정리(애니 배속 복구)한다
@@ -81,21 +182,93 @@ public abstract class AIBrain : BrainLayer
     {
         m_Fsm.Stop();
     }
+    
+    #endregion    
+    
+    // pet ---
 
-    // 상태 등록·교체. 이어받은 판단이 생성자에서 부른다
-    protected void SetState(EAIState key, IState state)
+    public void SetLeader(UnitController leader)
     {
-        m_Fsm.Add(key, state);
+        m_Leader = leader;
     }
 
-    // 공격·피격·대시는 행동 층이 끝까지 맡는다. 사망은 사망 뒤 처리(드롭·사라짐)를 위해 판단을 계속 돈다
-    protected bool IsActing()
+    // boss ---
+
+    // 분노 확인 뒤, 행동이 없으면 쓰러짐 > 포효 순으로 끼운다
+    private void UpdateBoss()
+    {
+        if (Owner.IsDead)
+            return;
+
+        UpdateEnrage();
+        if (IsActing())
+            return;
+
+        if (m_IsDownPending)
+        {
+            m_IsDownPending = false;
+            m_Fsm.Change(EAIState.Down);
+            return;
+        }
+
+        if (m_IsRoarPending && State == EAIState.Chase)
+        {
+            m_IsRoarPending = false;
+            m_Fsm.Change(EAIState.Roar);
+        }
+    }
+
+    // 체력이 Def.EnrageHpRate 이하가 되면 공용 쿨을 줄이고 분노 스킬을 더한 뒤 포효
+    private void UpdateEnrage()
+    {
+        if (IsEnraged || Def.EnrageHpRate <= 0f)
+            return;
+
+        HealthFeature health = Owner.HealthF;
+        if (health.Current > health.MaxHp * Def.EnrageHpRate)
+            return;
+
+        IsEnraged = true;
+        AttackChoice.Enrage(Def.ListEnrageSkill, Def.EnrageCooldownRate);
+        m_IsRoarPending = true;
+    }
+
+    private void OnPartBroken(PartFeature.Part part)
+    {
+        if (Owner.IsDead == false)
+            m_IsDownPending = true;
+    }
+    
+    // get ---
+    
+    // 공격·피격·대시는 행동 층이 끝까지 맡는다. 사망은 사망 뒤 처리(사라짐)를 위해 판단을 계속 돈다
+    private bool IsActing()
     {
         EActionType action = Owner.ActionLayer.Current;
         return action == EActionType.Attack || action == EActionType.Hit || action == EActionType.Dash;
     }
 
-    // virtual ---
+    private EAIState GetStateAfterHit()
+    {
+        switch (Def.Type)
+        {
+            case EAIType.Burrow:
+                return EAIState.Hide;
+            case EAIType.Pet:
+                return EAIState.Follow;
+            case EAIType.Normal:
+                return Def.FleeTime > 0f ? EAIState.Flee : EAIState.Chase;
+            default:
+                return EAIState.Chase;
+        }
+    }
 
-    protected virtual void Sense(float deltaTime) { }   // 매 프레임 감지(행동 중에도). 대상 찾기·쿨
+    // 따라갈 주인. 정한 주인이 없거나 죽었으면 플레이어
+    public UnitController GetLeader()
+    {
+        if (m_Leader != null && m_Leader.IsDead == false)
+            return m_Leader;
+
+        return GameManager.Instance?.ActorS?.Player;
+    }
 }

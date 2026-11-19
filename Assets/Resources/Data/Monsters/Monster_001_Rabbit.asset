@@ -23,14 +23,7 @@ MonoBehaviour:
   <ListSkill>k__BackingField:
   - {fileID: 11400000, guid: fd9c6d353c664a64db92224ef1129246, type: 2}
   <MoveSpeed>k__BackingField: 3
-  <WanderSpeed>k__BackingField: 1.2
-  <SightRange>k__BackingField: 7
-  <LoseRange>k__BackingField: 12
-  <WanderRadius>k__BackingField: 4
-  <AttackRange>k__BackingField: 1.4
-  <AttackCooldown>k__BackingField: 1.2
-  <FleeTime>k__BackingField: 0
-  <FleeSpeed>k__BackingField: 4
+  <AI>k__BackingField: {fileID: 11400000, guid: 93f6457ec256445a8d65f9017e1f66aa, type: 2}
   <Prefab>k__BackingField: {fileID: 3763329728629620724, guid: 6552d34b46dda8a4fa7bb25f02d7748c, type: 3}
   <ModelName>k__BackingField: Mon_001_Rabbit
   <BodyHeight>k__BackingField: 1.1

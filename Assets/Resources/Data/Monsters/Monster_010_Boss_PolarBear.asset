@@ -26,14 +26,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 54d77dd0ffaf41f2803ef454a428c1d9, type: 2}
   - {fileID: 11400000, guid: 07c6bd3cda054a11823ee06dba7322e6, type: 2}
   <MoveSpeed>k__BackingField: 2.38
-  <WanderSpeed>k__BackingField: 0.95
-  <SightRange>k__BackingField: 14
-  <LoseRange>k__BackingField: 19
-  <WanderRadius>k__BackingField: 4
-  <AttackRange>k__BackingField: 1.4
-  <AttackCooldown>k__BackingField: 2
-  <FleeTime>k__BackingField: 0
-  <FleeSpeed>k__BackingField: 4
+  <AI>k__BackingField: {fileID: 11400000, guid: bd4e763ec76d472ebcf254679b501f0f, type: 2}
   <Prefab>k__BackingField: {fileID: 8657307171887573610, guid: 88169849de3052348adce48b1d86cbeb, type: 3}
   <ModelName>k__BackingField: Mon_010_Boss_PolarBear
   <BodyHeight>k__BackingField: 4.6

@@ -2,9 +2,9 @@ using UnityEngine;
 
 // ==================================================
 
-// 포효(BossBrain: 첫 발견·분노). 멈춰서 대상을 보며 Roar 애니를 한 번 틀고 추적으로 간다
+// 포효(Boss: 첫 발견·분노). 멈춰서 대상을 보며 Roar 애니를 한 번 틀고 추적으로 간다
 
-public class AIRoarState : MonsterState
+public class AIRoarStateBase : AIStateBase
 {
     private const string RoarClip = "Roar";
 
@@ -12,7 +12,7 @@ public class AIRoarState : MonsterState
 
     // ------------------------------------------------
 
-    public AIRoarState(MonsterBrain ai) : base(ai) { }
+    public AIRoarStateBase(AIBrain ai) : base(ai) { }
 
     public override void Enter()
     {

@@ -331,11 +331,8 @@ public static class MonsterAutoFill
     {
         Find(so, nameof(UnitDef.MaxHp)).intValue = plan.Hp;
         Find(so, nameof(UnitDef.HitStunTime)).floatValue = plan.HitStunTime;
-        Find(so, nameof(MonsterDef.MoveSpeed)).floatValue = plan.MoveSpeed;
-        Find(so, nameof(MonsterDef.WanderSpeed)).floatValue = plan.WanderSpeed;
-        Find(so, nameof(MonsterDef.SightRange)).floatValue = plan.SightRange;
-        Find(so, nameof(MonsterDef.LoseRange)).floatValue = plan.LoseRange;
-        Find(so, nameof(MonsterDef.AttackCooldown)).floatValue = plan.AttackCooldown;
+        Find(so, nameof(UnitDef.MoveSpeed)).floatValue = plan.MoveSpeed;
+        // 시야·추적 포기 거리·공용 쿨·배회 속도 배율은 AI 프리셋(UnitDef.AI, AIDef)이 여러 몬스터에 같이 준다
 
         // 피해·예고는 첫 기본 공격 SkillDef에만. 보스의 나머지 공격은 손으로 정한다
         SkillDef basic = plan.Def.ListSkill.FirstOrDefault(s => s != null && s.Kind == ESkillKind.Attack);

@@ -2,10 +2,10 @@ using UnityEngine;
 
 // ==================================================
 
-// 쓰러짐(BossBrain: 부위가 깨졌을 때). PartBreak 애니 뒤 Down 애니로 Def.DownTime 동안 누워 있다가 추적으로 간다.
+// 쓰러짐(Boss: 부위가 깨졌을 때). PartBreak 애니 뒤 Down 애니로 Def.DownTime 동안 누워 있다가 추적으로 간다.
 // 그동안 공격하지 않아 플레이어가 마음껏 칠 수 있는 틈이 된다
 
-public class AIDownState : MonsterState
+public class AIDownStateBase : AIStateBase
 {
     private const string PartBreakClip = "PartBreak";
     private const string DownClip = "Down";
@@ -15,7 +15,7 @@ public class AIDownState : MonsterState
 
     // ------------------------------------------------
 
-    public AIDownState(MonsterBrain ai) : base(ai) { }
+    public AIDownStateBase(AIBrain ai) : base(ai) { }
 
     public override void Enter()
     {

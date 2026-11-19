@@ -255,10 +255,10 @@ public sealed class DataEditorWindow : EditorWindow
         if (typeof(UnitDef).IsAssignableFrom(type))
             AddPropertyColumn(nameof(UnitDef.MaxHp), "체력", 60f);
         if (type == typeof(MonsterDef) || type == typeof(PlayerDef))
-            AddPropertyColumn("MoveSpeed", "이동", 65f);
+            AddPropertyColumn(nameof(UnitDef.MoveSpeed), "이동", 65f);
         if (type == typeof(MonsterDef))
         {
-            AddPropertyColumn(nameof(MonsterDef.SightRange), "시야", 65f);
+            AddPropertyColumn(nameof(UnitDef.AI), "AI", 120f);
             AddLabelColumn("프리팹", 90f, def => ((MonsterDef)def).Prefab != null ? "연결됨" : "빌드 필요");
         }
         else if (type == typeof(PlayerDef))

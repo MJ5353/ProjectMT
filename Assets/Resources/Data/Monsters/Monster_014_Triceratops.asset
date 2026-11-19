@@ -25,14 +25,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0a8500da2fdda744e9f0acb1edfa5ec5, type: 2}
   - {fileID: 11400000, guid: 80ebf482fc87a774186dc79d05f44a56, type: 2}
   <MoveSpeed>k__BackingField: 2.78
-  <WanderSpeed>k__BackingField: 1.11
-  <SightRange>k__BackingField: 8
-  <LoseRange>k__BackingField: 13
-  <WanderRadius>k__BackingField: 4
-  <AttackRange>k__BackingField: 1.4
-  <AttackCooldown>k__BackingField: 1.7
-  <FleeTime>k__BackingField: 0
-  <FleeSpeed>k__BackingField: 4
+  <AI>k__BackingField: {fileID: 11400000, guid: a368ac48d0494309a0c94cc831f89bb2, type: 2}
   <Prefab>k__BackingField: {fileID: 8086556070094950349, guid: f494d7fe30168b84aab5a3ba5d385f3f, type: 3}
   <ModelName>k__BackingField: Mon_014_Triceratops
   <BodyHeight>k__BackingField: 1.8000001

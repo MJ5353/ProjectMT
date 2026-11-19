@@ -2,10 +2,10 @@ using UnityEngine;
 
 // ==================================================
 
-// 땅속에 숨기(BurrowBrain). 파고들기(Burrow) → 땅속에서 대상 쪽으로 이동(Underground, Def.HideTime) → 튀어나오기(Emerge) → 추적.
+// 땅속에 숨기(Burrow). 파고들기(Burrow) → 땅속에서 대상 쪽으로 이동(Underground, Def.HideTime) → 튀어나오기(Emerge) → 추적.
 // 숨어 있는 동안(파고들기~땅속)은 맞지 않고 조준에서도 빠진다(HitF.SetHidden). 애니 상태 이름은 버더지 애니메이터(AC_002_Mole) 기준
 
-public class AIHideState : MonsterState
+public class AIHideStateBase : AIStateBase
 {
     private const string BurrowClip = "Burrow";
     private const string UndergroundClip = "Underground";
@@ -25,7 +25,7 @@ public class AIHideState : MonsterState
 
     // ------------------------------------------------
 
-    public AIHideState(MonsterBrain ai) : base(ai) { }
+    public AIHideStateBase(AIBrain ai) : base(ai) { }
 
     public override void Enter()
     {
@@ -61,7 +61,7 @@ public class AIHideState : MonsterState
                 if (Target.HasTarget)
                 {
                     Vector3 direction = Target.GetDirection();
-                    m_Controller.MoveF.SetVelocity(direction * Def.MoveSpeed);
+                    m_Controller.MoveF.SetVelocity(direction * m_AI.MoveSpeed);
                     m_Controller.MoveF.FaceTo(direction);
                 }
 

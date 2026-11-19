@@ -14,6 +14,9 @@ public abstract class UnitDef : DataDef
     [field: SerializeField, FormerlySerializedAs("m_HitStunTime")]
     public float HitStunTime { get; private set; } = 0.35f;        // 맞고 굳는 시간(초)
 
+    [field: SerializeField, FormerlySerializedAs("m_MoveSpeed")]
+    public float MoveSpeed { get; private set; } = 3f;             // 기본 이동 속도. 몬스터는 추적 속도, 배회는 AIDef.WanderSpeedRate를 곱한다
+
     [field: SerializeField]
     public float TurnSpeed { get; private set; } = 900f;           // 초당 회전 각도. 보스는 낮춰서 옆을 노릴 틈을 준다
 
@@ -23,6 +26,10 @@ public abstract class UnitDef : DataDef
     // 피격 반응(넉백·번쩍·히트스톱·조각·무적) 수치. 여러 유닛이 같은 에셋을 같이 쓴다
     [field: SerializeField]
     public HitDef Hit { get; private set; } = null;
+
+    // AI 프리셋(AI_Normal 등). 여러 유닛이 같은 에셋을 같이 쓴다. 비면 AI 없음(플레이어)
+    [field: SerializeField]
+    public AIDef AI { get; private set; } = null;
 
     // 공격 목록 --- 기본 공격(Kind Attack)과 스킬(Kind Skill). 몬스터는 모두 후보로 두고 거리·쿨·가중치로 고른다.
     // 플레이어는 Kind Attack 순서대로 0번 기본·1번 위로 치기, 스킬은 아직 쓰지 않는다

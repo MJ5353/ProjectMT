@@ -23,16 +23,7 @@ MonoBehaviour:
   <ListSkill>k__BackingField:
   - {fileID: 11400000, guid: 952b5a92f8f452b4b9e85d7438ce3dd3, type: 2}
   <MoveSpeed>k__BackingField: 3
-  <WanderSpeed>k__BackingField: 1.2
-  <Brain>k__BackingField: 1
-  <SightRange>k__BackingField: 7
-  <LoseRange>k__BackingField: 12
-  <WanderRadius>k__BackingField: 4
-  <AttackRange>k__BackingField: 1.4
-  <AttackCooldown>k__BackingField: 1.2
-  <FleeTime>k__BackingField: 0
-  <FleeSpeed>k__BackingField: 4
-  <HideTime>k__BackingField: 1.5
+  <AI>k__BackingField: {fileID: 11400000, guid: 6da12b8d65d2457a95be558aed406786, type: 2}
   <Prefab>k__BackingField: {fileID: 2089465106041730039, guid: 8452515b66f202349bd0545081481d4d, type: 3}
   <ModelName>k__BackingField: Mon_002_Mole
   <BodyHeight>k__BackingField: 0.5

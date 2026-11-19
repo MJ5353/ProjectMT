@@ -3,7 +3,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 몬스터 조립 허브. 몸(UnitController)에 버섯 부위·판정 모양을 붙이고, 판단은 Def.Brain에 따라 MonsterBrain 계열(AI 상태·공격 고르기)로 둔다.
+// 몬스터 조립 허브. 몸(UnitController)에 버섯 부위·판정 모양·사망 보상(DropFeature)을 붙이고, 판단은 AIBrain(AI 프리셋 Def.AI)으로 둔다.
 // 판단 상태 클래스는 State/ 폴더(상태마다 파일 하나), 실행은 행동 층(ActionLayer), 수치는 MonsterDef
 
 public class MonsterController : UnitController<MonsterDef>
@@ -19,19 +19,14 @@ public class MonsterController : UnitController<MonsterDef>
         
         // 뼈 판정 모양. 부위 번호를 쓰므로 Parts 다음
         HitF.SetShapes(Def.ListBodyShape); 
+
+        // 죽으면 버섯 드롭·처치 알림
+        AddFeature(new DropFeature(this, Def));
     }
 
     protected override BrainLayer CreateBrain()
     {
-        switch (Def.Brain)
-        {
-            case EMonsterBrain.Burrow:
-                return new BurrowBrain(this);
-            case EMonsterBrain.Boss:
-                return new BossBrain(this);
-            default:
-                return new MonsterBrain(this);
-        }
+        return new AIBrain(this, Def);
     }
 
     #region Gizmo

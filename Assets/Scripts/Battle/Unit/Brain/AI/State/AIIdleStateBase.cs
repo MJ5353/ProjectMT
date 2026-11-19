@@ -2,13 +2,13 @@ using UnityEngine;
 
 // ==================================================
 
-public class AIIdleState : MonsterState
+public class AIIdleStateBase : AIStateBase
 {
     private float m_Duration;
 
     // ------------------------------------------------
 
-    public AIIdleState(MonsterBrain ai) : base(ai) { }
+    public AIIdleStateBase(AIBrain ai) : base(ai) { }
 
     public override void Enter()
     {

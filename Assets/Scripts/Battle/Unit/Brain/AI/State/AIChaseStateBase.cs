@@ -2,9 +2,9 @@ using UnityEngine;
 
 // ==================================================
 
-public class AIChaseState : MonsterState
+public class AIChaseStateBase : AIStateBase
 {
-    public AIChaseState(MonsterBrain ai) : base(ai) { }
+    public AIChaseStateBase(AIBrain ai) : base(ai) { }
 
     // ------------------------------------------------
     
@@ -32,6 +32,6 @@ public class AIChaseState : MonsterState
             return;
         }
 
-        m_Controller.ActionLayer.SetMove(Target.GetDirection(), Def.MoveSpeed);
+        m_Controller.ActionLayer.SetMove(Target.GetDirection(), m_AI.MoveSpeed);
     }
 }

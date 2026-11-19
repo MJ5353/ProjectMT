@@ -2,7 +2,7 @@ using UnityEngine;
 
 // ==================================================
 
-public class AIDeadState : MonsterState
+public class AIDeadStateBase : AIStateBase
 {
     private const float CollisionOffTime = 0.4f;
     private const float DestroyTime = 2f;
@@ -11,7 +11,7 @@ public class AIDeadState : MonsterState
 
     // ------------------------------------------------
 
-    public AIDeadState(MonsterBrain ai) : base(ai) { }
+    public AIDeadStateBase(AIBrain ai) : base(ai) { }
 
     public override void Enter()
     {
@@ -19,7 +19,6 @@ public class AIDeadState : MonsterState
         m_Controller.AnimF.SetSpeed(1f); // 멈춤·Death 애니는 사망 행동(DeadAction)이 한다
 
         PlayDeathEffect();
-        m_AI.OnDeadStart(); // 드롭·처치 알림 등 타입별 처리
     }
 
     public override void Update(float deltaTime)

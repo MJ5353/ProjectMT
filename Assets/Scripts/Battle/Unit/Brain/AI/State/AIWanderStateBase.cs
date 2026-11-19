@@ -2,14 +2,14 @@ using UnityEngine;
 
 // ==================================================
 
-public class AIWanderState : MonsterState
+public class AIWanderStateBase : AIStateBase
 {
     private const float MaxDuration = 3f;
     private Vector3 m_Destination;
 
     // ------------------------------------------------
 
-    public AIWanderState(MonsterBrain ai) : base(ai) { }
+    public AIWanderStateBase(AIBrain ai) : base(ai) { }
 
     public override void Enter()
     {
@@ -33,6 +33,6 @@ public class AIWanderState : MonsterState
             return;
         }
 
-        m_Controller.ActionLayer.SetMove(diff, Def.WanderSpeed);
+        m_Controller.ActionLayer.SetMove(diff, m_AI.WanderSpeed);
     }
 }

@@ -10,10 +10,7 @@ public class PlayerDef : UnitDef
     [field: SerializeField, FormerlySerializedAs("m_Prefab")]
     public PlayerController Prefab { get; private set; } = null;
 
-    // 이동 ---
-    [field: SerializeField, FormerlySerializedAs("m_MoveSpeed")]
-    public float MoveSpeed { get; private set; } = 5f;
-
+    // 이동 --- 속도는 UnitDef.MoveSpeed
     [field: SerializeField, FormerlySerializedAs("m_RunThreshold")]
     public float RunThreshold { get; private set; } = 0.6f;    // 입력 세기가 이 값 이상이면 Run 애니
 

@@ -4,9 +4,9 @@ using UnityEngine;
 
 // 버끼처럼 겁 많은 몬스터: 맞으면 반대로 달아났다가 다시 덤빈다
 
-public class AIFleeState : MonsterState
+public class AIFleeStateBase : AIStateBase
 {
-    public AIFleeState(MonsterBrain ai) : base(ai) { }
+    public AIFleeStateBase(AIBrain ai) : base(ai) { }
 
     // ------------------------------------------------
     

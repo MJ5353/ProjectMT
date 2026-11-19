@@ -23,14 +23,7 @@ MonoBehaviour:
   <ListSkill>k__BackingField:
   - {fileID: 11400000, guid: 4d4ca0d671e748745930fe433c6d5fa1, type: 2}
   <MoveSpeed>k__BackingField: 3.48
-  <WanderSpeed>k__BackingField: 1.39
-  <SightRange>k__BackingField: 7
-  <LoseRange>k__BackingField: 12
-  <WanderRadius>k__BackingField: 4
-  <AttackRange>k__BackingField: 1.4
-  <AttackCooldown>k__BackingField: 1.2
-  <FleeTime>k__BackingField: 0
-  <FleeSpeed>k__BackingField: 4
+  <AI>k__BackingField: {fileID: 11400000, guid: 93f6457ec256445a8d65f9017e1f66aa, type: 2}
   <Prefab>k__BackingField: {fileID: 7286287158611388334, guid: 028818fb95415d04a922ee702d7716f0, type: 3}
   <ModelName>k__BackingField: Mon_011_Raptor
   <BodyHeight>k__BackingField: 1.2

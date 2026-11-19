@@ -26,14 +26,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2c5bdcb72b9c4ba58ca4354bb91124f7, type: 2}
   - {fileID: 11400000, guid: 7ba53a3f2aa744e6905d062474beaeeb, type: 2}
   <MoveSpeed>k__BackingField: 2.55
-  <WanderSpeed>k__BackingField: 1.02
-  <SightRange>k__BackingField: 14
-  <LoseRange>k__BackingField: 19
-  <WanderRadius>k__BackingField: 4
-  <AttackRange>k__BackingField: 1.4
-  <AttackCooldown>k__BackingField: 2
-  <FleeTime>k__BackingField: 0
-  <FleeSpeed>k__BackingField: 4
+  <AI>k__BackingField: {fileID: 11400000, guid: bd4e763ec76d472ebcf254679b501f0f, type: 2}
   <Prefab>k__BackingField: {fileID: 7988321381554006659, guid: 032a9b9cc047cf745a4f1c05a4d34f9c, type: 3}
   <ModelName>k__BackingField: Mon_015_Boss_Saurus
   <BodyHeight>k__BackingField: 5.8

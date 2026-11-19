@@ -2,11 +2,11 @@ using UnityEngine;
 
 // ==================================================
 
-// 주인 따라가기(PetBrain). FollowDistance보다 멀면 주인 쪽으로 걷고(두 배보다 멀면 달리기), 가까우면 멈춘다
+// 주인 따라가기(Pet). FollowDistance보다 멀면 주인 쪽으로 걷고(두 배보다 멀면 달리기), 가까우면 멈춘다
 
-public class AIFollowState : AIState<PetBrain>
+public class AIFollowStateBase : AIStateBase
 {
-    public AIFollowState(PetBrain ai) : base(ai) { }
+    public AIFollowStateBase(AIBrain ai) : base(ai) { }
 
     // ------------------------------------------------
 
@@ -23,12 +23,12 @@ public class AIFollowState : AIState<PetBrain>
         diff.y = 0f;
         
         float distance = diff.magnitude;
-        if (distance <= m_AI.FollowDistance)
+        if (distance <= Def.FollowDistance)
         {
             m_Controller.ActionLayer.SetMove(Vector3.zero, 0f);
             return;
         }
 
-        m_Controller.ActionLayer.SetMove(diff, m_AI.MoveSpeed, distance > m_AI.FollowDistance * 2f);
+        m_Controller.ActionLayer.SetMove(diff, m_AI.MoveSpeed, distance > Def.FollowDistance * 2f);
     }
 }

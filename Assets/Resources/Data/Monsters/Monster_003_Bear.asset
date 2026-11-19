@@ -23,14 +23,7 @@ MonoBehaviour:
   <ListSkill>k__BackingField:
   - {fileID: 11400000, guid: d2cff3e3d55bdc24888490e8526c01e9, type: 2}
   <MoveSpeed>k__BackingField: 2.4
-  <WanderSpeed>k__BackingField: 0.96
-  <SightRange>k__BackingField: 8
-  <LoseRange>k__BackingField: 13
-  <WanderRadius>k__BackingField: 4
-  <AttackRange>k__BackingField: 1.4
-  <AttackCooldown>k__BackingField: 1.7
-  <FleeTime>k__BackingField: 0
-  <FleeSpeed>k__BackingField: 4
+  <AI>k__BackingField: {fileID: 11400000, guid: a368ac48d0494309a0c94cc831f89bb2, type: 2}
   <Prefab>k__BackingField: {fileID: 2040594486013402949, guid: ffe6329033125b74fa83fa42ecbcdb5a, type: 3}
   <ModelName>k__BackingField: Mon_003_Bear
   <BodyHeight>k__BackingField: 1.6

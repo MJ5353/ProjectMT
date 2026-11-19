@@ -5,7 +5,6 @@ using UnityEngine.Serialization;
 // ==================================================
 
 // 근접 공격 한 종류의 수치. 판정 프레임은 tools/voxel/README.md의 애니 표(30fps)를 따른다.
-// [mj] todo) remove?
 
 [Serializable]
 public class AttackSpec
@@ -67,7 +66,7 @@ public class AttackSpec
     public float MaxRange { get; private set; } = 1.4f; // 대상이 이 거리 이하일 때만 고른다
 
     [field: SerializeField]
-    public float Cooldown { get; private set; } = 0f; // 이 공격만의 쿨(초). 공용 쿨(MonsterDef.AttackCooldown)과 따로 돈다
+    public float Cooldown { get; private set; } = 0f; // 이 공격만의 쿨(초). 공용 쿨(AIDef.AttackCooldown)과 따로 돈다
 
     [field: SerializeField]
     public float Weight { get; private set; } = 1f; // 고를 때 가중치. 0이면 안 고른다

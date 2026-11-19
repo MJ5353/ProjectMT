@@ -270,7 +270,7 @@ public static class DataEditorChecks
                 serializedPickup.FindProperty("m_ItemID").stringValue = mushroom.ID;
                 serializedPickup.ApplyModifiedPropertiesWithoutUndo();
             }
-            monster.EditorSetup(0f, new List<MonsterDef.DropEntry> { new(pickup, 1, 1, 1f), new(pickup, 2, 2, 0.5f) });
+            monster.EditorSetup(new List<MonsterDef.DropEntry> { new(pickup, 1, 1, 1f), new(pickup, 2, 2, 0.5f) });
             listRelated = DataEditorUtility.FindRelatedDefs(monster, listDef);
             Require(listRelated.Count == 1 && listRelated[0] == mushroom, "픽업 ID 연관 해석 실패");
             using (SerializedObject serializedMonster = new SerializedObject(monster))
