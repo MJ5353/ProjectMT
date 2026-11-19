@@ -97,8 +97,9 @@ public static class BattleUISetup
         hpRect.anchoredPosition = new Vector2(0, 50);
 
         // 우하단 스킬 아이콘(표시만)
-        SkillSlot(safe, "Attack", "HUD_Attack", new Vector2(-50, 50), 150f, out GameObject attackActive, out GameObject attackChain);
-        SkillSlot(safe, "Dash", "HUD_Dash", new Vector2(-230, 50), 110f, out GameObject dashActive, out _);
+        RectTransform attackSlot = SkillSlot(safe, "Attack", "HUD_Attack", new Vector2(-50, 50), 150f, out GameObject attackActive);
+        SkillSlot(safe, "Dash", "HUD_Dash", new Vector2(-230, 50), 110f, out GameObject dashActive);
+        AddSkillChain(attackSlot);
 
         // 우상단 토벌 종료: 동그란 깃발 버튼 + 아래 작은 글자
         RectTransform exitRect = UIBuilder.Anchored("ExitButton", safe, new Vector2(1, 1), new Vector2(-50, -30), new Vector2(110, 110));
@@ -123,12 +124,12 @@ public static class BattleUISetup
         UILootRow rowTemplate = LootRow(safe);
 
         AddUnitHpBars(safe);
+        AddRoarEffect(safe);
 
         BattleHud hud = root.gameObject.AddComponent<BattleHud>();
         UIBuilder.SetRef(hud, "m_Clock", clock);
         UIBuilder.SetRef(hud, "m_Hp", hp);
         UIBuilder.SetRef(hud, "m_AttackActive", attackActive);
-        UIBuilder.SetRef(hud, "m_AttackChain", attackChain);
         UIBuilder.SetRef(hud, "m_DashActive", dashActive);
         UIBuilder.SetRef(hud, "m_LootList", lootList);
         UIBuilder.SetRef(hud, "m_LootRowTemplate", rowTemplate);
@@ -177,6 +178,34 @@ public static class BattleUISetup
         boss.gameObject.SetActive(false);
 
         return bars;
+    }
+
+    // 보스 포효 연출: 노치까지 덮는 붉은 가장자리(맨 뒤) + 가운데 위 이름 띠(맨 앞). 이미 만든 HUD 프리팹에 붙일 때도 쓴다
+    public static UIRoarEffect AddRoarEffect(RectTransform safe)
+    {
+        RectTransform vignette = UIBuilder.Stretch("RoarVignette", safe.parent);
+        vignette.SetAsFirstSibling();
+        Image vignetteImage = SpriteImage(vignette, "UI_Vignette");
+        vignetteImage.preserveAspect = false;
+        vignetteImage.color = UIStyle.Accent;
+        CanvasGroup vignetteGroup = vignette.gameObject.AddComponent<CanvasGroup>();
+        vignetteGroup.blocksRaycasts = false;
+        vignetteGroup.interactable = false;
+
+        RectTransform banner = UIBuilder.Rect("RoarBanner", safe, new Vector2(0, 0.5f), new Vector2(1, 0.5f), new Vector2(0, 150), new Vector2(0, 290));
+        banner.SetAsLastSibling();
+        UIBuilder.AddImage(banner, new Color(0f, 0f, 0f, 0.6f));
+        TMP_Text text = UIBuilder.Label(banner, "보스", UIStyle.FontTitle);
+        CanvasGroup bannerGroup = banner.gameObject.AddComponent<CanvasGroup>();
+        bannerGroup.blocksRaycasts = false;
+        bannerGroup.interactable = false;
+
+        UIRoarEffect effect = banner.gameObject.AddComponent<UIRoarEffect>();
+        UIBuilder.SetRef(effect, "m_Vignette", vignetteGroup);
+        UIBuilder.SetRef(effect, "m_Banner", bannerGroup);
+        UIBuilder.SetRef(effect, "m_BannerText", text);
+
+        return effect;
     }
 
     // 사망 팝업: 뒤가 비치는 어두운 배경 + 가운데 창(부활/귀가). 팝업 루트(PopupService) 아래에 꽉 차게 뜬다
@@ -231,8 +260,8 @@ public static class BattleUISetup
         return lootRow;
     }
 
-    // 스킬 아이콘 한 칸(반투명 원): 사용 중 금테(뒤), 바탕, 아이콘, 연계 가능 표시(위 + "연계" 글자)
-    private static void SkillSlot(Transform parent, string name, string sprite, Vector2 position, float size, out GameObject active, out GameObject chain)
+    // 스킬 아이콘 한 칸(반투명 원): 사용 중 금테(뒤), 바탕, 아이콘
+    private static RectTransform SkillSlot(Transform parent, string name, string sprite, Vector2 position, float size, out GameObject active)
     {
         RectTransform slot = UIBuilder.Anchored(name, parent, new Vector2(1, 0), position, new Vector2(size, size));
 
@@ -244,14 +273,39 @@ public static class BattleUISetup
         SpriteImage("Back", slot, CircleSprite, 0f).color = new Color(0f, 0f, 0f, 0.6f);
         SpriteImage("Icon", slot, sprite, size * 0.22f);
 
-        Image chainImage = SpriteImage("Chain", slot, CircleSprite, 0f);
-        chainImage.color = new Color(1f, 1f, 1f, 0.25f);
-        RectTransform chainRect = (RectTransform)chainImage.transform;
-        RectTransform chainText = UIBuilder.Rect("Text", chainRect, new Vector2(0, 1), Vector2.one, Vector2.zero, new Vector2(0, 50));
-        TMP_Text chainLabel = UIBuilder.Label(chainText, "연계", UIStyle.FontNormal);
-        chainLabel.color = UIStyle.Gold;
-        chain = chainRect.gameObject;
-        chain.SetActive(false);
+        return slot;
+    }
+
+    // 공격 칸 위에 이어 쓸 수 있는 스킬 줄(작은 원 아이콘). 큰 아이콘은 칸의 Icon을 지금 공격으로 바꿔 쓴다.
+    // 이미 만든 HUD 프리팹에 붙일 때도 쓴다
+    public static UISkillChain AddSkillChain(RectTransform attackSlot)
+    {
+        const float iconSize = 64f;
+
+        RectTransform chainRoot = UIBuilder.Rect("Chain", attackSlot, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-200, 16), new Vector2(200, 16 + iconSize));
+        HorizontalLayoutGroup layout = chainRoot.gameObject.AddComponent<HorizontalLayoutGroup>();
+        layout.childAlignment = TextAnchor.LowerCenter;
+        layout.spacing = 10f;
+        layout.childControlWidth = layout.childControlHeight = false;
+        layout.childForceExpandWidth = layout.childForceExpandHeight = false;
+
+        // 원본은 줄 밖에 꺼 둔다(줄 자식이면 레이아웃이 원본까지 세운다)
+        RectTransform template = UIBuilder.Anchored("ChainIconTemplate", attackSlot, new Vector2(0.5f, 1f), new Vector2(0, 16), new Vector2(iconSize, iconSize));
+        SpriteImage("Back", template, CircleSprite, 0f).color = new Color(0f, 0f, 0f, 0.6f);
+        Image icon = SpriteImage("Icon", template, "HUD_Attack", iconSize * 0.2f);
+        CanvasGroup group = template.gameObject.AddComponent<CanvasGroup>();
+        group.blocksRaycasts = false;
+        UISkillIcon skillIcon = template.gameObject.AddComponent<UISkillIcon>();
+        UIBuilder.SetRef(skillIcon, "m_Group", group);
+        UIBuilder.SetRef(skillIcon, "m_Icon", icon);
+        template.gameObject.SetActive(false);
+
+        UISkillChain chain = attackSlot.gameObject.AddComponent<UISkillChain>();
+        UIBuilder.SetRef(chain, "m_MainIcon", attackSlot.Find("Icon").GetComponent<Image>());
+        UIBuilder.SetRef(chain, "m_ChainRoot", chainRoot);
+        UIBuilder.SetRef(chain, "m_ChainTemplate", skillIcon);
+
+        return chain;
     }
 
     private static Image SpriteImage(string name, Transform parent, string sprite, float inset)

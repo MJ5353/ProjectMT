@@ -74,6 +74,19 @@ public class DefineDef : DataDef
     [field: SerializeField]
     public float MonsterHpBarOffset { get; private set; } = 0.4f;   // 몸 맨 위에서 체력바까지 높이
 
+    // 보스 포효 연출 ---
+    [field: SerializeField]
+    public float RoarShake { get; private set; } = 0.06f;          // 포효할 때 카메라가 다가오는 세기(거리 비율)
+
+    [field: SerializeField]
+    public float RoarShakeTime { get; private set; } = 0.8f;       // 포효 흔들림 시간(초)
+
+    [field: SerializeField]
+    public float RoarEffectTime { get; private set; } = 1.6f;      // 붉은 가장자리·이름 배너가 떠 있는 시간(초)
+
+    [field: SerializeField]
+    public float RoarVignetteAlpha { get; private set; } = 0.7f;   // 붉은 가장자리 가장 진할 때 불투명도
+
     // 카메라 ---
     [field: SerializeField]
     public float CameraDistance { get; private set; } = 11f;        // 바라보는 점에서 카메라까지 거리

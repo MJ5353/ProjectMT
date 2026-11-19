@@ -48,3 +48,16 @@ public readonly struct BattleEnded
 public readonly struct PlayerDowned
 {
 }
+
+// 보스가 포효함(첫 발견·분노). HUD가 붉은 가장자리·이름 배너를 띄운다
+public readonly struct BossRoared
+{
+    public readonly UnitController Unit;
+    public readonly bool IsEnraged;
+
+    public BossRoared(UnitController unit, bool isEnraged)
+    {
+        Unit = unit;
+        IsEnraged = isEnraged;
+    }
+}

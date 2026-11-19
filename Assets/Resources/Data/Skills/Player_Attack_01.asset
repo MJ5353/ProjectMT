@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DisplayName: Player_Attack_01
   <ID>k__BackingField: Player_Attack_01
   <Description>k__BackingField: 
-  <Icon>k__BackingField: {fileID: 5905904107171995051, guid: 6878520a084f40e2b9dfeff57603a339, type: 3}
+  <Icon>k__BackingField: {fileID: 21300000, guid: 6878520a084f40e2b9dfeff57603a339, type: 3}
   <Kind>k__BackingField: 0
   <Attack>k__BackingField:
     <Clip>k__BackingField: Attack_01
@@ -28,6 +28,7 @@ MonoBehaviour:
     <Knockback>k__BackingField: 7
     <HitStop>k__BackingField: 0.07
     <Shake>k__BackingField: 0.025
+    <Break>k__BackingField: 1
     <Lunge>k__BackingField: 2
     <ActiveMoveSpeed>k__BackingField: 0
     <RehitFrame>k__BackingField: 0

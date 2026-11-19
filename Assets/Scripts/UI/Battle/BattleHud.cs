@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 // ==================================================
 
-// 전투 HUD. 좌상단 밤 시계, 중앙 하단 체력, 공격·대시 아이콘(사용 중·연계 가능), 우상단 주운 버섯 목록(신선도별), 토벌 종료 버튼.
+// 전투 HUD. 좌상단 밤 시계, 중앙 하단 체력, 공격·대시 아이콘(사용 중, 연계는 UISkillChain), 우상단 주운 버섯 목록(신선도별), 토벌 종료 버튼.
 // 매 프레임 BattleService·플레이어를 읽어 그린다. 플레이어가 쓰러지면 부활/귀가 팝업을 띄운다
 
 public class BattleHud : MonoBehaviour
@@ -12,7 +12,6 @@ public class BattleHud : MonoBehaviour
     [SerializeField] private UINightClock m_Clock = null;
     [SerializeField] private UIGauge m_Hp = null;
     [SerializeField] private GameObject m_AttackActive = null; // 공격 중 테두리
-    [SerializeField] private GameObject m_AttackChain = null;  // 다음 타를 이을 수 있을 때 반짝임
     [SerializeField] private GameObject m_DashActive = null;   // 대시 중 테두리
     
     [SerializeField] private RectTransform m_LootList = null;   // 세로 목록(VerticalLayoutGroup)
@@ -75,7 +74,6 @@ public class BattleHud : MonoBehaviour
         bool isAttack = executor.Current == EActionType.Attack;
         
         m_AttackActive.SetActive(isAttack);
-        m_AttackChain.SetActive(isAttack && executor.Attack.CanBufferNext);
         m_DashActive.SetActive(executor.Current == EActionType.Dash);
     }
 
