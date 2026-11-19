@@ -38,10 +38,9 @@ public class PlayerController : UnitController<PlayerDef>
     private AttackSpec m_QueuedAttack; // 다음에 낼 공격. null이면 입력 없음
     private AttackSpec m_ComboNext;    // 다음에 낼 콤보 타. null이면 첫 타(Def.ComboStart)
     private float m_AttackHoldTime;    // 공격 버튼을 누르고 있는 시간
-    private Vector3 m_DashDirection;
-    private float m_DashCooldownRemain;
 
     public EPlayerState State => m_State;
+    public DashFeature Dash { get; private set; }
 
     protected override ETeam Team => ETeam.Player;
 
@@ -51,6 +50,11 @@ public class PlayerController : UnitController<PlayerDef>
     {
         InitInput();
         base.Set();
+        
+        if (enabled == false)
+            return;
+
+        Dash = AddFeature(new DashFeature(this, Def.DashSpeed, Def.DashTime, Def.DashCooldown, Def.IsDashInvincible, Def.DashAnimSpeed));
     }
 
     protected override void OnUpdate(float deltaTime)
@@ -59,8 +63,6 @@ public class PlayerController : UnitController<PlayerDef>
             return;
 
         m_TimeInState += deltaTime;
-        if (m_DashCooldownRemain > 0f)
-            m_DashCooldownRemain -= deltaTime;
 
         if (m_MoveAction == null)
             return;
@@ -93,7 +95,6 @@ public class PlayerController : UnitController<PlayerDef>
 
     protected override void OnSpawned()
     {
-        m_DashCooldownRemain = 0f;
         m_QueuedAttack = null;
         m_ComboNext = null;
         Init();
@@ -192,6 +193,7 @@ public class PlayerController : UnitController<PlayerDef>
 
         Vector3 input = GetMoveInput();
         float strength = Mathf.Clamp01(input.magnitude);
+
         if (strength < 0.1f)
         {
             Move.Stop();
@@ -239,21 +241,12 @@ public class PlayerController : UnitController<PlayerDef>
     private void EnterDash()
     {
         Vector3 input = GetMoveInput();
-        m_DashDirection = input.sqrMagnitude > 0.01f ? input.normalized : transform.forward;
-        m_DashCooldownRemain = Def.DashCooldown + Def.DashTime;
-
-        Move.FaceTo(m_DashDirection, true);
-        Move.SetVelocity(m_DashDirection * Def.DashSpeed);
-        Anim.SetSpeed(Def.DashAnimSpeed);
-        Anim.Play("Run", true);
-
-        if (Def.IsDashInvincible)
-            HitFeature.SetInvincible(Def.DashTime);
+        Dash.StartDash(input.sqrMagnitude > 0.01f ? input.normalized : transform.forward);
     }
 
     private void UpdateDash()
     {
-        if (m_TimeInState < Def.DashTime)
+        if (Dash.IsDashing)
             return;
 
         Move.Stop();
@@ -310,9 +303,6 @@ public class PlayerController : UnitController<PlayerDef>
         return forward * raw.y + right * raw.x;
     }
     
-        return -1;
-    }
-    
     // 가까운 몬스터이 있으면 그쪽, 없으면 입력 방향, 그것도 없으면 지금 앞
     private Vector3 FindAimDirection()
     {
@@ -327,7 +317,7 @@ public class PlayerController : UnitController<PlayerDef>
     // 이동 중이나 공격 판정이 끝난 뒤에만 대시로 끊을 수 있다
     private bool CanDash()
     {
-        if (m_DashCooldownRemain > 0f)
+        if (Dash.IsReady == false)
             return false;
 
         switch (m_State)
