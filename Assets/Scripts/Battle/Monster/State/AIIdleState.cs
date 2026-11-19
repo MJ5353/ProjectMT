@@ -2,13 +2,13 @@ using UnityEngine;
 
 // ==================================================
 
-public class MonsterIdleState : MonsterState
+public class AIIdleState : AIState
 {
     private float m_Duration;
 
     // ------------------------------------------------
 
-    public MonsterIdleState(MonsterController controller) : base(controller) { }
+    public AIIdleState(MonsterController controller) : base(controller) { }
 
     public override void Enter()
     {

@@ -3,17 +3,18 @@ using UnityEngine;
 
 // ==================================================
 
-// 몸 판정 모양(뼈마다 구·캡슐). "어디를 맞을 수 있나"만 맡는다. ActorService가 공격 판정 때 주인의 ListHitShape로 읽는다.
+// 몸 판정 모양(뼈마다 구·캡슐). "어디를 맞을 수 있나"만 맡는다. ActorService가 공격 판정 때 주인의 HitBox로 읽는다.
 // 목록이 비면 HurtBody 캡슐로 맞는다(플레이어·잡몹). 버섯 부위가 걸린 뼈는 부위 번호(Owner.Parts)를 달아 부위 판정이 된다
 
 public class HitBoxFeature : UnitFeature
 {
+    public float BoundRadius { get; private set; }       // 몸 중심(transform)에서 모양들을 감싸는 반지름. 후보 거르기용
     private const float BoundMargin = 1.3f; // 애니로 뼈가 뻗는 만큼 감싸는 반지름에 더 주는 배율
 
     public IReadOnlyList<HitShape> ListShape => m_ListShape;
     private readonly List<HitShape> m_ListShape = new(); // 만들 때 한 번 정하고 풀 재사용 때도 그대로
 
-    public float BoundRadius { get; private set; }       // 몸 중심(transform)에서 모양들을 감싸는 반지름. 후보 거르기용
+    public bool HasShape => m_ListShape.Count > 0;
 
     // ------------------------------------------------
 

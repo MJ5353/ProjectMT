@@ -2,7 +2,7 @@ using UnityEngine;
 
 // ==================================================
 
-public class MonsterDeadState : MonsterState
+public class AIDeadState : AIState
 {
     private const float CollisionOffTime = 0.4f;
     private const float DestroyTime = 2f;
@@ -11,7 +11,7 @@ public class MonsterDeadState : MonsterState
 
     // ------------------------------------------------
 
-    public MonsterDeadState(MonsterController controller) : base(controller) { }
+    public AIDeadState(MonsterController controller) : base(controller) { }
 
     public override void Enter()
     {
@@ -19,6 +19,7 @@ public class MonsterDeadState : MonsterState
         m_Controller.Anim.SetSpeed(1f); // 멈춤·Death 애니는 사망 행동(DeadAction)이 한다
 
         SpawnDrops();
+        PlayDeathEffect();
         ActorService actors = GameManager.Instance?.ActorS;
         
         if (actors != null)
@@ -36,6 +37,17 @@ public class MonsterDeadState : MonsterState
 
         if (TimeInState >= DestroyTime)
             m_Controller.Despawn();
+    }
+
+    // 발밑에 먼지. 몸 반지름 0.5를 기준 크기로 키운다
+    private void PlayDeathEffect()
+    {
+        EffectService effectS = GameManager.Instance?.EffectS;
+        if (effectS == null)
+            return;
+
+        float scale = m_Controller.HurtBody != null ? m_Controller.HurtBody.radius * 2f : 1f;
+        effectS.Play(effectS.Death, m_Controller.transform.position, Quaternion.identity, scale);
     }
 
     private void SpawnDrops()

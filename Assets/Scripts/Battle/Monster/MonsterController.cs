@@ -11,9 +11,12 @@ public class MonsterController : UnitController<MonsterDef>
     public Transform Target => IsTargetValid() ? TargetActor.transform : null;
     public Vector3 HomePosition { get; private set; }
     public Vector3 LastHitDirection { get; private set; }
+
+    // feature
     public AttackChoiceFeature AttackChoice { get; private set; } // 공격 고르기·쿨·콤보
-    
     public AIFeature AI { get; private set; }                   // 판단(대기·배회·추적·도망·사망 뒤)
+    
+    // get
     public EAIState State => AI.State;
     public float TimeInState => AI.TimeInState;
     protected override ETeam Team => ETeam.Monster;
@@ -33,11 +36,11 @@ public class MonsterController : UnitController<MonsterDef>
         AttackChoice = AddFeature(new AttackChoiceFeature(this, Def, Def.AttackCooldown));
 
         AI = AddFeature(new AIFeature(this));
-        AI.Add(EAIState.Idle, new MonsterIdleState(this));
-        AI.Add(EAIState.Wander, new MonsterWanderState(this));
-        AI.Add(EAIState.Chase, new MonsterChaseState(this));
-        AI.Add(EAIState.Flee, new MonsterFleeState(this));
-        AI.Add(EAIState.Dead, new MonsterDeadState(this));
+        AI.Add(EAIState.Idle, new AIIdleState(this));
+        AI.Add(EAIState.Wander, new AIWanderState(this));
+        AI.Add(EAIState.Chase, new AIChaseState(this));
+        AI.Add(EAIState.Flee, new AIFleeState(this));
+        AI.Add(EAIState.Dead, new AIDeadState(this));
 
         Action.Ended += OnActionEnded;
     }
@@ -57,13 +60,6 @@ public class MonsterController : UnitController<MonsterDef>
         AI.UpdateAI(deltaTime);
     }
     
-    // 진행 중인 상태를 Exit로 정리(애니 배속 복구)하고 AI를 끈다
-    protected override void OnBattleEnded()
-    {
-        AI.Stop();
-        base.OnBattleEnded();
-    }
-
     protected override void OnHit(HitParams hit)
     {
         if (IsDead)
@@ -81,7 +77,14 @@ public class MonsterController : UnitController<MonsterDef>
         Action.RequestDead();
         AI.Change(EAIState.Dead);
     }
-
+    
+    // 진행 중인 상태를 Exit로 정리(애니 배속 복구)하고 AI를 끈다
+    protected override void OnBattleEnded()
+    {
+        AI.Stop();
+        base.OnBattleEnded();
+    }
+    
     // 행동이 끝난 뒤 판단. 공격은 끝날 때마다 쿨을 걸고, 끝까지 했으면 콤보 다음 타. 피격 경직이 풀리면 도망 또는 추적
     private void OnActionEnded(EActionType action, bool isFinished)
     {
@@ -104,26 +107,13 @@ public class MonsterController : UnitController<MonsterDef>
         }
     }
     
-    // ---
-    
     public void ChangeState(EAIState next)
     {
         AI.Change(next);
     }
 
-    // 죽은 뒤 사라질 때. 등록돼 있으면 ActorService가 지운다
-    public void Despawn()
-    {
-        ActorService actors = GameManager.Instance?.ActorS;
-        if (actors != null && ActorID != 0)
-        {
-            actors.Despawn(ActorID);
-            return;
-        }
-
-        Destroy(gameObject);
-    }
-
+    // ------------------------------------------------
+    
     #region Gizmo
     
     // 씬 뷰에 몸 판정 모양(구·캡슐)과 부위 판정 구를 그린다. 선이 뼈 축 방향
@@ -213,8 +203,6 @@ public class MonsterController : UnitController<MonsterDef>
 
         return GetTargetDistance() <= Def.SightRange;
     }
-
-    // attack ---
     
     // 노리는 적이 아직 살아 있는지(풀로 돌아갔거나 죽었으면 false)
     private bool IsTargetValid()
@@ -224,7 +212,6 @@ public class MonsterController : UnitController<MonsterDef>
 
         return TargetActor.HitFeature.IsDead == false && TargetActor.HitFeature.Team != Team;
     }
-    
 
     // part ---
     

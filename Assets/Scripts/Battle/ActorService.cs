@@ -214,6 +214,11 @@ public readonly struct ActorHitCandidate
     public readonly float HalfHeight;
     public readonly float Radius;
 
+    // 몸 판정 표가 있으면 캡슐 대신 그것만 쓴다(버섯이 걸린 몸 부위도 몸 판정 표다)
+    private bool HasBodyShape() => Actor?.HitBox?.HasShape ?? false;
+    
+    // ------------------------------------------------
+    
     public ActorHitCandidate(IHitTarget actor, CharacterController body)
     {
         Transform bodyTransform = body.transform;
@@ -226,7 +231,7 @@ public readonly struct ActorHitCandidate
         
         Actor = actor;
     }
-
+    
     // 대충 가까운지. 뼈 모양이 있으면 감싸는 반지름, 없으면 CharacterController 캡슐 기준(부위만 있는 몹은 둘 다)
     public bool IsNear(Vector3 center, float radius)
     {
@@ -234,10 +239,10 @@ public readonly struct ActorHitCandidate
         if ((Center - center).sqrMagnitude <= capsuleRange * capsuleRange)
             return true;
 
-        if (Actor.ListHitShape.Count == 0)
+        if (HasBodyShape() == false)
             return false;
 
-        float shapeRange = radius + Actor.HitBoundRadius;
+        float shapeRange = radius + Actor.HitBox.BoundRadius;
         return (Actor.transform.position - center).sqrMagnitude <= shapeRange * shapeRange;
     }
 
@@ -264,11 +269,13 @@ public readonly struct ActorHitCandidate
     {
         point = default;
         partIndex = -1;
-        
         bool isHit = false;
         float nearest = float.MaxValue;
+        
+        if (HasBodyShape() == false)
+            return false;
 
-        foreach (HitShape shape in Actor.ListHitShape)
+        foreach (HitShape shape in Actor.HitBox.ListShape)
         {
             if ((shape.PartIndex >= 0) != isPart)
                 continue;
@@ -292,9 +299,4 @@ public readonly struct ActorHitCandidate
         return isHit;
     }
 
-    // 몸 판정 표가 있으면 캡슐 대신 그것만 쓴다(버섯이 걸린 몸 부위도 몸 판정 표다)
-    private bool HasBodyShape()
-    {
-        return Actor.ListHitShape.Count > 0;
-    }
 }

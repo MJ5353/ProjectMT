@@ -17,11 +17,6 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
     private bool m_IsBattleOver;
     
-    // hit --- 뼈 판정 모양이 없으면 빈 목록(HurtBody 캡슐로 맞는다)
-    private static readonly List<HitShape> s_EmptyHitShape = new();
-    public IReadOnlyList<HitShape> ListHitShape => HitBox != null ? HitBox.ListShape : s_EmptyHitShape;
-    public float HitBoundRadius => HitBox != null ? HitBox.BoundRadius : 0f;
-    
     // feature
     public MoveFeature Move { get; private set; }
     public AnimFeature Anim { get; private set; }
@@ -32,6 +27,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     public PartFeature Parts { get; protected set; }         // 버섯 부위. 없으면 null
     public HitBoxFeature HitBox { get; protected set; }      // 뼈 판정 모양. 없으면 null
 
+    // get
     public TDef Def => m_Def;
     public UnitProperty Property => m_Property;
     public Transform VisualRoot => m_Property.Animator.transform;
@@ -39,7 +35,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     public bool IsDead => Health.IsDead;
 
     // ------------------------------------------------
-
+        
     protected virtual void Set()
     {
         if (m_Def == null || m_Property == null)
@@ -72,12 +68,6 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         return feature;
     }
     
-    protected virtual void OnDisable()
-    {
-        HitFeature?.RestoreFlash();
-    }
-
-    // ActorService.Tick이 매 프레임 부른다. Def가 비어 꺼진 유닛은 돌지 않는다
     public void Tick(float deltaTime, float unscaledDeltaTime)
     {
         if (enabled == false)
@@ -135,8 +125,41 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
             feature.Clear();
         }
     }
+    
+    public void Despawn()
+    {
+        ActorService actors = GameManager.Instance?.ActorS;
+        if (actors != null && ActorID != 0)
+        {
+            // 등록돼 있으면 ActorService가 지운다
+            actors.Despawn(ActorID);
+            return;
+        }
 
-    // 씬 뷰에 공격 판정 범위 표시
+        Destroy(gameObject);
+    }
+    
+    // virtual ---
+
+    protected abstract void OnSpawned();
+    protected abstract void OnUpdate(float deltaTime);
+    protected abstract void OnHit(HitParams hit);
+    protected abstract void OnDied();
+
+    // 전투가 끝난 순간 한 번. 기본은 애니 배속을 되돌리고, 살아 있으면 Idle
+    protected virtual void OnBattleEnded()
+    {
+        Anim.SetSpeed(1f);
+        
+        if (IsDead == false)
+            Anim.Play("Idle");
+    }
+    
+    protected virtual void OnDisable()
+    {
+        HitFeature?.RestoreFlash();
+    }
+    
     protected virtual void OnDrawGizmosSelected()
     {
         if (m_Def == null || m_Property == null)
@@ -150,6 +173,8 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         }
     }
 
+    // get ---
+
     // Def의 공격 전부(SkillDef). 판정 뼈 검사·기즈모용이라 매번 새 목록
     private List<AttackSpec> GetAttacks()
     {
@@ -157,29 +182,9 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
         m_Def.CollectAttacks(listAttack);
         return listAttack;
     }
-
-    // get ---
-
+    
     public Transform GetBattleBone(EBattlePartType part)
     {
         return m_Property.GetBattleBone(part);
     }
-    
-    // ==================================================
-
-    // virtual ---
-
-    // 전투가 끝난 순간 한 번. 기본은 애니 배속을 되돌리고, 살아 있으면 Idle
-    protected virtual void OnBattleEnded()
-    {
-        Anim.SetSpeed(1f);
-        
-        if (IsDead == false)
-            Anim.Play("Idle");
-    }
-
-    protected abstract void OnSpawned();
-    protected abstract void OnUpdate(float deltaTime);
-    protected abstract void OnHit(HitParams hit);
-    protected abstract void OnDied();
 }
