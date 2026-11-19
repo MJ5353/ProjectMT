@@ -3,30 +3,32 @@ using UnityEngine;
 
 // ==================================================
 
-// 플레이어와 몬스터가 같이 쓰는 몸. 조립 순서: 공통 Feature → 타입별 Feature(SetFeatures) → 판단(CreateBrain).
-// 판단(BrainFeature)을 마지막에 등록해서 매 프레임 "다른 Feature Tick → 판단 → LateTick(이동)" 순서가 된다.
+// 플레이어와 몬스터가 같이 쓰는 몸. 세 층으로 이뤄진다: 부품(Feature 목록) · 행동(ActionLayer) · 판단(BrainF).
+// 조립 순서: 공통 부품 → 행동 층 → 타입별 부품(SetFeatures) → 판단(CreateBrain).
+// 매 프레임 순서는 Tick 한 곳에 적는다: 부품 Tick → 행동 → 판단 → 부품 LateTick(이동). 호출은 판단 → 행동 → 부품 방향으로만
 // 피격·사망은 여기서 행동 층(RequestHit·RequestDead)에 바로 넘기고, 그 뒤 할 일은 판단 쪽 훅이 정한다.
 // 직렬화 참조 둘은 에디터 메뉴(BattleSetup)가 프리팹을 만들 때 채운다. 프리팹 안의 참조는 UnitProperty에 모은다
 // 제네릭이 아니라서 "아무 유닛"을 담을 때(Feature의 Owner, ActorService 목록, 타깃, 판정 후보) 이 타입을 쓴다
 
 public abstract class UnitController : PoolableMono
 {
-    [SerializeField] private UnitProperty m_Property = null;     // 프리팹 참조(몸·애니·렌더러·부위 뼈·소켓)
-    private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
-
-    public int ActorID { get; private set; }   // ActorService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
+    public int ActorID { get; private set; }                // ActorService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
     protected abstract UnitDef BaseDef { get; }             // 몸 수치. 타입 있는 Def는 UnitController<TDef>.Def
     public abstract ETeam Team { get; }
 
+    [SerializeField] private UnitProperty m_Property = null;     // 프리팹 참조(몸·애니·렌더러·부위 뼈·소켓)
+
     // feature
+    private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
     public HealthFeature HealthF { get; private set; }
     public MoveFeature MoveF { get; private set; }
     public AnimFeature AnimF { get; private set; }
     public HitFeature HitF { get; private set; }
-    public ActionFeature ActionF { get; private set; }      // 행동 층(이동·공격·대시·피격·사망). 판단 쪽은 여기에 요청만 한다
-    public MeleeAttackFeature MeleeF { get; private set; }
     public TargetFeature TargetF { get; private set; }      // 대상 찾기·기억·거리
-    public BrainFeature BrainF { get; private set; }        // 판단 층(플레이어 입력·몬스터 AI). 마지막에 등록
+    
+    // layer
+    public ActionLayer Action { get; private set; }         // 행동 층(이동·공격·대시·피격·사망). 판단 쪽은 여기에 요청만 한다
+    public BrainFeature BrainF { get; private set; }        // 판단 층(플레이어 입력·몬스터 AI)
     public PartFeature PartF { get; protected set; }        // 버섯 부위. 없으면 null
 
     // get
@@ -51,12 +53,11 @@ public abstract class UnitController : PoolableMono
         AnimF = AddFeature(new AnimFeature(this, m_Property.Animator));
         HealthF = AddFeature(new HealthFeature(this, BaseDef.MaxHp));
         HitF = AddFeature(new HitFeature(this, BaseDef.Hit, m_Property.ListBodyRenderer));
-        MeleeF = AddFeature(new MeleeAttackFeature(this, GetAttacks()));
         TargetF = AddFeature(new TargetFeature(this));
-        ActionF = AddFeature(new ActionFeature(this, BaseDef));
+        Action = new ActionLayer(this, BaseDef);
 
         SetFeatures();
-        BrainF = AddFeature(CreateBrain());
+        BrainF = CreateBrain();
 
         // 피격 반응 수치가 없으면 체력만 깎이고 반응은 없다
         if (BaseDef.Hit == null)
@@ -84,6 +85,9 @@ public abstract class UnitController : PoolableMono
             feature.Tick(feature.IsUnscaledTime ? unscaledDeltaTime : deltaTime);
         }
 
+        Action.Tick(deltaTime);
+        BrainF.Tick(deltaTime);
+
         foreach (var feature in m_ListFeature)
         {
             feature.LateTick(feature.IsUnscaledTime ? unscaledDeltaTime : deltaTime);
@@ -101,18 +105,39 @@ public abstract class UnitController : PoolableMono
         {
             feature.Reset();
         }
+
+        Action.Reset();
+        BrainF.Reset();
     }
 
     public void OnDespawn()
     {
         // 풀로 돌아가기 직전
         ActorID = 0;
+        BrainF.Clear();
+        Action.Clear();
         foreach (var feature in m_ListFeature)
         {
             feature.Clear();
         }
     }
 
+    // 맞으면 판단 쪽이 먼저 기록(공격자 등)하고, 행동 층은 피격 경직으로. 죽는 타격은 사망이 먼저 처리돼 여기서 끝난다
+    private void OnHit(HitParams hit)
+    {
+        if (IsDead)
+            return;
+
+        BrainF.OnHit(hit);
+        Action.RequestHit();
+    }
+
+    private void OnDied()
+    {
+        Action.RequestDead();
+        BrainF.OnDied();
+    }
+    
     public void Despawn()
     {
         ActorService actors = GameManager.Instance?.ActorS;
@@ -125,26 +150,11 @@ public abstract class UnitController : PoolableMono
 
         Destroy(gameObject);
     }
-
-    // 맞으면 판단 쪽이 먼저 기록(공격자 등)하고, 행동 층은 피격 경직으로. 죽는 타격은 사망이 먼저 처리돼 여기서 끝난다
-    private void OnHit(HitParams hit)
-    {
-        if (IsDead)
-            return;
-
-        BrainF.OnHit(hit);
-        ActionF.RequestHit();
-    }
-
-    private void OnDied()
-    {
-        ActionF.RequestDead();
-        BrainF.OnDied();
-    }
-
+    
     // virtual ---
 
     protected abstract void SetFeatures();          // 타입별 Feature 등록(부위·공격 고르기·대시 등)
+    
     protected abstract BrainFeature CreateBrain();  // 판단(입력·AI)
 
     protected virtual void OnDisable()
@@ -161,7 +171,7 @@ public abstract class UnitController : PoolableMono
         foreach (AttackSpec attack in GetAttacks())
         {
             Transform bone = GetBattleBone(attack.HitPart);
-            Gizmos.DrawWireSphere(MeleeAttackFeature.GetCenter(transform, attack, bone), attack.Radius);
+            Gizmos.DrawWireSphere(AttackAction.GetCenter(transform, attack, bone), attack.Radius);
         }
     }
 

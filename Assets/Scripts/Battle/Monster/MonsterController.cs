@@ -4,7 +4,8 @@ using UnityEngine;
 // ==================================================
 
 // 몬스터 조립 허브. 몸(UnitController)에 버섯 부위·판정 모양·공격 고르기를 붙이고, 판단은 AI(AIFeature)로 둔다.
-// 판단 상태 클래스는 State/ 폴더(상태마다 파일 하나), 실행은 행동 층(ActionFeature), 수치는 MonsterDef
+// 판단 상태 클래스는 State/ 폴더(상태마다 파일 하나), 실행은 행동 층(ActionLayer), 수치는 MonsterDef
+
 public class MonsterController : UnitController<MonsterDef>
 {
     // feature
@@ -16,8 +17,11 @@ public class MonsterController : UnitController<MonsterDef>
 
     protected override void SetFeatures()
     {
-        PartF = AddFeature(new PartFeature(this, Def.ListPart));       // 버섯 부위(스폰 때 소켓을 골라 꽂는다)
-        HitF.SetShapes(Def.ListBodyShape);                              // 뼈 판정 모양. 부위 번호를 쓰므로 Parts 다음
+        // 버섯 부위(스폰 때 소켓을 골라 꽂는다)
+        PartF = AddFeature(new PartFeature(this, Def.ListPart)); 
+        
+        // 뼈 판정 모양. 부위 번호를 쓰므로 Parts 다음
+        HitF.SetShapes(Def.ListBodyShape); 
         AttackChoiceF = AddFeature(new AttackChoiceFeature(this, Def, Def.AttackCooldown));
     }
 

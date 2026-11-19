@@ -1,8 +1,8 @@
 
 // ==================================================
 
-// 판단 층의 기반(플레이어 입력·몬스터 AI). "무엇을 할지"만 정해 행동 층(ActionFeature)에 요청한다.
-// 주인이 마지막에 등록하므로 매 프레임 다른 Feature의 Tick 뒤, 이동(LateTick) 전에 돈다.
+// 판단 층의 기반(플레이어 입력·몬스터 AI). "무엇을 할지"만 정해 행동 층(ActionLayer)에 요청한다.
+// 주인이 부품 목록과 따로 들고, 매 프레임 부품 Tick → 행동 다음, 이동(LateTick) 전에 부른다.
 // 전투가 끝나면 스스로 멈추고(OnStop) 하던 행동을 정리한다. 피격·사망·행동 끝은 훅으로 받는다
 
 public abstract class BrainFeature : UnitFeature
@@ -14,7 +14,7 @@ public abstract class BrainFeature : UnitFeature
     protected BrainFeature(UnitController owner) : base(owner)
     {
         // 행동 층은 판단보다 먼저 만들어진다(UnitController.Set)
-        Owner.ActionF.Ended += OnActionEndedInternal;
+        Owner.Action.Ended += OnActionEndedInternal;
     }
 
     public override void Reset()
@@ -47,7 +47,7 @@ public abstract class BrainFeature : UnitFeature
         IsStopped = true;
         OnStop();
 
-        Owner.ActionF.Interrupt();
+        Owner.Action.Interrupt();
         Owner.MoveF.Stop();
         Owner.AnimF.SetSpeed(1f);
         if (Owner.IsDead == false)

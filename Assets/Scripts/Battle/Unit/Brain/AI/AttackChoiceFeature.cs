@@ -4,7 +4,7 @@ using UnityEngine;
 // ==================================================
 
 // 몬스터 공격 고르기. 후보(Def의 공격 전부)마다 개별 쿨을, 몬스터 전체에 공용 쿨을 돌리고
-// 거리·가중치로 이번 공격(Current)을 고른다. 콤보 다음 타는 행동 층(ActionFeature.ComboNext)이 알려 준다.
+// 거리·가중치로 이번 공격(Current)을 고른다. 콤보 다음 타는 행동 층(ActionLayer.ComboNext)이 알려 준다.
 // 언제 고를지는 상태(추적·공격)가 정하고, 여기는 고르기와 쿨만 한다
 
 public class AttackChoiceFeature : UnitFeature

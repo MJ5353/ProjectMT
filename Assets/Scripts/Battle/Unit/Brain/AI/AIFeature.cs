@@ -14,7 +14,7 @@ public enum EAIState
 
 // ==================================================
 
-// 몬스터 판단 층. 노릴 적을 고르고(TargetFeature에 기억) AI 상태(대기·배회·추적·도망·사망 뒤)를 돌리며 행동 층(ActionFeature)에 요청만 한다.
+// 몬스터 판단 층. 노릴 적을 고르고(TargetFeature에 기억) AI 상태(대기·배회·추적·도망·사망 뒤)를 돌리며 행동 층(ActionLayer)에 요청만 한다.
 // 공격·피격·대시 행동 중에는 판단을 쉬고, 행동이 끝나면(OnActionEnded) 다음 상태·콤보를 정한다.
 // 상태 클래스는 State/ 폴더(상태마다 파일 하나)
 
@@ -90,9 +90,9 @@ public class AIFeature : BrainFeature
         {
             case EActionType.Attack:
                 attackChoice.StartCooldown();
-                AttackSpec comboNext = Owner.ActionF.ComboNext;
+                AttackSpec comboNext = Owner.Action.ComboNext;
                 if (isFinished && comboNext != null)
-                    Owner.ActionF.RequestAttack(comboNext, Vector3.zero, Owner.TargetF.TargetTransform);
+                    Owner.Action.RequestAttack(comboNext, Vector3.zero, Owner.TargetF.TargetTransform);
 
                 break;
             case EActionType.Hit:
@@ -114,7 +114,7 @@ public class AIFeature : BrainFeature
     // 공격·피격·대시는 행동 층이 끝까지 맡는다. 사망은 사망 뒤 처리(드롭·사라짐)를 위해 판단을 계속 돈다
     private bool IsActing()
     {
-        EActionType action = Owner.ActionF.Current;
+        EActionType action = Owner.Action.Current;
         return action == EActionType.Attack || action == EActionType.Hit || action == EActionType.Dash;
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 
 // ==================================================
 
-// 플레이어 판단 층. 입력을 읽어 행동 층(ActionFeature)에 요청만 한다.
+// 플레이어 판단 층. 입력을 읽어 행동 층(ActionLayer)에 요청만 한다.
 // 입력은 프로젝트 입력 에셋(Assets/InputSystem_Actions)의 Player 맵 Move·Attack·AttackUp·Dash를 쓴다.
 // 키 배치는 에셋에서 바꾼다(기본: 이동 WASD·방향키·왼스틱, 공격 클릭·스페이스·J·패드 A/X, 대시 Shift·패드 B).
 // 공격 버튼을 누르면 가까운 적 쪽으로 자동으로 돌아서 벤다(모바일 대비). 연타하면 Def.ComboStart부터 AttackSpec.Next 순서, 달리는 중이면 Def.RunAttack. 수치는 PlayerDef
@@ -55,7 +55,7 @@ public class PlayerInputFeature : BrainFeature
             return;
 
         AttackSpec pressedAttack = GetPressedAttack(deltaTime);
-        if (m_DashAction.WasPressedThisFrame() && Owner.ActionF.RequestDash(GetDashDirection()))
+        if (m_DashAction.WasPressedThisFrame() && Owner.Action.RequestDash(GetDashDirection()))
             return;
 
         UpdateAttackInput(pressedAttack);
@@ -86,7 +86,7 @@ public class PlayerInputFeature : BrainFeature
     // 대기 중엔 바로, 공격 중엔 판정 시작 뒤 누른 것만 다음 타로 예약한다. 행동 층이 끊기를 허락해도 보낸다
     private void UpdateAttackInput(AttackSpec pressedAttack)
     {
-        ActionFeature action = Owner.ActionF;
+        ActionLayer action = Owner.Action;
         bool canBuffer = action.IsIdle || (action.Current == EActionType.Attack && action.Attack.CanBufferNext);
         if (pressedAttack != null && canBuffer)
             m_QueuedAttack = pressedAttack;
@@ -104,7 +104,7 @@ public class PlayerInputFeature : BrainFeature
         Vector3 input = GetMoveInput();
         float strength = Mathf.Clamp01(input.magnitude);
         float speed = strength < 0.1f ? 0f : m_Def.MoveSpeed * strength;
-        Owner.ActionF.SetMove(input, speed, strength >= m_Def.RunThreshold);
+        Owner.Action.SetMove(input, speed, strength >= m_Def.RunThreshold);
     }
 
     // get ---
@@ -128,7 +128,7 @@ public class PlayerInputFeature : BrainFeature
     // 달리는 중이면 달리다 베기, 아니면 콤보 다음 타. 콤보가 없으면 기본 공격
     private AttackSpec GetNextAttack()
     {
-        ActionFeature action = Owner.ActionF;
+        ActionLayer action = Owner.Action;
         if (action.IsIdle && m_Def.RunAttack != null && GetMoveInput().magnitude >= m_Def.RunThreshold)
             return m_Def.RunAttack.Attack;
 

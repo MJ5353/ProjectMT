@@ -12,7 +12,7 @@ public enum EActionType
 
 // ==================================================
 
-// 유닛이 지금 하고 있는 행동 하나(이동·공격·대시·피격·사망). ActionFeature가 하나씩 돌린다.
+// 유닛이 지금 하고 있는 행동 하나(이동·공격·대시·피격·사망). ActionLayer가 하나씩 돌린다.
 // 무엇을 할지는 판단 쪽(입력·AI)이 요청하고, 행동은 자기 시간·끝·끊길 수 있는지만 안다
 
 public abstract class UnitAction
@@ -21,7 +21,7 @@ public abstract class UnitAction
 
     public abstract EActionType Type { get; }
     public float Time { get; private set; }         // 행동을 시작하고 지난 시간
-    public virtual bool IsFinished => false;        // 끝나면 ActionFeature가 이동(대기)으로 돌린다
+    public virtual bool IsFinished => false;        // 끝나면 ActionLayer가 이동(대기)으로 돌린다
 
     // ------------------------------------------------
 
