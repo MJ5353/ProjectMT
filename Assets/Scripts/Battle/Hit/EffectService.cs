@@ -9,9 +9,6 @@ using UnityEngine;
 
 public sealed class EffectService : ServiceBase
 {
-    // [mj] todo) common path로 모아두기
-    private const string PrefabDir = "Prefabs/Effect/";
-
     private readonly List<EffectController> m_ListActive = new();
     private readonly ChunkRenderer m_Chunk = new();
 
@@ -23,9 +20,9 @@ public sealed class EffectService : ServiceBase
 
     public override void Init()
     {
-        PartBreak = Load("FX_PartBreak");
-        Death = Load("FX_Death");
-        Pickup = Load("FX_Pickup");
+        PartBreak = Load(CommonPath.PartBreakEffect);
+        Death = Load(CommonPath.DeathEffect);
+        Pickup = Load(CommonPath.PickupEffect);
     }
 
     public override void Tick(float deltaTime)
@@ -80,11 +77,11 @@ public sealed class EffectService : ServiceBase
         m_Chunk.Mark(point, isPart);
     }
 
-    private static EffectController Load(string prefabName)
+    private static EffectController Load(string resourcePath)
     {
-        EffectController prefab = Resources.Load<EffectController>(PrefabDir + prefabName);
+        EffectController prefab = Resources.Load<EffectController>(resourcePath);
         if (prefab == null)
-            CLogger.Warning("EffectService", $"Resources/{PrefabDir}{prefabName} 이펙트 프리팹이 없습니다.");
+            CLogger.Warning("EffectService", $"Resources/{resourcePath} 이펙트 프리팹이 없습니다.");
 
         return prefab;
     }

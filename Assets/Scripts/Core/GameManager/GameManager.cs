@@ -218,9 +218,9 @@ public class GameManager : MonoSingleton<GameManager>
 
     protected override void OnInit()
     {
-        Database = Resources.Load<GameDatabase>(GameDatabase.ResourcePath);
+        Database = Resources.Load<GameDatabase>(CommonPath.GameDatabase);
         if (Database == null)
-            CLogger.Error("GameManager", $"Resources/{GameDatabase.ResourcePath} 데이터베이스가 없습니다. MushTaker/데이터 편집기에서 DB 갱신을 실행하세요.");
+            CLogger.Error("GameManager", $"Resources/{CommonPath.GameDatabase} 데이터베이스가 없습니다. MushTaker/데이터 편집기에서 DB 갱신을 실행하세요.");
         else
             Database.Init();
 

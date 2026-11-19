@@ -9,7 +9,6 @@ using UnityEngine;
 
 public class GameDatabase : ScriptableObject
 {
-    public const string ResourcePath = "GameDatabase";
     private readonly Dictionary<string, DataDef> m_DicDefByID = new();      // 런타임 조회용. Init에서 채운다
     
     public IReadOnlyList<DataDef> ListDef => m_ListDef;

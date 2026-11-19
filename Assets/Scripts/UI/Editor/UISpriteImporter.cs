@@ -5,7 +5,6 @@ using UnityEngine;
 // 도트가 번지지 않게 Point·무압축, 캔버스에서 4배로 보이게 PPU 25, UI_ 틀은 9-slice 테두리를 넣는다
 public class UISpriteImporter : AssetPostprocessor
 {
-    private const string SpriteDir = "Assets/Art/UI/Sprites/";
 
     // 갈무리 11px 격자를 4배로 쓰는 것과 맞춘다(캔버스 기준 PPU 100 / 4)
     private const float PixelsPerUnit = 25f;
@@ -14,7 +13,7 @@ public class UISpriteImporter : AssetPostprocessor
 
     private void OnPreprocessTexture()
     {
-        if (assetPath.StartsWith(SpriteDir) == false)
+        if (assetPath.StartsWith(CommonPath.UISpriteDir) == false)
             return;
 
         TextureImporter importer = (TextureImporter)assetImporter;

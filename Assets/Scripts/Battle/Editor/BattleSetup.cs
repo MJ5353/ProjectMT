@@ -13,27 +13,14 @@ using UnityEngine.SceneManagement;
 // !!) 초기 설정은 누락된 에셋만 복구한다. 수치와 기존 프리팹은 데이터 편집기에서 관리한다.
 public static class BattleSetup
 {
-    internal const string ModelDir = "Assets/Art/Voxel/Models/";              // 하위 폴더(Actor·Mushroom·Map 등)까지 이름으로 찾는다
-    internal const string MonsterModelDir = ModelDir + "Actor/Monster/";
-    internal const string PrefabDir = "Assets/Resources/Prefabs/Actor/";
-    private const string AnimatorDir = PrefabDir + "Animators/";
-    internal const string MonsterDataDir = "Assets/Resources/Data/Monsters/";
-    private const string ScenePath = "Assets/Scenes/Battle.unity";
-    private const string MapName = "Map_001_Field";
     private const float ModelYaw = 180f;
-
-    private const string PlayerPrefabPath = PrefabDir + "Player.prefab";
-    private const string PlayerDataDir = "Assets/Resources/Data/Player/";
-    private const string PlayerDefPath = PlayerDataDir + "Player.asset";
-    internal const string MapDataDir = "Assets/Resources/Data/Maps/";
-    private const string HitMaterialDir = "Assets/Resources/" + HitMaterials.ResourceDir;
 
     // ------------------------------------------------
 
     [MenuItem("MushTaker/초기 설정/전투 씬 재생성", false, 100)]
     public static void CreateBattleScene()
     {
-        if (File.Exists(ScenePath) && EditorUtility.DisplayDialog("전투 씬", $"{ScenePath}가 이미 있습니다. 새로 만들까요?", "새로 만들기", "취소") == false)
+        if (File.Exists(CommonPath.BattleScene) && EditorUtility.DisplayDialog("전투 씬", $"{CommonPath.BattleScene}가 이미 있습니다. 새로 만들까요?", "새로 만들기", "취소") == false)
             return;
 
         if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo() == false)
@@ -55,24 +42,24 @@ public static class BattleSetup
 
     private static bool PrepareAssets()
     {
-        PlayerDef playerDef = AssetDatabase.LoadAssetAtPath<PlayerDef>(PlayerDefPath);
+        PlayerDef playerDef = AssetDatabase.LoadAssetAtPath<PlayerDef>(CommonPath.PlayerDef);
         if (playerDef == null)
         {
             CLogger.Error("BattleSetup", "PlayerDef가 없습니다. 데이터 편집기에서 플레이어 데이터를 준비하세요.");
             return false;
         }
 
-        Directory.CreateDirectory(AnimatorDir);
-        Directory.CreateDirectory(HitMaterialDir);
-        BuildHitMaterial(HitMaterials.FlashName);
-        BuildHitMaterial(HitMaterials.ChunkName);
+        Directory.CreateDirectory(CommonPath.AnimatorDir);
+        Directory.CreateDirectory(CommonPath.MaterialAssetDir);
+        BuildHitMaterial(CommonPath.HitFlashMaterial);
+        BuildHitMaterial(CommonPath.HitChunkMaterial);
         MushroomPickupBuilder.BuildAll(false);
         MonsterPrefabBuilder.BuildAll(false);
         MapPrefabBuilder.BuildAll(false);
         BuildPlayer(playerDef, false);
         if (playerDef.Prefab == null)
         {
-            playerDef.EditorSetPrefab(AssetDatabase.LoadAssetAtPath<PlayerController>(PlayerPrefabPath));
+            playerDef.EditorSetPrefab(AssetDatabase.LoadAssetAtPath<PlayerController>(CommonPath.PlayerPrefab));
             EditorUtility.SetDirty(playerDef);
         }
 
@@ -83,9 +70,9 @@ public static class BattleSetup
     }
 
     // 피격 연출용 흰색 Unlit 머티리얼. 조각 색은 MaterialPropertyBlock으로 바꾸므로 인스턴싱을 켠다
-    private static void BuildHitMaterial(string materialName)
+    private static void BuildHitMaterial(string resourcePath)
     {
-        string path = $"{HitMaterialDir}{materialName}.mat";
+        string path = $"{CommonPath.ResourcesRoot}{resourcePath}.mat";
         if (File.Exists(path))
             return;
 
@@ -109,12 +96,12 @@ public static class BattleSetup
 
     private static void BuildPlayer(PlayerDef def, bool isForce)
     {
-        if (File.Exists(PlayerPrefabPath) && isForce == false)
+        if (File.Exists(CommonPath.PlayerPrefab) && isForce == false)
             return;
 
         GameObject root = BuildUnit<PlayerController>("Player", LoadModel("Player"), 1.7f, 0.35f, def);
 
-        PrefabUtility.SaveAsPrefabAsset(root, PlayerPrefabPath);
+        PrefabUtility.SaveAsPrefabAsset(root, CommonPath.PlayerPrefab);
         Object.DestroyImmediate(root);
     }
 
@@ -173,8 +160,8 @@ public static class BattleSetup
 
     internal static AnimatorController BuildController(GameObject modelAsset)
     {
-        Directory.CreateDirectory(AnimatorDir);
-        string path = $"{AnimatorDir}{GetControllerName(modelAsset.name)}.controller";
+        Directory.CreateDirectory(CommonPath.AnimatorDir);
+        string path = $"{CommonPath.AnimatorDir}{GetControllerName(modelAsset.name)}.controller";
         AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
         if (controller == null)
             controller = AnimatorController.CreateAnimatorControllerAtPath(path);
@@ -219,24 +206,24 @@ public static class BattleSetup
 
         new GameObject(nameof(BattleHud)).AddComponent<BattleHud>();
         RectTransform popupRoot = UIBuilder.CreateCanvas("BattlePopupCanvas", 110);
-        MapDef mapDef = AssetDatabase.LoadAssetAtPath<MapDef>(MapDataDir + MapName + ".asset");
+        MapDef mapDef = AssetDatabase.LoadAssetAtPath<MapDef>(CommonPath.DefaultMapDef);
         sceneController.EditorSetup(popupRoot, mapDef);
 
         // 결과 화면(UI 스레드 담당)
         BattleUISetup.AddResultScreen();
 
-        EditorSceneManager.SaveScene(scene, ScenePath);
+        EditorSceneManager.SaveScene(scene, CommonPath.BattleScene);
         AddToBuildSettings();
-        CLogger.Log("BattleSetup", $"{ScenePath} 생성");
+        CLogger.Log("BattleSetup", $"{CommonPath.BattleScene} 생성");
     }
 
     private static void AddToBuildSettings()
     {
         List<EditorBuildSettingsScene> listScene = EditorBuildSettings.scenes.ToList();
-        if (listScene.Any(s => s.path == ScenePath))
+        if (listScene.Any(s => s.path == CommonPath.BattleScene))
             return;
 
-        listScene.Add(new EditorBuildSettingsScene(ScenePath, true));
+        listScene.Add(new EditorBuildSettingsScene(CommonPath.BattleScene, true));
         EditorBuildSettings.scenes = listScene.ToArray();
     }
 
@@ -245,7 +232,7 @@ public static class BattleSetup
     // 모델 폴더 아래 어디에 있든 파일 이름(확장자 제외)이 같은 FBX
     internal static GameObject LoadModel(string modelName)
     {
-        string path = AssetDatabase.FindAssets($"{modelName} t:Model", new[] { ModelDir.TrimEnd('/') })
+        string path = AssetDatabase.FindAssets($"{modelName} t:Model", new[] { CommonPath.ModelDir.TrimEnd('/') })
             .Select(AssetDatabase.GUIDToAssetPath)
             .FirstOrDefault(p => Path.GetFileNameWithoutExtension(p) == modelName && p.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase));
 

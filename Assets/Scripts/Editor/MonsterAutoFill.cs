@@ -72,7 +72,6 @@ public static class MonsterAutoFill
         }
     }
 
-    public const string BalancePath = "Assets/Resources/Data/Balance/MonsterBalance.asset";
     private const string DefPrefix = "Monster_";
     private const string BossMark = "_Boss_";
 
@@ -99,15 +98,15 @@ public static class MonsterAutoFill
 
     public static MonsterBalanceTable LoadTable()
     {
-        MonsterBalanceTable table = AssetDatabase.LoadAssetAtPath<MonsterBalanceTable>(BalancePath);
+        MonsterBalanceTable table = AssetDatabase.LoadAssetAtPath<MonsterBalanceTable>(CommonPath.MonsterBalance);
         if (table != null)
             return table;
 
-        Directory.CreateDirectory(Path.GetDirectoryName(BalancePath)!);
+        Directory.CreateDirectory(Path.GetDirectoryName(CommonPath.MonsterBalance)!);
         table = ScriptableObject.CreateInstance<MonsterBalanceTable>();
-        AssetDatabase.CreateAsset(table, BalancePath);
+        AssetDatabase.CreateAsset(table, CommonPath.MonsterBalance);
         AssetDatabase.SaveAssets();
-        CLogger.Log("MonsterAutoFill", $"밸런스 공식 에셋을 기본값으로 만들었습니다: {BalancePath}", table);
+        CLogger.Log("MonsterAutoFill", $"밸런스 공식 에셋을 기본값으로 만들었습니다: {CommonPath.MonsterBalance}", table);
         return table;
     }
 

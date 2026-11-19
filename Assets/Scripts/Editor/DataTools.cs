@@ -18,18 +18,17 @@ public static class DataTools
         };
     }
 
-    public const string DatabasePath = "Assets/Resources/GameDatabase.asset";
     private static readonly Regex s_SkillNameRule = new(@"^(Monster_\d{3}|Player)_(Attack|Skill)_\d{2}$");
 
     public static GameDatabase RefreshDatabase(bool isVerbose)
     {
-        GameDatabase db = AssetDatabase.LoadAssetAtPath<GameDatabase>(DatabasePath);
+        GameDatabase db = AssetDatabase.LoadAssetAtPath<GameDatabase>(CommonPath.GameDatabaseAsset);
         if (db == null)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(DatabasePath)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(CommonPath.GameDatabaseAsset)!);
 
             db = ScriptableObject.CreateInstance<GameDatabase>();
-            AssetDatabase.CreateAsset(db, DatabasePath);
+            AssetDatabase.CreateAsset(db, CommonPath.GameDatabaseAsset);
         }
 
         List<DataDef> listDef = CollectDefs();

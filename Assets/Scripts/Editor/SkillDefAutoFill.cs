@@ -13,7 +13,6 @@ using UnityEngine;
 // 새 클립은 원래 이름 그대로 Clip에 넣는다. 애니 이름 일괄 정리를 다시 돌리면 표준 이름으로 바뀐다
 public static class SkillDefAutoFill
 {
-    public const string SkillDataDir = "Assets/Resources/Data/Skills/";
     private const float TempCooldown = 5f;
 
     // 공격이 아닌 클립(이동·반응·연출). 애매한 동작은 일단 여기 둔다
@@ -131,7 +130,7 @@ public static class SkillDefAutoFill
 
     private static void Apply(List<Entry> listEntry)
     {
-        Directory.CreateDirectory(SkillDataDir);
+        Directory.CreateDirectory(CommonPath.SkillDataDir);
         foreach (Entry entry in listEntry)
         {
             AttackSpec source = entry.Def.MainAttack ?? new AttackSpec();
@@ -140,7 +139,7 @@ public static class SkillDefAutoFill
             SkillDef skill = ScriptableObject.CreateInstance<SkillDef>();
             skill.EditorSetup(entry.Kind, attack);
             skill.EditorSetIdentity(entry.Name, entry.Clip);
-            AssetDatabase.CreateAsset(skill, $"{SkillDataDir}{entry.Name}.asset");
+            AssetDatabase.CreateAsset(skill, $"{CommonPath.SkillDataDir}{entry.Name}.asset");
 
             using (SerializedObject so = new SerializedObject(skill))
             {

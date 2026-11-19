@@ -13,7 +13,7 @@ public class SaveService
 
     // ------------------------------------------------
 
-    public SaveService(string fileName = "save.json")
+    public SaveService(string fileName = CommonPath.SaveFile)
     {
         m_FilePath = Path.Combine(Application.persistentDataPath, fileName);
     }

@@ -76,7 +76,7 @@ public static class DataEditorUtility
     {
         if (type.IsAbstract || typeof(DataDef).IsAssignableFrom(type) == false)
             throw new ArgumentException("생성할 DataDef 타입을 선택하세요.");
-        if (path.StartsWith("Assets/", StringComparison.Ordinal) == false || path.Split('/').Contains("..")
+        if (path.StartsWith(CommonPath.AssetsRoot, StringComparison.Ordinal) == false || path.Split('/').Contains("..")
             || path.EndsWith(".asset", StringComparison.OrdinalIgnoreCase) == false || File.Exists(path))
             throw new ArgumentException("Assets 아래의 새 .asset 경로를 선택하세요. 기존 에셋은 덮어쓰지 않습니다.");
 
@@ -108,7 +108,7 @@ public static class DataEditorUtility
         {
             string path = AssetDatabase.GetAssetPath(def);
             if (def == null || AssetDatabase.IsMainAsset(def) == false
-                || path.StartsWith("Assets/", StringComparison.Ordinal) == false
+                || path.StartsWith(CommonPath.AssetsRoot, StringComparison.Ordinal) == false
                 || path.EndsWith(".asset", StringComparison.OrdinalIgnoreCase) == false)
                 throw new ArgumentException("Assets 아래에 저장된 독립 Def 에셋만 삭제할 수 있습니다.");
 
@@ -124,7 +124,7 @@ public static class DataEditorUtility
         HashSet<string> setReference = new(StringComparer.Ordinal);
         foreach (string path in AssetDatabase.GetAllAssetPaths())
         {
-            if (path.StartsWith("Assets/", StringComparison.Ordinal) == false || setPath.Contains(path) || path == DataTools.DatabasePath)
+            if (path.StartsWith(CommonPath.AssetsRoot, StringComparison.Ordinal) == false || setPath.Contains(path) || path == CommonPath.GameDatabaseAsset)
                 continue;
 
             string extension = Path.GetExtension(path);

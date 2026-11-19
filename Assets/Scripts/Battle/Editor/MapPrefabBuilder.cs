@@ -9,15 +9,14 @@ using UnityEngine;
 // !!) 프리팹은 덮어쓴다. 프리팹에 손으로 단 것은 사라진다
 public static class MapPrefabBuilder
 {
-    internal const string MapPrefabDir = "Assets/Resources/Prefabs/Map/";
 
     // ==================================================
 
     // Data/Maps의 MapDef 전부. isForce가 false면 이미 있는 프리팹은 건너뛴다
     public static void BuildAll(bool isForce)
     {
-        Directory.CreateDirectory(MapPrefabDir);
-        List<MapDef> listDef = AssetDatabase.FindAssets("t:MapDef", new[] { BattleSetup.MapDataDir.TrimEnd('/') })
+        Directory.CreateDirectory(CommonPath.MapPrefabDir);
+        List<MapDef> listDef = AssetDatabase.FindAssets("t:MapDef", new[] { CommonPath.MapDataDir.TrimEnd('/') })
             .Select(guid => AssetDatabase.LoadAssetAtPath<MapDef>(AssetDatabase.GUIDToAssetPath(guid)))
             .Where(d => d != null)
             .OrderBy(d => d.name)
@@ -25,7 +24,7 @@ public static class MapPrefabBuilder
 
         foreach (MapDef def in listDef)
         {
-            string path = $"{MapPrefabDir}{def.name}.prefab";
+            string path = $"{CommonPath.MapPrefabDir}{def.name}.prefab";
             if (File.Exists(path) == false || isForce)
                 BuildPrefab(def, path);
 

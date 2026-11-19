@@ -6,7 +6,6 @@ using UnityEngine.TextCore.LowLevel;
 // UI 공통 기반 메뉴. 순서대로 한 번씩 누르면 된다. 이미 있는 에셋은 덮어쓰지 않는다
 public static class UISetup
 {
-    private const string TMPSettingsPath = "TMP Settings"; // Resources 경로
 
     // 갈무리11 원본 격자(11px)의 4배. 22·33·44·66 크기에서 고르게 보인다
     private const int SamplingPointSize = 44;
@@ -37,12 +36,12 @@ public static class UISetup
             return;
         }
 
-        UIBuilder.SaveAsPrefab(UIBuilder.BuildButton(null).gameObject, UIBuilder.ButtonPrefabPath);
-        UIBuilder.SaveAsPrefab(UIBuilder.BuildGauge(null).gameObject, UIBuilder.GaugePrefabPath);
-        UIBuilder.SaveAsPrefab(UIBuilder.BuildItemSlot(null).gameObject, UIBuilder.ItemSlotPrefabPath);
+        UIBuilder.SaveAsPrefab(UIBuilder.BuildButton(null).gameObject, CommonPath.ButtonPrefab);
+        UIBuilder.SaveAsPrefab(UIBuilder.BuildGauge(null).gameObject, CommonPath.GaugePrefab);
+        UIBuilder.SaveAsPrefab(UIBuilder.BuildItemSlot(null).gameObject, CommonPath.ItemSlotPrefab);
 
         AssetDatabase.SaveAssets();
-        CLogger.Log("UISetup", $"공용 부품 프리팹: {UIBuilder.PrefabDir}");
+        CLogger.Log("UISetup", $"공용 부품 프리팹: {CommonPath.CommonUIPrefabDir}");
     }
 
     // 가로 두 방향(좌우 뒤집힘)만 허용한다
@@ -57,14 +56,14 @@ public static class UISetup
 
     private static TMP_FontAsset CreateFontAsset()
     {
-        TMP_FontAsset exist = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(UIBuilder.FontAssetPath);
+        TMP_FontAsset exist = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(CommonPath.FontAsset);
         if (exist != null)
             return exist;
 
-        Font font = AssetDatabase.LoadAssetAtPath<Font>(UIBuilder.FontPath);
+        Font font = AssetDatabase.LoadAssetAtPath<Font>(CommonPath.Font);
         if (font == null)
         {
-            CLogger.Error("UISetup", $"{UIBuilder.FontPath} 폰트 파일이 없습니다.");
+            CLogger.Error("UISetup", $"{CommonPath.Font} 폰트 파일이 없습니다.");
             return null;
         }
 
@@ -78,7 +77,7 @@ public static class UISetup
         }
 
         fontAsset.name = "Galmuri11 SDF";
-        AssetDatabase.CreateAsset(fontAsset, UIBuilder.FontAssetPath);
+        AssetDatabase.CreateAsset(fontAsset, CommonPath.FontAsset);
 
         Texture2D atlas = fontAsset.atlasTextures[0];
         atlas.name = "Galmuri11 SDF Atlas";
@@ -89,15 +88,15 @@ public static class UISetup
 
         EditorUtility.SetDirty(fontAsset);
         AssetDatabase.SaveAssets();
-        AssetDatabase.ImportAsset(UIBuilder.FontAssetPath);
+        AssetDatabase.ImportAsset(CommonPath.FontAsset);
 
-        return AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(UIBuilder.FontAssetPath);
+        return AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(CommonPath.FontAsset);
     }
 
     // TMP 기본 폰트를 갈무리로 바꿔서, 손으로 만든 텍스트도 한글이 깨지지 않게 한다
     private static void SetDefaultFont(TMP_FontAsset fontAsset)
     {
-        TMP_Settings settings = Resources.Load<TMP_Settings>(TMPSettingsPath);
+        TMP_Settings settings = Resources.Load<TMP_Settings>(CommonPath.TMPSettings);
         if (settings == null)
         {
             CLogger.Warning("UISetup", "TMP Settings가 없습니다. Window > TextMeshPro > Import TMP Essential Resources 후 UI 기반 준비를 다시 실행하세요.");

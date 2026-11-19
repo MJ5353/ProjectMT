@@ -9,14 +9,6 @@ using UnityEngine.UI;
 // 공용 부품은 프리팹이 있으면 프리팹 인스턴스로 넣어서, 대장이 프리팹을 고치면 모든 화면에 반영된다
 public static class UIBuilder
 {
-    public const string FontDir = "Assets/Art/Fonts/Galmuri";
-    public const string FontPath = FontDir + "/Galmuri11.ttf";
-    public const string FontAssetPath = FontDir + "/Galmuri11 SDF.asset";
-
-    public const string PrefabDir = "Assets/Resources/Prefabs/UI/Common";
-    public const string GaugePrefabPath = PrefabDir + "/UIGauge.prefab";
-    public const string ItemSlotPrefabPath = PrefabDir + "/UIItemSlot.prefab";
-    public const string ButtonPrefabPath = PrefabDir + "/UIButton.prefab";
 
     private static TMP_FontAsset s_Font;
 
@@ -29,7 +21,7 @@ public static class UIBuilder
             if (s_Font != null)
                 return s_Font;
 
-            s_Font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontAssetPath);
+            s_Font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(CommonPath.FontAsset);
             if (s_Font != null)
                 return s_Font;
 
@@ -148,7 +140,7 @@ public static class UIBuilder
 
     public static Button Button(Transform parent, string name, string text, Vector2 size, Color? color = null)
     {
-        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ButtonPrefabPath);
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(CommonPath.ButtonPrefab);
         Button button = prefab != null ? Spawn<Button>(prefab, parent) : BuildButton(parent);
 
         button.name = name;
@@ -163,7 +155,7 @@ public static class UIBuilder
 
     public static UIGauge Gauge(Transform parent, string name, Vector2 size, Color fillColor, bool isShowText)
     {
-        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(GaugePrefabPath);
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(CommonPath.GaugePrefab);
         UIGauge gauge = prefab != null ? Spawn<UIGauge>(prefab, parent) : BuildGauge(parent);
 
         gauge.name = name;
@@ -176,7 +168,7 @@ public static class UIBuilder
 
     public static UIItemSlot ItemSlot(Transform parent, string name, float size = 120f)
     {
-        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ItemSlotPrefabPath);
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(CommonPath.ItemSlotPrefab);
         UIItemSlot slot = prefab != null ? Spawn<UIItemSlot>(prefab, parent) : BuildItemSlot(parent);
 
         slot.name = name;

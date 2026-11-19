@@ -12,7 +12,6 @@ using UnityEngine;
 
 public static class MushroomPickupBuilder
 {
-    public const string PickupDir = "Assets/Resources/Prefabs/Actor/Pickup/";
     private const float ModelScale = 0.8f;
 
     // ------------------------------------------------
@@ -26,7 +25,7 @@ public static class MushroomPickupBuilder
     // 만든 개수를 돌려준다. 연결만 고친 것은 세지 않는다
     public static int Build(IEnumerable<MushroomDef> listDef, bool isForce)
     {
-        Directory.CreateDirectory(PickupDir);
+        Directory.CreateDirectory(CommonPath.PickupPrefabDir);
 
         int builtCount = 0;
         List<string> listFailed = new();
@@ -64,7 +63,7 @@ public static class MushroomPickupBuilder
         if (def.Pickup != null && AssetDatabase.Contains(def.Pickup))
             return AssetDatabase.GetAssetPath(def.Pickup);
 
-        return $"{PickupDir}{def.PickupName}.prefab";
+        return $"{CommonPath.PickupPrefabDir}{def.PickupName}.prefab";
     }
 
     // ==================================================

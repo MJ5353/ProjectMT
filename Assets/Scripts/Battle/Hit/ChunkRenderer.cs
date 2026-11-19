@@ -164,7 +164,7 @@ public sealed class ChunkRenderer
 
         if (m_Material == null)
         {
-            m_Mesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+            m_Mesh = Resources.GetBuiltinResource<Mesh>(CommonPath.BuiltinCube);
             m_Material = HitMaterials.Chunk;
         }
 

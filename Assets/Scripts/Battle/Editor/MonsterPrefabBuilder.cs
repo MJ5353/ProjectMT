@@ -21,7 +21,7 @@ public static class MonsterPrefabBuilder
     // Data/Monsters의 MonsterDef 전부. isForce가 false면 이미 있는 프리팹은 건너뛴다
     public static void BuildAll(bool isForce)
     {
-        List<MonsterDef> listDef = AssetDatabase.FindAssets("t:MonsterDef", new[] { BattleSetup.MonsterDataDir.TrimEnd('/') })
+        List<MonsterDef> listDef = AssetDatabase.FindAssets("t:MonsterDef", new[] { CommonPath.MonsterDataDir.TrimEnd('/') })
             .Select(guid => AssetDatabase.LoadAssetAtPath<MonsterDef>(AssetDatabase.GUIDToAssetPath(guid)))
             .Where(d => d != null)
             .OrderBy(d => d.name)
@@ -32,7 +32,7 @@ public static class MonsterPrefabBuilder
 
     public static int Build(IEnumerable<MonsterDef> listDef, bool isForce)
     {
-        Directory.CreateDirectory(BattleSetup.PrefabDir);
+        Directory.CreateDirectory(CommonPath.ActorPrefabDir);
         int builtCount = 0;
         List<string> listFailed = new();
         foreach (MonsterDef def in listDef)
@@ -72,7 +72,7 @@ public static class MonsterPrefabBuilder
         if (def.Prefab != null && AssetDatabase.Contains(def.Prefab))
             return AssetDatabase.GetAssetPath(def.Prefab);
 
-        return $"{BattleSetup.PrefabDir}{def.name}.prefab";
+        return $"{CommonPath.ActorPrefabDir}{def.name}.prefab";
     }
 
     // ==================================================
@@ -171,7 +171,7 @@ public static class MonsterPrefabBuilder
     public static MonsterDef CreateDef(GameObject model)
     {
         string modelPath = AssetDatabase.GetAssetPath(model);
-        if (model == null || modelPath.StartsWith(BattleSetup.MonsterModelDir, System.StringComparison.Ordinal) == false
+        if (model == null || modelPath.StartsWith(CommonPath.MonsterModelDir, System.StringComparison.Ordinal) == false
             || modelPath.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase) == false)
             throw new System.ArgumentException("몬스터 모델 폴더의 FBX를 선택하세요.");
 
@@ -180,9 +180,9 @@ public static class MonsterPrefabBuilder
         if (existing != null)
             return existing;
 
-        Directory.CreateDirectory(BattleSetup.MonsterDataDir);
+        Directory.CreateDirectory(CommonPath.MonsterDataDir);
         string defName = DefPrefix + GetKey(model.name);
-        string path = $"{BattleSetup.MonsterDataDir}{defName}.asset";
+        string path = $"{CommonPath.MonsterDataDir}{defName}.asset";
         if (File.Exists(path) || DataTools.CollectDefs().Any(candidate => candidate.ID == defName))
             throw new System.InvalidOperationException($"에셋 경로 또는 ID가 이미 있습니다: {path}");
 
@@ -198,7 +198,7 @@ public static class MonsterPrefabBuilder
     public static List<GameObject> FindUnregisteredModels(IEnumerable<MonsterDef> listDef)
     {
         HashSet<string> setModel = new(listDef.Select(GetModelName), System.StringComparer.Ordinal);
-        return AssetDatabase.FindAssets("t:Model", new[] { BattleSetup.MonsterModelDir.TrimEnd('/') })
+        return AssetDatabase.FindAssets("t:Model", new[] { CommonPath.MonsterModelDir.TrimEnd('/') })
             .Select(AssetDatabase.GUIDToAssetPath)
             .Where(path => path.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase))
             .Select(AssetDatabase.LoadAssetAtPath<GameObject>)
