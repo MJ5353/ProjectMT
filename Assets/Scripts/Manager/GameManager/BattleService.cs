@@ -39,7 +39,6 @@ public readonly struct LootKey : IEquatable<LootKey>
 public sealed class BattleService : ServiceBase
 {
     public const float SpawnLift = 0.3f; // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
-    private const float RespawnBlockDistance = 15f; // 플레이어가 이보다 가까우면 리스폰을 미룬다(눈앞에 갑자기 생기지 않게)
     private const string DefaultPlayerID = "Player";
     private const string GoldID = "Currency_Gold";
     private const string RottenItemID = "Item_Rotten"; // 밤이 끝나 썩은 버섯
@@ -48,9 +47,11 @@ public sealed class BattleService : ServiceBase
     private readonly Dictionary<string, int> m_DicReward = new(); // 끝날 때 실제로 인벤토리에 넣은 것(결과 화면용)
     private readonly List<SpawnState> m_ListSpawn = new();
     private readonly Dictionary<int, SpawnState> m_DicSpawnByUnitID = new();
+    
     private Transform[] m_SpawnSlots; // [i] = SpawnSlot_{i+1}. 생성한 맵에서 받는다
     private UnitController m_Player;
-    private PlayerDef m_PlayerDef;
+    private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
+    private float m_DownRemain; // 쓰러진 뒤 팝업까지 남은 시간. 0보다 작으면 이미 띄웠다
 
     public MapDef Map { get; }
     public EBattleState State { get; private set; } = EBattleState.Playing;
@@ -74,10 +75,11 @@ public sealed class BattleService : ServiceBase
     public UnitController Player => m_Player;
     public IReadOnlyDictionary<LootKey, int> DicLoot => m_DicLoot;
     public IReadOnlyDictionary<string, int> DicReward => m_DicReward;
+    
     public float NightTime => Map != null ? Map.NightTime : 0f;
     public float RemainTime => Mathf.Max(0f, NightTime - ElapsedTime);
     public bool IsPlayerDown => m_Player != null && m_Player.IsDead;
-    public int ReviveGold => m_PlayerDef != null ? m_PlayerDef.ReviveGold : 0;
+    public int ReviveGold => Define.ReviveGold;
     public bool CanRevive => IsPlayerDown && (PlayerDataManager.Instance?.Inventory.Has(GoldID, ReviveGold) ?? false);
     
     // ------------------------------------------------
@@ -89,9 +91,15 @@ public sealed class BattleService : ServiceBase
 
     public override void Tick(float deltaTime)
     {
-        // 쓰러져 부활/귀가를 고르는 동안은 밤도 리스폰도 멈춘다
-        if (State != EBattleState.Playing || IsPlayerDown)
+        if (State != EBattleState.Playing)
             return;
+
+        // 쓰러져 있는 동안은 밤도 리스폰도 멈춘다. 버섯을 떨구는 걸 잠깐 보여 준 뒤 부활/귀가 팝업
+        if (IsPlayerDown)
+        {
+            UpdateDown(deltaTime);
+            return;
+        }
 
         ElapsedTime += deltaTime;
         UpdateRespawn(deltaTime);
@@ -150,7 +158,6 @@ public sealed class BattleService : ServiceBase
         m_DicLoot.Clear();
         m_DicReward.Clear();
         m_Player = null;
-        m_PlayerDef = null;
         m_SpawnSlots = null; // 맵 오브젝트는 씬과 함께 사라진다
     }
 
@@ -170,7 +177,7 @@ public sealed class BattleService : ServiceBase
         if (playerDataM == null || playerDataM.Inventory.TryRemove(GoldID, ReviveGold) == false)
             return false;
 
-        m_Player.Revive(m_PlayerDef.ReviveInvincibleTime);
+        m_Player.Revive(Define.ReviveInvincibleTime);
         return true;
     }
 
@@ -217,7 +224,6 @@ public sealed class BattleService : ServiceBase
         Vector3 position = spawn != null ? spawn.position + Vector3.up * SpawnLift : Vector3.zero;
         Quaternion rotation = spawn != null ? GetSpawnRotation(spawn) : Quaternion.identity;
 
-        m_PlayerDef = playerDef;
         m_Player = GameManager.Instance.UnitS.Spawn(playerDef, position, rotation);
     }
 
@@ -274,7 +280,7 @@ public sealed class BattleService : ServiceBase
         if (m_Player == null)
             return false;
 
-        return (m_Player.transform.position - position).sqrMagnitude < RespawnBlockDistance * RespawnBlockDistance;
+        return (m_Player.transform.position - position).sqrMagnitude < Define.RespawnBlockDistance * Define.RespawnBlockDistance;
     }
 
     private void ReleaseSpawnSlot(int unitID)
@@ -295,10 +301,52 @@ public sealed class BattleService : ServiceBase
     }
 
     // 바로 끝내지 않고 부활/귀가를 고르게 한다(BattleHud가 팝업을 띄운다)
+    // 바로 끝내지 않는다. 주운 버섯을 땅에 떨구고, 잠깐 뒤 부활/귀가를 고르게 한다(BattleHud가 팝업을 띄운다)
     private void OnPlayerDied()
     {
-        if (State == EBattleState.Playing)
+        if (State != EBattleState.Playing)
+            return;
+
+        DropLoot();
+        m_DownRemain = Define.DownPopupDelay;
+    }
+
+    private void UpdateDown(float deltaTime)
+    {
+        if (m_DownRemain < 0f)
+            return;
+
+        m_DownRemain -= deltaTime;
+        if (m_DownRemain < 0f)
             SEventManager.Publish(new PlayerDowned());
+    }
+
+    // 주운 버섯을 진짜 픽업으로 흩뿌린다. 부활하면 다시 주울 수 있고, 귀가하면 그대로 잃는다
+    private void DropLoot()
+    {
+        GameDatabase database = GameManager.Instance?.Database;
+        ResourceManager resourceM = ResourceManager.Instance;
+        if (m_Player == null || database == null || resourceM == null)
+            return;
+
+        Vector3 origin = m_Player.transform.position + Vector3.up * Define.DownDropHeight;
+        foreach (var pair in m_DicLoot)
+        {
+            MushroomDef def = database.Get<MushroomDef>(pair.Key.ItemID);
+            MushroomPickup prefab = def != null ? resourceM.Load<MushroomPickup>(def.PickupPath) : null;
+            if (prefab == null)
+                continue;
+
+            // shortcut: 픽업 하나를 1개로 본다(MushroomPickup.m_Amount 기본값), 묶음 픽업이 생기면 개수를 나눈다
+            for (int i = 0; i < pair.Value; i++)
+            {
+                MushroomPickup pickup = resourceM.Spawn(prefab, origin, Quaternion.identity);
+                Vector2 spread = UnityEngine.Random.insideUnitCircle * Define.DownDropSpread;
+                pickup.Launch(new Vector3(spread.x, Define.DownDropUpSpeed, spread.y), pair.Key.Freshness);
+            }
+        }
+
+        m_DicLoot.Clear();
     }
     
     private void End(EBattleState result)

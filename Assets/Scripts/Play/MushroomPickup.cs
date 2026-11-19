@@ -16,10 +16,7 @@ public enum EFreshness
 public class MushroomPickup : PoolableMono
 {
     private const float Gravity = -20f;
-    private const float CollectDistance = 0.5f;  // 이 거리까지 빨려 오면 주운 것으로 친다
-    private const float PickupRadius = 1.8f;     // 플레이어가 이 거리 안에 오면 빨려 들기 시작
-    private const float MagnetSpeed = 12f;
-    private const float ActivateDelay = 0.5f;    // 떨어진 뒤 주울 수 있기까지(초)
+    private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
     private const float SpinSpeed = 120f;        // 바닥에서 도는 속도(초당 각도)
 
     [SerializeField] private string m_ItemID = string.Empty;       // 인벤토리에 넣을 ID(MushroomDef ID)
@@ -55,7 +52,7 @@ public class MushroomPickup : PoolableMono
         else
             UpdateIdle(deltaTime);
 
-        if (m_Age >= ActivateDelay && IsPlayerNear())
+        if (m_Age >= Define.PickupActivateDelay && IsPlayerNear())
             m_IsMagnet = true;
     }
 
@@ -110,9 +107,9 @@ public class MushroomPickup : PoolableMono
         }
 
         Vector3 target = player.transform.position + Vector3.up * 0.8f;
-        transform.position = Vector3.MoveTowards(transform.position, target, MagnetSpeed * deltaTime);
+        transform.position = Vector3.MoveTowards(transform.position, target, Define.PickupMagnetSpeed * deltaTime);
         
-        if (Vector3.Distance(transform.position, target) > CollectDistance)
+        if (Vector3.Distance(transform.position, target) > Define.PickupCollectDistance)
             return;
 
         Collect();
@@ -124,7 +121,7 @@ public class MushroomPickup : PoolableMono
         if (player == null || player.IsValid() == false)
             return false;
 
-        return Vector3.Distance(player.transform.position, transform.position) <= PickupRadius;
+        return Vector3.Distance(player.transform.position, transform.position) <= Define.PickupRadius;
     }
 
     private void Collect()

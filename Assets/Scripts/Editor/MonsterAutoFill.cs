@@ -98,15 +98,15 @@ public static class MonsterAutoFill
 
     public static MonsterBalanceTable LoadTable()
     {
-        MonsterBalanceTable table = AssetDatabase.LoadAssetAtPath<MonsterBalanceTable>(CommonPath.MonsterBalance);
+        MonsterBalanceTable table = AssetDatabase.LoadAssetAtPath<MonsterBalanceTable>(EditorPath.MonsterBalance);
         if (table != null)
             return table;
 
-        Directory.CreateDirectory(Path.GetDirectoryName(CommonPath.MonsterBalance)!);
+        Directory.CreateDirectory(Path.GetDirectoryName(EditorPath.MonsterBalance)!);
         table = ScriptableObject.CreateInstance<MonsterBalanceTable>();
-        AssetDatabase.CreateAsset(table, CommonPath.MonsterBalance);
+        AssetDatabase.CreateAsset(table, EditorPath.MonsterBalance);
         AssetDatabase.SaveAssets();
-        CLogger.Log("MonsterAutoFill", $"밸런스 공식 에셋을 기본값으로 만들었습니다: {CommonPath.MonsterBalance}", table);
+        CLogger.Log("MonsterAutoFill", $"밸런스 공식 에셋을 기본값으로 만들었습니다: {EditorPath.MonsterBalance}", table);
         return table;
     }
 

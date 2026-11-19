@@ -30,6 +30,7 @@ public class GameManager : MonoSingleton<GameManager>
     private Scene m_ServiceScene;
 
     public GameDatabase Database { get; private set; }
+    public DefineDef Define { get; private set; } // 전역 조절값. 에셋이 없으면 코드 기본값으로 만든다
     public EGameState Current { get; private set; } = EGameState.None;
     public bool IsTransitioning { get; private set; }
 
@@ -202,6 +203,13 @@ public class GameManager : MonoSingleton<GameManager>
         Database = ResourceManager.Instance?.Load<GameDatabase>(CommonPath.GameDatabase, "MushTaker/데이터 편집기에서 DB 갱신을 실행하세요.");
         if (Database != null)
             Database.Init();
+
+        Define = Database != null ? Database.Get<DefineDef>(DefineDef.DefineID) : null;
+        if (Define == null)
+        {
+            CLogger.Warning("GameManager", "Define 에셋이 DB에 없어 코드 기본값을 씁니다.");
+            Define = ScriptableObject.CreateInstance<DefineDef>();
+        }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (TryGetComponent<DebugPanel>(out _) == false)

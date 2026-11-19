@@ -130,7 +130,7 @@ public static class SkillDefAutoFill
 
     private static void Apply(List<Entry> listEntry)
     {
-        Directory.CreateDirectory(CommonPath.SkillDataDir);
+        Directory.CreateDirectory(EditorPath.SkillDataDir);
         foreach (Entry entry in listEntry)
         {
             AttackSpec source = entry.Def.MainAttack ?? new AttackSpec();
@@ -139,7 +139,7 @@ public static class SkillDefAutoFill
             SkillDef skill = ScriptableObject.CreateInstance<SkillDef>();
             skill.EditorSetup(entry.Kind, attack);
             skill.EditorSetIdentity(entry.Name, entry.Clip);
-            AssetDatabase.CreateAsset(skill, $"{CommonPath.SkillDataDir}{entry.Name}.asset");
+            AssetDatabase.CreateAsset(skill, $"{EditorPath.SkillDataDir}{entry.Name}.asset");
 
             using (SerializedObject so = new SerializedObject(skill))
             {

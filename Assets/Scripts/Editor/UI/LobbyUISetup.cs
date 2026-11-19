@@ -30,7 +30,7 @@ public static class LobbyUISetup
             return;
         }
 
-        if (File.Exists(CommonPath.LobbyScene) && EditorUtility.DisplayDialog("로비 씬", $"{CommonPath.LobbyScene}가 이미 있습니다. 새로 만들까요?", "새로 만들기", "취소") == false)
+        if (File.Exists(EditorPath.LobbyScene) && EditorUtility.DisplayDialog("로비 씬", $"{EditorPath.LobbyScene}가 이미 있습니다. 새로 만들까요?", "새로 만들기", "취소") == false)
             return;
         if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo() == false)
             return;
@@ -72,7 +72,7 @@ public static class LobbyUISetup
         RectTransform popupRoot = UIBuilder.Stretch("PopupRoot", safe);
         sceneController.EditorSetup(popupRoot, cam);
 
-        EditorSceneManager.SaveScene(scene, CommonPath.LobbyScene);
+        EditorSceneManager.SaveScene(scene, EditorPath.LobbyScene);
         AddToBuildSettings();
     }
 
@@ -227,11 +227,11 @@ public static class LobbyUISetup
     private static void AddToBuildSettings()
     {
         List<EditorBuildSettingsScene> listScene = EditorBuildSettings.scenes
-            .Where(s => s.path != CommonPath.LobbyScene)
+            .Where(s => s.path != EditorPath.LobbyScene)
             .ToList();
 
         // 빌드 첫 씬은 로비
-        listScene.Insert(0, new EditorBuildSettingsScene(CommonPath.LobbyScene, true));
+        listScene.Insert(0, new EditorBuildSettingsScene(EditorPath.LobbyScene, true));
         EditorBuildSettings.scenes = listScene.ToArray();
     }
 }

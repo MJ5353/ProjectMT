@@ -12,10 +12,7 @@ using Random = UnityEngine.Random;
 
 public class PartFeature : UnitFeature
 {
-    private const float RegrowTime = 1.5f;         // [mj] todo) 임시값. 다시 돋은 뒤 원래 크기까지 자라는 시간(초)
-    private const float RegrowStartScale = 0.3f;   // 다시 돋을 때 처음 크기 배율
-    private const float DropUpSpeed = 5f;          // 깨진 버섯 픽업이 튀어 오르는 속도
-    private const float DropSpread = 2f;           // 깨진 버섯 픽업이 옆으로 퍼지는 속도
+    private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
 
     private readonly IReadOnlyList<MonsterDef.PartEntry> m_ListEntry; // Def 데이터(읽기 전용)
     private readonly List<Part> m_ListPart = new();               // [i] = MonsterDef.ListPart 칸. 버섯이 없는 칸은 null
@@ -161,9 +158,9 @@ public class PartFeature : UnitFeature
         {
             IsBroken = false;
             Durability = Entry.Durability;
-            m_GrowRemain = RegrowTime;
+            m_GrowRemain = Define.PartRegrowTime;
 
-            SetNormalScale(RegrowStartScale);
+            SetNormalScale(Define.PartRegrowStartScale);
             SetBrokenModel(false);
         }
 
@@ -171,8 +168,8 @@ public class PartFeature : UnitFeature
         {
             m_GrowRemain = Mathf.Max(0f, m_GrowRemain - deltaTime);
 
-            float t = 1f - m_GrowRemain / RegrowTime;
-            SetNormalScale(Mathf.Lerp(RegrowStartScale, 1f, t));
+            float t = 1f - m_GrowRemain / Define.PartRegrowTime;
+            SetNormalScale(Mathf.Lerp(Define.PartRegrowStartScale, 1f, t));
         }
 
         private void SetNormalScale(float rate)
@@ -279,8 +276,9 @@ public class PartFeature : UnitFeature
         {
             Vector3 position = part.ListMushroom[i].Socket.position;
             MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, position, Quaternion.identity);
-            Vector2 spread = Random.insideUnitCircle * DropSpread;
-            pickup.Launch(new Vector3(spread.x, DropUpSpeed, spread.y), freshness);
+            
+            Vector2 spread = Random.insideUnitCircle * Define.PartDropSpread;
+            pickup.Launch(new Vector3(spread.x, Define.PartDropUpSpeed, spread.y), freshness);
         }
     }
 

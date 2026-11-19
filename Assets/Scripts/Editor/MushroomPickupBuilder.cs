@@ -25,7 +25,7 @@ public static class MushroomPickupBuilder
     // 만든 개수를 돌려준다. ID만 고친 것은 세지 않는다
     public static int Build(IEnumerable<MushroomDef> listDef, bool isForce)
     {
-        Directory.CreateDirectory(CommonPath.PickupPrefabDir);
+        Directory.CreateDirectory(EditorPath.PickupPrefabDir);
 
         int builtCount = 0;
         List<string> listFailed = new();
@@ -57,7 +57,7 @@ public static class MushroomPickupBuilder
     }
 
     // MushroomDef.PickupPath(폴더 + Pickup_NNN_Key)의 에셋 경로
-    public static string GetPickupPath(MushroomDef def) => CommonPath.ResourcesRoot + def.PickupPath + CommonPath.PrefabExtension;
+    public static string GetPickupPath(MushroomDef def) => EditorPath.ResourcesRoot + def.PickupPath + EditorPath.PrefabExtension;
 
     // 없으면 null(아직 빌드 전)
     public static MushroomPickup LoadPickup(MushroomDef def) => AssetDatabase.LoadAssetAtPath<MushroomPickup>(GetPickupPath(def));

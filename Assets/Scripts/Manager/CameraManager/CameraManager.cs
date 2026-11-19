@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class CameraManager : MonoSingleton<CameraManager>
 {
-    private const float ShakeInRatio = 0.2f; // 흔들림 시간 중 다가가는 구간 비율. 나머지는 부드럽게 복귀
+    private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
 
     public Camera Main { get; private set; }
     private float m_ShakeStrength;
@@ -28,7 +28,7 @@ public class CameraManager : MonoSingleton<CameraManager>
             if (t >= 1f)
                 return 0f;
 
-            float curve = t < ShakeInRatio ? t / ShakeInRatio : Mathf.SmoothStep(0f, 1f, (1f - t) / (1f - ShakeInRatio));
+            float curve = t < Define.ShakeInRatio ? t / Define.ShakeInRatio : Mathf.SmoothStep(0f, 1f, (1f - t) / (1f - Define.ShakeInRatio));
             return m_ShakeStrength * curve;
         }
     }

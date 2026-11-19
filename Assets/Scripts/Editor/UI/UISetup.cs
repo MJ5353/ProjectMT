@@ -36,12 +36,12 @@ public static class UISetup
             return;
         }
 
-        UIBuilder.SaveAsPrefab(UIBuilder.BuildButton(null).gameObject, CommonPath.ButtonPrefab);
-        UIBuilder.SaveAsPrefab(UIBuilder.BuildGauge(null).gameObject, CommonPath.GaugePrefab);
-        UIBuilder.SaveAsPrefab(UIBuilder.BuildItemSlot(null).gameObject, CommonPath.ItemSlotPrefab);
+        UIBuilder.SaveAsPrefab(UIBuilder.BuildButton(null).gameObject, EditorPath.ButtonPrefab);
+        UIBuilder.SaveAsPrefab(UIBuilder.BuildGauge(null).gameObject, EditorPath.GaugePrefab);
+        UIBuilder.SaveAsPrefab(UIBuilder.BuildItemSlot(null).gameObject, EditorPath.ItemSlotPrefab);
 
         AssetDatabase.SaveAssets();
-        CLogger.Log("UISetup", $"공용 부품 프리팹: {CommonPath.CommonUIPrefabDir}");
+        CLogger.Log("UISetup", $"공용 부품 프리팹: {EditorPath.CommonUIPrefabDir}");
     }
 
     // 가로 두 방향(좌우 뒤집힘)만 허용한다
@@ -56,14 +56,14 @@ public static class UISetup
 
     private static TMP_FontAsset CreateFontAsset()
     {
-        TMP_FontAsset exist = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(CommonPath.FontAsset);
+        TMP_FontAsset exist = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(EditorPath.FontAsset);
         if (exist != null)
             return exist;
 
-        Font font = AssetDatabase.LoadAssetAtPath<Font>(CommonPath.Font);
+        Font font = AssetDatabase.LoadAssetAtPath<Font>(EditorPath.Font);
         if (font == null)
         {
-            CLogger.Error("UISetup", $"{CommonPath.Font} 폰트 파일이 없습니다.");
+            CLogger.Error("UISetup", $"{EditorPath.Font} 폰트 파일이 없습니다.");
             return null;
         }
 
@@ -77,7 +77,7 @@ public static class UISetup
         }
 
         fontAsset.name = "Galmuri11 SDF";
-        AssetDatabase.CreateAsset(fontAsset, CommonPath.FontAsset);
+        AssetDatabase.CreateAsset(fontAsset, EditorPath.FontAsset);
 
         Texture2D atlas = fontAsset.atlasTextures[0];
         atlas.name = "Galmuri11 SDF Atlas";
@@ -88,9 +88,9 @@ public static class UISetup
 
         EditorUtility.SetDirty(fontAsset);
         AssetDatabase.SaveAssets();
-        AssetDatabase.ImportAsset(CommonPath.FontAsset);
+        AssetDatabase.ImportAsset(EditorPath.FontAsset);
 
-        return AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(CommonPath.FontAsset);
+        return AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(EditorPath.FontAsset);
     }
 
     // TMP 기본 폰트를 갈무리로 바꿔서, 손으로 만든 텍스트도 한글이 깨지지 않게 한다

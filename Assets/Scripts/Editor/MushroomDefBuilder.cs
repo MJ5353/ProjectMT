@@ -15,7 +15,7 @@ public static class MushroomDefBuilder
     public static List<GameObject> FindUnregisteredModels(IEnumerable<MushroomDef> listDef)
     {
         List<MushroomDef> listExisting = listDef.ToList();
-        return AssetDatabase.FindAssets("t:Model", new[] { CommonPath.MushroomModelDir.TrimEnd('/') })
+        return AssetDatabase.FindAssets("t:Model", new[] { EditorPath.MushroomModelDir.TrimEnd('/') })
             .Select(AssetDatabase.GUIDToAssetPath)
             .Where(path => path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
             .Select(AssetDatabase.LoadAssetAtPath<GameObject>)
@@ -27,7 +27,7 @@ public static class MushroomDefBuilder
     public static MushroomDef CreateDef(GameObject model)
     {
         string modelPath = AssetDatabase.GetAssetPath(model);
-        if (model == null || modelPath.StartsWith(CommonPath.MushroomModelDir, StringComparison.Ordinal) == false
+        if (model == null || modelPath.StartsWith(EditorPath.MushroomModelDir, StringComparison.Ordinal) == false
             || modelPath.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase) == false)
             throw new ArgumentException("버섯 모델 폴더의 원형 FBX를 선택하세요.");
         if (TryGetIdentity(model.name, out string dataID, out int dexNo) == false)
@@ -37,8 +37,8 @@ public static class MushroomDefBuilder
         if (existing != null)
             return existing;
 
-        Directory.CreateDirectory(CommonPath.MushroomDataDir);
-        MushroomDef created = (MushroomDef)DataEditorUtility.CreateDef(typeof(MushroomDef), CommonPath.MushroomDataDir + dataID + ".asset");
+        Directory.CreateDirectory(EditorPath.MushroomDataDir);
+        MushroomDef created = (MushroomDef)DataEditorUtility.CreateDef(typeof(MushroomDef), EditorPath.MushroomDataDir + dataID + ".asset");
         created.EditorSetIdentity(dataID, model.name.Split(new[] { '_' }, 3)[2]);
         created.EditorSetDexNo(dexNo);
         EditorUtility.SetDirty(created);

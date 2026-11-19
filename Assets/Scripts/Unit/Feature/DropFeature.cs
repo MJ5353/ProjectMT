@@ -8,9 +8,7 @@ public class DropFeature : UnitFeature
 {
     private readonly MonsterDef m_Def;
 
-    private const float DropHeight = 0.6f;      // 버섯이 튀어나오는 높이
-    private const float SpreadRadius = 2f;      // 옆으로 퍼지는 반경
-    private const float LaunchUpSpeed = 5f;     // 위로 튀는 속도
+    private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
 
     // ------------------------------------------------
 
@@ -31,7 +29,7 @@ public class DropFeature : UnitFeature
 
     private void SpawnDrops()
     {
-        Vector3 origin = Owner.transform.position + Vector3.up * DropHeight;
+        Vector3 origin = Owner.transform.position + Vector3.up * Define.MonsterDropHeight;
         foreach (MonsterDef.DropEntry drop in m_Def.ListDrop)
         {
             if (drop.Mushroom == null || Random.value > drop.Chance)
@@ -45,8 +43,8 @@ public class DropFeature : UnitFeature
             for (int i = 0; i < count; i++)
             {
                 MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, origin, Quaternion.identity);
-                Vector2 spread = Random.insideUnitCircle * SpreadRadius;
-                pickup.Launch(new Vector3(spread.x, LaunchUpSpeed, spread.y), EFreshness.Low);
+                Vector2 spread = Random.insideUnitCircle * Define.MonsterDropSpread;
+                pickup.Launch(new Vector3(spread.x, Define.MonsterDropUpSpeed, spread.y), EFreshness.Low);
             }
         }
     }

@@ -21,7 +21,7 @@ public static class UIBuilder
             if (s_Font != null)
                 return s_Font;
 
-            s_Font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(CommonPath.FontAsset);
+            s_Font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(EditorPath.FontAsset);
             if (s_Font != null)
                 return s_Font;
 
@@ -140,7 +140,7 @@ public static class UIBuilder
 
     public static Button Button(Transform parent, string name, string text, Vector2 size, Color? color = null)
     {
-        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(CommonPath.ButtonPrefab);
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.ButtonPrefab);
         Button button = prefab != null ? Spawn<Button>(prefab, parent) : BuildButton(parent);
 
         button.name = name;
@@ -155,7 +155,7 @@ public static class UIBuilder
 
     public static UIGauge Gauge(Transform parent, string name, Vector2 size, Color fillColor, bool isShowText)
     {
-        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(CommonPath.GaugePrefab);
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.GaugePrefab);
         UIGauge gauge = prefab != null ? Spawn<UIGauge>(prefab, parent) : BuildGauge(parent);
 
         gauge.name = name;
@@ -168,7 +168,7 @@ public static class UIBuilder
 
     public static UIItemSlot ItemSlot(Transform parent, string name, float size = 120f)
     {
-        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(CommonPath.ItemSlotPrefab);
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.ItemSlotPrefab);
         UIItemSlot slot = prefab != null ? Spawn<UIItemSlot>(prefab, parent) : BuildItemSlot(parent);
 
         slot.name = name;

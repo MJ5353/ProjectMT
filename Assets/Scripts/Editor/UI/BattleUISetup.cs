@@ -12,6 +12,7 @@ public static class BattleUISetup
     private const int ResultSortingOrder = 100;
     private const int HudSortingOrder = 10;
     private const string SpriteExtension = ".png";
+    private const int LootFontSize = 27; // 주운 버섯 목록 글자 크기
     private const string CircleSprite = "UI_Circle"; // 반투명 원 바탕(스킬 아이콘·토벌 종료). 없으면 사각형으로 보인다
 
     // ==================================================
@@ -25,14 +26,14 @@ public static class BattleUISetup
             return false;
         }
 
-        if (AssetDatabase.LoadAssetAtPath<GameObject>(CommonPath.DeathPopupPrefab) == null)
-            UIBuilder.SaveAsPrefab(BuildDeathPopup().gameObject, CommonPath.DeathPopupPrefab);
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.DeathPopupPrefab) == null)
+            UIBuilder.SaveAsPrefab(BuildDeathPopup().gameObject, EditorPath.DeathPopupPrefab);
 
-        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(CommonPath.BattleHudPrefab);
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.BattleHudPrefab);
         if (prefab == null)
         {
-            UIBuilder.SaveAsPrefab(BuildBattleHud().gameObject, CommonPath.BattleHudPrefab);
-            prefab = AssetDatabase.LoadAssetAtPath<GameObject>(CommonPath.BattleHudPrefab);
+            UIBuilder.SaveAsPrefab(BuildBattleHud().gameObject, EditorPath.BattleHudPrefab);
+            prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.BattleHudPrefab);
         }
 
         PrefabUtility.InstantiatePrefab(prefab);
@@ -51,11 +52,11 @@ public static class BattleUISetup
             return false;
         }
 
-        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(CommonPath.ResultScreenPrefab);
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.ResultScreenPrefab);
         if (prefab == null)
         {
-            UIBuilder.SaveAsPrefab(BuildResultScreen().gameObject, CommonPath.ResultScreenPrefab);
-            prefab = AssetDatabase.LoadAssetAtPath<GameObject>(CommonPath.ResultScreenPrefab);
+            UIBuilder.SaveAsPrefab(BuildResultScreen().gameObject, EditorPath.ResultScreenPrefab);
+            prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.ResultScreenPrefab);
         }
 
         PrefabUtility.InstantiatePrefab(prefab);
@@ -72,18 +73,20 @@ public static class BattleUISetup
         RectTransform safe = UIBuilder.CreateCanvas("BattleHud", HudSortingOrder);
         Transform root = safe.parent;
 
-        // 좌상단 밤 시계: 채움(Radial) 위에 테두리, 아래에 남은 시간
+        // 좌상단 밤 시계: 둥근 마스크 안에서 하늘 띠가 내려가고, 위에 흰 테두리, 아래에 남은 시간
         RectTransform clockRoot = UIBuilder.Anchored("NightClock", safe, new Vector2(0, 1), new Vector2(40, -30), new Vector2(160, 160));
-        Image fill = SpriteImage("Fill", clockRoot, "HUD_NightClock_Fill", 0f);
-        fill.type = Image.Type.Filled;
-        fill.fillMethod = Image.FillMethod.Radial360;
-        fill.fillOrigin = (int)Image.Origin360.Top;
-        fill.fillClockwise = false;
+        Image mask = SpriteImage("Mask", clockRoot, "HUD_NightClock_Fill", 0f);
+        mask.preserveAspect = false;
+        mask.gameObject.AddComponent<Mask>().showMaskGraphic = false;
+        RectTransform sky = UIBuilder.Rect("Sky", mask.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
+        sky.pivot = new Vector2(0.5f, 0f);
+        sky.sizeDelta = new Vector2(160f, 160f * 5f); // 48x240 도트 비율
+        SpriteImage(sky, "HUD_NightClock_Sky").preserveAspect = false;
         SpriteImage("Frame", clockRoot, "HUD_NightClock_Frame", 0f);
         RectTransform timeRect = UIBuilder.Rect("Time", clockRoot, Vector2.zero, new Vector2(1, 0), new Vector2(-40, -56), new Vector2(40, 0));
         TMP_Text time = UIBuilder.Label(timeRect, "05:00", UIStyle.FontLarge);
         UINightClock clock = clockRoot.gameObject.AddComponent<UINightClock>();
-        UIBuilder.SetRef(clock, "m_Fill", fill);
+        UIBuilder.SetRef(clock, "m_Sky", sky);
         UIBuilder.SetRef(clock, "m_Text", time);
 
         // 중앙 하단 체력
@@ -115,10 +118,10 @@ public static class BattleUISetup
         RectTransform countRect = UIBuilder.Rect("Count", loot, Vector2.zero, Vector2.one, new Vector2(60, 0), new Vector2(-14, 0));
         TMP_Text count = UIBuilder.Label(countRect, "0", UIStyle.FontNormal, TextAlignmentOptions.Right);
 
-        RectTransform lootList = UIBuilder.Anchored("LootList", safe, new Vector2(1, 1), new Vector2(-40, -264), new Vector2(420, 0));
+        RectTransform lootList = UIBuilder.Anchored("LootList", safe, new Vector2(1, 1), new Vector2(-40, -264), new Vector2(507, 0));
         VerticalLayoutGroup layout = lootList.gameObject.AddComponent<VerticalLayoutGroup>();
         layout.childAlignment = TextAnchor.UpperRight;
-        layout.spacing = 4f;
+        layout.spacing = 3f;
         layout.childControlWidth = layout.childControlHeight = true;
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = false;
@@ -136,7 +139,7 @@ public static class BattleUISetup
         UIBuilder.SetRef(hud, "m_LootList", lootList);
         UIBuilder.SetRef(hud, "m_LootRowTemplate", rowTemplate);
         UIBuilder.SetRef(hud, "m_ExitButton", exit);
-        UIBuilder.SetRef(hud, "m_DeathPopupPrefab", AssetDatabase.LoadAssetAtPath<DeathPopup>(CommonPath.DeathPopupPrefab));
+        UIBuilder.SetRef(hud, "m_DeathPopupPrefab", AssetDatabase.LoadAssetAtPath<DeathPopup>(EditorPath.DeathPopupPrefab));
 
         return hud;
     }
@@ -176,14 +179,14 @@ public static class BattleUISetup
     // 주운 버섯 목록 한 줄 원본. 목록 밖에 꺼 둔다(목록 자식이면 레이아웃이 원본까지 줄 세운다)
     private static UILootRow LootRow(Transform parent)
     {
-        RectTransform row = UIBuilder.Rect("LootRowTemplate", parent, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-420, -36), Vector2.zero);
-        row.gameObject.AddComponent<LayoutElement>().preferredHeight = 36f;
+        RectTransform row = UIBuilder.Rect("LootRowTemplate", parent, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-507, -43), Vector2.zero);
+        row.gameObject.AddComponent<LayoutElement>().preferredHeight = 43f;
         UIBuilder.AddImage(row, new Color(0f, 0f, 0f, 0.25f));
 
-        RectTransform iconRect = UIBuilder.Anchored("Icon", row, new Vector2(0, 0.5f), new Vector2(6, 0), new Vector2(30, 30));
+        RectTransform iconRect = UIBuilder.Anchored("Icon", row, new Vector2(0, 0.5f), new Vector2(5, 0), new Vector2(35, 35));
         Image icon = SpriteImage(iconRect, "Icon_001_Songi");
-        RectTransform textRect = UIBuilder.Rect("Text", row, Vector2.zero, Vector2.one, new Vector2(44, 0), new Vector2(-8, 0));
-        TMP_Text text = UIBuilder.Label(textRect, "송이 신선 x1", UIStyle.FontSmall, TextAlignmentOptions.Left);
+        RectTransform textRect = UIBuilder.Rect("Text", row, Vector2.zero, Vector2.one, new Vector2(47, 0), new Vector2(-5, 0));
+        TMP_Text text = UIBuilder.Label(textRect, "송이 신선 x1", LootFontSize, TextAlignmentOptions.Left);
 
         UILootRow lootRow = row.gameObject.AddComponent<UILootRow>();
         UIBuilder.SetRef(lootRow, "m_Icon", icon);
@@ -224,7 +227,7 @@ public static class BattleUISetup
     private static Image SpriteImage(RectTransform rt, string sprite)
     {
         Image image = UIBuilder.AddImage(rt, Color.white);
-        image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(CommonPath.UISpriteDir + sprite + SpriteExtension);
+        image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(EditorPath.UISpriteDir + sprite + SpriteExtension);
         image.preserveAspect = true;
         if (image.sprite == null)
             CLogger.Warning("BattleUISetup", $"스프라이트가 없습니다: {sprite}");

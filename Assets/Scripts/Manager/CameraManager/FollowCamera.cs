@@ -7,11 +7,7 @@ using UnityEngine;
 
 public class FollowCamera : MonoBehaviour
 {
-    private const float Distance = 11f;     // 바라보는 점에서 카메라까지 거리
-    private const float Pitch = 50f;        // 내려다보는 각도
-    private const float Yaw = 0f;
-    private const float LookHeight = 1f;    // 바라보는 점 높이(발밑 기준)
-    private const float SmoothTime = 0.12f;
+    private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
 
     private Transform m_Target;
     private Vector3 m_Velocity;
@@ -31,11 +27,11 @@ public class FollowCamera : MonoBehaviour
         if (m_Target == null)
             return;
 
-        m_BasePosition = Vector3.SmoothDamp(m_BasePosition, GetDesiredPosition(), ref m_Velocity, SmoothTime);
+        m_BasePosition = Vector3.SmoothDamp(m_BasePosition, GetDesiredPosition(), ref m_Velocity, Define.CameraSmoothTime);
         
         float shake = CameraManager.Instance?.ShakeAmount ?? 0f;
         Quaternion rotation = GetRotation();
-        transform.SetPositionAndRotation(m_BasePosition + rotation * Vector3.forward * (Distance * shake), rotation);
+        transform.SetPositionAndRotation(m_BasePosition + rotation * Vector3.forward * (Define.CameraDistance * shake), rotation);
     }
 
     public void SetTarget(Transform target)
@@ -50,12 +46,12 @@ public class FollowCamera : MonoBehaviour
 
     private static Quaternion GetRotation()
     {
-        return Quaternion.Euler(Pitch, Yaw, 0f);
+        return Quaternion.Euler(Define.CameraPitch, Define.CameraYaw, 0f);
     }
 
     private Vector3 GetDesiredPosition()
     {
-        Vector3 lookPoint = m_Target.position + Vector3.up * LookHeight;
-        return lookPoint - GetRotation() * Vector3.forward * Distance;
+        Vector3 lookPoint = m_Target.position + Vector3.up * Define.CameraLookHeight;
+        return lookPoint - GetRotation() * Vector3.forward * Define.CameraDistance;
     }
 }

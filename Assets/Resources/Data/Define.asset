@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6903b8480ab2a25469e25d4e32d74da6, type: 3}
+  m_Name: Define
+  m_EditorClassIdentifier: Assembly-CSharp::DefineDef
+  m_DisplayName: "\uC804\uC5ED \uC870\uC808\uAC12"
+  <ID>k__BackingField: Define
+  <Description>k__BackingField: 
+  <Icon>k__BackingField: {fileID: 0}
+  <RespawnBlockDistance>k__BackingField: 15
+  <ReviveGold>k__BackingField: 100
+  <ReviveInvincibleTime>k__BackingField: 2
+  <DownPopupDelay>k__BackingField: 2
+  <DownDropHeight>k__BackingField: 0.8
+  <DownDropSpread>k__BackingField: 2.5
+  <DownDropUpSpeed>k__BackingField: 6
+  <PickupRadius>k__BackingField: 1.8
+  <PickupMagnetSpeed>k__BackingField: 12
+  <PickupActivateDelay>k__BackingField: 0.5
+  <PickupCollectDistance>k__BackingField: 0.5
+  <MonsterDropHeight>k__BackingField: 0.6
+  <MonsterDropSpread>k__BackingField: 2
+  <MonsterDropUpSpeed>k__BackingField: 5
+  <PartRegrowTime>k__BackingField: 1.5
+  <PartRegrowStartScale>k__BackingField: 0.3
+  <PartDropUpSpeed>k__BackingField: 5
+  <PartDropSpread>k__BackingField: 2
+  <CameraDistance>k__BackingField: 11
+  <CameraPitch>k__BackingField: 50
+  <CameraYaw>k__BackingField: 0
+  <CameraLookHeight>k__BackingField: 1
+  <CameraSmoothTime>k__BackingField: 0.12
+  <ShakeInRatio>k__BackingField: 0.2

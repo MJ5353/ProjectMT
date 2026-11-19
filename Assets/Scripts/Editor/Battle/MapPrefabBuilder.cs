@@ -15,8 +15,8 @@ public static class MapPrefabBuilder
     // Data/Maps의 MapDef 전부. isForce가 false면 이미 있는 프리팹은 건너뛴다
     public static void BuildAll(bool isForce)
     {
-        Directory.CreateDirectory(CommonPath.MapPrefabDir);
-        List<MapDef> listDef = AssetDatabase.FindAssets("t:MapDef", new[] { CommonPath.MapDataDir.TrimEnd('/') })
+        Directory.CreateDirectory(EditorPath.MapPrefabDir);
+        List<MapDef> listDef = AssetDatabase.FindAssets("t:MapDef", new[] { EditorPath.MapDataDir.TrimEnd('/') })
             .Select(guid => AssetDatabase.LoadAssetAtPath<MapDef>(AssetDatabase.GUIDToAssetPath(guid)))
             .Where(d => d != null)
             .OrderBy(d => d.name)
@@ -25,7 +25,7 @@ public static class MapPrefabBuilder
         foreach (MapDef def in listDef)
         {
             // 런타임이 MapDef.PrefabPath(폴더 + ID)로 찾으니 같은 경로에 굽는다
-            string path = CommonPath.ResourcesRoot + def.PrefabPath + CommonPath.PrefabExtension;
+            string path = EditorPath.ResourcesRoot + def.PrefabPath + EditorPath.PrefabExtension;
             if (File.Exists(path) == false || isForce)
                 BuildPrefab(def, path);
         }

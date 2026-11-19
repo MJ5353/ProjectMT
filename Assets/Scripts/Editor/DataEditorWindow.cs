@@ -60,7 +60,7 @@ public sealed class DataEditorWindow : EditorWindow
         rootVisualElement.Clear();
         rootVisualElement.AddToClassList("data-editor");
         rootVisualElement.EnableInClassList("light", EditorGUIUtility.isProSkin == false);
-        StyleSheet style = AssetDatabase.LoadAssetAtPath<StyleSheet>(CommonPath.DataEditorStyle);
+        StyleSheet style = AssetDatabase.LoadAssetAtPath<StyleSheet>(EditorPath.DataEditorStyle);
         if (style != null)
             rootVisualElement.styleSheets.Add(style);
 
@@ -517,7 +517,7 @@ public sealed class DataEditorWindow : EditorWindow
 
     private void CreateDef()
     {
-        string path = EditorUtility.SaveFilePanelInProject("새 " + m_Type.Name, m_Type.Name.Replace("Def", "") + "_New", "asset", "저장 위치를 선택하세요.", CommonPath.DataDir.TrimEnd('/'));
+        string path = EditorUtility.SaveFilePanelInProject("새 " + m_Type.Name, m_Type.Name.Replace("Def", "") + "_New", "asset", "저장 위치를 선택하세요.", EditorPath.DataDir.TrimEnd('/'));
         if (string.IsNullOrEmpty(path))
             return;
 
@@ -597,7 +597,7 @@ public sealed class DataEditorWindow : EditorWindow
                 return;
 
             Reload();
-            SetStatus($"스킬 Def 생성 완료({CommonPath.SkillDataDir}). 수치는 기본 공격 복사본이니 손맛 수치를 정하세요.");
+            SetStatus($"스킬 Def 생성 완료({EditorPath.SkillDataDir}). 수치는 기본 공격 복사본이니 손맛 수치를 정하세요.");
         });
     }
 

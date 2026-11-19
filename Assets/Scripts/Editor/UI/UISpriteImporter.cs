@@ -13,7 +13,7 @@ public class UISpriteImporter : AssetPostprocessor
 
     private void OnPreprocessTexture()
     {
-        if (assetPath.StartsWith(CommonPath.UISpriteDir) == false)
+        if (assetPath.StartsWith(EditorPath.UISpriteDir) == false)
             return;
 
         TextureImporter importer = (TextureImporter)assetImporter;

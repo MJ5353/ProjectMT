@@ -22,13 +22,13 @@ public static class DataTools
 
     public static GameDatabase RefreshDatabase(bool isVerbose)
     {
-        GameDatabase db = AssetDatabase.LoadAssetAtPath<GameDatabase>(CommonPath.GameDatabaseAsset);
+        GameDatabase db = AssetDatabase.LoadAssetAtPath<GameDatabase>(EditorPath.GameDatabaseAsset);
         if (db == null)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(CommonPath.GameDatabaseAsset)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(EditorPath.GameDatabaseAsset)!);
 
             db = ScriptableObject.CreateInstance<GameDatabase>();
-            AssetDatabase.CreateAsset(db, CommonPath.GameDatabaseAsset);
+            AssetDatabase.CreateAsset(db, EditorPath.GameDatabaseAsset);
         }
 
         List<DataDef> listDef = CollectDefs();

@@ -16,10 +16,10 @@ public static class DataEditorChecks
         List<DataDef> listOriginal = DataTools.CollectDefs();
         Dictionary<string, string> dicOriginal = listOriginal.ToDictionary(AssetDatabase.GetAssetPath, def => File.ReadAllText(AssetDatabase.GetAssetPath(def)));
         string testName = "DataEditorCheck_" + Guid.NewGuid().ToString("N");
-        string modelFolder = CommonPath.MonsterModelDir + testName;
-        string defPath = CommonPath.MonsterDataDir + "Monster_" + testName + ".asset";
-        string prefabPath = CommonPath.MonsterPrefabDir + "Monster_" + testName + CommonPath.PrefabExtension;
-        string controllerPath = CommonPath.AnimatorDir + testName + ".controller";
+        string modelFolder = EditorPath.MonsterModelDir + testName;
+        string defPath = EditorPath.MonsterDataDir + "Monster_" + testName + ".asset";
+        string prefabPath = EditorPath.MonsterPrefabDir + "Monster_" + testName + EditorPath.PrefabExtension;
+        string controllerPath = EditorPath.AnimatorDir + testName + ".controller";
         try
         {
             CheckRelationsAndUndo();
@@ -27,12 +27,12 @@ public static class DataEditorChecks
             List<Type> listType = DataEditorUtility.CollectTypes();
             Require(listType.Contains(typeof(MonsterDef)) && listType.Contains(typeof(MapDef)) && listType.Contains(typeof(CurrencyDef)), "Def 타입 탐색 실패");
             Require(listType.All(type => type.IsAbstract == false), "추상 타입이 생성 목록에 포함됨");
-            RequireThrows(() => DataEditorUtility.CreateDef(typeof(DataDef), CommonPath.CheckAbstractDef), "추상 Def 생성 허용");
-            RequireThrows(() => DataEditorUtility.CreateDef(typeof(MushroomDef), CommonPath.CheckOutsideDef), "Assets 밖 경로 허용");
+            RequireThrows(() => DataEditorUtility.CreateDef(typeof(DataDef), EditorPath.CheckAbstractDef), "추상 Def 생성 허용");
+            RequireThrows(() => DataEditorUtility.CreateDef(typeof(MushroomDef), EditorPath.CheckOutsideDef), "Assets 밖 경로 허용");
 
             GameObject source = BattleSetup.LoadModel("Buggi");
             Require(source != null, "검사용 원본 모델 없음");
-            AssetDatabase.CreateFolder(CommonPath.MonsterModelDir.TrimEnd('/'), testName);
+            AssetDatabase.CreateFolder(EditorPath.MonsterModelDir.TrimEnd('/'), testName);
             string modelPath = modelFolder + "/" + testName + ".fbx";
             Require(AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(source), modelPath), "임시 FBX 복사 실패");
             AssetDatabase.ImportAsset(modelPath, ImportAssetOptions.ForceSynchronousImport);
@@ -92,9 +92,9 @@ public static class DataEditorChecks
         int dexNo = Enumerable.Range(900000, 1000).First(number => listOriginal.All(def => def.DexNo != number));
         string modelName = $"Mush_{dexNo}_{name}";
         string dataID = $"Mushroom_{dexNo}_{name}";
-        string folder = CommonPath.MushroomModelDir + name;
-        string defPath = CommonPath.MushroomDataDir + dataID + ".asset";
-        string renamedPath = CommonPath.MushroomDataDir + name + ".asset";
+        string folder = EditorPath.MushroomModelDir + name;
+        string defPath = EditorPath.MushroomDataDir + dataID + ".asset";
+        string renamedPath = EditorPath.MushroomDataDir + name + ".asset";
         try
         {
             Require(MushroomDefBuilder.TryGetIdentity("Mush_003_Malbul", out string parsedID, out int parsedNo)
@@ -103,11 +103,11 @@ public static class DataEditorChecks
             Require(MushroomDefBuilder.TryGetIdentity("Mush_000_Invalid", out _, out _) == false, "잘못된 도감 번호 허용");
             Require(MushroomDefBuilder.TryGetIdentity("Mush_Songi", out _, out _) == false, "번호 없는 모델 등록 허용");
 
-            string sourcePath = AssetDatabase.FindAssets("t:Model", new[] { CommonPath.MushroomModelDir.TrimEnd('/') })
+            string sourcePath = AssetDatabase.FindAssets("t:Model", new[] { EditorPath.MushroomModelDir.TrimEnd('/') })
                 .Select(AssetDatabase.GUIDToAssetPath)
                 .First(path => path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase)
                     && MushroomDefBuilder.TryGetIdentity(Path.GetFileNameWithoutExtension(path), out _, out _));
-            AssetDatabase.CreateFolder(CommonPath.MushroomModelDir.TrimEnd('/'), name);
+            AssetDatabase.CreateFolder(EditorPath.MushroomModelDir.TrimEnd('/'), name);
             string modelPath = folder + "/" + modelName + ".fbx";
             string brokenPath = folder + "/" + modelName + "_Broken.fbx";
             Require(AssetDatabase.CopyAsset(sourcePath, modelPath) && AssetDatabase.CopyAsset(sourcePath, brokenPath), "임시 버섯 모델 복사 실패");
@@ -155,7 +155,7 @@ public static class DataEditorChecks
     public static void RunDeletion()
     {
         string name = "DataEditorDeleteCheck_" + Guid.NewGuid().ToString("N");
-        string folder = CommonPath.AssetsRoot + name;
+        string folder = EditorPath.AssetsRoot + name;
         string targetPath = folder + "/" + name + "_Mushroom.asset";
         string otherPath = folder + "/" + name + "_Currency.asset";
         string mapPath = folder + "/" + name + "_Map.asset";

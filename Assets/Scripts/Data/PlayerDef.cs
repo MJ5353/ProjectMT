@@ -51,17 +51,9 @@ public class PlayerDef : UnitDef
     [field: SerializeField]
     public float HoldTime { get; private set; } = 0.35f;           // [mj] todo) 임시값. 이만큼 누르고 있으면 HoldAttack
 
-    // 부활 ---
-    [field: SerializeField]
-    public int ReviveGold { get; private set; } = 100;             // [mj] todo) 가안. 쓰러졌을 때 부활에 드는 골드. 모자라면 부활 못 함
-
-    [field: SerializeField]
-    public float ReviveInvincibleTime { get; private set; } = 2f;  // 부활 직후 무적 시간(초). 체력은 가득 찬다
-
-    public AttackSpec UpAttack => GetBasicAttack(1); // 두 번째 기본 공격: 위로 치기(높은 부위용). 없으면 null
-
     public override ETeam Team => ETeam.Player;
     public override string PrefabPath => CommonPath.ActorDir + ID;
+    public AttackSpec UpAttack => GetBasicAttack(1); // 두 번째 기본 공격: 위로 치기(높은 부위용). 없으면 null
 
     // ------------------------------------------------
 
