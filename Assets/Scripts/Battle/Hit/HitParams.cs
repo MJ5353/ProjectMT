@@ -38,15 +38,3 @@ public readonly struct HitParams
         PartIndex = partIndex;
     }
 }
-
-// ==================================================
-
-// 액터 검색과 근접 공격에 필요한 피격 정보.
-
-public interface IHitTarget
-{
-    Transform transform { get; }
-    HitFeature HitFeature { get; }
-    CharacterController HurtBody { get; }
-    HitBoxFeature HitBox { get; }                 // 뼈 판정 모양. 없거나 비면 HurtBody 캡슐로 판정
-}

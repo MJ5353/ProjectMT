@@ -41,7 +41,7 @@ public class HitFeature : UnitFeature
 
     // ------------------------------------------------
 
-    public HitFeature(IActor owner, ETeam team, HitDef hitDef, List<Renderer> listFlashRenderer) : base(owner)
+    public HitFeature(UnitController owner, ETeam team, HitDef hitDef, List<Renderer> listFlashRenderer) : base(owner)
     {
         m_Team = team;
         m_HitDef = hitDef;

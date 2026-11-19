@@ -28,7 +28,7 @@ public class MoveFeature : UnitFeature
 
     // ------------------------------------------------
 
-    public MoveFeature(IActor owner, CharacterController controller, float turnSpeed) : base(owner)
+    public MoveFeature(UnitController owner, CharacterController controller, float turnSpeed) : base(owner)
     {
         m_Controller = controller;
         m_Transform = owner.transform;

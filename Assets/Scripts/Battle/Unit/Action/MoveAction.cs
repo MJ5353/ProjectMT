@@ -12,7 +12,7 @@ public class MoveAction : UnitAction
 
     // ------------------------------------------------
 
-    public MoveAction(IActor owner) : base(owner) { }
+    public MoveAction(UnitController owner) : base(owner) { }
 
     // 속도가 거의 0이면 멈추고 Idle, 아니면 그쪽을 보며 걷기·달리기
     public void SetMove(Vector3 velocity, bool isRun)

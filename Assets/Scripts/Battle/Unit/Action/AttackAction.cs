@@ -27,7 +27,7 @@ public class AttackAction : UnitAction
 
     // ------------------------------------------------
 
-    public AttackAction(IActor owner, float blendTime) : base(owner)
+    public AttackAction(UnitController owner, float blendTime) : base(owner)
     {
         m_BlendTime = blendTime;
     }

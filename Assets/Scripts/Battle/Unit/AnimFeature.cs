@@ -16,7 +16,7 @@ public class AnimFeature : UnitFeature
 
     // ------------------------------------------------
     
-    public AnimFeature(IActor owner, Animator animator) : base(owner)
+    public AnimFeature(UnitController owner, Animator animator) : base(owner)
     {
         m_Animator = animator;
         if (m_Animator == null || m_Animator.runtimeAnimatorController == null)

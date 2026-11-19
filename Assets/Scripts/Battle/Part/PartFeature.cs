@@ -195,7 +195,7 @@ public class PartFeature : UnitFeature
     // ------------------------------------------------
 
     // 부위마다 버섯 모델을 최대 개수만큼 미리 만든다. 맞은 부위만 번쩍이도록 부위 번호와 함께 렌더러를 넘긴다
-    public PartFeature(IActor owner, IReadOnlyList<MonsterDef.PartEntry> listEntry) : base(owner)
+    public PartFeature(UnitController owner, IReadOnlyList<MonsterDef.PartEntry> listEntry) : base(owner)
     {
         m_ListEntry = listEntry;
         for (int i = 0; i < listEntry.Count; i++)
@@ -297,7 +297,7 @@ public class PartFeature : UnitFeature
         }
     }
 
-    private static Part CreatePart(int index, MonsterDef.PartEntry entry, IActor owner)
+    private static Part CreatePart(int index, MonsterDef.PartEntry entry, UnitController owner)
     {
         if (entry.Model == null || entry.CountMax <= 0)
             return null;

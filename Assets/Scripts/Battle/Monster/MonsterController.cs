@@ -7,7 +7,7 @@ using UnityEngine;
 // 판단 상태 클래스는 State/ 폴더(상태마다 파일 하나), 실행은 행동 층(ActionFeature), 수치는 MonsterDef
 public class MonsterController : UnitController<MonsterDef>
 {
-    public IHitTarget TargetActor { get; private set; }         // 노리는 적(다른 팀). 죽거나 사라지면 시야 안에서 다시 찾는다
+    public UnitController TargetActor { get; private set; }         // 노리는 적(다른 팀). 죽거나 사라지면 시야 안에서 다시 찾는다
     public Transform Target => IsTargetValid() ? TargetActor.transform : null;
     public Vector3 HomePosition { get; private set; }
     public Vector3 LastHitDirection { get; private set; }
@@ -66,7 +66,7 @@ public class MonsterController : UnitController<MonsterDef>
             return;
 
         LastHitDirection = hit.Direction;
-        if (hit.Attacker != null && hit.Attacker.TryGetComponent(out IActor attacker))
+        if (hit.Attacker != null && hit.Attacker.TryGetComponent(out UnitController attacker))
             TargetActor = attacker;
 
         Action.RequestHit();
@@ -207,7 +207,7 @@ public class MonsterController : UnitController<MonsterDef>
     // 노리는 적이 아직 살아 있는지(풀로 돌아갔거나 죽었으면 false)
     private bool IsTargetValid()
     {
-        if (TargetActor == null || (TargetActor is Object behaviour && behaviour == null))
+        if (TargetActor == null)
             return false;
 
         return TargetActor.HitFeature.IsDead == false && TargetActor.HitFeature.Team != Team;

@@ -26,6 +26,7 @@ Unity에서 컴파일 확인 후 플레이로 손맛(공격 캔슬·대시·콤�
 - [x] 뼈 판정 모양을 `HitBoxFeature`로(26.11.19). 부위 번호는 `PartFeature.FindIndex`로
 - [x] `EMonsterState` → `EAIState`(AIFeature 쪽으로), `MonsterController.MoveTo` 삭제 → `ActionFeature.SetMove(방향, 속도)`(26.11.19)
 - [x] `PartFeature`가 HitFeature 연결·부위 드롭까지 맡음(26.11.19)
+- [x] 제네릭 아닌 기반 `UnitController` 도입, `IActor`·`IHitTarget` 삭제(26.11.19). "아무 유닛"은 `UnitController`로 담고, 타입 있는 Def는 `UnitController<TDef>.Def`
 
 ### 보류
 

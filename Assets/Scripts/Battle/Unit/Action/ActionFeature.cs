@@ -27,7 +27,7 @@ public class ActionFeature : UnitFeature
 
     // ------------------------------------------------
 
-    public ActionFeature(IActor owner, UnitDef def) : base(owner)
+    public ActionFeature(UnitController owner, UnitDef def) : base(owner)
     {
         m_Move = new MoveAction(owner);
         m_Attack = new AttackAction(owner, def.AttackBlendTime);

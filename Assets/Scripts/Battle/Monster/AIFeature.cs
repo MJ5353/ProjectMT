@@ -26,7 +26,7 @@ public class AIFeature : UnitFeature
 
     // ------------------------------------------------
 
-    public AIFeature(IActor owner) : base(owner) { }
+    public AIFeature(UnitController owner) : base(owner) { }
 
     public void Add(EAIState key, IState state)
     {

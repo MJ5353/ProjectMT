@@ -9,7 +9,7 @@ using UnityEngine;
 public class MeleeAttackFeature : UnitFeature
 {
     private readonly List<ActorHitCandidate> m_ListCandidate = new();
-    private readonly HashSet<IHitTarget> m_SetHit = new(); // 이번 공격에 이미 맞은 대상
+    private readonly HashSet<UnitController> m_SetHit = new(); // 이번 공격에 이미 맞은 대상
 
     // [mj] todo) remove?
     public AttackSpec Spec => m_Spec;
@@ -22,7 +22,7 @@ public class MeleeAttackFeature : UnitFeature
 
     // ------------------------------------------------
 
-    public MeleeAttackFeature(IActor owner, IReadOnlyList<AttackSpec> listAttack) : base(owner)
+    public MeleeAttackFeature(UnitController owner, IReadOnlyList<AttackSpec> listAttack) : base(owner)
     {
         // 판정 부위 뼈가 프리팹에 없으면 몸 앞으로 판정한다
         foreach (AttackSpec attack in listAttack)

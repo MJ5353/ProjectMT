@@ -8,7 +8,7 @@ public class DeadAction : UnitAction
 
     // ------------------------------------------------
 
-    public DeadAction(IActor owner) : base(owner) { }
+    public DeadAction(UnitController owner) : base(owner) { }
 
     public override bool CanInterruptBy(EActionType next)
     {

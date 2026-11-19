@@ -4,38 +4,17 @@ using UnityEngine;
 
 // ==================================================
 
-// 액터가 공통으로 가져야 하는 것. ActorFactory가 풀에서 꺼낸 뒤 OnSpawn, 돌려보내기 전에 OnDespawn을 부른다.
-// 매 프레임 갱신은 ActorService.Tick이 Tick으로 부른다(유닛마다 Unity Update를 쓰지 않는다)
-public interface IActor : IHitTarget
-{
-    int ActorID { get; }
-    void OnSpawn(int actorID);
-    void OnDespawn();
-    void Tick(float deltaTime, float unscaledDeltaTime);
-
-    // 부품끼리는 서로를(프리팹 참조도) 들고 있지 않고 주인을 통해 꺼낸다
-    UnitProperty Property { get; }
-    MoveFeature Move { get; }
-    AnimFeature Anim { get; }
-    HealthFeature Health { get; }
-    MeleeAttackFeature Melee { get; }
-    ActionFeature Action { get; }
-    PartFeature Parts { get; }   // 버섯 부위가 없는 유닛은 null
-}
-
-// ==================================================
-
 // 전투 한 판의 액터(플레이어·몬스터) 목록. 생성·삭제는 여기서만 한다(ActorFactory → ResourceManager 풀)
 public sealed class ActorService : ServiceBase
 {
     private readonly ActorFactory m_Factory = new();
     
     // 조회용
-    private readonly Dictionary<int, IActor> m_DicActor = new();
+    private readonly Dictionary<int, UnitController> m_DicActor = new();
     private readonly Dictionary<Transform, int> m_DicActorID = new();
     
     // 순회용
-    private readonly List<IActor> m_ListActor = new();
+    private readonly List<UnitController> m_ListActor = new();
     private readonly List<int> m_ListToRemove = new();
     
     private bool m_IsTicking;
@@ -47,7 +26,7 @@ public sealed class ActorService : ServiceBase
 
     // ------------------------------------------------
 
-    public T Spawn<T>(T prefab, Vector3 position, Quaternion rotation) where T : PoolableMono, IActor
+    public T Spawn<T>(T prefab, Vector3 position, Quaternion rotation) where T : UnitController
     {
         if (prefab == null)
             return null;
@@ -99,13 +78,13 @@ public sealed class ActorService : ServiceBase
             return;
         }
 
-        if (m_DicActor.Remove(actorID, out IActor actor) == false)
+        if (m_DicActor.Remove(actorID, out UnitController actor) == false)
             return;
 
         m_ListActor.Remove(actor);
 
-        if (actor is Component component && component != null)
-            m_DicActorID.Remove(component.transform);
+        if (actor != null)
+            m_DicActorID.Remove(actor.transform);
 
         if (ReferenceEquals(Player, actor))
             Player = null;
@@ -134,12 +113,12 @@ public sealed class ActorService : ServiceBase
 
     // 주변 액터 검색 ---
 
-    public IHitTarget FindNearestEnemy(Vector3 position, float range, ETeam team)
+    public UnitController FindNearestEnemy(Vector3 position, float range, ETeam team)
     {
-        IHitTarget nearest = null;
+        UnitController nearest = null;
         float nearestDistanceSq = range * range;
         
-        foreach (IActor actor in m_DicActor.Values)
+        foreach (UnitController actor in m_DicActor.Values)
         {
             if (IsEnemy(actor, team) == false)
                 continue;
@@ -158,7 +137,7 @@ public sealed class ActorService : ServiceBase
     public void CollectNearbyEnemies(Vector3 center, float radius, ETeam team, List<ActorHitCandidate> results)
     {
         results.Clear();
-        foreach (IActor actor in m_DicActor.Values)
+        foreach (UnitController actor in m_DicActor.Values)
         {
             CharacterController body = actor.HurtBody;
             if (IsEnemy(actor, team) == false || body == null || body.enabled == false)
@@ -174,7 +153,7 @@ public sealed class ActorService : ServiceBase
     public bool IsBodyNear(CharacterController self, float margin)
     {
         Vector3 position = self.transform.position;
-        foreach (IActor actor in m_DicActor.Values)
+        foreach (UnitController actor in m_DicActor.Values)
         {
             CharacterController body = actor.HurtBody;
             if (body == null || body == self || body.enabled == false)
@@ -195,9 +174,9 @@ public sealed class ActorService : ServiceBase
         return false;
     }
 
-    private static bool IsEnemy(IHitTarget actor, ETeam team)
+    private static bool IsEnemy(UnitController actor, ETeam team)
     {
-        if (actor is UnityEngine.Object behaviour && behaviour == null)
+        if (actor == null)
             return false;
 
         return actor.HitFeature.IsDead == false && actor.HitFeature.Team != team;
@@ -208,7 +187,7 @@ public sealed class ActorService : ServiceBase
 
 public readonly struct ActorHitCandidate
 {
-    public readonly IHitTarget Actor;
+    public readonly UnitController Actor;
     public readonly Vector3 Center;
     public readonly Vector3 Axis;
     public readonly float HalfHeight;
@@ -219,7 +198,7 @@ public readonly struct ActorHitCandidate
     
     // ------------------------------------------------
     
-    public ActorHitCandidate(IHitTarget actor, CharacterController body)
+    public ActorHitCandidate(UnitController actor, CharacterController body)
     {
         Transform bodyTransform = body.transform;
         Center = bodyTransform.TransformPoint(body.center);

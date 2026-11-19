@@ -17,7 +17,7 @@ public enum EActionType
 
 public abstract class UnitAction
 {
-    protected IActor Owner { get; }
+    protected UnitController Owner { get; }
 
     public abstract EActionType Type { get; }
     public float Time { get; private set; }         // 행동을 시작하고 지난 시간
@@ -25,7 +25,7 @@ public abstract class UnitAction
 
     // ------------------------------------------------
 
-    protected UnitAction(IActor owner)
+    protected UnitAction(UnitController owner)
     {
         Owner = owner;
     }

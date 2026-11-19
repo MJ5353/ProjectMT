@@ -18,7 +18,7 @@ public class AttackChoiceFeature : UnitFeature
 
     // ------------------------------------------------
 
-    public AttackChoiceFeature(IActor owner, UnitDef def, float sharedCooldown) : base(owner)
+    public AttackChoiceFeature(UnitController owner, UnitDef def, float sharedCooldown) : base(owner)
     {
         m_SharedCooldown = sharedCooldown;
         def.CollectAttacks(m_ListChoice);

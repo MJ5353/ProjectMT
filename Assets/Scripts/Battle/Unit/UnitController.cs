@@ -5,17 +5,16 @@ using UnityEngine;
 
 // 플레이어와 몬스터이 같이 쓰는 몸. 이동·애니·체력·피격 부품을 직접 만들고 매 프레임 갱신한다.
 // 직렬화 참조 둘은 에디터 메뉴(BattleSetup)가 프리팹을 만들 때 채운다. 프리팹 안의 참조는 UnitProperty에 모은다
-public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : UnitDef
+// 제네릭이 아니라서 "아무 유닛"을 담을 때(Feature의 Owner, ActorService 목록, 타깃, 판정 후보) 이 타입을 쓴다
+public abstract class UnitController : PoolableMono
 {
-    [SerializeField] private TDef m_Def = null;                  // 수치 데이터
     [SerializeField] private UnitProperty m_Property = null;     // 프리팹 참조(몸·애니·렌더러·부위 뼈·소켓)
-
-    // core
-    public int ActorID { get; private set; }   // ActorService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
-    protected abstract ETeam Team { get; }
     
     private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
     private bool m_IsBattleOver;
+
+    public int ActorID { get; private set; }   // ActorService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
+    protected abstract ETeam Team { get; }
     
     // feature
     public MoveFeature Move { get; private set; }
@@ -26,19 +25,19 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     public ActionFeature Action { get; private set; }        // 행동 층(이동·공격·대시·피격·사망). 판단 쪽은 여기에 요청만 한다
     public PartFeature Parts { get; protected set; }         // 버섯 부위. 없으면 null
     public HitBoxFeature HitBox { get; protected set; }      // 뼈 판정 모양. 없으면 null
+    protected abstract UnitDef BaseDef { get; }                  // 몸 수치. 타입 있는 Def는 UnitController<TDef>.Def
 
     // get
-    public TDef Def => m_Def;
+    public bool IsDead => Health.IsDead;
     public UnitProperty Property => m_Property;
     public Transform VisualRoot => m_Property.Animator.transform;
     public CharacterController HurtBody => m_Property.CharacterController;
-    public bool IsDead => Health.IsDead;
 
     // ------------------------------------------------
         
     protected virtual void Set()
     {
-        if (m_Def == null || m_Property == null)
+        if (BaseDef == null || m_Property == null)
         {
             CLogger.Error(GetType().Name, $"Def 또는 UnitProperty가 비어 있습니다(프리팹 다시 굽기): {name}", this);
             enabled = false;
@@ -46,16 +45,16 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
             return;
         }
 
-        Move = AddFeature(new MoveFeature(this, m_Property.CharacterController, m_Def.TurnSpeed));
+        Move = AddFeature(new MoveFeature(this, m_Property.CharacterController, BaseDef.TurnSpeed));
         Anim = AddFeature(new AnimFeature(this, m_Property.Animator));
-        Health = AddFeature(new HealthFeature(this, m_Def.MaxHp));
-        HitFeature = AddFeature(new HitFeature(this, Team, m_Def.Hit, m_Property.ListBodyRenderer));
+        Health = AddFeature(new HealthFeature(this, BaseDef.MaxHp));
+        HitFeature = AddFeature(new HitFeature(this, Team, BaseDef.Hit, m_Property.ListBodyRenderer));
         Melee = AddFeature(new MeleeAttackFeature(this, GetAttacks()));
-        Action = AddFeature(new ActionFeature(this, m_Def));
+        Action = AddFeature(new ActionFeature(this, BaseDef));
 
         // 피격 반응 수치가 없으면 체력만 깎이고 반응은 없다
-        if (m_Def.Hit == null)
-            CLogger.Warning(GetType().Name, $"{m_Def.name}의 HitDef가 비어 있어 피격 반응이 없습니다", this);
+        if (BaseDef.Hit == null)
+            CLogger.Warning(GetType().Name, $"{BaseDef.name}의 HitDef가 비어 있어 피격 반응이 없습니다", this);
 
         HitFeature.Hit += OnHit;
         Health.Died += OnDied;
@@ -146,9 +145,9 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     protected abstract void OnHit(HitParams hit);
     protected abstract void OnDied();
 
-    // 전투가 끝난 순간 한 번. 기본은 애니 배속을 되돌리고, 살아 있으면 Idle
     protected virtual void OnBattleEnded()
     {
+        // 전투가 끝난 순간 한 번. 기본은 애니 배속을 되돌리고, 살아 있으면 Idle
         Anim.SetSpeed(1f);
         
         if (IsDead == false)
@@ -162,7 +161,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     
     protected virtual void OnDrawGizmosSelected()
     {
-        if (m_Def == null || m_Property == null)
+        if (BaseDef == null || m_Property == null)
             return;
 
         Gizmos.color = new Color(1f, 0.3f, 0.2f, 0.6f);
@@ -179,7 +178,7 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     private List<AttackSpec> GetAttacks()
     {
         List<AttackSpec> listAttack = new();
-        m_Def.CollectAttacks(listAttack);
+        BaseDef.CollectAttacks(listAttack);
         return listAttack;
     }
     
@@ -187,4 +186,15 @@ public abstract class UnitController<TDef> : PoolableMono, IActor where TDef : U
     {
         return m_Property.GetBattleBone(part);
     }
+}
+
+// ==================================================
+
+// Def를 타입 있게 쓰는 유닛(PlayerController·MonsterController가 이어받는다)
+public abstract class UnitController<TDef> : UnitController where TDef : UnitDef
+{
+    [SerializeField] private TDef m_Def = null;                  // 수치 데이터
+
+    public TDef Def => m_Def;
+    protected override UnitDef BaseDef => m_Def;
 }

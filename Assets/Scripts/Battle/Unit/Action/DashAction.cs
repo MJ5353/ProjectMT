@@ -23,7 +23,7 @@ public class DashAction : UnitAction
 
     // ------------------------------------------------
 
-    public DashAction(IActor owner, float speed, float duration, float cooldown, bool isInvincible, float animSpeed) : base(owner)
+    public DashAction(UnitController owner, float speed, float duration, float cooldown, bool isInvincible, float animSpeed) : base(owner)
     {
         m_Speed = speed;
         m_Duration = duration;

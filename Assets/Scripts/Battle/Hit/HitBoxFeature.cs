@@ -20,7 +20,7 @@ public class HitBoxFeature : UnitFeature
 
     // 감싸는 반지름은 지금(만들 때) 자세 기준
     // shortcut: 애니로 뼈가 BoundMargin보다 멀리 뻗으면 후보에서 빠진다. 그러면 매 프레임 재계산으로 바꾼다
-    public HitBoxFeature(IActor owner, IReadOnlyList<HitShapeDef> listShapeDef) : base(owner)
+    public HitBoxFeature(UnitController owner, IReadOnlyList<HitShapeDef> listShapeDef) : base(owner)
     {
         Vector3 center = owner.transform.position;
         foreach (HitShapeDef shapeDef in listShapeDef)

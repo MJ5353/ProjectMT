@@ -11,7 +11,7 @@ public class HitAction : UnitAction
 
     // ------------------------------------------------
 
-    public HitAction(IActor owner, float stunTime) : base(owner)
+    public HitAction(UnitController owner, float stunTime) : base(owner)
     {
         m_StunTime = stunTime;
     }
