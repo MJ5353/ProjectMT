@@ -41,6 +41,9 @@ public class AttackSpec
     [field: SerializeField, FormerlySerializedAs("m_HitStop")]
     public float HitStop { get; private set; } = 0.06f; // 맞을 때 화면이 멈추는 시간(초)
 
+    [field: SerializeField]
+    public float Break { get; private set; } = 1f; // 경직 가중치. 맞은 쪽에 쌓여 UnitDef.BreakImmune을 넘으면 경직. 막타·회오리 등은 높게
+
     [field: SerializeField, FormerlySerializedAs("m_Lunge")]
     public float Lunge { get; private set; } = 0f; // 공격 시작 때 앞으로 내딛는 속도
 

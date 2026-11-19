@@ -87,4 +87,5 @@ public abstract class BrainBase
     public virtual void OnDied() { }                                     // 죽었을 때. 사망 행동 요청은 주인이 한다
     protected virtual void OnActionEnded(EActionType action, bool isFinished) { } // 행동이 끝났을 때 다음 판단
     protected virtual void OnStop() { }                                  // 전투가 끝나 멈출 때
+    public virtual bool CanFlinch => true;                               // false면 맞아도 경직(피격 행동·넉백) 없이 데미지만
 }

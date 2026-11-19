@@ -7,6 +7,7 @@ using UnityEngine;
 // 맞는 쪽 전부. 어디를 맞을 수 있나(몸 판정 모양)와 맞았을 때 처리(팀·무적·사망 거르기 → 체력 → HitDef 반응)를 맡는다.
 // 판정 모양: 뼈마다 구·캡슐. 목록이 비면 HurtBody 캡슐로 맞는다(플레이어·잡몹). 버섯 부위가 걸린 뼈는 부위 번호를 달아 부위 판정이 된다
 // 순서: 부위 → 체력 → 넉백 → 번쩍 → 히트스톱 → 조각·타격 마크
+// 경직: 맞을 때마다 Break를 쌓아 UnitDef.BreakImmune을 넘고 판단이 허락(CanFlinch)하면 경직(넉백·피격 행동). 아니면 넉백 없이 데미지·번쩍만
 // 번쩍이 히트스톱 중에도 끝나야 해서 실제 시간(unscaled)으로 돌고, 무적 시간만 게임 시간으로 바꿔 깎는다
 
 public class HitFeature : UnitFeature
@@ -17,7 +18,7 @@ public class HitFeature : UnitFeature
     private readonly HitDef m_HitDef;
     private readonly List<HitShape> m_ListShape = new(); // 만들 때 한 번 정하고 풀 재사용 때도 그대로
 
-    public event Action<HitParams> Hit;
+    public event Action<HitParams, bool> Hit; // bool: 경직하는 타격인지
     public float BoundRadius { get; private set; }  // 몸 중심(transform)에서 모양들을 감싸는 반지름. 후보 거르기용
 
     // 번쩍
@@ -31,6 +32,8 @@ public class HitFeature : UnitFeature
     // flag
     private float m_InvincibleRemain;
     private float m_FlashRemain;
+    private float m_BreakStack;     // 쌓인 경직
+    private float m_BreakIdleTime;  // 마지막 타격 뒤 지난 게임 시간
     
     // get
     public bool IsInvincible => m_InvincibleRemain > 0f;
@@ -54,6 +57,7 @@ public class HitFeature : UnitFeature
     public override void Reset()
     {
         m_InvincibleRemain = 0f;
+        m_BreakStack = 0f;
         IsHidden = false;
         RestoreFlash();
     }
@@ -63,6 +67,13 @@ public class HitFeature : UnitFeature
         // 무적은 게임 시간 기준. 히트스톱(timeScale 0) 중에는 같이 멈춘다
         if (m_InvincibleRemain > 0f)
             m_InvincibleRemain -= unscaledDeltaTime * Time.timeScale;
+
+        if (m_BreakStack > 0f)
+        {
+            m_BreakIdleTime += unscaledDeltaTime * Time.timeScale;
+            if (m_BreakIdleTime >= Owner.Def.BreakResetTime)
+                m_BreakStack = 0f;
+        }
 
         if (m_FlashRemain <= 0f)
             return;
@@ -137,14 +148,31 @@ public class HitFeature : UnitFeature
             bodyDamage = Mathf.RoundToInt(hit.Damage * bodyDamageRate);
         }
 
+        bool isFlinch = AddBreak(hit.Break);
         Owner.HealthF.TakeDamage(bodyDamage);
-        ApplyReactions(hit, partIndex);
+        ApplyReactions(hit, partIndex, isFlinch);
 
         if (m_HitDef != null)
             m_InvincibleRemain = m_HitDef.InvincibleTime;
 
-        Hit?.Invoke(hit);
+        Hit?.Invoke(hit, isFlinch);
 
+        return true;
+    }
+
+    // 경직 판단이 막으면(쓰러짐·포효) 쌓지도 않는다. 넘으면 비운다
+    private bool AddBreak(float breakPower)
+    {
+        if (Owner.BrainBase != null && Owner.BrainBase.CanFlinch == false)
+            return false;
+
+        m_BreakStack += breakPower;
+        m_BreakIdleTime = 0f;
+        
+        if (m_BreakStack <= Owner.Def.BreakImmune)
+            return false;
+
+        m_BreakStack = 0f;
         return true;
     }
 
@@ -177,12 +205,12 @@ public class HitFeature : UnitFeature
 
     // 반응---
 
-    private void ApplyReactions(in HitParams hit, int partIndex)
+    private void ApplyReactions(in HitParams hit, int partIndex, bool isFlinch)
     {
         if (m_HitDef == null)
             return;
 
-        if (m_HitDef.Has(EHitReaction.Knockback))
+        if (isFlinch && m_HitDef.Has(EHitReaction.Knockback))
             ApplyKnockback(hit);
 
         if (m_HitDef.Has(EHitReaction.Flash))

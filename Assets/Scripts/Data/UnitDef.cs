@@ -15,6 +15,12 @@ public abstract class UnitDef : DataDef
     [field: SerializeField, FormerlySerializedAs("m_HitStunTime")]
     public float HitStunTime { get; private set; } = 0.35f;        // 맞고 굳는 시간(초)
 
+    [field: SerializeField]
+    public float BreakImmune { get; private set; } = 0f;           // 쌓인 경직(AttackSpec.Break)이 이 값을 넘어야 경직·넉백. 0이면 매번. 보스 3, 엘리트 1
+
+    [field: SerializeField]
+    public float BreakResetTime { get; private set; } = 2f;        // 이 시간(초) 동안 안 맞으면 쌓인 경직이 사라진다
+
     [field: SerializeField, FormerlySerializedAs("m_MoveSpeed")]
     public float MoveSpeed { get; private set; } = 3f;             // 기본 이동 속도. 몬스터는 추적 속도, 배회는 AIDef.WanderSpeedRate를 곱한다
 

@@ -162,14 +162,15 @@ public class UnitController : PoolableMono
         }
     }
 
-    // 맞으면 판단 쪽이 먼저 기록(공격자 등)하고, 실행기는 피격 경직으로. 죽는 타격은 사망이 먼저 처리돼 여기서 끝난다
-    private void OnHit(HitParams hit)
+    // 맞으면 판단 쪽이 먼저 기록(공격자 등)하고, 경직하는 타격이면 실행기는 피격 경직으로(공격 중이면 끊긴다). 죽는 타격은 사망이 먼저 처리돼 여기서 끝난다
+    private void OnHit(HitParams hit, bool isFlinch)
     {
         if (IsDead)
             return;
 
         BrainBase.OnHit(hit);
-        UnitExecutor.RequestHit();
+        if (isFlinch)
+            UnitExecutor.RequestHit();
     }
 
     private void OnDied()

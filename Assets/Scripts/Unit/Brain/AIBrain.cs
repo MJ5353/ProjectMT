@@ -49,6 +49,7 @@ public class AIBrain : BrainBase
     public float WanderSpeed => m_UnitDef.MoveSpeed * Def.WanderSpeedRate;
     public EAIState State => m_Fsm.Current;
     public float TimeInState => m_Fsm.TimeInState;
+    public override bool CanFlinch => State != EAIState.Down && State != EAIState.Roar; // 쓰러짐·포효는 맞아도 끊기지 않는다
 
     // ------------------------------------------------
 
@@ -149,7 +150,7 @@ public class AIBrain : BrainBase
         m_Fsm.Change(EAIState.Dead);
     }
 
-    // 공격은 끝날 때마다 쿨을 걸고, 끝까지 했으면 콤보 다음 타. 피격 경직이 풀리면 종류별 다음 상태(쓰러져 있으면 계속 누워 있음)
+    // 공격은 끝날 때마다 쿨을 걸고, 끝까지 했으면 콤보 다음 타. 피격 경직이 풀리면 종류별 다음 상태(쓰러짐·포효 중엔 경직하지 않는다)
     protected override void OnActionEnded(EActionType action, bool isFinished)
     {
         if (Owner.IsDead)
@@ -169,7 +170,7 @@ public class AIBrain : BrainBase
             }
             case EActionType.Hit:
             {
-                if (isFinished && State != EAIState.Down)
+                if (isFinished)
                     m_Fsm.Change(GetStateAfterHit());
 
                 break;

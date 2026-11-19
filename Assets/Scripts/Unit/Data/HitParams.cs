@@ -24,8 +24,9 @@ public readonly struct HitParams
     public readonly float HitStop;
     public readonly Vector3 Point;
     public readonly int PartIndex; // 맞은 부위 번호. -1이면 몸
+    public readonly float Break; // 경직 가중치(AttackSpec.Break)
 
-    public HitParams(UnitController attacker, ETeam team, int damage, Vector3 direction, float knockback, float hitStop, Vector3 point, int partIndex = -1)
+    public HitParams(UnitController attacker, ETeam team, int damage, Vector3 direction, float knockback, float hitStop, Vector3 point, int partIndex = -1, float breakPower = 1f)
     {
         Attacker = attacker;
         Team = team;
@@ -36,5 +37,6 @@ public readonly struct HitParams
         HitStop = hitStop;
         Point = point;
         PartIndex = partIndex;
+        Break = breakPower;
     }
 }

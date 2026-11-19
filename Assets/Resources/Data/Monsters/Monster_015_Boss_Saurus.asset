@@ -18,6 +18,7 @@ MonoBehaviour:
   <Icon>k__BackingField: {fileID: 0}
   <MaxHp>k__BackingField: 146
   <HitStunTime>k__BackingField: 0.1
+  <BreakImmune>k__BackingField: 3
   <TurnSpeed>k__BackingField: 900
   <Hit>k__BackingField: {fileID: 11400000, guid: c4d21274ae7bcaf4ca8e7b650ad32b20, type: 2}
   <ListSkill>k__BackingField:

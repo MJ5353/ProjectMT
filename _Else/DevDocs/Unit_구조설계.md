@@ -96,6 +96,7 @@ Unity에서 컴파일 확인 후 플레이 확인: 프리팹 16개의 컨트롤�
 1. `AIChaseStateBase`가 `AttackSelector.TryPick`으로 공격을 고르고 `UnitExecutor.RequestAttack`으로 요청한다.
 2. `AttackAction`이 예고·클립·돌진·판정을 하고, 맞은 쪽 `HitFeature`가 체력·부위·반응을 처리한다.
 3. 맞은 쪽 컨트롤러가 `UnitExecutor.RequestHit`로 피격 행동에 넣고 판단 훅(`OnHit`)을 부른다.
+   - 경직: `HitFeature`가 `AttackSpec.Break`를 쌓아 `UnitDef.BreakImmune`을 넘고 판단의 `CanFlinch`가 true일 때만 넉백·피격 행동(공격 끊김 포함). 아니면 데미지·번쩍·히트스톱만. `BreakResetTime` 동안 안 맞으면 누적이 사라진다. AIBrain은 쓰러짐·포효 중 `CanFlinch` false.
 4. 공격이 끝나면 `UnitExecutor.Ended` → `AIBrain`이 쿨을 걸고, `ComboNext`가 있으면 다음 타를 요청한다.
 
 ## 4. 결정된 사안
