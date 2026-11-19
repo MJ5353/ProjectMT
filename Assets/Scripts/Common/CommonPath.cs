@@ -14,6 +14,9 @@ public static class CommonPath
     public const string PartBreakEffect = EffectDir + "FX_PartBreak";
     public const string DeathEffect = EffectDir + "FX_Death";
     public const string PickupEffect = EffectDir + "FX_Pickup";
+    public const string TelegraphCircle = EffectDir + "FX_TelegraphCircle";
+    public const string TelegraphLine = EffectDir + "FX_TelegraphLine";
+    
     // 콘텐츠 리소스는 폴더 + 이름(Def ID)으로 찾는다. Def는 프리팹을 참조하지 않는다
     public const string ActorDir = "Prefabs/Actor/";           // 플레이어 프리팹(Player)
     public const string MonsterDir = ActorDir + "Monster/";    // 몬스터 프리팹(Monster_NNN_Key)
@@ -30,7 +33,6 @@ public static class CommonPath
     public const string AssetsRoot = "Assets/";
     public const string ResourcesRoot = AssetsRoot + "Resources/";
     public const string ScenesDir = AssetsRoot + "Scenes/";
-
     public const string ModelDir = AssetsRoot + "Art/Voxel/Models/"; // 하위 폴더(Actor·Mushroom·Map 등)까지 이름으로 찾는다
     public const string MonsterModelDir = ModelDir + "Actor/Monster/";
     public const string MushroomModelDir = ModelDir + "Mushroom/";

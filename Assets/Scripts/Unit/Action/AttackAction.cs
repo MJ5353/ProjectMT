@@ -11,6 +11,8 @@ public class AttackAction : UnitAction
 {
     private static readonly Vector3 s_SquashScale = new(1.15f, 0.8f, 1.15f); // 예고 끝 움츠림 배율
     private readonly float m_BlendTime;    // 공격 애니로 넘어갈 때 섞는 시간(UnitDef.AttackBlendTime)
+    private readonly List<UnitHitCandidate> m_ListCandidate = new();
+    private readonly HashSet<UnitController> m_SetHit = new(); // 이번 회차에 이미 맞은 대상
     
     private Vector3 m_Direction;
     private Transform m_FaceTarget;
@@ -19,12 +21,10 @@ public class AttackAction : UnitAction
     private float m_Length;        // 지금 공격 클립 길이(초)
     private bool m_IsTicked;       // 판정을 한 번이라도 했는지(한 프레임 판정 보장)
     private int m_HitRound;        // 다시 맞히기 회차(AttackSpec.RehitFrame). 바뀌면 맞은 대상 목록을 비운다
+    private TelegraphController m_Telegraph; // 바닥 위험 범위. 예고가 있는 공격만, 판정 시작까지
     
     public AttackSpec Spec { get; private set; }  // 지금(끝난 뒤엔 마지막) 공격. 콤보 다음 타를 여기서 읽는다
     public float CancelDelay { get; set; }  // 판정 뒤 이 시간이 지나면 다음 공격으로 끊을 수 있다. 0이면 판정 끝나자마자
-
-    private readonly List<UnitHitCandidate> m_ListCandidate = new();
-    private readonly HashSet<UnitController> m_SetHit = new(); // 이번 회차에 이미 맞은 대상
 
     public override EActionType Type => EActionType.Attack;
     public override bool IsFinished => m_IsStarted && AttackTime >= m_Length;
@@ -102,11 +102,16 @@ public class AttackAction : UnitAction
         // 예고: 멈춰서 움츠린다. 방향은 TurnSpeed로만 맞추고, 공격 중에는 고정해서 옆으로 빠질 틈을 준다
         Owner.MoveF.Stop();
         Owner.AnimF.Play(AnimKey.Idle);
+        
         m_BaseScale = VisualRoot.localScale;
+        m_Telegraph = GameManager.Instance?.EffectS?.ShowTelegraph(Spec.ActiveMoveSpeed > 0f);
+        UpdateTelegraph();
     }
 
     protected override void Update(float deltaTime)
     {
+        UpdateTelegraph();
+
         if (m_IsStarted)
         {
             UpdateClip(AttackTime);
@@ -133,9 +138,49 @@ public class AttackAction : UnitAction
 
         Owner.MoveF.Stop();
         EndHit();
+        HideTelegraph();
     }
 
     // ==================================================
+
+    // 예고 시작부터 판정 시작까지 판정 자리를 바닥에 그린다. 예고 중 대상 쪽으로 도니 매 프레임 따라간다.
+    // 돌진(ActiveMoveSpeed)은 판정 구간 동안 나아가는 거리만큼 긴 사각형
+    // shortcut: 시작 돌진(Lunge)으로 밀리는 거리와 판정 뼈(HitPart)의 공격 자세 위치는 반영 안 함, 범위가 어긋나 보이면 그때 더한다
+    private void UpdateTelegraph()
+    {
+        if (m_Telegraph == null)
+            return;
+
+        float total = Spec.WindupTime + Spec.HitTime;
+        if (Time >= total)
+        {
+            HideTelegraph();
+            return;
+        }
+
+        Transform owner = Owner.transform;
+        Vector3 center = GetCenter(owner, Spec, Owner.Property.GetBattleBone(Spec.HitPart));
+        center.y = owner.position.y;
+
+        float diameter = Spec.Radius * 2f;
+        if (m_Telegraph.IsLine)
+        {
+            float length = diameter + Spec.ActiveMoveSpeed * Mathf.Max(0f, Spec.HitEndTime - Spec.HitTime);
+            m_Telegraph.SetShape(center - owner.forward * Spec.Radius, owner.forward, diameter, length);
+        }
+        else
+        {
+            m_Telegraph.SetShape(center, owner.forward, diameter, diameter);
+        }
+
+        m_Telegraph.SetProgress(Time / total);
+    }
+
+    private void HideTelegraph()
+    {
+        GameManager.Instance?.EffectS?.HideTelegraph(m_Telegraph);
+        m_Telegraph = null;
+    }
 
     // 클립 시작: 판정 걸기, 멈춰서 클립 재생, 시작 돌진(Lunge). 방향은 Enter에서 먼저 맞춘다
     private void StartClip()

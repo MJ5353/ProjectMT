@@ -10,12 +10,16 @@ using UnityEngine;
 public sealed class EffectService : ServiceBase
 {
     private readonly List<EffectController> m_ListActive = new();
+    private readonly List<TelegraphController> m_ListTelegraph = new(); // 켜져 있는 공격 예고. 끄는 건 부른 쪽(AttackAction)
     private readonly ChunkRenderer m_Chunk = new();
 
     public EffectController PartBreak { get; private set; } // 부위(버섯) 깨짐
     public EffectController Death { get; private set; }     // 몬스터 사망. 발밑
     public EffectController Pickup { get; private set; }    // 버섯 줍기
-    
+
+    private TelegraphController m_TelegraphCircle;
+    private TelegraphController m_TelegraphLine;
+
     // ------------------------------------------------
 
     public override void Init()
@@ -23,6 +27,9 @@ public sealed class EffectService : ServiceBase
         PartBreak = Load(CommonPath.PartBreakEffect);
         Death = Load(CommonPath.DeathEffect);
         Pickup = Load(CommonPath.PickupEffect);
+        
+        m_TelegraphCircle = ResourceManager.Instance?.Load<TelegraphController>(CommonPath.TelegraphCircle);
+        m_TelegraphLine = ResourceManager.Instance?.Load<TelegraphController>(CommonPath.TelegraphLine);
     }
 
     public override void Tick(float deltaTime)
@@ -49,6 +56,13 @@ public sealed class EffectService : ServiceBase
 
         m_ListActive.Clear();
         m_Chunk.Clear();
+
+        foreach (TelegraphController telegraph in m_ListTelegraph)
+        {
+            ResourceManager.Instance?.Despawn(telegraph);
+        }
+
+        m_ListTelegraph.Clear();
     }
 
     // ---
@@ -62,7 +76,29 @@ public sealed class EffectService : ServiceBase
         EffectController effect = ResourceManager.Instance.Spawn(prefab, position, rotation);
         effect.transform.localScale = Vector3.one * scale;
         m_ListActive.Add(effect);
+        
         return effect;
+    }
+
+    // 공격 예고를 꺼낸다. 모양·진행도는 받은 쪽이 매 프레임 넣고, 끝나면 HideTelegraph로 돌려준다
+    public TelegraphController ShowTelegraph(bool isLine)
+    {
+        TelegraphController prefab = isLine ? m_TelegraphLine : m_TelegraphCircle;
+        if (prefab == null || ResourceManager.Instance == null)
+            return null;
+
+        TelegraphController telegraph = ResourceManager.Instance.Spawn(prefab, Vector3.zero, Quaternion.identity);
+        m_ListTelegraph.Add(telegraph);
+        
+        return telegraph;
+    }
+
+    public void HideTelegraph(TelegraphController telegraph)
+    {
+        if (telegraph == null || m_ListTelegraph.Remove(telegraph) == false)
+            return;
+
+        ResourceManager.Instance?.Despawn(telegraph);
     }
 
     // origin에서 direction 쪽으로 복셀 조각을 흩뿌린다
