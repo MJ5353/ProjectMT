@@ -5,11 +5,20 @@ using UnityEngine.Serialization;
 
 // ==================================================
 
+// 몬스터 판단 종류. MonsterController가 이 값으로 판단을 만든다
+public enum EMonsterBrain
+{
+    Normal,     // MonsterBrain: 대기·배회·추적·도망
+    Burrow,     // BurrowBrain: 맞으면 땅속에 숨었다가 대상 근처에서 나온다(버더지)
+}
+
+// ==================================================
+
 // 몬스터 정의. 몸 수치(UnitDef)에 이동·AI 거리·몸에 꽂는 버섯·드랍을 더한다.
 // 새 몬스터은 이 에셋 한 장 + 프리팹으로 늘린다
 
 [CreateAssetMenu(menuName = "MushTaker/Data/Monster", fileName = "Monster_")]
-public class MonsterDef : UnitDef, IAIDef
+public class MonsterDef : UnitDef
 {
     // 몸 부위 하나에 나는 버섯. 스폰할 때마다 그 부위 소켓(UnitProperty.BonePart) 중 몇 개를 골라 꽂는다.
     // 내구도는 부위 단위라 꽂힌 버섯이 같이 깨진다. BattlePart None은 몸 어디든 나는 장식(소켓이 남는 곳)
@@ -114,6 +123,9 @@ public class MonsterDef : UnitDef, IAIDef
     public float WanderSpeed { get; private set; } = 1.2f;   // 배회 속도
 
     // AI ---
+    [field: SerializeField]
+    public EMonsterBrain Brain { get; private set; } = EMonsterBrain.Normal; // 판단 종류
+
     [field: SerializeField, FormerlySerializedAs("m_SightRange")]
     public float SightRange { get; private set; } = 7f;      // 플레이어를 알아채는 거리
 
@@ -134,6 +146,9 @@ public class MonsterDef : UnitDef, IAIDef
 
     [field: SerializeField, FormerlySerializedAs("m_FleeSpeed")]
     public float FleeSpeed { get; private set; } = 4f;
+
+    [field: SerializeField]
+    public float HideTime { get; private set; } = 1.5f;      // Burrow: 땅속에서 대상 쪽으로 파고드는 시간(초). 이동은 MoveSpeed
 
     // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽고, 구운 프리팹을 Prefab에 채운다
     [field: SerializeField]

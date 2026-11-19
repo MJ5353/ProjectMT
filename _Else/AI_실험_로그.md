@@ -108,6 +108,7 @@
 - 직접 Feature 계층(능력·상태·입구·층) 혼재가 가장 산만하다고 지적. AI가 부품·행동·판단 3층과 호출 방향 고정을 제안, 직접 Health 분리 유지와 한 덩어리씩(부품 → 행동 → 판단) 진행·단계마다 컴파일·커밋을 선택.
 - AI가 HitBox→Hit, ActionFeature→ActionLayer·Melee→AttackAction, BrainFeature→BrainLayer(Player/MonsterBrain)·Target→TargetSensor·AttackChoice→MonsterBrain 안으로 반영. 직접 프로퍼티 이름을 ActionLayer로 바꿔 판단도 BrainLayer로 맞춤.
 - 위 구조 변경은 3단계 컴파일 안 함(1·2단계는 직접 컴파일·커밋).
+- 직접 "AI 상태가 MonsterBrain만 받으면 의미가 없다"고 지적. AI가 AIBrain 기반(대상·공격 고르기·FSM) + IAIDef(MonsterDef가 구현)로 상태를 몬스터에서 떼는 안을 제안, 직접 채택. 드롭·처치 알림만 MonsterBrain.OnDeadStart에 남김(컴파일 전).
 
 ## 파티클 이펙트·서비스 통합
 

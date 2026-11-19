@@ -9,30 +9,15 @@ public enum EAIState
     Wander,
     Chase,
     Flee,
+    Hide,   // 땅속에 숨었다 나오기(BurrowBrain)
     Dead,
 }
 
 // ==================================================
 
-// AI 상태가 읽는 수치. Def가 이 인터페이스를 이어받는다(MonsterDef). 데이터는 Def에 그대로 둔다
-public interface IAIDef
-{
-    float MoveSpeed { get; }        // 추적 속도
-    float WanderSpeed { get; }      // 배회 속도
-    float SightRange { get; }       // 적을 알아채는 거리
-    float LoseRange { get; }        // 추적을 포기하는 거리
-    float WanderRadius { get; }     // 처음 자리에서 배회하는 반경
-    float AttackRange { get; }      // 추적을 멈추고 마주 보는 거리
-    float AttackCooldown { get; }   // 공격 하나가 끝난 뒤 공용 쿨(초)
-    float FleeTime { get; }         // 맞은 뒤 도망치는 시간. 0이면 바로 반격
-    float FleeSpeed { get; }
-}
-
-// ==================================================
-
 // AI 판단의 기반. 대상(Target)·공격 고르기(AttackChoice)·스폰 자리·AI 상태 머신을 갖고, 행동 층(ActionLayer)에 요청만 한다.
-// AI 상태(State/)는 이 클래스와 UnitController·IAIDef만 보므로 몬스터·보스·동료 판단이 같은 상태를 다시 쓴다.
-// 다른 동작이 필요하면 이어받은 판단이 생성자에서 SetState로 상태를 바꿔 끼우거나 훅(OnDeadStart 등)을 덮는다.
+// AI 상태(State/)는 이 클래스와 UnitController·MonsterDef만 보므로 이어받은 판단(MonsterBrain·BurrowBrain·보스)이 같은 상태를 다시 쓴다.
+// 다른 동작이 필요하면 이어받은 판단이 생성자에서 SetState로 상태를 더하거나 바꿔 끼우고, 훅(GetStateAfterHit·OnDeadStart)을 덮는다.
 // 공격·피격·대시 행동 중에는 판단을 쉬고, 행동이 끝나면(OnActionEnded) 다음 상태·콤보를 정한다
 
 public abstract class AIBrain : BrainLayer
@@ -40,7 +25,7 @@ public abstract class AIBrain : BrainLayer
     private readonly StateMachine<EAIState> m_Fsm = new();
 
     public UnitController Controller => Owner;
-    public IAIDef Def { get; }
+    public MonsterDef Def { get; }
     public AttackChoice AttackChoice { get; }                   // 공격 고르기·쿨
     public Vector3 HomePosition { get; private set; }           // 스폰 자리. 배회 기준
     public Vector3 LastHitDirection { get; private set; }
@@ -50,10 +35,10 @@ public abstract class AIBrain : BrainLayer
 
     // ------------------------------------------------
 
-    protected AIBrain(UnitController owner, UnitDef unitDef, IAIDef aiDef) : base(owner)
+    protected AIBrain(UnitController owner, MonsterDef def) : base(owner)
     {
-        Def = aiDef;
-        AttackChoice = new AttackChoice(unitDef, aiDef.AttackCooldown);
+        Def = def;
+        AttackChoice = new AttackChoice(def, def.AttackCooldown);
 
         SetState(EAIState.Idle, new AIIdleState(this));
         SetState(EAIState.Wander, new AIWanderState(this));
@@ -121,7 +106,7 @@ public abstract class AIBrain : BrainLayer
             case EActionType.Hit:
             {
                 if (isFinished)
-                    m_Fsm.Change(Def.FleeTime > 0f ? EAIState.Flee : EAIState.Chase);
+                    m_Fsm.Change(GetStateAfterHit());
 
                 break;
             }
@@ -150,6 +135,12 @@ public abstract class AIBrain : BrainLayer
     }
 
     // virtual ---
+
+    // 피격 경직이 풀린 뒤 갈 상태. 기본은 도망(FleeTime이 있으면) 또는 바로 추적
+    protected virtual EAIState GetStateAfterHit()
+    {
+        return Def.FleeTime > 0f ? EAIState.Flee : EAIState.Chase;
+    }
 
     public virtual void OnDeadStart() { }   // 사망 상태에 들어갈 때(드롭·처치 알림 등 타입별 처리)
 }

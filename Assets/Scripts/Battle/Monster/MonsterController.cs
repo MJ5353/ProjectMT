@@ -3,7 +3,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 몬스터 조립 허브. 몸(UnitController)에 버섯 부위·판정 모양을 붙이고, 판단은 MonsterBrain(AI 상태·공격 고르기)으로 둔다.
+// 몬스터 조립 허브. 몸(UnitController)에 버섯 부위·판정 모양을 붙이고, 판단은 Def.Brain에 따라 MonsterBrain 계열(AI 상태·공격 고르기)로 둔다.
 // 판단 상태 클래스는 State/ 폴더(상태마다 파일 하나), 실행은 행동 층(ActionLayer), 수치는 MonsterDef
 
 public class MonsterController : UnitController<MonsterDef>
@@ -23,7 +23,13 @@ public class MonsterController : UnitController<MonsterDef>
 
     protected override BrainLayer CreateBrain()
     {
-        return new MonsterBrain(this);
+        switch (Def.Brain)
+        {
+            case EMonsterBrain.Burrow:
+                return new BurrowBrain(this);
+            default:
+                return new MonsterBrain(this);
+        }
     }
 
     #region Gizmo
