@@ -110,7 +110,7 @@ public class HitFeature : UnitFeature
         m_InvincibleRemain = Mathf.Max(m_InvincibleRemain, duration);
     }
 
-    // 숨기(AIHideState). 무적과 달리 대상 찾기·조준(ActorService)에서도 빠진다
+    // 숨기(AIHideState). 무적과 달리 대상 찾기·조준(UnitService)에서도 빠진다
     public void SetHidden(bool isHidden)
     {
         IsHidden = isHidden;

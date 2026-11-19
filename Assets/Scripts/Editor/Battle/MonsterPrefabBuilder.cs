@@ -59,7 +59,7 @@ public static class MonsterPrefabBuilder
     // Def.Prefab을 구운 프리팹으로 채운다(지역 스폰이 Def에서 프리팹을 꺼내 쓴다)
     private static void LinkPrefab(MonsterDef def)
     {
-        MonsterController prefab = AssetDatabase.LoadAssetAtPath<MonsterController>(GetPrefabPath(def));
+        UnitController prefab = AssetDatabase.LoadAssetAtPath<UnitController>(GetPrefabPath(def));
         if (prefab == null || def.Prefab == prefab)
             return;
 
@@ -90,7 +90,7 @@ public static class MonsterPrefabBuilder
         FillBodySize(def, model);
         CheckSockets(def, model);
 
-        GameObject root = BattleSetup.BuildUnit<MonsterController>(def.name, model, def.BodyHeight, def.BodyRadius, def);
+        GameObject root = BattleSetup.BuildUnit(def.name, model, def.BodyHeight, def.BodyRadius, def);
         try
         {
             return PrefabUtility.SaveAsPrefabAsset(root, GetPrefabPath(def)) != null;

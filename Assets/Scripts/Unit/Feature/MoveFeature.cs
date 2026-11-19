@@ -10,7 +10,7 @@ public class MoveFeature : UnitFeature
     private const float Gravity = -25f;
     private const float GroundedSpeed = -2f; // 땅에 붙어 있도록 누르는 속도
     private const float ImpulseDamping = 9f; // 넉백이 줄어드는 빠르기
-    private const float ActorContactMargin = 0.2f; // [mj] todo) 임시값. 다른 캐릭터 캡슐과 이 거리 안이면 계단 오르기를 끈다
+    private const float UnitContactMargin = 0.2f; // [mj] todo) 임시값. 다른 캐릭터 캡슐과 이 거리 안이면 계단 오르기를 끈다
 
     private readonly CharacterController m_Controller;
     private readonly Transform m_Transform;
@@ -65,10 +65,10 @@ public class MoveFeature : UnitFeature
         motion.y = m_VerticalSpeed * deltaTime;
 
         // !!) 계단 오르기가 켜져 있으면 둥근 캡슐 바닥이 다른 캐릭터를 계단으로 보고 타고 올라간다(큰 몬스터가 플레이어 위로)
-        ActorService actors = GameManager.Instance?.ActorS;
-        bool isTouchingActor = actors != null && actors.IsBodyNear(m_Controller, ActorContactMargin);
+        UnitService units = GameManager.Instance?.UnitS;
+        bool isTouchingUnit = units != null && units.IsBodyNear(m_Controller, UnitContactMargin);
 
-        m_Controller.stepOffset = isTouchingActor ? 0f : m_StepOffset;
+        m_Controller.stepOffset = isTouchingUnit ? 0f : m_StepOffset;
         m_Controller.Move(motion);
         m_Impulse = Vector3.Lerp(m_Impulse, Vector3.zero, 1f - Mathf.Exp(-ImpulseDamping * deltaTime));
     }

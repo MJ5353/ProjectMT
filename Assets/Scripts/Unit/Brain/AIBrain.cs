@@ -2,7 +2,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 판단 상태. 행동(공격·피격 등)은 행동 층(EActionType)이 맡고, 여기는 "무엇을 할지"만
+// 판단 상태. 행동(공격·피격 등)은 실행기(UnitExecutor, EActionType)이 맡고, 여기는 "무엇을 할지"만
 public enum EAIState
 {
     Idle,
@@ -24,18 +24,18 @@ public enum EAIState
 //  | Boss +Roar·Down
 //  | Pet은 Follow·Dead만
 
-// AI 판단(몬스터·보스·동료 공통). 대상(Target)·공격 고르기(AttackChoice)·상태 머신·스폰 자리를 갖고 행동 층(ActionLayer)에 요청만 한다.
+// AI 판단(몬스터·보스·동료 공통). 대상(TargetSelector)·공격 고르기(AttackSelector)·상태 머신·스폰 자리를 갖고 실행기(UnitExecutor)에 요청만 한다.
 // 종류 차이는 클래스가 아니라 AI 프리셋(AIDef.Type)에 따라 등록하는 상태 묶음으로 낸다(SetStates). 상태는 State/ 폴더, 수치는 AIDef.
 // 공격·피격·대시 행동 중에는 상태를 돌리지 않고, 감지(대상·쿨·보스 분노)만 계속한다
 
-public class AIBrain : BrainLayer
+public class AIBrain : BrainBase
 {
     private readonly UnitDef m_UnitDef;
     private readonly StateMachine<EAIState> m_Fsm = new();
     private UnitController m_Leader;
 
     public AIDef Def { get; }
-    public AttackChoice AttackChoice { get; }                   // 공격 고르기·쿨
+    public AttackSelector AttackSelector { get; }                   // 공격 고르기·쿨
     public Vector3 HomePosition { get; private set; }           // 스폰 자리. 배회 기준
     public Vector3 LastHitDirection { get; private set; }
     public bool IsEnraged { get; private set; }
@@ -63,10 +63,10 @@ public class AIBrain : BrainLayer
             Def = ScriptableObject.CreateInstance<AIDef>();
         }
 
-        AttackChoice = new AttackChoice(unitDef, Def.AttackCooldown);
+        AttackSelector = new AttackSelector(unitDef, Def.AttackCooldown);
         SetStates(Def.Type);
 
-        // 부위는 판단보다 먼저 붙는다(MonsterController.SetFeatures)
+        // 부위는 판단보다 먼저 붙는다(MonsterDef.SetFeatures)
         if (Def.Type == EAIType.Boss && owner.PartF != null)
             owner.PartF.Broken += OnPartBroken;
     }
@@ -74,7 +74,7 @@ public class AIBrain : BrainLayer
     public override void Reset()
     {
         base.Reset();
-        AttackChoice.Reset();
+        AttackSelector.Reset();
 
         m_IsRoarPending = Def.Type == EAIType.Boss;
         m_IsDownPending = false;
@@ -88,10 +88,10 @@ public class AIBrain : BrainLayer
     // 감지는 행동 중에도, 상태는 행동이 없을 때만 돌린다
     protected override void Think(float deltaTime)
     {
-        AttackChoice.Tick(deltaTime);
+        AttackSelector.Tick(deltaTime);
         
         if (Def.Type != EAIType.Pet)
-            Target.Refresh(Def.SightRange);
+            TargetSelector.Refresh(Def.SightRange);
         
         if (Def.Type == EAIType.Boss)
             UpdateBoss();
@@ -141,7 +141,7 @@ public class AIBrain : BrainLayer
     public override void OnHit(HitParams hit)
     {
         LastHitDirection = hit.Direction;
-        Target.SetTarget(hit.Attacker);
+        TargetSelector.SetTarget(hit.Attacker);
     }
 
     public override void OnDied()
@@ -159,11 +159,11 @@ public class AIBrain : BrainLayer
         {
             case EActionType.Attack:
             {
-                AttackChoice.StartCooldown();
-                AttackSpec comboNext = Owner.ActionLayer.ComboNext;
+                AttackSelector.StartCooldown();
+                AttackSpec comboNext = Owner.UnitExecutor.ComboNext;
 
                 if (isFinished && comboNext != null)
-                    Owner.ActionLayer.RequestAttack(comboNext, Vector3.zero, Target.TargetTransform);
+                    Owner.UnitExecutor.RequestAttack(comboNext, Vector3.zero, TargetSelector.TargetTransform);
 
                 break;
             }
@@ -229,7 +229,7 @@ public class AIBrain : BrainLayer
             return;
 
         IsEnraged = true;
-        AttackChoice.Enrage(Def.ListEnrageSkill, Def.EnrageCooldownRate);
+        AttackSelector.Enrage(Def.ListEnrageSkill, Def.EnrageCooldownRate);
         m_IsRoarPending = true;
     }
 
@@ -241,10 +241,10 @@ public class AIBrain : BrainLayer
     
     // get ---
     
-    // 공격·피격·대시는 행동 층이 끝까지 맡는다. 사망은 사망 뒤 처리(사라짐)를 위해 판단을 계속 돈다
+    // 공격·피격·대시는 실행기가 끝까지 맡는다. 사망은 사망 뒤 처리(사라짐)를 위해 판단을 계속 돈다
     private bool IsActing()
     {
-        EActionType action = Owner.ActionLayer.Current;
+        EActionType action = Owner.UnitExecutor.Current;
         return action == EActionType.Attack || action == EActionType.Hit || action == EActionType.Dash;
     }
 
@@ -269,6 +269,6 @@ public class AIBrain : BrainLayer
         if (m_Leader != null && m_Leader.IsDead == false)
             return m_Leader;
 
-        return GameManager.Instance?.ActorS?.Player;
+        return GameManager.Instance?.UnitS?.Player;
     }
 }

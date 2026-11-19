@@ -94,9 +94,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 5040704575511916093}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5b839eaea0eefc74cb7dec62b7a9b87a, type: 3}
+  m_Script: {fileID: 11500000, guid: d785ecba86e9c884197efe22e112424e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MonsterController
+  m_EditorClassIdentifier: Assembly-CSharp::UnitController
   m_Def: {fileID: 11400000, guid: b2e5a26ca0cab5d45b13af5bf8c8c6a8, type: 2}
   m_Property: {fileID: 2310844718376380536}
 --- !u!1001 &9025546171595420941

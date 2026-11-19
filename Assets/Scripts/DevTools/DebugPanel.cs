@@ -67,7 +67,7 @@ public class DebugPanel : MonoBehaviour
     // 전투 중일 때만 몬스터 목록을 보여 주고, 누르면 플레이어 앞에 소환한다
     private void DrawSpawn(GameManager gameM)
     {
-        if (gameM.ActorS == null || gameM.ActorS.Player == null || gameM.Database == null)
+        if (gameM.UnitS == null || gameM.UnitS.Player == null || gameM.Database == null)
             return;
 
         GUILayout.Label("몬스터 소환(플레이어 앞)");
@@ -77,20 +77,20 @@ public class DebugPanel : MonoBehaviour
                 continue;
 
             if (GUILayout.Button(def.ID))
-                SpawnInFront(gameM.ActorS, def);
+                SpawnInFront(gameM.UnitS, def);
         }
     }
 
-    private static void SpawnInFront(ActorService actors, MonsterDef def)
+    private static void SpawnInFront(UnitService units, MonsterDef def)
     {
-        Transform player = actors.Player.transform;
-        float distance = SpawnGap + actors.Player.HurtBody.radius;
+        Transform player = units.Player.transform;
+        float distance = SpawnGap + units.Player.HurtBody.radius;
         if (def.Prefab.TryGetComponent(out CharacterController controller))
             distance += controller.radius;
 
         Vector3 forward = Vector3.ProjectOnPlane(player.forward, Vector3.up).normalized;
         Vector3 position = player.position + forward * distance + Vector3.up * BattleService.SpawnLift;
-        actors.Spawn(def.Prefab, position, Quaternion.LookRotation(-forward, Vector3.up));
+        units.Spawn(def.Prefab, position, Quaternion.LookRotation(-forward, Vector3.up));
     }
 
     public static MapDef GetDefaultMap(GameDatabase database)

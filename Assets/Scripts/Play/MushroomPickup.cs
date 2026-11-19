@@ -102,7 +102,7 @@ public class MushroomPickup : PoolableMono
 
     private void UpdateMagnet(float deltaTime)
     {
-        PlayerController player = GameManager.Instance?.ActorS?.Player;
+        UnitController player = GameManager.Instance?.UnitS?.Player;
         if (player == null)
         {
             m_IsMagnet = false;
@@ -120,7 +120,7 @@ public class MushroomPickup : PoolableMono
 
     private bool IsPlayerNear()
     {
-        PlayerController player = GameManager.Instance?.ActorS?.Player;
+        UnitController player = GameManager.Instance?.UnitS?.Player;
         if (player == null || player.IsValid() == false)
             return false;
 

@@ -34,7 +34,7 @@ public class BattleHud : MonoBehaviour
     {
         GUILayout.BeginArea(new Rect(16, 16, 360, 260), GUI.skin.box);
 
-        PlayerController player = battleM.Player;
+        UnitController player = battleM.Player;
         if (player != null)
             GUILayout.Label($"HP {player.HealthF.Current} / {player.HealthF.MaxHp}", m_LabelStyle);
 

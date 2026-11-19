@@ -8,7 +8,7 @@ using UnityEngine.Serialization;
 public class PlayerDef : UnitDef
 {
     [field: SerializeField, FormerlySerializedAs("m_Prefab")]
-    public PlayerController Prefab { get; private set; } = null;
+    public UnitController Prefab { get; private set; } = null;
 
     // 이동 --- 속도는 UnitDef.MoveSpeed
     [field: SerializeField, FormerlySerializedAs("m_RunThreshold")]
@@ -56,9 +56,24 @@ public class PlayerDef : UnitDef
 
     public AttackSpec UpAttack => GetBasicAttack(1); // 두 번째 기본 공격: 위로 치기(높은 부위용). 없으면 null
 
+    public override ETeam Team => ETeam.Player;
+
     // ------------------------------------------------
 
+    // 대시를 켜고 공격 끊기 시간을 넣는다
+    public override void SetFeatures(UnitController unit)
+    {
+        unit.UnitExecutor.EnableDash(DashSpeed, DashTime, DashCooldown, IsDashInvincible, DashAnimSpeed);
+        unit.UnitExecutor.Attack.CancelDelay = CancelDelay;
+    }
+
+    // 판단은 입력
+    public override BrainBase CreateBrain(UnitController unit)
+    {
+        return new PlayerBrain(unit, this);
+    }
+
 #if UNITY_EDITOR
-    public void EditorSetPrefab(PlayerController prefab) => Prefab = prefab;
+    public void EditorSetPrefab(UnitController prefab) => Prefab = prefab;
 #endif
 }

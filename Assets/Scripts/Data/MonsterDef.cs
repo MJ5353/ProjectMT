@@ -108,7 +108,7 @@ public class MonsterDef : UnitDef
     
     // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽고, 구운 프리팹을 Prefab에 채운다
     [field: SerializeField]
-    public MonsterController Prefab { get; private set; } = null;
+    public UnitController Prefab { get; private set; } = null;
 
     [field: SerializeField, FormerlySerializedAs("m_ModelName")]
     public string ModelName { get; private set; } = null;    // Art/Voxel/Models 아래 FBX 이름. 비면 에셋 이름(Monster_Xxx)의 Xxx
@@ -135,6 +135,77 @@ public class MonsterDef : UnitDef
 
     // ------------------------------------------------
 
+    // 버섯 부위·판정 모양·사망 보상을 붙인다. 판단은 기본(AIBrain, 프리셋 AI)
+    public override void SetFeatures(UnitController unit)
+    {
+        // 버섯 부위(스폰 때 소켓을 골라 꽂는다)
+        unit.SetPartFeature(new PartFeature(unit, ListPart));
+
+        // 뼈 판정 모양. 부위 번호를 쓰므로 부위 다음
+        unit.HitF.SetShapes(ListBodyShape);
+
+        // 죽으면 버섯 드롭·처치 알림
+        unit.AddFeature(new DropFeature(unit, this));
+    }
+
+#if UNITY_EDITOR
+    private HitShapeDef FindBodyShape(EBattlePartType battlePart)
+    {
+        foreach (HitShapeDef shapeDef in ListBodyShape)
+        {
+            if (shapeDef.Part == battlePart)
+                return shapeDef;
+        }
+
+        return null;
+    }
+
+    // 씬 뷰에 몸 판정 모양(구·캡슐)과 부위 판정 구를 그린다. 선이 뼈 축 방향
+    public override void DrawGizmos(UnitController unit)
+    {
+        DrawPartGizmos(unit);
+
+        Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.8f);
+        foreach (HitShapeDef shapeDef in ListBodyShape)
+        {
+            Transform bone = unit.GetBattleBone(shapeDef.Part);
+            if (bone == null)
+                continue;
+
+            new HitShape(bone, shapeDef, -1).GetSegment(out Vector3 start, out Vector3 end);
+            Gizmos.DrawWireSphere(start, shapeDef.Radius);
+            Gizmos.DrawWireSphere(end, shapeDef.Radius);
+            Gizmos.DrawLine(start, end);
+        }
+    }
+
+    // 깨지는 부위의 몸 판정 모양 위에 상태색(초록 멀쩡, 빨강 깨짐)과 남은 내구도를 그린다
+    private void DrawPartGizmos(UnitController unit)
+    {
+        for (int i = 0; i < m_ListPart.Count; i++)
+        {
+            PartEntry entry = m_ListPart[i];
+            if (entry.IsBreakable == false)
+                continue;
+
+            Transform bone = unit.GetBattleBone(entry.BattlePart);
+            HitShapeDef shapeDef = FindBodyShape(entry.BattlePart);
+            if (bone == null || shapeDef == null)
+                continue;
+
+            PartFeature.Part part = unit.PartF?.GetPart(i);
+            Gizmos.color = part != null && part.IsBroken ? Color.red : Color.green;
+            new HitShape(bone, shapeDef, i).GetSegment(out Vector3 start, out Vector3 end);
+            Gizmos.DrawWireSphere(start, shapeDef.Radius);
+            Gizmos.DrawWireSphere(end, shapeDef.Radius);
+            Gizmos.DrawLine(start, end);
+
+            string durability = part != null ? $"{part.Durability}/{entry.Durability}" : $"{entry.Durability}";
+            UnityEditor.Handles.Label(end + Vector3.up * shapeDef.Radius, $"{i}:{entry.BattlePart} {durability}");
+        }
+    }
+#endif
+
 #if UNITY_EDITOR
     // BattleSetup 메뉴가 만들 때만 쓴다
     public void EditorSetup(List<DropEntry> listDrop)
@@ -142,7 +213,7 @@ public class MonsterDef : UnitDef
         m_ListDrop = listDrop;
     }
 
-    public void EditorSetPrefab(MonsterController prefab) => Prefab = prefab;
+    public void EditorSetPrefab(UnitController prefab) => Prefab = prefab;
 
     public void EditorSetParts(List<PartEntry> listPart)
     {

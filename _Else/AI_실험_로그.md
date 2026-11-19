@@ -113,6 +113,7 @@
 - 직접 보스 상태(포효·부위 파괴 쓰러짐·분노)와 동료 판단 추가, 숨은 적 조준 제외를 지시. AI가 무적 전체를 빼면 피격 직후 무적 때문에 콤보 조준이 튀어서 숨기 전용 플래그(HitF.IsHidden)로 좁힘.
 - 직접 "상속으로 판단을 쪼개니 지저분하고 Idle·Dead가 몬스터 전용인 이유가 없다"고 지적. AI가 원인을 MonsterDef에 섞인 AI 수치로 짚고, 판단 하나(AIBrain)+상태 하나(AIState)+종류별 상태 묶음(AISpec.Type)과 드롭의 DropFeature 분리를 제안, 직접 채택. AI 수치는 공유 SO 대신 MonsterDef 안 직렬화 클래스(AISpec)로 옮김(자동 배정이 몬스터별 값을 쓰기 때문). 몬스터 에셋 15개 YAML 이전·데이터 툴 경로 수정(컴파일 전).
 - 직접 "AI Def로 일반화해 프리셋 재활용"을 지시. AI가 AISpec을 공유 SO AIDef(프리셋 Normal·Burrow·Elite·Boss·Pet 5개)로 바꾸고 UnitDef.AI로 참조, 이동 속도만 UnitDef.MoveSpeed로 몬스터별 유지. 몬스터 15개 에셋 프리셋 배정, 자동 배정은 MoveSpeed만 기록(컴파일 전).
+- 직접 명명안(UnitExecutor·UnitBrain·TargetSelector·AttackSelector·UnitService 등)·Player/MonsterController 합치기·설계 문서 갱신을 지시. AI가 이름 일괄 변경(.meta GUID 유지)과 Def 가상 함수(Team·SetFeatures·CreateBrain·DrawGizmos)로 컨트롤러를 UnitController 하나로 합치고 프리팹 16개 m_Script를 교체, Unit_구조설계.md로 갱신(컴파일 전).
 
 ## 파티클 이펙트·서비스 통합
 

@@ -4,7 +4,7 @@ using UnityEngine;
 // ==================================================
 
 // 공격 하나. 예고(AttackSpec.WindupTime)가 있으면 먼저 움츠리며 대상 쪽으로 돌고, 그 뒤 클립·돌진·판정을 돌린다.
-// 판정: 판정 구간(HitTime~HitEndTime) 동안 공격 구체와 후보 액터의 몸(HitFeature 모양)을 비교한다. 한 공격(한 회차)에서 맞은 대상은 다시 맞지 않는다.
+// 판정: 판정 구간(HitTime~HitEndTime) 동안 공격 구체와 후보 유닛의 몸(HitFeature 모양)을 비교한다. 한 공격(한 회차)에서 맞은 대상은 다시 맞지 않는다.
 // 클립이 끝나면 끝. 판정 구간이 지나면 대시로, 거기서 캔슬 지연까지 지나면 다음 공격으로 끊을 수 있다(피격·사망은 언제나)
 
 public class AttackAction : UnitAction
@@ -23,7 +23,7 @@ public class AttackAction : UnitAction
     public AttackSpec Spec { get; private set; }  // 지금(끝난 뒤엔 마지막) 공격. 콤보 다음 타를 여기서 읽는다
     public float CancelDelay { get; set; }  // 판정 뒤 이 시간이 지나면 다음 공격으로 끊을 수 있다. 0이면 판정 끝나자마자
 
-    private readonly List<ActorHitCandidate> m_ListCandidate = new();
+    private readonly List<UnitHitCandidate> m_ListCandidate = new();
     private readonly HashSet<UnitController> m_SetHit = new(); // 이번 회차에 이미 맞은 대상
 
     public override EActionType Type => EActionType.Attack;
@@ -219,34 +219,34 @@ public class AttackAction : UnitAction
     // 판정 구와 겹친 적에게 타격을 넣는다. 무적 등으로 막히면 구간 안에서 다시 노린다
     private void PerformHit()
     {
-        ActorService actors = GameManager.Instance?.ActorS;
-        if (actors == null)
+        UnitService units = GameManager.Instance?.UnitS;
+        if (units == null)
             return;
 
         Transform owner = Owner.transform;
         Vector3 center = GetCenter(owner, Spec, Owner.Property.GetBattleBone(Spec.HitPart));
         ETeam team = Owner.Team;
-        actors.CollectNearbyEnemies(center, Spec.Radius, team, m_ListCandidate);
+        units.CollectNearbyEnemies(center, Spec.Radius, team, m_ListCandidate);
 
-        foreach (ActorHitCandidate candidate in m_ListCandidate)
+        foreach (UnitHitCandidate candidate in m_ListCandidate)
         {
-            if (m_SetHit.Contains(candidate.Actor))
+            if (m_SetHit.Contains(candidate.Unit))
                 continue;
 
-            CharacterController controller = candidate.Actor.HurtBody;
+            CharacterController controller = candidate.Unit.HurtBody;
             if (controller == null || controller.enabled == false || controller.gameObject.activeInHierarchy == false)
                 continue;
 
             if (candidate.OverlapsSphere(center, Spec.Radius, out Vector3 point, out int partIndex) == false)
                 continue;
 
-            Vector3 direction = candidate.Actor.transform.position - owner.position;
+            Vector3 direction = candidate.Unit.transform.position - owner.position;
             direction.y = 0f;
             direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : owner.forward;
 
             HitParams hit = new(Owner, team, Spec.Damage, direction, Spec.Knockback, Spec.HitStop, point, partIndex);
-            if (candidate.Actor.HitF.Receive(hit))
-                m_SetHit.Add(candidate.Actor);
+            if (candidate.Unit.HitF.Receive(hit))
+                m_SetHit.Add(candidate.Unit);
         }
 
         m_ListCandidate.Clear();

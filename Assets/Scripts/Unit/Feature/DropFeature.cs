@@ -24,9 +24,9 @@ public class DropFeature : UnitFeature
     {
         SpawnDrops();
 
-        ActorService actors = GameManager.Instance?.ActorS;
-        if (actors != null)
-            SEventManager.Publish(new MonsterKilled(actors, Owner.ActorID, m_Def, Owner.transform.position));
+        UnitService units = GameManager.Instance?.UnitS;
+        if (units != null)
+            SEventManager.Publish(new MonsterKilled(units, Owner.UnitID, m_Def, Owner.transform.position));
     }
 
     private void SpawnDrops()

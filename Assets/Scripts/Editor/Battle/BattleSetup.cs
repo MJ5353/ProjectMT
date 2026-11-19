@@ -59,7 +59,7 @@ public static class BattleSetup
         BuildPlayer(playerDef, false);
         if (playerDef.Prefab == null)
         {
-            playerDef.EditorSetPrefab(AssetDatabase.LoadAssetAtPath<PlayerController>(CommonPath.PlayerPrefab));
+            playerDef.EditorSetPrefab(AssetDatabase.LoadAssetAtPath<UnitController>(CommonPath.PlayerPrefab));
             EditorUtility.SetDirty(playerDef);
         }
 
@@ -99,14 +99,14 @@ public static class BattleSetup
         if (File.Exists(CommonPath.PlayerPrefab) && isForce == false)
             return;
 
-        GameObject root = BuildUnit<PlayerController>("Player", LoadModel("Player"), 1.7f, 0.35f, def);
+        GameObject root = BuildUnit("Player", LoadModel("Player"), 1.7f, 0.35f, def);
 
         PrefabUtility.SaveAsPrefabAsset(root, CommonPath.PlayerPrefab);
         Object.DestroyImmediate(root);
     }
 
     // 몬스터·플레이어 공통 몸: 모델 + CharacterController + UnitProperty + 컨트롤러. 참조를 여기서 채운다
-    internal static GameObject BuildUnit<TController>(string name, GameObject modelAsset, float height, float radius, UnitDef def) where TController : Component
+    internal static GameObject BuildUnit(string name, GameObject modelAsset, float height, float radius, UnitDef def)
     {
         GameObject root = new GameObject(name);
         int actorLayer = LayerMask.NameToLayer(GameLayers.Actor);
@@ -143,7 +143,7 @@ public static class BattleSetup
         UnitProperty property = root.AddComponent<UnitProperty>();
         property.EditorSetup(controller, animator, listRenderer, listBonePart);
 
-        TController unit = root.AddComponent<TController>();
+        UnitController unit = root.AddComponent<UnitController>();
         SerializedObject so = new SerializedObject(unit);
         so.FindProperty("m_Def").objectReferenceValue = def;
         so.FindProperty("m_Property").objectReferenceValue = property;
