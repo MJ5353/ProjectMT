@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class AIFleeState : AIState
 {
-    public AIFleeState(MonsterBrain ai) : base(ai) { }
+    public AIFleeState(AIBrain ai) : base(ai) { }
 
     // ------------------------------------------------
     

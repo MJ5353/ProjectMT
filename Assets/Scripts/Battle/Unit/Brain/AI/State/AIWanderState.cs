@@ -9,7 +9,7 @@ public class AIWanderState : AIState
 
     // ------------------------------------------------
 
-    public AIWanderState(MonsterBrain ai) : base(ai) { }
+    public AIWanderState(AIBrain ai) : base(ai) { }
 
     public override void Enter()
     {

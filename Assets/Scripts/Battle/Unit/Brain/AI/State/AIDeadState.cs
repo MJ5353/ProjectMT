@@ -11,19 +11,15 @@ public class AIDeadState : AIState
 
     // ------------------------------------------------
 
-    public AIDeadState(MonsterBrain ai) : base(ai) { }
+    public AIDeadState(AIBrain ai) : base(ai) { }
 
     public override void Enter()
     {
         m_IsCollisionOff = false;
         m_Controller.AnimF.SetSpeed(1f); // 멈춤·Death 애니는 사망 행동(DeadAction)이 한다
 
-        SpawnDrops();
         PlayDeathEffect();
-        ActorService actors = GameManager.Instance?.ActorS;
-        
-        if (actors != null)
-            SEventManager.Publish(new MonsterKilled(actors, m_Controller.ActorID, Def, m_Controller.transform.position));
+        m_AI.OnDeadStart(); // 드롭·처치 알림 등 타입별 처리
     }
 
     public override void Update(float deltaTime)
@@ -48,23 +44,5 @@ public class AIDeadState : AIState
 
         float scale = m_Controller.HurtBody != null ? m_Controller.HurtBody.radius * 2f : 1f;
         effectS.Play(effectS.Death, m_Controller.transform.position, Quaternion.identity, scale);
-    }
-
-    private void SpawnDrops()
-    {
-        Vector3 origin = m_Controller.transform.position + Vector3.up * 0.6f;
-        foreach (MonsterDef.DropEntry drop in Def.ListDrop)
-        {
-            if (drop.Pickup == null || Random.value > drop.Chance)
-                continue;
-
-            int count = Random.Range(drop.Min, drop.Max + 1);
-            for (int i = 0; i < count; i++)
-            {
-                MushroomPickup pickup = ResourceManager.Instance.Spawn(drop.Pickup, origin, Quaternion.identity);
-                Vector2 spread = Random.insideUnitCircle * 2f;
-                pickup.Launch(new Vector3(spread.x, 5f, spread.y), EFreshness.Low);
-            }
-        }
     }
 }

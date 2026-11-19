@@ -9,7 +9,7 @@ using UnityEngine.Serialization;
 // 새 몬스터은 이 에셋 한 장 + 프리팹으로 늘린다
 
 [CreateAssetMenu(menuName = "MushTaker/Data/Monster", fileName = "Monster_")]
-public class MonsterDef : UnitDef
+public class MonsterDef : UnitDef, IAIDef
 {
     // 몸 부위 하나에 나는 버섯. 스폰할 때마다 그 부위 소켓(UnitProperty.BonePart) 중 몇 개를 골라 꽂는다.
     // 내구도는 부위 단위라 꽂힌 버섯이 같이 깨진다. BattlePart None은 몸 어디든 나는 장식(소켓이 남는 곳)

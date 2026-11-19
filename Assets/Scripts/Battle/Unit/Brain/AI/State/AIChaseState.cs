@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class AIChaseState : AIState
 {
-    public AIChaseState(MonsterBrain ai) : base(ai) { }
+    public AIChaseState(AIBrain ai) : base(ai) { }
 
     // ------------------------------------------------
     
