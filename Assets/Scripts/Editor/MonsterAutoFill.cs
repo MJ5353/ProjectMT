@@ -261,11 +261,9 @@ public static class MonsterAutoFill
 
     private static void AddDrop(Plan plan, MushroomDef mushroom, int min, int max, float chance)
     {
-        if (mushroom.Pickup == null)
-        {
-            plan.ListWarning.Add($"{mushroom.name} 픽업 없음. 버섯 탭에서 픽업 빌드 먼저");
-            return;
-        }
+        // 드랍은 MushroomDef를 참조하고 픽업은 런타임에 PickupPath로 찾는다. 없으면 경고만
+        if (MushroomPickupBuilder.LoadPickup(mushroom) == null)
+            plan.ListWarning.Add($"{mushroom.name} 픽업 없음. 버섯 탭에서 픽업 빌드 필요");
 
         plan.ListDrop.Add(new DropPick(mushroom, min, Mathf.Max(min, max), chance));
     }
@@ -358,7 +356,7 @@ public static class MonsterAutoFill
         {
             DropPick pick = plan.ListDrop[i];
             SerializedProperty element = listDrop.GetArrayElementAtIndex(i);
-            Find(element, nameof(MonsterDef.DropEntry.Pickup)).objectReferenceValue = pick.Mushroom.Pickup;
+            Find(element, nameof(MonsterDef.DropEntry.Mushroom)).objectReferenceValue = pick.Mushroom;
             Find(element, nameof(MonsterDef.DropEntry.Min)).intValue = pick.Min;
             Find(element, nameof(MonsterDef.DropEntry.Max)).intValue = pick.Max;
             Find(element, nameof(MonsterDef.DropEntry.Chance)).floatValue = pick.Chance;

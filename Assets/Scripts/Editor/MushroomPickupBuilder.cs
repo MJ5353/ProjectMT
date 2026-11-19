@@ -7,8 +7,8 @@ using UnityEngine;
 // ==================================================
 
 // 버섯 픽업 프리팹 일괄 제작. MushroomDef 한 장 = 픽업 한 개(Prefabs/Actor/Pickup/Pickup_NNN_Key.prefab, 모델 Mush_NNN_Key.fbx).
-// 만든 픽업은 MushroomDef.Pickup에 연결해서 드랍 자동 배정이 버섯 Def에서 바로 꺼내 쓴다.
-// !!) 이미 있는 픽업은 기본으로 덮어쓰지 않는다(ID·연결만 맞춤). 덮어쓰면 몬스터 드랍 참조가 끊길 수 있으니 강제 빌드 후에는 드랍 자동 배정을 다시 돌릴 것
+// Def는 픽업을 참조하지 않는다. 드랍 자동 배정은 MushroomDef.PickupPath(이름 규칙)로 찾는다.
+// !!) 이미 있는 픽업은 기본으로 덮어쓰지 않는다(ID만 맞춤). 덮어쓰면 몬스터 드랍 참조가 끊길 수 있으니 강제 빌드 후에는 드랍 자동 배정을 다시 돌릴 것
 
 public static class MushroomPickupBuilder
 {
@@ -22,7 +22,7 @@ public static class MushroomPickupBuilder
         Build(listDef, isForce);
     }
 
-    // 만든 개수를 돌려준다. 연결만 고친 것은 세지 않는다
+    // 만든 개수를 돌려준다. ID만 고친 것은 세지 않는다
     public static int Build(IEnumerable<MushroomDef> listDef, bool isForce)
     {
         Directory.CreateDirectory(CommonPath.PickupPrefabDir);
@@ -44,8 +44,6 @@ public static class MushroomPickupBuilder
             {
                 FixItemID(def, path);
             }
-
-            LinkPickup(def, path);
         }
 
         AssetDatabase.SaveAssets();
@@ -58,13 +56,11 @@ public static class MushroomPickupBuilder
         return builtCount;
     }
 
-    public static string GetPickupPath(MushroomDef def)
-    {
-        if (def.Pickup != null && AssetDatabase.Contains(def.Pickup))
-            return AssetDatabase.GetAssetPath(def.Pickup);
+    // MushroomDef.PickupPath(폴더 + Pickup_NNN_Key)의 에셋 경로
+    public static string GetPickupPath(MushroomDef def) => CommonPath.ResourcesRoot + def.PickupPath + CommonPath.PrefabExtension;
 
-        return $"{CommonPath.PickupPrefabDir}{def.PickupName}.prefab";
-    }
+    // 없으면 null(아직 빌드 전)
+    public static MushroomPickup LoadPickup(MushroomDef def) => AssetDatabase.LoadAssetAtPath<MushroomPickup>(GetPickupPath(def));
 
     // ==================================================
 
@@ -104,15 +100,5 @@ public static class MushroomPickupBuilder
 
         BattleSetup.SetString(pickup, "m_ItemID", def.ID);
         EditorUtility.SetDirty(pickup);
-    }
-
-    private static void LinkPickup(MushroomDef def, string path)
-    {
-        MushroomPickup pickup = AssetDatabase.LoadAssetAtPath<MushroomPickup>(path);
-        if (pickup == null || def.Pickup == pickup)
-            return;
-
-        def.EditorSetPickup(pickup);
-        EditorUtility.SetDirty(def);
     }
 }

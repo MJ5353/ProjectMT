@@ -24,7 +24,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9779170ef3d889240906e435f1428b89, type: 2}
   <MoveSpeed>k__BackingField: 3.48
   <AI>k__BackingField: {fileID: 11400000, guid: 93f6457ec256445a8d65f9017e1f66aa, type: 2}
-  <Prefab>k__BackingField: {fileID: 4044930645481338447, guid: 44f6e2a986134c34899bf6dd69db4103, type: 3}
   <ModelName>k__BackingField: Mon_012_Pachycephalosaurus
   <BodyHeight>k__BackingField: 1.45
   <BodyRadius>k__BackingField: 0.25
@@ -33,7 +32,7 @@ MonoBehaviour:
   - <BattlePart>k__BackingField: 0
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 5c727db25668ad34b8c2f8c390596016, type: 3}
     <BrokenModel>k__BackingField: {fileID: 0}
-    <Drop>k__BackingField: {fileID: 0}
+    <Mushroom>k__BackingField: {fileID: 0}
     <CountMin>k__BackingField: 2
     <CountMax>k__BackingField: 2
     <ScaleRange>k__BackingField: {x: 0.65, y: 0.89}
@@ -43,7 +42,7 @@ MonoBehaviour:
     <RegenTime>k__BackingField: 0
   m_ListMushroom: []
   m_ListDrop:
-  - <Pickup>k__BackingField: {fileID: 2928097537796928298, guid: aa4959c85326e1a44be15773a7715a71, type: 3}
+  - <Mushroom>k__BackingField: {fileID: 11400000, guid: c8574fd4a7aa3ae40ae6e81d0e6971d9, type: 2}
     <Min>k__BackingField: 1
     <Max>k__BackingField: 2
     <Chance>k__BackingField: 1

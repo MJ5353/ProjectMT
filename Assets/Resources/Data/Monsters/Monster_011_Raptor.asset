@@ -24,7 +24,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4d4ca0d671e748745930fe433c6d5fa1, type: 2}
   <MoveSpeed>k__BackingField: 3.48
   <AI>k__BackingField: {fileID: 11400000, guid: 93f6457ec256445a8d65f9017e1f66aa, type: 2}
-  <Prefab>k__BackingField: {fileID: 7286287158611388334, guid: 028818fb95415d04a922ee702d7716f0, type: 3}
   <ModelName>k__BackingField: Mon_011_Raptor
   <BodyHeight>k__BackingField: 1.2
   <BodyRadius>k__BackingField: 0.2
@@ -33,7 +32,7 @@ MonoBehaviour:
   - <BattlePart>k__BackingField: 0
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 9196e6d3e40aa4a4b8854c2eb45eea2c, type: 3}
     <BrokenModel>k__BackingField: {fileID: 0}
-    <Drop>k__BackingField: {fileID: 0}
+    <Mushroom>k__BackingField: {fileID: 0}
     <CountMin>k__BackingField: 1
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 0.75, y: 0.75}
@@ -43,7 +42,7 @@ MonoBehaviour:
     <RegenTime>k__BackingField: 0
   m_ListMushroom: []
   m_ListDrop:
-  - <Pickup>k__BackingField: {fileID: 8573921450686864998, guid: d57fbca48157d5847a8d92de338d6d68, type: 3}
+  - <Mushroom>k__BackingField: {fileID: 11400000, guid: bd1e3a72ecf54904f846457fea760020, type: 2}
     <Min>k__BackingField: 1
     <Max>k__BackingField: 2
     <Chance>k__BackingField: 1

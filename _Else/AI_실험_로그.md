@@ -114,6 +114,7 @@
 - 직접 "상속으로 판단을 쪼개니 지저분하고 Idle·Dead가 몬스터 전용인 이유가 없다"고 지적. AI가 원인을 MonsterDef에 섞인 AI 수치로 짚고, 판단 하나(AIBrain)+상태 하나(AIState)+종류별 상태 묶음(AISpec.Type)과 드롭의 DropFeature 분리를 제안, 직접 채택. AI 수치는 공유 SO 대신 MonsterDef 안 직렬화 클래스(AISpec)로 옮김(자동 배정이 몬스터별 값을 쓰기 때문). 몬스터 에셋 15개 YAML 이전·데이터 툴 경로 수정(컴파일 전).
 - 직접 "AI Def로 일반화해 프리셋 재활용"을 지시. AI가 AISpec을 공유 SO AIDef(프리셋 Normal·Burrow·Elite·Boss·Pet 5개)로 바꾸고 UnitDef.AI로 참조, 이동 속도만 UnitDef.MoveSpeed로 몬스터별 유지. 몬스터 15개 에셋 프리셋 배정, 자동 배정은 MoveSpeed만 기록(컴파일 전).
 - 직접 명명안(UnitExecutor·UnitBrain·TargetSelector·AttackSelector·UnitService 등)·Player/MonsterController 합치기·설계 문서 갱신을 지시. AI가 이름 일괄 변경(.meta GUID 유지)과 Def 가상 함수(Team·SetFeatures·CreateBrain·DrawGizmos)로 컨트롤러를 UnitController 하나로 합치고 프리팹 16개 m_Script를 교체, Unit_구조설계.md로 갱신(컴파일 전).
+- 직접 Def↔프리팹 참조 대신 리소스 이름 조회를 선택하고 다른 Def까지 확대 지시. AI가 UnitDef·MapDef의 Prefab, MushroomDef의 Pickup 필드를 지우고 Def ID(픽업은 Pickup_ 접두 + 키)로 Resources에서 찾게 변경, 빌더 연결·에셋 27개 YAML 줄 제거, 데이터 검사는 이름 경로 존재 확인으로. 아이콘·버섯 모델·드랍 픽업 참조는 유지(컴파일 전).
 
 ## 파티클 이펙트·서비스 통합
 
@@ -161,3 +162,8 @@
 - 직접 "Records는 원격 저장소에서 수정, Rule은 남기되 중복 정리"를 지시. AI가 점검·메모 문서를 Goals(진행 중)와 Records(지난 기록)로 옮기는 안을 내고 직접 채택.
 - 기획·설계 문서는 진행 구획을 빼고 상세·결정·미정만 남김. 시장 사전정리의 확정 사항만 시장 기획서에 반영.
 - 루트 CLAUDE.md·AGENTS.md는 작업 규칙을 가리키기만 하게 바꾸고, 규칙 문서 간 중복 문장 정리. Unit 구조설계는 병행 작업 중이라 보류.
+
+## 펫 팀 처리
+
+- 직접 펫을 플레이어 편 + 무적 + 노려지지 않게 하라고 지시. AI가 AI 프리셋 Pet이면 MonsterDef가 팀·IsUntargetable을 정하고, 적 탐색(UnitService.IsEnemy)과 피격(HitFeature.Receive)에서 걸러내도록 반영.
+- 펫이 죽어도 처치 수·드롭이 생기지 않게 DropFeature를 붙이지 않음. 컴파일·플레이 확인 안 함.

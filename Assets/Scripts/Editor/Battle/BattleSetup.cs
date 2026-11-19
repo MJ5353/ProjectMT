@@ -57,11 +57,6 @@ public static class BattleSetup
         MonsterPrefabBuilder.BuildAll(false);
         MapPrefabBuilder.BuildAll(false);
         BuildPlayer(playerDef, false);
-        if (playerDef.Prefab == null)
-        {
-            playerDef.EditorSetPrefab(AssetDatabase.LoadAssetAtPath<UnitController>(CommonPath.PlayerPrefab));
-            EditorUtility.SetDirty(playerDef);
-        }
 
         AssetDatabase.SaveAssets();
         DataTools.RefreshDatabase(false);
@@ -96,12 +91,14 @@ public static class BattleSetup
 
     private static void BuildPlayer(PlayerDef def, bool isForce)
     {
-        if (File.Exists(CommonPath.PlayerPrefab) && isForce == false)
+        // 런타임이 PlayerDef.PrefabPath(폴더 + ID)로 찾으니 같은 이름으로 굽는다
+        string path = CommonPath.ResourcesRoot + def.PrefabPath + CommonPath.PrefabExtension;
+        if (File.Exists(path) && isForce == false)
             return;
 
         GameObject root = BuildUnit("Player", LoadModel("Player"), 1.7f, 0.35f, def);
 
-        PrefabUtility.SaveAsPrefabAsset(root, CommonPath.PlayerPrefab);
+        PrefabUtility.SaveAsPrefabAsset(root, path);
         Object.DestroyImmediate(root);
     }
 

@@ -29,7 +29,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: edd3e605d75046e584006f2675a5d75a, type: 2}
   - {fileID: 11400000, guid: f131cb9420ac4d3da261483a93e6988a, type: 2}
   - {fileID: 11400000, guid: 3b19ee7eb64d42b19b2e0067c7026b59, type: 2}
-  <Prefab>k__BackingField: {fileID: 9078100684901017445, guid: d8bb4bf761c13534280b65af507d428c, type: 3}
   <MoveSpeed>k__BackingField: 5
   <RunThreshold>k__BackingField: 0.6
   <AutoAimRange>k__BackingField: 3.5

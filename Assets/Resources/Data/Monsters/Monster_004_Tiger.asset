@@ -25,7 +25,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c0f2030c045ddd240bcc4c7f5eb2d954, type: 2}
   <MoveSpeed>k__BackingField: 2.4
   <AI>k__BackingField: {fileID: 11400000, guid: a368ac48d0494309a0c94cc831f89bb2, type: 2}
-  <Prefab>k__BackingField: {fileID: 2949555666539789154, guid: 1aed1bc9abdda734ca62781ad123e94d, type: 3}
   <ModelName>k__BackingField: Mon_004_Tiger
   <BodyHeight>k__BackingField: 1.6
   <BodyRadius>k__BackingField: 0.5
@@ -34,7 +33,7 @@ MonoBehaviour:
   - <BattlePart>k__BackingField: 0
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 33d5e5e40cbd5374b97af9cfcc9de2b3, type: 3}
     <BrokenModel>k__BackingField: {fileID: 0}
-    <Drop>k__BackingField: {fileID: 0}
+    <Mushroom>k__BackingField: {fileID: 0}
     <CountMin>k__BackingField: 2
     <CountMax>k__BackingField: 2
     <ScaleRange>k__BackingField: {x: 0.91, y: 1.2}
@@ -44,7 +43,7 @@ MonoBehaviour:
     <RegenTime>k__BackingField: 0
   m_ListMushroom: []
   m_ListDrop:
-  - <Pickup>k__BackingField: {fileID: 8360666463547286274, guid: 25e1f7617935f0e4b9e36c4444342fa6, type: 3}
+  - <Mushroom>k__BackingField: {fileID: 11400000, guid: cb45440bb0ebc604991f39085abe9baf, type: 2}
     <Min>k__BackingField: 2
     <Max>k__BackingField: 3
     <Chance>k__BackingField: 1

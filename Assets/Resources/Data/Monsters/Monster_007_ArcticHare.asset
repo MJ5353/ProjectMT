@@ -24,7 +24,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 668339ceca7721941a5881a415337471, type: 2}
   <MoveSpeed>k__BackingField: 3.24
   <AI>k__BackingField: {fileID: 11400000, guid: 93f6457ec256445a8d65f9017e1f66aa, type: 2}
-  <Prefab>k__BackingField: {fileID: 8710974654303757476, guid: 1c8d32f3a4e5c5c49817e6cf1f4a3007, type: 3}
   <ModelName>k__BackingField: Mon_007_ArcticHare
   <BodyHeight>k__BackingField: 1.1
   <BodyRadius>k__BackingField: 0.2
@@ -33,7 +32,7 @@ MonoBehaviour:
   - <BattlePart>k__BackingField: 0
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 7f086ad7928ac4b4eb84f4a6b5dc8321, type: 3}
     <BrokenModel>k__BackingField: {fileID: 0}
-    <Drop>k__BackingField: {fileID: 0}
+    <Mushroom>k__BackingField: {fileID: 0}
     <CountMin>k__BackingField: 2
     <CountMax>k__BackingField: 2
     <ScaleRange>k__BackingField: {x: 0.64, y: 0.77}
@@ -43,7 +42,7 @@ MonoBehaviour:
     <RegenTime>k__BackingField: 0
   m_ListMushroom: []
   m_ListDrop:
-  - <Pickup>k__BackingField: {fileID: 127310580877431111, guid: 580b56ca90a35174981e33f7e6df73b0, type: 3}
+  - <Mushroom>k__BackingField: {fileID: 11400000, guid: 1713f512f009ed24e91b93941acb9808, type: 2}
     <Min>k__BackingField: 1
     <Max>k__BackingField: 2
     <Chance>k__BackingField: 1

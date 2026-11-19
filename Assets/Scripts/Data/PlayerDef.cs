@@ -54,6 +54,7 @@ public class PlayerDef : UnitDef
     public AttackSpec UpAttack => GetBasicAttack(1); // 두 번째 기본 공격: 위로 치기(높은 부위용). 없으면 null
 
     public override ETeam Team => ETeam.Player;
+    public override string PrefabPath => CommonPath.ActorDir + ID;
 
     // ------------------------------------------------
 

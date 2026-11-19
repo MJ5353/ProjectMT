@@ -27,7 +27,7 @@ public class MonsterDef : UnitDef
         public Renderer BrokenModel { get; private set; } = null;         // 깨진 버섯 모델(Mush_*_Broken.fbx). 비면 깨지면 사라진다
 
         [field: SerializeField]
-        public MushroomPickup Drop { get; private set; } = null;          // 깨질 때 버섯 하나마다 확정으로 떨구는 픽업
+        public MushroomDef Mushroom { get; private set; } = null;         // 깨질 때 버섯 하나마다 확정으로 떨구는 버섯(픽업은 MushroomDef.PickupPath)
 
         [field: SerializeField]
         public int CountMin { get; private set; } = 1;                    // 스폰 때 꽂을 개수(소켓 수를 넘으면 소켓 수까지)
@@ -60,12 +60,12 @@ public class MonsterDef : UnitDef
         // ------------------------------------------------
 
 #if UNITY_EDITOR
-        public PartEntry(EBattlePartType battlePart, Renderer model, Renderer brokenModel, MushroomPickup drop, int countMin, int countMax, Vector2 scaleRange, float tiltMax, int durability, float bodyDamageScale, float regenTime)
+        public PartEntry(EBattlePartType battlePart, Renderer model, Renderer brokenModel, MushroomDef mushroom, int countMin, int countMax, Vector2 scaleRange, float tiltMax, int durability, float bodyDamageScale, float regenTime)
         {
             BattlePart = battlePart;
             Model = model;
             BrokenModel = brokenModel;
-            Drop = drop;
+            Mushroom = mushroom;
             CountMin = countMin;
             CountMax = countMax;
             ScaleRange = scaleRange;
@@ -81,8 +81,8 @@ public class MonsterDef : UnitDef
     [Serializable]
     public class DropEntry
     {
-        [field: SerializeField, FormerlySerializedAs("m_Pickup")]
-        public MushroomPickup Pickup { get; private set; } = null;
+        [field: SerializeField]
+        public MushroomDef Mushroom { get; private set; } = null; // 픽업은 MushroomDef.PickupPath
 
         [field: SerializeField, FormerlySerializedAs("m_Min")]
         public int Min { get; private set; } // 최소 개수
@@ -95,9 +95,9 @@ public class MonsterDef : UnitDef
 
         // ------------------------------------------------
 
-        public DropEntry(MushroomPickup pickup, int min, int max, float chance)
+        public DropEntry(MushroomDef mushroom, int min, int max, float chance)
         {
-            Pickup = pickup;
+            Mushroom = mushroom;
             Min = min;
             Max = max;
             Chance = chance;
@@ -106,7 +106,14 @@ public class MonsterDef : UnitDef
 
     // ------------------------------------------------
     
-    // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽고, 구운 프리팹을 Prefab(UnitDef)에 채운다
+    // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽는다. 구운 프리팹은 PrefabPath(ID와 같은 이름)에 둔다
+    public override string PrefabPath => CommonPath.MonsterDir + ID;
+
+    // 펫(AI 프리셋 Pet)은 플레이어 편이고, 노려지지도 맞지도 않는다
+    public bool IsPet => AI != null && AI.Type == EAIType.Pet;
+    public override ETeam Team => IsPet ? ETeam.Player : ETeam.Monster;
+    public override bool IsUntargetable => IsPet;
+
     [field: SerializeField, FormerlySerializedAs("m_ModelName")]
     public string ModelName { get; private set; } = null;    // Art/Voxel/Models 아래 FBX 이름. 비면 에셋 이름(Monster_Xxx)의 Xxx
 
@@ -141,8 +148,9 @@ public class MonsterDef : UnitDef
         // 뼈 판정 모양. 부위 번호를 쓰므로 부위 다음
         unit.HitF.SetShapes(ListBodyShape);
 
-        // 죽으면 버섯 드롭·처치 알림
-        unit.AddFeature(new DropFeature(unit, this));
+        // 죽으면 버섯 드롭·처치 알림. 펫은 처치 수에 들어가지 않게 붙이지 않는다
+        if (IsPet == false)
+            unit.AddFeature(new DropFeature(unit, this));
     }
 
 #if UNITY_EDITOR

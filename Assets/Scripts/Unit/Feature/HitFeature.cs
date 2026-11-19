@@ -122,7 +122,7 @@ public class HitFeature : UnitFeature
         if (hit.Team == Owner.Team)
             return false;
 
-        if (Owner.IsDead || IsInvincible || IsHidden)
+        if (Owner.IsDead || IsInvincible || IsHidden || Owner.Def.IsUntargetable)
             return false;
 
         // 부위를 맞으면 부위 내구도와 본체 체력이 함께 깎인다. 본체 쪽은 부위의 몸 피해 배율을 곱한다

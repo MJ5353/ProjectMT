@@ -259,7 +259,7 @@ public sealed class DataEditorWindow : EditorWindow
         if (type == typeof(MonsterDef))
         {
             AddPropertyColumn(nameof(UnitDef.AI), "AI", 120f);
-            AddLabelColumn("프리팹", 90f, def => ((MonsterDef)def).Prefab != null ? "연결됨" : "빌드 필요");
+            AddLabelColumn("프리팹", 90f, def => AssetDatabase.LoadAssetAtPath<UnitController>(MonsterPrefabBuilder.GetPrefabPath((MonsterDef)def)) != null ? "있음" : "빌드 필요");
         }
         else if (type == typeof(PlayerDef))
             AddPropertyColumn(nameof(PlayerDef.DashCooldown), "회피 쿨타임", 90f);
@@ -268,7 +268,7 @@ public sealed class DataEditorWindow : EditorWindow
             AddPropertyColumn(nameof(MushroomDef.DexNo), "도감 번호", 75f);
             AddPropertyColumn(nameof(MushroomDef.Rarity), "등급", 100f);
             AddPropertyColumn(nameof(MushroomDef.Tint), "색상", 100f);
-            AddLabelColumn("픽업", 80f, def => ((MushroomDef)def).Pickup != null ? "연결됨" : "빌드 필요");
+            AddLabelColumn("픽업", 80f, def => MushroomPickupBuilder.LoadPickup((MushroomDef)def) != null ? "있음" : "빌드 필요");
         }
         else if (type == typeof(MapDef))
         {

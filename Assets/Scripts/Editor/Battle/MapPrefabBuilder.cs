@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-// 맵 프리팹 일괄 제작. Data/Maps의 MapDef 한 장 = 프리팹 한 개(Prefabs/Map/{에셋 이름}.prefab).
+// 맵 프리팹 일괄 제작. Data/Maps의 MapDef 한 장 = 프리팹 한 개(Prefabs/Map/{ID}.prefab, Def는 참조하지 않고 이름으로 찾는다).
 // 모델 Map_NNN_Key.fbx를 루트(MapRoot)로 감싸고 스폰 지점을 채운다. 지형 레이어는 VoxelImportSettings가 넣는다
 // !!) 프리팹은 덮어쓴다. 프리팹에 손으로 단 것은 사라진다
 public static class MapPrefabBuilder
@@ -24,11 +24,10 @@ public static class MapPrefabBuilder
 
         foreach (MapDef def in listDef)
         {
-            string path = $"{CommonPath.MapPrefabDir}{def.name}.prefab";
+            // 런타임이 MapDef.PrefabPath(폴더 + ID)로 찾으니 같은 경로에 굽는다
+            string path = CommonPath.ResourcesRoot + def.PrefabPath + CommonPath.PrefabExtension;
             if (File.Exists(path) == false || isForce)
                 BuildPrefab(def, path);
-
-            LinkPrefab(def, path);
         }
     }
 
@@ -52,17 +51,6 @@ public static class MapPrefabBuilder
         {
             Object.DestroyImmediate(root);
         }
-    }
-
-    // MapDef.Prefab을 구운 프리팹으로 채운다(BattleService가 Def에서 꺼내 생성한다)
-    private static void LinkPrefab(MapDef def, string path)
-    {
-        MapRoot prefab = AssetDatabase.LoadAssetAtPath<MapRoot>(path);
-        if (prefab == null || def.Prefab == prefab)
-            return;
-
-        def.EditorSetPrefab(prefab);
-        EditorUtility.SetDirty(def);
     }
 
     // 맵의 SpawnSlot_NN을 [NN-1] 자리에 담는다. 빠진 번호는 null

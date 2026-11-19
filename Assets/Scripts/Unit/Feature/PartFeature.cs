@@ -17,6 +17,16 @@ public class PartFeature : UnitFeature
     private const float DropUpSpeed = 5f;          // 깨진 버섯 픽업이 튀어 오르는 속도
     private const float DropSpread = 2f;           // 깨진 버섯 픽업이 옆으로 퍼지는 속도
 
+    private readonly IReadOnlyList<MonsterDef.PartEntry> m_ListEntry; // Def 데이터(읽기 전용)
+    private readonly List<Part> m_ListPart = new();               // [i] = MonsterDef.ListPart 칸. 버섯이 없는 칸은 null
+    private readonly HashSet<Transform> m_SetUsedSocket = new();  // 스폰 때 버섯 배치용
+    private readonly List<Transform> m_ListSocketPick = new();
+
+    public IReadOnlyList<Part> ListPart => m_ListPart;
+    public event Action<Part> Broken;   // 드롭은 여기서 끝낸 뒤 알린다(휘청 같은 다른 반응용)
+
+    // ------------------------------------------------
+    
     // 꽂힌 버섯 하나. 일반·깨진 모델을 둘 다 소켓에 붙여 두고 켜고 끈다
     public class Mushroom
     {
@@ -43,6 +53,7 @@ public class PartFeature : UnitFeature
         {
             Socket = null;
             Normal.gameObject.SetActive(false);
+            
             if (Broken != null)
                 Broken.gameObject.SetActive(false);
         }
@@ -111,6 +122,7 @@ public class PartFeature : UnitFeature
 
                 float tilt = Entry.TiltMax;
                 Quaternion rotation = Quaternion.Euler(Random.Range(-tilt, tilt), Random.Range(-180f, 180f), Random.Range(-tilt, tilt));
+                
                 float scale = Random.Range(Entry.ScaleRange.x, Entry.ScaleRange.y);
                 mushroom.Attach(listSocket[i], rotation, scale);
             }
@@ -140,6 +152,7 @@ public class PartFeature : UnitFeature
 
             IsBroken = true;
             m_RegenRemain = Entry.RegenTime;
+            
             SetBrokenModel(true);
             return true;
         }
@@ -177,20 +190,12 @@ public class PartFeature : UnitFeature
             {
                 Mushroom mushroom = m_ListMushroom[i];
                 mushroom.Normal.gameObject.SetActive(isBroken == false);
+                
                 if (mushroom.Broken != null)
                     mushroom.Broken.gameObject.SetActive(isBroken);
             }
         }
     }
-
-    private readonly IReadOnlyList<MonsterDef.PartEntry> m_ListEntry; // Def 데이터(읽기 전용)
-    private readonly List<Part> m_ListPart = new();               // [i] = MonsterDef.ListPart 칸. 버섯이 없는 칸은 null
-    private readonly HashSet<Transform> m_SetUsedSocket = new();  // 스폰 때 버섯 배치용
-    private readonly List<Transform> m_ListSocketPick = new();
-
-    public IReadOnlyList<Part> ListPart => m_ListPart;
-
-    public event Action<Part> Broken;   // 드롭은 여기서 끝낸 뒤 알린다(휘청 같은 다른 반응용)
 
     // ------------------------------------------------
 
@@ -244,28 +249,8 @@ public class PartFeature : UnitFeature
         return true;
     }
 
-    public Part GetPart(int index)
-    {
-        return index >= 0 && index < m_ListPart.Count ? m_ListPart[index] : null;
-    }
-
-    // 이 몸 부위를 BattlePart로 가진 깨지는 부위 칸. 없으면 -1. 같은 부위 칸이 둘이면 첫 칸(판정 모양에 부위 번호를 달 때)
-    public int FindIndex(EBattlePartType battlePart)
-    {
-        if (battlePart == EBattlePartType.None)
-            return -1;
-
-        for (int i = 0; i < m_ListEntry.Count; i++)
-        {
-            if (m_ListEntry[i].BattlePart == battlePart && m_ListEntry[i].IsBreakable)
-                return i;
-        }
-
-        return -1;
-    }
-
-    // ==================================================
-
+    // ---
+    
     // 꽂힌 버섯 자리마다 깨짐 이펙트
     private static void PlayBreakEffect(Part part)
     {
@@ -282,14 +267,18 @@ public class PartFeature : UnitFeature
     // 꽂힌 버섯 하나마다 확정 드롭. 살아 있을 때 깨면 상급, 죽은 뒤면 하급
     private void SpawnDrops(Part part)
     {
-        if (part.Entry.Drop == null)
+        if (part.Entry.Mushroom == null)
+            return;
+
+        MushroomPickup prefab = ResourceManager.Instance.Load<MushroomPickup>(part.Entry.Mushroom.PickupPath, "데이터 편집기 > 버섯 > 픽업 빌드");
+        if (prefab == null)
             return;
 
         EFreshness freshness = Owner.IsDead ? EFreshness.Low : EFreshness.High;
         for (int i = 0; i < part.PlacedCount; i++)
         {
             Vector3 position = part.ListMushroom[i].Socket.position;
-            MushroomPickup pickup = ResourceManager.Instance.Spawn(part.Entry.Drop, position, Quaternion.identity);
+            MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, position, Quaternion.identity);
             Vector2 spread = Random.insideUnitCircle * DropSpread;
             pickup.Launch(new Vector3(spread.x, DropUpSpeed, spread.y), freshness);
         }
@@ -363,5 +352,27 @@ public class PartFeature : UnitFeature
         m_ListSocketPick.RemoveRange(count, m_ListSocketPick.Count - count);
         m_SetUsedSocket.UnionWith(m_ListSocketPick);
         part.Place(m_ListSocketPick);
+    }
+    
+    // get --- 
+    
+    public Part GetPart(int index)
+    {
+        return index >= 0 && index < m_ListPart.Count ? m_ListPart[index] : null;
+    }
+
+    // 이 몸 부위를 BattlePart로 가진 깨지는 부위 칸. 없으면 -1. 같은 부위 칸이 둘이면 첫 칸(판정 모양에 부위 번호를 달 때)
+    public int FindIndex(EBattlePartType battlePart)
+    {
+        if (battlePart == EBattlePartType.None)
+            return -1;
+
+        for (int i = 0; i < m_ListEntry.Count; i++)
+        {
+            if (m_ListEntry[i].BattlePart == battlePart && m_ListEntry[i].IsBreakable)
+                return i;
+        }
+
+        return -1;
     }
 }

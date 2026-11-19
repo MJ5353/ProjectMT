@@ -16,23 +16,6 @@ public enum EBattleState
 // 끝나면 주운 버섯을 인벤토리에 넣고 게임 흐름을 결과(Result)로 넘긴다
 public sealed class BattleService : ServiceBase
 {
-    // 슬롯 하나의 플레이 중 상태
-    private class SpawnState
-    {
-        public readonly MapDef.SpawnEntry Entry;
-        public readonly Transform Point;
-        public bool IsAlive;
-        public float RespawnTimer;
-
-        // ------------------------------------------------
-
-        public SpawnState(MapDef.SpawnEntry entry, Transform point)
-        {
-            Entry = entry;
-            Point = point;
-        }
-    }
-
     public const float SpawnLift = 0.3f; // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
     private const float RespawnBlockDistance = 15f; // 플레이어가 이보다 가까우면 리스폰을 미룬다(눈앞에 갑자기 생기지 않게)
     private const int GoalKillCount = 10; // 이만큼 잡으면 승리 (보스가 들어오기 전 임시 조건)
@@ -41,21 +24,33 @@ public sealed class BattleService : ServiceBase
     private readonly Dictionary<string, int> m_DicLoot = new();
     private readonly List<SpawnState> m_ListSpawn = new();
     private readonly Dictionary<int, SpawnState> m_DicSpawnByUnitID = new();
-
     private Transform[] m_SpawnSlots; // [i] = SpawnSlot_{i+1}. 생성한 맵에서 받는다
     private UnitController m_Player;
 
-    // public ---
-    
     public MapDef Map { get; }
     public EBattleState State { get; private set; } = EBattleState.Playing;
     public int KillCount { get; private set; }
     public float ElapsedTime { get; private set; }
 
+    // 슬롯 하나의 플레이 중 상태
+    private class SpawnState
+    {
+        public readonly MapDef.SpawnEntry Entry;
+        public readonly Transform Point;
+        public bool IsAlive;
+        public float RespawnTimer;
+
+        public SpawnState(MapDef.SpawnEntry entry, Transform point)
+        {
+            Entry = entry;
+            Point = point;
+        }
+    }
+    
     public int KillGoal => GoalKillCount;
     public UnitController Player => m_Player;
     public IReadOnlyDictionary<string, int> DicLoot => m_DicLoot;
-
+    
     // ------------------------------------------------
 
     public BattleService(MapDef mapDef)
@@ -95,10 +90,11 @@ public sealed class BattleService : ServiceBase
         foreach (MapDef.SpawnEntry entry in Map.ListSpawn)
         {
             Transform point = GetSlot(entry.Slot);
-            if (point == null || entry.Monster == null || entry.Monster.Prefab == null)
+            // 프리팹이 없으면 UnitFactory가 오류 로그(경로는 MonsterDef.PrefabPath)
+            if (point == null || entry.Monster == null)
             {
                 string monsterName = entry.Monster == null ? "없음" : entry.Monster.name;
-                CLogger.Warning("BattleService", $"스폰 불가: {MapDef.GetSlotName(entry.Slot)} 지점 {(point == null ? "없음" : "있음")}, 몬스터 {monsterName}(프리팹은 MonsterDef.Prefab)");
+                CLogger.Warning("BattleService", $"스폰 불가: {MapDef.GetSlotName(entry.Slot)} 지점 {(point == null ? "없음" : "있음")}, 몬스터 {monsterName}");
                 continue;
             }
 
@@ -141,22 +137,23 @@ public sealed class BattleService : ServiceBase
     // 지역 맵을 만든다. 씬은 Single로 불러서 지금 씬에 들어간다
     private void SpawnMap()
     {
-        if (Map == null || Map.Prefab == null)
-        {
-            CLogger.Warning("BattleService", "MapDef에 맵 프리팹이 없습니다. 누락 전투 에셋 복구를 실행하세요.");
+        if (Map == null)
             return;
-        }
 
-        MapRoot map = UnityEngine.Object.Instantiate(Map.Prefab);
+        MapRoot prefab = ResourceManager.Instance?.Load<MapRoot>(Map.PrefabPath, "프리팹 이름이 MapDef ID와 같은지, 누락 전투 에셋 복구를 했는지 확인하세요.");
+        if (prefab == null)
+            return;
+
+        MapRoot map = UnityEngine.Object.Instantiate(prefab);
         m_SpawnSlots = map.SpawnSlots;
     }
 
     private void SpawnPlayer()
     {
         PlayerDef playerDef = GameManager.Instance.Database?.Get<PlayerDef>(DefaultPlayerID);
-        if (playerDef == null || playerDef.Prefab == null)
+        if (playerDef == null)
         {
-            CLogger.Warning("BattleService", "PlayerDef에 플레이어 프리팹을 지정하세요.");
+            CLogger.Warning("BattleService", $"PlayerDef({DefaultPlayerID})가 DB에 없습니다.");
             return;
         }
 
@@ -236,6 +233,8 @@ public sealed class BattleService : ServiceBase
     
     #endregion
 
+    #region OnAction
+    
     private void OnMonsterKilled(MonsterKilled evt)
     {
         if (State != EBattleState.Playing || evt.Units != GameManager.Instance.UnitS)
@@ -290,4 +289,6 @@ public sealed class BattleService : ServiceBase
 
         SEventManager.Publish(new BattleEnded(isWin));
     }
+    
+    #endregion
 }

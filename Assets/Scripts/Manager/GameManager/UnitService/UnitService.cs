@@ -180,8 +180,8 @@ public sealed class UnitService : ServiceBase
         if (unit == null)
             return false;
 
-        // 숨은 적(땅속)은 노리지도 맞히지도 못한다
-        return unit.IsDead == false && unit.Team != team && unit.HitF.IsHidden == false;
+        // 숨은 적(땅속)과 펫은 노리지도 맞히지도 못한다
+        return unit.IsDead == false && unit.Team != team && unit.HitF.IsHidden == false && unit.Def.IsUntargetable == false;
     }
 }
 

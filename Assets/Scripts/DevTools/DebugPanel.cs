@@ -73,7 +73,7 @@ public class DebugPanel : MonoBehaviour
         GUILayout.Label("몬스터 소환(플레이어 앞)");
         foreach (MonsterDef def in gameM.Database.GetAll<MonsterDef>())
         {
-            if (def == null || def.Prefab == null)
+            if (def == null)
                 continue;
 
             if (GUILayout.Button(def.ID))
@@ -85,7 +85,8 @@ public class DebugPanel : MonoBehaviour
     {
         Transform player = units.Player.transform;
         float distance = SpawnGap + units.Player.HurtBody.radius;
-        if (def.Prefab.TryGetComponent(out CharacterController controller))
+        UnitController prefab = ResourceManager.Instance?.Load<UnitController>(def.PrefabPath);
+        if (prefab != null && prefab.TryGetComponent(out CharacterController controller))
             distance += controller.radius;
 
         Vector3 forward = Vector3.ProjectOnPlane(player.forward, Vector3.up).normalized;

@@ -57,14 +57,6 @@ public static class DataEditorUtility
 
                 if (property.objectReferenceValue is DataDef related && related != owner)
                     setRelated.Add(related);
-
-                if (property.objectReferenceValue is MushroomPickup pickup)
-                {
-                    foreach (DataDef candidate in listDef.Where(def => def is MushroomDef && def.ID == pickup.ItemID))
-                    {
-                        setRelated.Add(candidate);
-                    }
-                }
             }
         }
 

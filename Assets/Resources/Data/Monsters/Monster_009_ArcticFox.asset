@@ -26,7 +26,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 81e1cee128053e546b09722234ca79d7, type: 2}
   <MoveSpeed>k__BackingField: 2.59
   <AI>k__BackingField: {fileID: 11400000, guid: a368ac48d0494309a0c94cc831f89bb2, type: 2}
-  <Prefab>k__BackingField: {fileID: 5275136551062244193, guid: b68c4771d1144c44e8eb4d2481f300fa, type: 3}
   <ModelName>k__BackingField: Mon_009_ArcticFox
   <BodyHeight>k__BackingField: 1.35
   <BodyRadius>k__BackingField: 0.25
@@ -35,7 +34,7 @@ MonoBehaviour:
   - <BattlePart>k__BackingField: 0
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 7f086ad7928ac4b4eb84f4a6b5dc8321, type: 3}
     <BrokenModel>k__BackingField: {fileID: 0}
-    <Drop>k__BackingField: {fileID: 0}
+    <Mushroom>k__BackingField: {fileID: 0}
     <CountMin>k__BackingField: 2
     <CountMax>k__BackingField: 2
     <ScaleRange>k__BackingField: {x: 1.1, y: 1.24}
@@ -45,7 +44,7 @@ MonoBehaviour:
     <RegenTime>k__BackingField: 0
   m_ListMushroom: []
   m_ListDrop:
-  - <Pickup>k__BackingField: {fileID: 127310580877431111, guid: 580b56ca90a35174981e33f7e6df73b0, type: 3}
+  - <Mushroom>k__BackingField: {fileID: 11400000, guid: 1713f512f009ed24e91b93941acb9808, type: 2}
     <Min>k__BackingField: 2
     <Max>k__BackingField: 3
     <Chance>k__BackingField: 1

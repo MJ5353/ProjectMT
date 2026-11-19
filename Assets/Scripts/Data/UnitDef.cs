@@ -9,10 +9,6 @@ using UnityEngine.Serialization;
 
 public abstract class UnitDef : DataDef
 {
-    // 몸(프리팹). 스폰 때 UnitFactory가 이 몸을 꺼내고 이 Def를 넘긴다. 직렬화 이름(<Prefab>k__BackingField)은 PlayerDef·MonsterDef에 있을 때와 같아 데이터 유지
-    [field: SerializeField, FormerlySerializedAs("m_Prefab")]
-    public UnitController Prefab { get; private set; } = null;
-
     [field: SerializeField, FormerlySerializedAs("m_MaxHp")]
     public int MaxHp { get; private set; } = 3;                    // 최대 체력
 
@@ -41,9 +37,12 @@ public abstract class UnitDef : DataDef
     [field: SerializeField]
     public List<SkillDef> ListSkill { get; private set; } = new();
 
-    public AttackSpec MainAttack => GetBasicAttack(0); // 첫 기본 공격. 없으면 null
+    // 몸(프리팹)의 Resources 경로(폴더 + ID). 스폰 때 UnitFactory가 이 경로로 몸을 찾고 이 Def를 넘긴다
+    public abstract string PrefabPath { get; }
 
+    public AttackSpec MainAttack => GetBasicAttack(0); // 첫 기본 공격. 없으면 null
     public virtual ETeam Team => ETeam.Monster;
+    public virtual bool IsUntargetable => false; // true면 노려지지도 맞지도 않는다(펫)
 
     // ------------------------------------------------
 
@@ -59,8 +58,6 @@ public abstract class UnitDef : DataDef
     }
 
 #if UNITY_EDITOR
-    public void EditorSetPrefab(UnitController prefab) => Prefab = prefab;
-
     // 선택했을 때 씬 뷰에 Def별 기즈모(UnitController.OnDrawGizmosSelected가 부른다)
     public virtual void DrawGizmos(UnitController unit) { }
 #endif

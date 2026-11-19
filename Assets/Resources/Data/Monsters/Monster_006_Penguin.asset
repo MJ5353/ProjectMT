@@ -25,7 +25,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: cefe483af78f8864dacd9b0f0d0e2baf, type: 2}
   <MoveSpeed>k__BackingField: 3.24
   <AI>k__BackingField: {fileID: 11400000, guid: 93f6457ec256445a8d65f9017e1f66aa, type: 2}
-  <Prefab>k__BackingField: {fileID: 1033579112734878169, guid: 050c74332923dfe4ea4f447fafdbaf4a, type: 3}
   <ModelName>k__BackingField: Mon_006_Penguin
   <BodyHeight>k__BackingField: 1.0500001
   <BodyRadius>k__BackingField: 0.2
@@ -34,7 +33,7 @@ MonoBehaviour:
   - <BattlePart>k__BackingField: 0
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 881e42cda7a9b51479e41bfb1cbbe2a3, type: 3}
     <BrokenModel>k__BackingField: {fileID: 0}
-    <Drop>k__BackingField: {fileID: 0}
+    <Mushroom>k__BackingField: {fileID: 0}
     <CountMin>k__BackingField: 1
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 0.86, y: 0.86}
@@ -44,7 +43,7 @@ MonoBehaviour:
     <RegenTime>k__BackingField: 0
   m_ListMushroom: []
   m_ListDrop:
-  - <Pickup>k__BackingField: {fileID: 118531751412590121, guid: 1a41e685feb70ae4598e846d9b8e63a5, type: 3}
+  - <Mushroom>k__BackingField: {fileID: 11400000, guid: 1e96cc7e8984eef42b4f084bf4984382, type: 2}
     <Min>k__BackingField: 1
     <Max>k__BackingField: 2
     <Chance>k__BackingField: 1

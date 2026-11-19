@@ -27,20 +27,15 @@ public class MushroomDef : DataDef
     [field: SerializeField, FormerlySerializedAs("m_Tint")]
     public Color Tint { get; private set; } = Color.white;
 
-    [field: SerializeField, Tooltip("바닥에 떨어지는 픽업 프리팹. 데이터 편집기 > 버섯 > 픽업 빌드가 채운다")]
-    public MushroomPickup Pickup { get; private set; } = null;
-
     // 모델·픽업 이름에 쓰는 키
     public string Key => ID != null && ID.StartsWith(KeyPrefix) ? ID.Substring(KeyPrefix.Length) : ID;
     public string ModelName => $"Mush_{Key}";
-    public string PickupName => $"Pickup_{Key}";
+    public string PickupPath => CommonPath.PickupDir + CommonPath.PickupPrefix + Key; // 바닥에 떨어지는 픽업 프리팹. 데이터 편집기 > 버섯 > 픽업 빌드가 굽는다
 
     // ------------------------------------------------
 
 #if UNITY_EDITOR
     public void EditorSetDexNo(int dexNo) => DexNo = dexNo;
-
-    public void EditorSetPickup(MushroomPickup pickup) => Pickup = pickup;
 #endif
 
 }

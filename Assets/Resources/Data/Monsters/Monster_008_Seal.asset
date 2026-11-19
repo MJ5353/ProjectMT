@@ -25,7 +25,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5b3bd43aa2ad7bd429c8ebe3ff2843df, type: 2}
   <MoveSpeed>k__BackingField: 2.59
   <AI>k__BackingField: {fileID: 11400000, guid: a368ac48d0494309a0c94cc831f89bb2, type: 2}
-  <Prefab>k__BackingField: {fileID: 7609976951471837491, guid: 848587d2d285d3740b9d948da24cbd07, type: 3}
   <ModelName>k__BackingField: Mon_008_Seal
   <BodyHeight>k__BackingField: 0.65000004
   <BodyRadius>k__BackingField: 0.3
@@ -34,7 +33,7 @@ MonoBehaviour:
   - <BattlePart>k__BackingField: 0
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 881e42cda7a9b51479e41bfb1cbbe2a3, type: 3}
     <BrokenModel>k__BackingField: {fileID: 0}
-    <Drop>k__BackingField: {fileID: 0}
+    <Mushroom>k__BackingField: {fileID: 0}
     <CountMin>k__BackingField: 2
     <CountMax>k__BackingField: 2
     <ScaleRange>k__BackingField: {x: 1.11, y: 1.15}
@@ -44,11 +43,11 @@ MonoBehaviour:
     <RegenTime>k__BackingField: 0
   m_ListMushroom: []
   m_ListDrop:
-  - <Pickup>k__BackingField: {fileID: 2928097537796928298, guid: aa4959c85326e1a44be15773a7715a71, type: 3}
+  - <Mushroom>k__BackingField: {fileID: 11400000, guid: c8574fd4a7aa3ae40ae6e81d0e6971d9, type: 2}
     <Min>k__BackingField: 2
     <Max>k__BackingField: 3
     <Chance>k__BackingField: 1
-  - <Pickup>k__BackingField: {fileID: 118531751412590121, guid: 1a41e685feb70ae4598e846d9b8e63a5, type: 3}
+  - <Mushroom>k__BackingField: {fileID: 11400000, guid: 1e96cc7e8984eef42b4f084bf4984382, type: 2}
     <Min>k__BackingField: 1
     <Max>k__BackingField: 1
     <Chance>k__BackingField: 0.5

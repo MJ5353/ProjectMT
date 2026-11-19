@@ -18,8 +18,7 @@ public static class DataEditorChecks
         string testName = "DataEditorCheck_" + Guid.NewGuid().ToString("N");
         string modelFolder = CommonPath.MonsterModelDir + testName;
         string defPath = CommonPath.MonsterDataDir + "Monster_" + testName + ".asset";
-        string prefabPath = CommonPath.ActorPrefabDir + "Monster_" + testName + ".prefab";
-        string renamedPrefabPath = CommonPath.ActorPrefabDir + testName + "_Renamed.prefab";
+        string prefabPath = CommonPath.MonsterPrefabDir + "Monster_" + testName + CommonPath.PrefabExtension;
         string controllerPath = CommonPath.AnimatorDir + testName + ".controller";
         try
         {
@@ -43,7 +42,8 @@ public static class DataEditorChecks
 
             MonsterDef created = MonsterPrefabBuilder.CreateDef(model);
             Require(AssetDatabase.GetAssetPath(created) == defPath, "생성 경로 불일치");
-            Require(created.Prefab == null, "Def 등록이 프리팹까지 생성함");
+            Require(MonsterPrefabBuilder.GetPrefabPath(created) == prefabPath, "프리팹 경로가 Def ID 규칙과 다름");
+            Require(File.Exists(prefabPath) == false, "Def 등록이 프리팹까지 생성함");
             using (SerializedObject serializedDef = new SerializedObject(created))
             {
                 DataEditorUtility.FindProperty(serializedDef, nameof(UnitDef.MaxHp)).intValue = 41;
@@ -55,17 +55,15 @@ public static class DataEditorChecks
             RequireThrows(() => DataEditorUtility.CreateDef(typeof(MushroomDef), modelFolder + "/" + created.ID + ".asset"), "중복 ID 생성 허용");
 
             Require(MonsterPrefabBuilder.Build(new[] { created }, true) == 1, "선택 프리팹 빌드 실패");
-            Require(created.Prefab != null && AssetDatabase.GetAssetPath(created.Prefab) == prefabPath, "Def의 프리팹 연결 실패");
+            Require(Resources.Load<UnitController>(created.PrefabPath) != null, "Def ID 이름의 프리팹이 Resources 경로에 없음");
             string prefabGUID = AssetDatabase.AssetPathToGUID(prefabPath);
-            Require(string.IsNullOrEmpty(AssetDatabase.MoveAsset(prefabPath, renamedPrefabPath)), "임시 프리팹 이동 실패");
-            Require(MonsterPrefabBuilder.GetPrefabPath(created) == renamedPrefabPath, "기존 프리팹 경로 무시");
             Require(MonsterPrefabBuilder.Build(new[] { created }, false) == 0, "누락 복구가 기존 프리팹을 덮어씀");
-            Require(MonsterPrefabBuilder.Build(new[] { created }, true) == 1, "이동된 프리팹 재빌드 실패");
-            Require(AssetDatabase.AssetPathToGUID(renamedPrefabPath) == prefabGUID && created.MaxHp == 41, "재빌드가 GUID 또는 수치를 변경함");
+            Require(MonsterPrefabBuilder.Build(new[] { created }, true) == 1, "프리팹 재빌드 실패");
+            Require(AssetDatabase.AssetPathToGUID(prefabPath) == prefabGUID && created.MaxHp == 41, "재빌드가 GUID 또는 수치를 변경함");
             AssetDatabase.SaveAssetIfDirty(created);
             AssetDatabase.ImportAsset(defPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
             MonsterDef saved = AssetDatabase.LoadAssetAtPath<MonsterDef>(defPath);
-            Require(saved.MaxHp == 41 && saved.Prefab != null, "저장 후 값·참조 유지 실패");
+            Require(saved.MaxHp == 41, "저장 후 값 유지 실패");
 
             foreach (var pair in dicOriginal)
             {
@@ -76,7 +74,7 @@ public static class DataEditorChecks
         finally
         {
             // 이번 실행에서 만든 고유 경로만 정리한다.
-            foreach (string path in new[] { defPath, prefabPath, renamedPrefabPath, controllerPath, modelFolder })
+            foreach (string path in new[] { defPath, prefabPath, controllerPath, modelFolder })
             {
                 if (string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(path)) == false)
                     AssetDatabase.DeleteAsset(path);
@@ -244,9 +242,6 @@ public static class DataEditorChecks
         MushroomDef mushroom = ScriptableObject.CreateInstance<MushroomDef>();
         MonsterDef monster = ScriptableObject.CreateInstance<MonsterDef>();
         MapDef mapDef = ScriptableObject.CreateInstance<MapDef>();
-        Scene preview = EditorSceneManager.NewPreviewScene();
-        GameObject pickupObject = new GameObject("DataEditorCheckPickup");
-        SceneManager.MoveGameObjectToScene(pickupObject, preview);
         try
         {
             mushroom.EditorSetIdentity("Check_Mushroom", "검사 버섯");
@@ -264,15 +259,9 @@ public static class DataEditorChecks
             List<DataDef> listRelated = DataEditorUtility.FindRelatedDefs(mapDef, listDef);
             Require(listRelated.Count == 2 && listRelated.Contains(mushroom) && listRelated.Contains(monster), "직접 연관의 중복 제거·자기 참조 제외 실패");
 
-            MushroomPickup pickup = pickupObject.AddComponent<MushroomPickup>();
-            using (SerializedObject serializedPickup = new SerializedObject(pickup))
-            {
-                serializedPickup.FindProperty("m_ItemID").stringValue = mushroom.ID;
-                serializedPickup.ApplyModifiedPropertiesWithoutUndo();
-            }
-            monster.EditorSetup(new List<MonsterDef.DropEntry> { new(pickup, 1, 1, 1f), new(pickup, 2, 2, 0.5f) });
+            monster.EditorSetup(new List<MonsterDef.DropEntry> { new(mushroom, 1, 1, 1f), new(mushroom, 2, 2, 0.5f) });
             listRelated = DataEditorUtility.FindRelatedDefs(monster, listDef);
-            Require(listRelated.Count == 1 && listRelated[0] == mushroom, "픽업 ID 연관 해석 실패");
+            Require(listRelated.Count == 1 && listRelated[0] == mushroom, "드랍 버섯 연관 해석 실패");
             using (SerializedObject serializedMonster = new SerializedObject(monster))
             {
                 int original = monster.MaxHp;
@@ -293,7 +282,6 @@ public static class DataEditorChecks
             UnityEngine.Object.DestroyImmediate(mapDef);
             UnityEngine.Object.DestroyImmediate(monster);
             UnityEngine.Object.DestroyImmediate(mushroom);
-            EditorSceneManager.ClosePreviewScene(preview);
         }
     }
 

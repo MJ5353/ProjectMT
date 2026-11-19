@@ -47,7 +47,8 @@ Unity에서 컴파일 확인 후 플레이 확인: 프리팹 16개의 컨트롤�
 - `UnitDef.SetFeatures(unit)`: `PlayerDef`는 대시·공격 끊기 시간, `MonsterDef`는 `PartFeature`(`SetPartFeature`)·판정 모양(`HitF.SetShapes`)·`DropFeature`.
 - `UnitDef.CreateBrain(unit)`: 기본 `AIBrain`(AI 프리셋), `PlayerDef`는 `PlayerBrain`. AI가 비면 `AIBrain`이 오류 로그 후 기본값으로 돈다.
 - `UnitDef.DrawGizmos(unit)`(에디터 전용): `MonsterDef`가 몸 판정 모양·부위 내구도를 그린다. 스폰 전(Def 없음)에는 그리지 않는다.
-- **Def는 스폰 때 `UnitFactory`가 넘긴다.** 프리팹은 몸(`UnitProperty`)만 갖고, 몸은 `UnitDef.Prefab`이 가리킨다. 같은 몸에 다른 Def를 줄 수 있다.
+- **Def는 스폰 때 `UnitFactory`가 넘긴다.** 프리팹은 몸(`UnitProperty`)만 갖는다.
+- **프리팹은 Def ID로 Resources에서 찾는다**(`UnitDef.PrefabPath` = `CommonPath` 폴더 + ID, 예: `Prefabs/Actor/Monster/Monster_001_Rabbit`). Def는 프리팹을 참조하지 않아 Def↔프리팹 순환 참조가 없다. 이름이 어긋나면 런타임(`UnitFactory` 오류 로그)과 데이터 검사(데이터 편집기 프리팹 열·`DataEditorChecks`)에서 잡는다. 맵(`MapDef.PrefabPath`)·버섯 픽업(`MushroomDef.PickupPath`, `Pickup_` + 키)도 같은 방식. 몬스터 드랍(`DropEntry`·`PartEntry`)은 픽업이 아니라 `MushroomDef`(`Mushroom`)를 참조하고, `DropFeature`·`PartFeature`가 스폰 때 `PickupPath`로 픽업을 로드한다.
 - 풀 재사용 시 Def가 같으면 Reset만, 바뀌면(또는 처음이면) 부품·실행기·판단을 버리고 다시 조립한다. Def가 없거나 조립에 실패하면 오류 로그 후 등록하지 않는다.
 
 ### AI: AIBrain + AIDef 프리셋
@@ -63,9 +64,9 @@ Unity에서 컴파일 확인 후 플레이 확인: 프리팹 16개의 컨트롤�
 | 구성 | 역할 |
 |---|---|
 | UnitController | 조립·수명 주기, Tick 순서, 피격/사망 → 실행기 요청과 판단 훅 연결, `IsValid` |
-| UnitDef·UnitProperty | 읽기 전용 수치와 조립 규칙(가상 함수)·프리팹 참조 |
+| UnitDef·UnitProperty | 읽기 전용 수치와 조립 규칙(가상 함수)·프리팹 경로(ID) |
 | UnitService | 유닛 목록과 수명. 생성·삭제·매 프레임 Tick·주변 적 검색(`UnitID`로 관리) |
-| UnitFactory | `Def.Prefab`을 ResourceManager 풀에서 꺼내 Def를 넘기고(OnSpawn) 돌려보낸다(OnDespawn). `UnitService`만 쓴다 |
+| UnitFactory | `Def.PrefabPath`로 프리팹을 찾아(`ResourceManager.Load`) 풀에서 꺼내 Def를 넘기고(OnSpawn) 돌려보낸다(OnDespawn). `UnitService`만 쓴다 |
 | TargetSelector | 판단의 대상 찾기·기억·거리·자동 조준(`UnitBrain.TargetSelector`) |
 | AttackSelector | AI의 공격 고르기: 후보·거리·쿨·가중치(`AIBrain.AttackSelector`) |
 | DropFeature | 몬스터가 죽으면(`HealthF.Died`) 버섯 드롭·처치 알림 |
@@ -106,4 +107,5 @@ Unity에서 컴파일 확인 후 플레이 확인: 프리팹 16개의 컨트롤�
 | 26.11.19 | 몬스터 종류별 상속 계층을 버리고 `AIBrain` 하나 + `AIDef` 프리셋으로 | 상태는 어느 종류에나 끼울 수 있어 클래스가 늘지 않고, 프리셋을 여러 몬스터가 재사용한다 |
 | 26.11.19 | 명명을 역할 기준으로(`UnitExecutor`·`UnitBrain`·`TargetSelector`·`AttackSelector`·`Unit*`) | "층"·"액터"가 섞여 읽기 어려웠다(대장 지시) |
 | 26.11.19 | `PlayerController`·`MonsterController`를 `UnitController` 하나로 합치고 차이는 Def 가상 함수로 | 두 컨트롤러가 조립 함수 두 개뿐이라 Def에 두는 편이 짧고, 타입 분기 없이 "아무 유닛"을 하나로 다룬다(대장 지시). 이전(26.11.18)의 "상속 유지" 결정을 대체 |
+| 26.11.19 | 프리팹은 Def에 직렬화하지 않고 Def ID로 Resources에서 찾는다(`UnitDef.Prefab` 제거) | Def↔프리팹 순환 참조를 없앤다(대장 선택). 이름이 어긋나면 런타임·데이터 검사에서 잡는다 |
 | 26.11.19 | Def를 프리팹에 고정하지 않고 스폰 때 넘긴다. 몸은 `UnitDef.Prefab` | Def는 런타임에 할당돼야 하고(대장 지적), 같은 몸을 여러 Def가 재사용할 수 있다 |

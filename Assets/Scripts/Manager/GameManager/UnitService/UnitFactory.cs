@@ -1,14 +1,14 @@
 using UnityEngine;
 
 // ResourceManager를 감싸 유닛을 만들고 돌려보낸다.
-// Def의 프리팹(몸)을 풀에서 꺼내 ID·Def를 넣어 처음 상태로 되돌리고(OnSpawn), 돌려보내기 전에 정리한다(OnDespawn). UnitService만 쓴다
+// Def.PrefabPath(폴더 + ID)로 찾은 프리팹(몸)을 풀에서 꺼내 ID·Def를 넣어 처음 상태로 되돌리고(OnSpawn), 돌려보내기 전에 정리한다(OnDespawn). UnitService만 쓴다
 public sealed class UnitFactory
 {
     public UnitController Create(UnitDef def, Vector3 position, Quaternion rotation, int unitID)
     {
-        if (def == null || def.Prefab == null)
+        if (def == null)
         {
-            CLogger.Error("UnitFactory", $"Def 또는 Def.Prefab이 비어 있습니다: {(def == null ? "null" : def.name)}");
+            CLogger.Error("UnitFactory", "Def가 비어 있습니다.");
             return null;
         }
 
@@ -19,7 +19,12 @@ public sealed class UnitFactory
             return null;
         }
 
-        UnitController unit = resourceM.Spawn(def.Prefab, position, rotation);
+        // 없으면 Load가 경로마다 한 번 오류 로그
+        UnitController prefab = resourceM.Load<UnitController>(def.PrefabPath, $"{def.name}: 프리팹 이름이 Def ID와 같은지, 프리팹 빌드를 했는지 확인하세요.");
+        if (prefab == null)
+            return null;
+
+        UnitController unit = resourceM.Spawn(prefab, position, rotation);
         if (unit == null)
             return null;
 

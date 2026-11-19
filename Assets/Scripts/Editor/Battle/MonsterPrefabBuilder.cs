@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-// 몬스터 프리팹 일괄 제작. Data/Monsters의 MonsterDef 한 장 = 프리팹 한 개(Prefabs/Actor/{에셋 이름}.prefab).
+// 몬스터 프리팹 일괄 제작. Data/Monsters의 MonsterDef 한 장 = 프리팹 한 개(Prefabs/Actor/Monster/{ID}.prefab, Def는 참조하지 않고 이름으로 찾는다).
 // 이름: 모델 Mon_NNN_Key.fbx → Def·프리팹 Monster_NNN_Key, ID도 Monster_NNN_Key(DataDef 기본 규칙, 에셋 이름 = ID)
 // 모델 등록과 빌드는 MushTaker/데이터 편집기에서 한다.
 // !!) 프리팹은 덮어쓴다(GUID 유지라 씬 참조는 안 끊긴다). 프리팹에 손으로 단 것은 사라지니 값은 Def에 둔다
@@ -32,7 +32,7 @@ public static class MonsterPrefabBuilder
 
     public static int Build(IEnumerable<MonsterDef> listDef, bool isForce)
     {
-        Directory.CreateDirectory(CommonPath.ActorPrefabDir);
+        Directory.CreateDirectory(CommonPath.MonsterPrefabDir);
         int builtCount = 0;
         List<string> listFailed = new();
         foreach (MonsterDef def in listDef)
@@ -44,8 +44,6 @@ public static class MonsterPrefabBuilder
                 else
                     listFailed.Add(def.name);
             }
-
-            LinkPrefab(def);
         }
 
         if (listFailed.Count > 0)
@@ -56,24 +54,8 @@ public static class MonsterPrefabBuilder
         return builtCount;
     }
 
-    // Def.Prefab을 구운 프리팹으로 채운다(지역 스폰이 Def에서 프리팹을 꺼내 쓴다)
-    private static void LinkPrefab(MonsterDef def)
-    {
-        UnitController prefab = AssetDatabase.LoadAssetAtPath<UnitController>(GetPrefabPath(def));
-        if (prefab == null || def.Prefab == prefab)
-            return;
-
-        def.EditorSetPrefab(prefab);
-        EditorUtility.SetDirty(def);
-    }
-
-    public static string GetPrefabPath(MonsterDef def)
-    {
-        if (def.Prefab != null && AssetDatabase.Contains(def.Prefab))
-            return AssetDatabase.GetAssetPath(def.Prefab);
-
-        return $"{CommonPath.ActorPrefabDir}{def.name}.prefab";
-    }
+    // 런타임이 Def.PrefabPath(폴더 + ID)로 찾으니 같은 경로에 굽는다
+    public static string GetPrefabPath(MonsterDef def) => CommonPath.ResourcesRoot + def.PrefabPath + CommonPath.PrefabExtension;
 
     // ==================================================
 

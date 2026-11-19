@@ -27,7 +27,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f3faef6fad01bae4e9bbc0d3a83457de, type: 2}
   <MoveSpeed>k__BackingField: 2.2
   <AI>k__BackingField: {fileID: 11400000, guid: bd4e763ec76d472ebcf254679b501f0f, type: 2}
-  <Prefab>k__BackingField: {fileID: 3321796980609354128, guid: fb4c0120730a40b49b4efe3a6672e3f9, type: 3}
   <ModelName>k__BackingField: Mon_005_Boss_Tree
   <BodyHeight>k__BackingField: 7.15
   <BodyRadius>k__BackingField: 1.5
@@ -60,7 +59,7 @@ MonoBehaviour:
   - <BattlePart>k__BackingField: 5
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
     <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 03cf433b673633142aaa86e80cabf5cc, type: 3}
-    <Drop>k__BackingField: {fileID: 4636793933275367326, guid: 1eb9da794de58c440a8daff32af3050c, type: 3}
+    <Mushroom>k__BackingField: {fileID: 11400000, guid: f5c08f1e51dd52b47b4afe44f988d506, type: 2}
     <CountMin>k__BackingField: 1
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.36, y: 1.36}
@@ -71,7 +70,7 @@ MonoBehaviour:
   - <BattlePart>k__BackingField: 6
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
     <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 03cf433b673633142aaa86e80cabf5cc, type: 3}
-    <Drop>k__BackingField: {fileID: 4636793933275367326, guid: 1eb9da794de58c440a8daff32af3050c, type: 3}
+    <Mushroom>k__BackingField: {fileID: 11400000, guid: f5c08f1e51dd52b47b4afe44f988d506, type: 2}
     <CountMin>k__BackingField: 1
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.27, y: 1.27}
@@ -82,7 +81,7 @@ MonoBehaviour:
   - <BattlePart>k__BackingField: 2
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: 627f15b921e6e7a42a2bc072ddde8840, type: 3}
     <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: b6c7a0a1747e60e4fb379493f0b96446, type: 3}
-    <Drop>k__BackingField: {fileID: 6028424544987752414, guid: d5be80f20fab2784eb8acdcb193826f3, type: 3}
+    <Mushroom>k__BackingField: {fileID: 11400000, guid: a86a8b2d154e5b142af6187efc14857b, type: 2}
     <CountMin>k__BackingField: 1
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.56, y: 1.56}
@@ -93,7 +92,7 @@ MonoBehaviour:
   - <BattlePart>k__BackingField: 1
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
     <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 03cf433b673633142aaa86e80cabf5cc, type: 3}
-    <Drop>k__BackingField: {fileID: 4636793933275367326, guid: 1eb9da794de58c440a8daff32af3050c, type: 3}
+    <Mushroom>k__BackingField: {fileID: 11400000, guid: f5c08f1e51dd52b47b4afe44f988d506, type: 2}
     <CountMin>k__BackingField: 1
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.36, y: 1.36}
@@ -104,7 +103,7 @@ MonoBehaviour:
   - <BattlePart>k__BackingField: 7
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
     <BrokenModel>k__BackingField: {fileID: -7511558181221131132, guid: 03cf433b673633142aaa86e80cabf5cc, type: 3}
-    <Drop>k__BackingField: {fileID: 4636793933275367326, guid: 1eb9da794de58c440a8daff32af3050c, type: 3}
+    <Mushroom>k__BackingField: {fileID: 11400000, guid: f5c08f1e51dd52b47b4afe44f988d506, type: 2}
     <CountMin>k__BackingField: 1
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.34, y: 1.34}
@@ -115,7 +114,7 @@ MonoBehaviour:
   - <BattlePart>k__BackingField: 0
     <Model>k__BackingField: {fileID: -7511558181221131132, guid: b998858976204af468748a779cea7f15, type: 3}
     <BrokenModel>k__BackingField: {fileID: 0}
-    <Drop>k__BackingField: {fileID: 0}
+    <Mushroom>k__BackingField: {fileID: 0}
     <CountMin>k__BackingField: 4
     <CountMax>k__BackingField: 4
     <ScaleRange>k__BackingField: {x: 1.23, y: 1.53}
@@ -125,15 +124,15 @@ MonoBehaviour:
     <RegenTime>k__BackingField: 0
   m_ListMushroom: []
   m_ListDrop:
-  - <Pickup>k__BackingField: {fileID: 4636793933275367326, guid: 1eb9da794de58c440a8daff32af3050c, type: 3}
+  - <Mushroom>k__BackingField: {fileID: 11400000, guid: f5c08f1e51dd52b47b4afe44f988d506, type: 2}
     <Min>k__BackingField: 4
     <Max>k__BackingField: 6
     <Chance>k__BackingField: 1
-  - <Pickup>k__BackingField: {fileID: 8360666463547286274, guid: 25e1f7617935f0e4b9e36c4444342fa6, type: 3}
+  - <Mushroom>k__BackingField: {fileID: 11400000, guid: cb45440bb0ebc604991f39085abe9baf, type: 2}
     <Min>k__BackingField: 2
     <Max>k__BackingField: 3
     <Chance>k__BackingField: 1
-  - <Pickup>k__BackingField: {fileID: 6028424544987752414, guid: d5be80f20fab2784eb8acdcb193826f3, type: 3}
+  - <Mushroom>k__BackingField: {fileID: 11400000, guid: a86a8b2d154e5b142af6187efc14857b, type: 2}
     <Min>k__BackingField: 2
     <Max>k__BackingField: 3
     <Chance>k__BackingField: 1

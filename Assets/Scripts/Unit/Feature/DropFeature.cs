@@ -34,13 +34,17 @@ public class DropFeature : UnitFeature
         Vector3 origin = Owner.transform.position + Vector3.up * DropHeight;
         foreach (MonsterDef.DropEntry drop in m_Def.ListDrop)
         {
-            if (drop.Pickup == null || Random.value > drop.Chance)
+            if (drop.Mushroom == null || Random.value > drop.Chance)
+                continue;
+
+            MushroomPickup prefab = ResourceManager.Instance.Load<MushroomPickup>(drop.Mushroom.PickupPath, "데이터 편집기 > 버섯 > 픽업 빌드");
+            if (prefab == null)
                 continue;
 
             int count = Random.Range(drop.Min, drop.Max + 1);
             for (int i = 0; i < count; i++)
             {
-                MushroomPickup pickup = ResourceManager.Instance.Spawn(drop.Pickup, origin, Quaternion.identity);
+                MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, origin, Quaternion.identity);
                 Vector2 spread = Random.insideUnitCircle * SpreadRadius;
                 pickup.Launch(new Vector3(spread.x, LaunchUpSpeed, spread.y), EFreshness.Low);
             }
