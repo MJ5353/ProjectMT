@@ -85,6 +85,7 @@ public static class BattleUISetup
         SpriteImage("Frame", clockRoot, "HUD_NightClock_Frame", 0f);
         RectTransform timeRect = UIBuilder.Rect("Time", clockRoot, Vector2.zero, new Vector2(1, 0), new Vector2(-40, -56), new Vector2(40, 0));
         TMP_Text time = UIBuilder.Label(timeRect, "05:00", UIStyle.FontLarge);
+        UIBuilder.SetOutline(time);
         UINightClock clock = clockRoot.gameObject.AddComponent<UINightClock>();
         UIBuilder.SetRef(clock, "m_Sky", sky);
         UIBuilder.SetRef(clock, "m_Text", time);
@@ -106,19 +107,12 @@ public static class BattleUISetup
         exitBack.raycastTarget = true;
         SpriteImage("Icon", exitRect, "HUD_EndHunt", 24f);
         RectTransform exitText = UIBuilder.Rect("Text", exitRect, new Vector2(-0.5f, 0), new Vector2(1.5f, 0), new Vector2(0, -40), Vector2.zero);
-        UIBuilder.Label(exitText, "토벌 종료", UIStyle.FontSmall);
+        UIBuilder.SetOutline(UIBuilder.Label(exitText, "토벌 종료", 30));
         Button exit = exitRect.gameObject.AddComponent<Button>();
         exit.targetGraphic = exitBack;
 
-        // 그 아래 주운 버섯: 합계 줄 + 작은 목록(버섯·신선도별)
-        RectTransform loot = UIBuilder.Anchored("Loot", safe, new Vector2(1, 1), new Vector2(-40, -200), new Vector2(160, 56));
-        UIBuilder.AddImage(loot, new Color(0f, 0f, 0f, 0.35f));
-        RectTransform lootIcon = UIBuilder.Anchored("Icon", loot, new Vector2(0, 0.5f), new Vector2(10, 0), new Vector2(40, 40));
-        SpriteImage(lootIcon, "Icon_001_Songi");
-        RectTransform countRect = UIBuilder.Rect("Count", loot, Vector2.zero, Vector2.one, new Vector2(60, 0), new Vector2(-14, 0));
-        TMP_Text count = UIBuilder.Label(countRect, "0", UIStyle.FontNormal, TextAlignmentOptions.Right);
-
-        RectTransform lootList = UIBuilder.Anchored("LootList", safe, new Vector2(1, 1), new Vector2(-40, -264), new Vector2(507, 0));
+        // 그 아래 주운 버섯 목록(버섯·신선도별)
+        RectTransform lootList = UIBuilder.Anchored("LootList", safe, new Vector2(1, 1), new Vector2(-40, -200), new Vector2(507, 0));
         VerticalLayoutGroup layout = lootList.gameObject.AddComponent<VerticalLayoutGroup>();
         layout.childAlignment = TextAnchor.UpperRight;
         layout.spacing = 3f;
@@ -128,20 +122,61 @@ public static class BattleUISetup
         lootList.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
         UILootRow rowTemplate = LootRow(safe);
 
+        AddUnitHpBars(safe);
+
         BattleHud hud = root.gameObject.AddComponent<BattleHud>();
         UIBuilder.SetRef(hud, "m_Clock", clock);
         UIBuilder.SetRef(hud, "m_Hp", hp);
         UIBuilder.SetRef(hud, "m_AttackActive", attackActive);
         UIBuilder.SetRef(hud, "m_AttackChain", attackChain);
         UIBuilder.SetRef(hud, "m_DashActive", dashActive);
-        UIBuilder.SetRef(hud, "m_LootIcon", lootIcon);
-        UIBuilder.SetRef(hud, "m_LootCount", count);
         UIBuilder.SetRef(hud, "m_LootList", lootList);
         UIBuilder.SetRef(hud, "m_LootRowTemplate", rowTemplate);
         UIBuilder.SetRef(hud, "m_ExitButton", exit);
         UIBuilder.SetRef(hud, "m_DeathPopupPrefab", AssetDatabase.LoadAssetAtPath<DeathPopup>(EditorPath.DeathPopupPrefab));
 
         return hud;
+    }
+
+    // 몬스터 머리 위 체력바(원본) + 화면 위 보스 체력바. HUD 맨 뒤에 깔아 다른 HUD를 가리지 않는다.
+    // 이미 만든 HUD 프리팹에 붙일 때도 쓴다
+    public static UIUnitHpBars AddUnitHpBars(RectTransform safe)
+    {
+        RectTransform root = UIBuilder.Stretch("UnitHpBars", safe);
+        root.SetAsFirstSibling();
+
+        UIGauge template = UIBuilder.Gauge(root, "BarTemplate", new Vector2(120, 14), UIStyle.HpBoss, false);
+        RectTransform templateRect = (RectTransform)template.transform;
+        templateRect.anchorMin = templateRect.anchorMax = new Vector2(0.5f, 0.5f);
+        templateRect.pivot = new Vector2(0.5f, 0f);
+
+        RectTransform boss = UIBuilder.Anchored("Boss", root, new Vector2(0.5f, 1f), new Vector2(0, -36), new Vector2(900, 90));
+        boss.pivot = new Vector2(0.5f, 1f);
+        RectTransform nameRect = UIBuilder.Rect("Name", boss, new Vector2(0, 1), Vector2.one, new Vector2(0, -44), Vector2.zero);
+        TMP_Text bossName = UIBuilder.Label(nameRect, "보스", UIStyle.FontNormal);
+        UIBuilder.SetOutline(bossName);
+
+        RectTransform enrageRect = UIBuilder.Rect("Enrage", boss, new Vector2(1, 1), Vector2.one, new Vector2(-140, -44), Vector2.zero);
+        TMP_Text enrage = UIBuilder.Label(enrageRect, "분노!", UIStyle.FontNormal, TextAlignmentOptions.Right);
+        UIBuilder.SetOutline(enrage);
+        enrage.gameObject.SetActive(false);
+
+        UIGauge bossBar = UIBuilder.Gauge(boss, "Bar", new Vector2(900, 32), UIStyle.HpBoss, false);
+        RectTransform barRect = (RectTransform)bossBar.transform;
+        barRect.anchorMin = barRect.anchorMax = barRect.pivot = new Vector2(0.5f, 0f);
+        barRect.anchoredPosition = new Vector2(0, 8);
+
+        UIUnitHpBars bars = root.gameObject.AddComponent<UIUnitHpBars>();
+        UIBuilder.SetRef(bars, "m_Root", root);
+        UIBuilder.SetRef(bars, "m_BarTemplate", template);
+        UIBuilder.SetRef(bars, "m_BossRoot", boss.gameObject);
+        UIBuilder.SetRef(bars, "m_BossBar", bossBar);
+        UIBuilder.SetRef(bars, "m_BossName", bossName);
+        UIBuilder.SetRef(bars, "m_EnrageIcon", enrage.gameObject);
+        template.gameObject.SetActive(false);
+        boss.gameObject.SetActive(false);
+
+        return bars;
     }
 
     // 사망 팝업: 뒤가 비치는 어두운 배경 + 가운데 창(부활/귀가). 팝업 루트(PopupService) 아래에 꽉 차게 뜬다
@@ -181,7 +216,7 @@ public static class BattleUISetup
     {
         RectTransform row = UIBuilder.Rect("LootRowTemplate", parent, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-507, -43), Vector2.zero);
         row.gameObject.AddComponent<LayoutElement>().preferredHeight = 43f;
-        UIBuilder.AddImage(row, new Color(0f, 0f, 0f, 0.25f));
+        UIBuilder.AddImage(row, new Color(0f, 0f, 0f, 0.6f));
 
         RectTransform iconRect = UIBuilder.Anchored("Icon", row, new Vector2(0, 0.5f), new Vector2(5, 0), new Vector2(35, 35));
         Image icon = SpriteImage(iconRect, "Icon_001_Songi");
@@ -206,14 +241,15 @@ public static class BattleUISetup
         active = activeImage.gameObject;
         active.SetActive(false);
 
-        SpriteImage("Back", slot, CircleSprite, 0f).color = new Color(0f, 0f, 0f, 0.4f);
+        SpriteImage("Back", slot, CircleSprite, 0f).color = new Color(0f, 0f, 0f, 0.6f);
         SpriteImage("Icon", slot, sprite, size * 0.22f);
 
         Image chainImage = SpriteImage("Chain", slot, CircleSprite, 0f);
         chainImage.color = new Color(1f, 1f, 1f, 0.25f);
         RectTransform chainRect = (RectTransform)chainImage.transform;
         RectTransform chainText = UIBuilder.Rect("Text", chainRect, new Vector2(0, 1), Vector2.one, Vector2.zero, new Vector2(0, 50));
-        UIBuilder.Label(chainText, "연계", UIStyle.FontNormal).color = UIStyle.Gold;
+        TMP_Text chainLabel = UIBuilder.Label(chainText, "연계", UIStyle.FontNormal);
+        chainLabel.color = UIStyle.Gold;
         chain = chainRect.gameObject;
         chain.SetActive(false);
     }

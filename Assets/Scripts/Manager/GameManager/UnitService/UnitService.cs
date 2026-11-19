@@ -7,8 +7,6 @@ using UnityEngine;
 // 전투 한 판의 유닛(플레이어·몬스터) 목록. 생성·삭제는 여기서만 한다(UnitFactory → ResourceManager 풀)
 public sealed class UnitService : ServiceBase
 {
-    private readonly UnitFactory m_Factory = new();
-    
     // 조회용
     private readonly Dictionary<int, UnitController> m_DicUnit = new();
     private readonly Dictionary<Transform, int> m_DicUnitID = new();
@@ -17,12 +15,14 @@ public sealed class UnitService : ServiceBase
     private readonly List<UnitController> m_ListUnit = new();
     private readonly List<int> m_ListToRemove = new();
     
+    private readonly UnitFactory m_Factory = new();
     private bool m_IsTicking;
     private int m_LastUnitID;
 
+    public event Action<int> UnitRemoved;
     public UnitController Player { get; private set; }
 
-    public event Action<int> UnitRemoved;
+    public IReadOnlyList<UnitController> ListUnit => m_ListUnit; // 살아 있는 유닛 전부(HUD 체력바 등 읽기 전용)
 
     // ------------------------------------------------
 

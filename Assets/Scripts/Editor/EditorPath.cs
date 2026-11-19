@@ -49,6 +49,7 @@ public static class EditorPath
     public const string ButtonPrefab = CommonUIPrefabDir + "UIButton.prefab";
     public const string Font = FontDir + "Galmuri11.ttf";
     public const string FontAsset = FontDir + "Galmuri11 SDF.asset";
+    public const string FontOutlineAsset = FontDir + "Galmuri11_OutLine SDF.asset"; // 배경 없이 화면에 바로 뜨는 라벨용
     public const string DataEditorStyle = AssetsRoot + "Scripts/Editor/DataEditorWindow.uss";
 
     // 데이터 편집 검사 (DataEditorChecks가 거부되는지 보는 잘못된 경로) ---

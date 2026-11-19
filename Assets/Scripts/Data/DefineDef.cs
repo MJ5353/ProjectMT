@@ -67,6 +67,13 @@ public class DefineDef : DataDef
     [field: SerializeField]
     public float PartDropSpread { get; private set; } = 2f;         // 깨진 버섯 픽업이 옆으로 퍼지는 속도
 
+    // 체력바 ---
+    [field: SerializeField]
+    public float MonsterHpBarShowTime { get; private set; } = 3f;   // 몬스터가 맞은 뒤 머리 위 체력바가 보이는 시간(초)
+
+    [field: SerializeField]
+    public float MonsterHpBarOffset { get; private set; } = 0.4f;   // 몸 맨 위에서 체력바까지 높이
+
     // 카메라 ---
     [field: SerializeField]
     public float CameraDistance { get; private set; } = 11f;        // 바라보는 점에서 카메라까지 거리

@@ -14,6 +14,16 @@ public static class UIBuilder
 
     // ==================================================
 
+    // 배경 없이 화면에 바로 뜨는 라벨용(외곽선). 없으면 기본 폰트
+    public static TMP_FontAsset OutlineFont => AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(EditorPath.FontOutlineAsset) ?? Font;
+
+    // 바탕 없이 뜨는 30 이상 글자: 외곽선 폰트(흰 외곽선) + 검은 글자
+    public static void SetOutline(TMP_Text text)
+    {
+        text.font = OutlineFont;
+        text.color = Color.black;
+    }
+
     public static TMP_FontAsset Font
     {
         get
