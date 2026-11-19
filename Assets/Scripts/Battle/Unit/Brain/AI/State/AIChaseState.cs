@@ -2,9 +2,9 @@ using UnityEngine;
 
 // ==================================================
 
-public class AIChaseState : AIState
+public class AIChaseState : MonsterState
 {
-    public AIChaseState(AIBrain ai) : base(ai) { }
+    public AIChaseState(MonsterBrain ai) : base(ai) { }
 
     // ------------------------------------------------
     

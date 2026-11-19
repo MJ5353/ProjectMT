@@ -3,7 +3,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 몬스터 공격 고르기(MonsterBrain이 들고 쿨을 돌린다). 후보(Def의 공격 전부)마다 개별 쿨을, 몬스터 전체에 공용 쿨을 돌리고
+// 몬스터 공격 고르기(MonsterBrain이 들고 쿨을 돌린다). 분노하면 후보가 늘고 공용 쿨이 준다(Enrage). 후보(Def의 공격 전부)마다 개별 쿨을, 몬스터 전체에 공용 쿨을 돌리고
 // 거리·가중치로 이번 공격(Current)을 고른다. 콤보 다음 타는 행동 층(ActionLayer.ComboNext)이 알려 준다.
 // 언제 고를지는 상태(추적·공격)가 정하고, 여기는 고르기와 쿨만 한다
 
@@ -12,6 +12,8 @@ public class AttackChoice
     private readonly List<AttackSpec> m_ListChoice = new();   // 고를 수 있는 공격: Def.ListSkill
     private readonly List<float> m_ListCooldown = new();      // m_ListChoice 칸마다 남은 개별 쿨
     private readonly float m_SharedCooldown;                  // 공격이 끝날 때 거는 공용 쿨(MonsterDef.AttackCooldown)
+    private readonly int m_BaseCount;                         // Def 공격 수. 그 뒤는 분노 때 더한 공격
+    private float m_CooldownRate = 1f;                        // 공용 쿨 배율. 분노하면 줄인다
 
     public AttackSpec Current { get; private set; }           // 추적에서 고른 공격(콤보면 첫 타). 쿨은 이 공격에 건다
     public float CooldownRemain { get; private set; }         // 공용 쿨
@@ -22,6 +24,8 @@ public class AttackChoice
     {
         m_SharedCooldown = sharedCooldown;
         def.CollectAttacks(m_ListChoice);
+        
+        m_BaseCount = m_ListChoice.Count;
         for (int i = 0; i < m_ListChoice.Count; i++)
         {
             m_ListCooldown.Add(0f);
@@ -30,6 +34,11 @@ public class AttackChoice
 
     public void Reset()
     {
+        // 분노 때 더한 공격을 걷어낸다
+        m_ListChoice.RemoveRange(m_BaseCount, m_ListChoice.Count - m_BaseCount);
+        m_ListCooldown.RemoveRange(m_BaseCount, m_ListCooldown.Count - m_BaseCount);
+        m_CooldownRate = 1f;
+
         Current = null;
         CooldownRemain = 0f;
         for (int i = 0; i < m_ListCooldown.Count; i++)
@@ -82,10 +91,24 @@ public class AttackChoice
         return true;
     }
 
+    // 분노(BossBrain). 공격 후보를 더하고 공용 쿨을 줄인다. 풀에서 다시 꺼내면(Reset) 원래대로
+    public void Enrage(IReadOnlyList<SkillDef> listSkill, float cooldownRate)
+    {
+        m_CooldownRate = cooldownRate;
+        foreach (SkillDef skill in listSkill)
+        {
+            if (skill == null)
+                continue;
+
+            m_ListChoice.Add(skill.Attack);
+            m_ListCooldown.Add(0f);
+        }
+    }
+
     // 공격이 끝날 때. 공용 쿨과 쓴 공격의 개별 쿨을 건다
     public void StartCooldown()
     {
-        CooldownRemain = m_SharedCooldown;
+        CooldownRemain = m_SharedCooldown * m_CooldownRate;
 
         int index = m_ListChoice.IndexOf(Current);
         if (index >= 0)

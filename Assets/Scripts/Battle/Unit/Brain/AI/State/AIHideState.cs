@@ -3,9 +3,9 @@ using UnityEngine;
 // ==================================================
 
 // 땅속에 숨기(BurrowBrain). 파고들기(Burrow) → 땅속에서 대상 쪽으로 이동(Underground, Def.HideTime) → 튀어나오기(Emerge) → 추적.
-// 숨어 있는 동안(파고들기~땅속)은 무적. 애니 상태 이름은 버더지 애니메이터(AC_002_Mole) 기준
+// 숨어 있는 동안(파고들기~땅속)은 맞지 않고 조준에서도 빠진다(HitF.SetHidden). 애니 상태 이름은 버더지 애니메이터(AC_002_Mole) 기준
 
-public class AIHideState : AIState
+public class AIHideState : MonsterState
 {
     private const string BurrowClip = "Burrow";
     private const string UndergroundClip = "Underground";
@@ -25,14 +25,13 @@ public class AIHideState : AIState
 
     // ------------------------------------------------
 
-    public AIHideState(AIBrain ai) : base(ai) { }
+    public AIHideState(MonsterBrain ai) : base(ai) { }
 
     public override void Enter()
     {
         m_Controller.ActionLayer.SetMove(Vector3.zero, 0f);
-        float burrowLength = m_Controller.AnimF.GetLength(BurrowClip);
-        m_Controller.HitF.SetInvincible(burrowLength + Def.HideTime);
-        ChangePhase(EPhase.Burrow, burrowLength, BurrowClip);
+        m_Controller.HitF.SetHidden(true);
+        ChangePhase(EPhase.Burrow, m_Controller.AnimF.GetLength(BurrowClip), BurrowClip);
     }
 
     public override void Update(float deltaTime)
@@ -54,12 +53,17 @@ public class AIHideState : AIState
                 if (isNear || m_PhaseTime >= m_PhaseLength)
                 {
                     m_Controller.MoveF.Stop();
+                    m_Controller.HitF.SetHidden(false);
                     ChangePhase(EPhase.Emerge, m_Controller.AnimF.GetLength(EmergeClip), EmergeClip);
                     break;
                 }
 
                 if (Target.HasTarget)
-                    m_Controller.MoveF.SetVelocity(Target.GetDirection() * Def.MoveSpeed);
+                {
+                    Vector3 direction = Target.GetDirection();
+                    m_Controller.MoveF.SetVelocity(direction * Def.MoveSpeed);
+                    m_Controller.MoveF.FaceTo(direction);
+                }
 
                 break;
             }
@@ -77,6 +81,7 @@ public class AIHideState : AIState
     public override void Exit()
     {
         m_Controller.MoveF.Stop();
+        m_Controller.HitF.SetHidden(false);
     }
 
     // ==================================================

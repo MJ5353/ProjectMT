@@ -2,14 +2,14 @@ using UnityEngine;
 
 // ==================================================
 
-public class AIWanderState : AIState
+public class AIWanderState : MonsterState
 {
     private const float MaxDuration = 3f;
     private Vector3 m_Destination;
 
     // ------------------------------------------------
 
-    public AIWanderState(AIBrain ai) : base(ai) { }
+    public AIWanderState(MonsterBrain ai) : base(ai) { }
 
     public override void Enter()
     {

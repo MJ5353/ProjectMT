@@ -27,6 +27,8 @@ public class MonsterController : UnitController<MonsterDef>
         {
             case EMonsterBrain.Burrow:
                 return new BurrowBrain(this);
+            case EMonsterBrain.Boss:
+                return new BossBrain(this);
             default:
                 return new MonsterBrain(this);
         }

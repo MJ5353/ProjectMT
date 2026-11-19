@@ -27,6 +27,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f3faef6fad01bae4e9bbc0d3a83457de, type: 2}
   <MoveSpeed>k__BackingField: 2.2
   <WanderSpeed>k__BackingField: 0.88
+  <Brain>k__BackingField: 2
   <SightRange>k__BackingField: 14
   <LoseRange>k__BackingField: 19
   <WanderRadius>k__BackingField: 4

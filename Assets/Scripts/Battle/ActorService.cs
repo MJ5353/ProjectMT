@@ -179,7 +179,8 @@ public sealed class ActorService : ServiceBase
         if (actor == null)
             return false;
 
-        return actor.IsDead == false && actor.Team != team;
+        // 숨은 적(땅속)은 노리지도 맞히지도 못한다
+        return actor.IsDead == false && actor.Team != team && actor.HitF.IsHidden == false;
     }
 }
 

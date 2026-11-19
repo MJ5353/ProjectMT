@@ -10,6 +10,7 @@ public enum EMonsterBrain
 {
     Normal,     // MonsterBrain: 대기·배회·추적·도망
     Burrow,     // BurrowBrain: 맞으면 땅속에 숨었다가 대상 근처에서 나온다(버더지)
+    Boss,       // BossBrain: 첫 발견·분노 때 포효, 부위가 깨지면 쓰러짐, 체력이 줄면 분노
 }
 
 // ==================================================
@@ -150,6 +151,18 @@ public class MonsterDef : UnitDef
     [field: SerializeField]
     public float HideTime { get; private set; } = 1.5f;      // Burrow: 땅속에서 대상 쪽으로 파고드는 시간(초). 이동은 MoveSpeed
 
+    // 보스 --- Brain이 Boss일 때만 쓴다
+    [field: SerializeField]
+    public float DownTime { get; private set; } = 2.5f;      // 부위가 깨진 뒤 쓰러져 있는 시간(초). PartBreak 애니 뒤에 Down 애니
+
+    [field: SerializeField]
+    public float EnrageHpRate { get; private set; } = 0.5f;  // 체력이 이 비율 이하가 되면 분노. 0이면 분노 없음
+
+    [field: SerializeField]
+    public float EnrageCooldownRate { get; private set; } = 0.6f; // 분노 뒤 공용 쿨(AttackCooldown) 배율
+
+    [SerializeField] private List<SkillDef> m_ListEnrageSkill = new(); // 분노 뒤에만 후보에 드는 공격. 애니 상태가 있어야 한다
+
     // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽고, 구운 프리팹을 Prefab에 채운다
     [field: SerializeField]
     public MonsterController Prefab { get; private set; } = null;
@@ -176,6 +189,7 @@ public class MonsterDef : UnitDef
     // get ---
     public IReadOnlyList<PartEntry> ListPart => m_ListPart;
     public IReadOnlyList<DropEntry> ListDrop => m_ListDrop;
+    public IReadOnlyList<SkillDef> ListEnrageSkill => m_ListEnrageSkill;
 
     // ------------------------------------------------
 

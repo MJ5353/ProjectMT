@@ -34,6 +34,7 @@ public class HitFeature : UnitFeature
     
     // get
     public bool IsInvincible => m_InvincibleRemain > 0f;
+    public bool IsHidden { get; private set; }      // 숨음(땅속 등): 맞지 않고 대상 찾기·조준에서도 빠진다
     public IReadOnlyList<HitShape> ListShape => m_ListShape;
     public bool HasShape => m_ListShape.Count > 0;
     public override bool IsUnscaledTime => true;
@@ -53,6 +54,7 @@ public class HitFeature : UnitFeature
     public override void Reset()
     {
         m_InvincibleRemain = 0f;
+        IsHidden = false;
         RestoreFlash();
     }
 
@@ -108,13 +110,19 @@ public class HitFeature : UnitFeature
         m_InvincibleRemain = Mathf.Max(m_InvincibleRemain, duration);
     }
 
+    // 숨기(AIHideState). 무적과 달리 대상 찾기·조준(ActorService)에서도 빠진다
+    public void SetHidden(bool isHidden)
+    {
+        IsHidden = isHidden;
+    }
+
     // 맞았으면 true
     public bool Receive(in HitParams hit)
     {
         if (hit.Team == Owner.Team)
             return false;
 
-        if (Owner.IsDead || IsInvincible)
+        if (Owner.IsDead || IsInvincible || IsHidden)
             return false;
 
         // 부위를 맞으면 부위 내구도와 본체 체력이 함께 깎인다. 본체 쪽은 부위의 몸 피해 배율을 곱한다
