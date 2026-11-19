@@ -58,11 +58,24 @@ public class PlayerDef : UnitDef
 
     // ------------------------------------------------
 
-    // 대시를 켜고 공격 끊기 시간을 넣는다
+    // 대시를 켜고 공격 끊기 시간을 넣는다. 몸 렌더러는 Player 레이어로 옮겨 가려지면 실루엣이 보이게 한다
     public override void SetFeatures(UnitController unit)
     {
         unit.UnitExecutor.EnableDash(DashSpeed, DashTime, DashCooldown, IsDashInvincible, DashAnimSpeed);
         unit.UnitExecutor.Attack.CancelDelay = CancelDelay;
+
+        int playerLayer = LayerMask.NameToLayer(GameLayers.Player);
+        if (playerLayer < 0)
+        {
+            CLogger.Error(nameof(PlayerDef), $"레이어 {GameLayers.Player}가 없습니다(ProjectSettings/Tags and Layers).");
+            return;
+        }
+
+        foreach (Renderer renderer in unit.Property.ListBodyRenderer)
+        {
+            if (renderer != null)
+                renderer.gameObject.layer = playerLayer;
+        }
     }
 
     // 판단은 입력

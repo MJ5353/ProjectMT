@@ -151,6 +151,26 @@ public class MonsterDef : UnitDef
         // 죽으면 버섯 드롭·처치 알림. 펫은 처치 수에 들어가지 않게 붙이지 않는다
         if (IsPet == false)
             unit.AddFeature(new DropFeature(unit, this));
+
+        // 보스 몸은 Occluder 레이어로 옮긴다. 보스 뒤에 가려진 플레이어만 실루엣이 보인다
+        if (AI != null && AI.Type == EAIType.Boss)
+            SetBodyLayer(unit, GameLayers.Occluder);
+    }
+
+    private static void SetBodyLayer(UnitController unit, string layerName)
+    {
+        int layer = LayerMask.NameToLayer(layerName);
+        if (layer < 0)
+        {
+            CLogger.Error(nameof(MonsterDef), $"레이어 {layerName}가 없습니다(ProjectSettings/Tags and Layers).");
+            return;
+        }
+
+        foreach (Renderer renderer in unit.Property.ListBodyRenderer)
+        {
+            if (renderer != null)
+                renderer.gameObject.layer = layer;
+        }
     }
 
 #if UNITY_EDITOR

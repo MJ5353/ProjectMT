@@ -168,3 +168,8 @@
 - 직접 펫을 플레이어 편 + 무적 + 노려지지 않게 하라고 지시. AI가 AI 프리셋 Pet이면 MonsterDef가 팀·IsUntargetable을 정하고, 적 탐색(UnitService.IsEnemy)과 피격(HitFeature.Receive)에서 걸러내도록 반영.
 - 펫이 죽어도 처치 수·드롭이 생기지 않게 DropFeature를 붙이지 않음. 컴파일·플레이 확인 안 함.
 - 직접 "보스가 hit 모션 때문에 공격을 못 하고 Down 중에도 hit 모션이 나온다"며 경직 수치를 요구. AI가 AttackSpec.Break·UnitDef.BreakImmune·BreakResetTime과 판단 CanFlinch 훅(쓰러짐·포효 중 false)을 넣고 보스 3·엘리트 1로 둠. 컴파일·플레이 확인 전.
+
+## 플레이어 가림 실루엣
+
+- 직접 셰이더 방식 제안을 요청. AI가 URP Render Objects(가려진 곳만 Depth Greater로 덧그림)를 권하고 직접 채택, 레이어 추가까지 맡김.
+- AI가 Player 레이어(9번, 몸 렌더러만, 루트는 Actor 유지)·M_Silhouette(Unlit 반투명 청록)·PC/Mobile 렌더러 기능을 에셋 파일로 직접 추가하고, PlayerDef.SetFeatures에서 몸 렌더러 레이어를 바꿈. 색은 임시, 컴파일·플레이 확인 안 함.
