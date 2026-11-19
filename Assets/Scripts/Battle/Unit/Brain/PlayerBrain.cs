@@ -9,7 +9,7 @@ using UnityEngine.InputSystem;
 // 키 배치는 에셋에서 바꾼다(기본: 이동 WASD·방향키·왼스틱, 공격 클릭·스페이스·J·패드 A/X, 대시 Shift·패드 B).
 // 공격 버튼을 누르면 가까운 적 쪽으로 자동으로 돌아서 벤다(모바일 대비). 연타하면 Def.ComboStart부터 AttackSpec.Next 순서, 달리는 중이면 Def.RunAttack. 수치는 PlayerDef
 
-public class PlayerInputFeature : BrainFeature
+public class PlayerBrain : BrainLayer
 {
     private const string PlayerMapName = "Player";
     private const string MoveActionName = "Player/Move";
@@ -18,9 +18,7 @@ public class PlayerInputFeature : BrainFeature
     private const string DashActionName = "Player/Dash";
 
     private readonly PlayerDef m_Def;
-
     private Transform m_CameraTransform;
-
     private AttackSpec m_QueuedAttack; // 다음에 낼 공격. null이면 입력 없음
     private float m_AttackHoldTime;    // 공격 버튼을 누르고 있는 시간
 
@@ -32,7 +30,7 @@ public class PlayerInputFeature : BrainFeature
 
     // ------------------------------------------------
 
-    public PlayerInputFeature(UnitController owner, PlayerDef def) : base(owner)
+    public PlayerBrain(UnitController owner, PlayerDef def) : base(owner)
     {
         m_Def = def;
         InitInput();
@@ -71,7 +69,7 @@ public class PlayerInputFeature : BrainFeature
         InputActionAsset actions = InputSystem.actions;
         if (actions == null)
         {
-            CLogger.Error("PlayerInputFeature", "프로젝트 입력 에셋이 지정되지 않았습니다. Project Settings > Input System Package에서 InputSystem_Actions를 지정하세요.", Owner);
+            CLogger.Error("PlayerBrain", "프로젝트 입력 에셋이 지정되지 않았습니다. Project Settings > Input System Package에서 InputSystem_Actions를 지정하세요.", Owner);
             return;
         }
 
@@ -152,6 +150,7 @@ public class PlayerInputFeature : BrainFeature
         Vector3 forward = m_CameraTransform.forward;
         forward.y = 0f;
         forward.Normalize();
+        
         Vector3 right = m_CameraTransform.right;
         right.y = 0f;
         right.Normalize();
@@ -163,7 +162,7 @@ public class PlayerInputFeature : BrainFeature
     {
         Vector3 input = GetMoveInput();
         Vector3 fallback = input.sqrMagnitude > 0.01f ? input : Owner.transform.forward;
-        return Owner.TargetF.GetAimDirection(m_Def.AutoAimRange, fallback);
+        return Target.GetAimDirection(m_Def.AutoAimRange, fallback);
     }
 
     // 입력 방향으로, 입력이 없으면 지금 앞으로
@@ -184,6 +183,7 @@ public class PlayerInputFeature : BrainFeature
 
         float before = m_AttackHoldTime;
         m_AttackHoldTime += deltaTime;
+        
         return before < m_Def.HoldTime && m_AttackHoldTime >= m_Def.HoldTime;
     }
 

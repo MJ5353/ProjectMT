@@ -14,27 +14,29 @@ public enum EAIState
 
 // ==================================================
 
-// 몬스터 판단 층. 노릴 적을 고르고(TargetFeature에 기억) AI 상태(대기·배회·추적·도망·사망 뒤)를 돌리며 행동 층(ActionLayer)에 요청만 한다.
+// 몬스터 판단 층. 노릴 적을 고르고(Target에 기억) AI 상태(대기·배회·추적·도망·사망 뒤)를 돌리며 행동 층(ActionLayer)에 요청만 한다.
 // 공격·피격·대시 행동 중에는 판단을 쉬고, 행동이 끝나면(OnActionEnded) 다음 상태·콤보를 정한다.
 // 상태 클래스는 State/ 폴더(상태마다 파일 하나)
 
-public class AIFeature : BrainFeature
+public class MonsterBrain : BrainLayer
 {
     private readonly MonsterController m_Controller;
     private readonly StateMachine<EAIState> m_Fsm = new();
 
     public MonsterController Controller => m_Controller;
-    public EAIState State => m_Fsm.Current;
-    public float TimeInState => m_Fsm.TimeInState;
-
+    public AttackChoice AttackChoice { get; }                   // 공격 고르기·쿨
     public Vector3 HomePosition { get; private set; }           // 스폰 자리. 배회 기준
     public Vector3 LastHitDirection { get; private set; }
 
+    public EAIState State => m_Fsm.Current;
+    public float TimeInState => m_Fsm.TimeInState;
+
     // ------------------------------------------------
 
-    public AIFeature(MonsterController controller) : base(controller)
+    public MonsterBrain(MonsterController controller) : base(controller)
     {
         m_Controller = controller;
+        AttackChoice = new AttackChoice(controller.Def, controller.Def.AttackCooldown);
 
         m_Fsm.Add(EAIState.Idle, new AIIdleState(this));
         m_Fsm.Add(EAIState.Wander, new AIWanderState(this));
@@ -46,6 +48,8 @@ public class AIFeature : BrainFeature
     public override void Reset()
     {
         base.Reset();
+        AttackChoice.Reset();
+        
         HomePosition = Owner.transform.position;
         LastHitDirection = Vector3.zero;
         m_Fsm.Change(EAIState.Idle);
@@ -53,7 +57,8 @@ public class AIFeature : BrainFeature
 
     protected override void Think(float deltaTime)
     {
-        Owner.TargetF.Refresh(m_Controller.Def.SightRange);
+        AttackChoice.Tick(deltaTime);
+        Target.Refresh(m_Controller.Def.SightRange);
 
         if (IsActing())
             return;
@@ -70,8 +75,7 @@ public class AIFeature : BrainFeature
     public override void OnHit(HitParams hit)
     {
         LastHitDirection = hit.Direction;
-
-        Owner.TargetF.SetTarget(hit.Attacker);
+        Target.SetTarget(hit.Attacker);
     }
 
     public override void OnDied()
@@ -85,21 +89,25 @@ public class AIFeature : BrainFeature
         if (Owner.IsDead)
             return;
 
-        AttackChoiceFeature attackChoice = m_Controller.AttackChoiceF;
         switch (action)
         {
             case EActionType.Attack:
-                attackChoice.StartCooldown();
+            {
+                AttackChoice.StartCooldown();
                 AttackSpec comboNext = Owner.ActionLayer.ComboNext;
+
                 if (isFinished && comboNext != null)
-                    Owner.ActionLayer.RequestAttack(comboNext, Vector3.zero, Owner.TargetF.TargetTransform);
+                    Owner.ActionLayer.RequestAttack(comboNext, Vector3.zero, Target.TargetTransform);
 
                 break;
+            }
             case EActionType.Hit:
+            {
                 if (isFinished)
                     m_Fsm.Change(m_Controller.Def.FleeTime > 0f ? EAIState.Flee : EAIState.Chase);
 
                 break;
+            }
         }
     }
 

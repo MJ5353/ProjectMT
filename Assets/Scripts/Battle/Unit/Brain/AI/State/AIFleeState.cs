@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class AIFleeState : AIState
 {
-    public AIFleeState(AIFeature ai) : base(ai) { }
+    public AIFleeState(MonsterBrain ai) : base(ai) { }
 
     // ------------------------------------------------
     
@@ -23,7 +23,7 @@ public class AIFleeState : AIState
             return;
         }
 
-        Vector3 away = -TargetF.GetDirection();
+        Vector3 away = -Target.GetDirection();
         m_Controller.ActionLayer.SetMove(away, Def.FleeSpeed);
     }
 

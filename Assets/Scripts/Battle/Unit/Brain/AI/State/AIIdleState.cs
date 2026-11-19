@@ -8,7 +8,7 @@ public class AIIdleState : AIState
 
     // ------------------------------------------------
 
-    public AIIdleState(AIFeature ai) : base(ai) { }
+    public AIIdleState(MonsterBrain ai) : base(ai) { }
 
     public override void Enter()
     {
@@ -18,7 +18,7 @@ public class AIIdleState : AIState
 
     public override void Update(float deltaTime)
     {
-        if (TargetF.IsInRange(Def.SightRange))
+        if (Target.IsInRange(Def.SightRange))
         {
             m_AI.Change(EAIState.Chase);
             return;

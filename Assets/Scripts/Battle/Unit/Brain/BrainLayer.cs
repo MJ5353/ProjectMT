@@ -2,28 +2,43 @@
 // ==================================================
 
 // 판단 층의 기반(플레이어 입력·몬스터 AI). "무엇을 할지"만 정해 행동 층(ActionLayer)에 요청한다.
-// 주인이 부품 목록과 따로 들고, 매 프레임 부품 Tick → 행동 다음, 이동(LateTick) 전에 부른다.
+// Feature(부품)가 아니라 주인이 직접 들고, 매 프레임 부품 Tick → 행동 다음, 이동(LateTick) 전에 부른다.
+// 감지(대상 찾기·거리)는 Target(TargetSensor)이 맡는다.
 // 전투가 끝나면 스스로 멈추고(OnStop) 하던 행동을 정리한다. 피격·사망·행동 끝은 훅으로 받는다
 
-public abstract class BrainFeature : UnitFeature
+public abstract class BrainLayer
 {
+    protected UnitController Owner { get; }
+
+    public TargetSensor Target { get; }     // 감지: 노리는 적·가장 가까운 적·거리·조준
     public bool IsStopped { get; private set; }
 
     // ------------------------------------------------
 
-    protected BrainFeature(UnitController owner) : base(owner)
+    protected BrainLayer(UnitController owner)
     {
+        Owner = owner;
+        Target = new TargetSensor(owner);
+
         // 행동 층은 판단보다 먼저 만들어진다(UnitController.Set)
         Owner.ActionLayer.Ended += OnActionLayerEndedInternal;
     }
 
-    public override void Reset()
+    // 풀에서 꺼낼 때
+    public virtual void Reset()
     {
         IsStopped = false;
+        Target.Reset();
+    }
+
+    // 풀로 돌아갈 때
+    public virtual void Clear()
+    {
+        Target.Clear();
     }
 
     // 전투 중일 때만 판단한다. 승패가 난 프레임에 한 번 멈춘다
-    public sealed override void Tick(float deltaTime)
+    public void Tick(float deltaTime)
     {
         if (IsStopped)
             return;
@@ -50,6 +65,7 @@ public abstract class BrainFeature : UnitFeature
         Owner.ActionLayer.Interrupt();
         Owner.MoveF.Stop();
         Owner.AnimF.SetSpeed(1f);
+        
         if (Owner.IsDead == false)
             Owner.AnimF.Play(AnimKey.Idle);
     }

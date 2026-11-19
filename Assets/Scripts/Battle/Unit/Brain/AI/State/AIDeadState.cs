@@ -11,7 +11,7 @@ public class AIDeadState : AIState
 
     // ------------------------------------------------
 
-    public AIDeadState(AIFeature ai) : base(ai) { }
+    public AIDeadState(MonsterBrain ai) : base(ai) { }
 
     public override void Enter()
     {

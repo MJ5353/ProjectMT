@@ -105,7 +105,9 @@
 - AI가 BrainFeature(전투 종료 시 스스로 멈춤·피격·사망·행동 끝 훅) 도입, 플레이어 입력은 PlayerInputFeature로, 몬스터 대상·스폰 자리·행동 뒤 판단은 AIFeature로 옮김. 컨트롤러는 SetFeatures·CreateBrain만 남기고 OnUpdate·OnHit·OnDied·OnBattleEnded 폐지, HitParams.Attacker를 UnitController로 바꿔 TryGetComponent 제거.
 - 직접 통합 후보 중 팀·사망 여부·콤보 다음 타·대상(TargetFeature)·애니 이름(AnimKey)·AttackChoice 위치를 채택, 대시 수치는 스킬 통합 때로 보류. AI가 반영하고 Unit/Core·Data·Feature·Action·Brain 층별 폴더로 이동(.meta 함께, PC 스크립트).
 - 직접 "판단=Feature, 행동=Action"만으로는 정리가 안 된다고 지적. AI가 Feature를 상태·능력·입구로 나눈 역할표를 만들고, 얇은 Feature 합치기 후보(HitBox→Hit 등)를 제안.
-- 위 구조 변경은 컴파일 안 함.
+- 직접 Feature 계층(능력·상태·입구·층) 혼재가 가장 산만하다고 지적. AI가 부품·행동·판단 3층과 호출 방향 고정을 제안, 직접 Health 분리 유지와 한 덩어리씩(부품 → 행동 → 판단) 진행·단계마다 컴파일·커밋을 선택.
+- AI가 HitBox→Hit, ActionFeature→ActionLayer·Melee→AttackAction, BrainFeature→BrainLayer(Player/MonsterBrain)·Target→TargetSensor·AttackChoice→MonsterBrain 안으로 반영. 직접 프로퍼티 이름을 ActionLayer로 바꿔 판단도 BrainLayer로 맞춤.
+- 위 구조 변경은 3단계 컴파일 안 함(1·2단계는 직접 컴파일·커밋).
 
 ## 파티클 이펙트·서비스 통합
 

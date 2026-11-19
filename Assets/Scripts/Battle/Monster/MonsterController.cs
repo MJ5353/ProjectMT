@@ -3,14 +3,11 @@ using UnityEngine;
 
 // ==================================================
 
-// 몬스터 조립 허브. 몸(UnitController)에 버섯 부위·판정 모양·공격 고르기를 붙이고, 판단은 AI(AIFeature)로 둔다.
+// 몬스터 조립 허브. 몸(UnitController)에 버섯 부위·판정 모양을 붙이고, 판단은 MonsterBrain(AI 상태·공격 고르기)으로 둔다.
 // 판단 상태 클래스는 State/ 폴더(상태마다 파일 하나), 실행은 행동 층(ActionLayer), 수치는 MonsterDef
 
 public class MonsterController : UnitController<MonsterDef>
 {
-    // feature
-    public AttackChoiceFeature AttackChoiceF { get; private set; } // 공격 고르기·쿨·콤보
-    
     public override ETeam Team => ETeam.Monster;
 
     // ------------------------------------------------
@@ -22,16 +19,13 @@ public class MonsterController : UnitController<MonsterDef>
         
         // 뼈 판정 모양. 부위 번호를 쓰므로 Parts 다음
         HitF.SetShapes(Def.ListBodyShape); 
-        AttackChoiceF = AddFeature(new AttackChoiceFeature(this, Def, Def.AttackCooldown));
     }
 
-    protected override BrainFeature CreateBrain()
+    protected override BrainLayer CreateBrain()
     {
-        return new AIFeature(this);
+        return new MonsterBrain(this);
     }
 
-    // ------------------------------------------------
-    
     #region Gizmo
     
     // 씬 뷰에 몸 판정 모양(구·캡슐)과 부위 판정 구를 그린다. 선이 뼈 축 방향

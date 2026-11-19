@@ -3,7 +3,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 플레이어와 몬스터가 같이 쓰는 몸. 세 층으로 이뤄진다: 부품(Feature 목록) · 행동(ActionLayer) · 판단(BrainF).
+// 플레이어와 몬스터가 같이 쓰는 몸. 세 층으로 이뤄진다: 부품(Feature 목록) · 행동(ActionLayer) · 판단(BrainLayer).
 // 조립 순서: 공통 부품 → 행동 층 → 타입별 부품(SetFeatures) → 판단(CreateBrain).
 // 매 프레임 순서는 Tick 한 곳에 적는다: 부품 Tick → 행동 → 판단 → 부품 LateTick(이동). 호출은 판단 → 행동 → 부품 방향으로만
 // 피격·사망은 여기서 행동 층(RequestHit·RequestDead)에 바로 넘기고, 그 뒤 할 일은 판단 쪽 훅이 정한다.
@@ -20,7 +20,7 @@ public abstract class UnitController : PoolableMono
 
     // core
     private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
-    public BrainFeature BrainF { get; private set; }    // 판단 층(플레이어 입력·몬스터 AI)
+    public BrainLayer BrainLayer { get; private set; }      // 판단 층(플레이어 입력·몬스터 AI)
     public ActionLayer ActionLayer { get; private set; }    // 행동 층(이동·공격·대시·피격·사망). 판단 쪽은 여기에 요청만 한다
     
     // feature
@@ -28,7 +28,6 @@ public abstract class UnitController : PoolableMono
     public MoveFeature MoveF { get; private set; }
     public AnimFeature AnimF { get; private set; }
     public HitFeature HitF { get; private set; }
-    public TargetFeature TargetF { get; private set; }  // 대상 찾기·기억·거리
     public PartFeature PartF { get; protected set; }    // 버섯 부위. 없으면 null
     
     // get
@@ -53,11 +52,10 @@ public abstract class UnitController : PoolableMono
         AnimF = AddFeature(new AnimFeature(this, m_Property.Animator));
         HealthF = AddFeature(new HealthFeature(this, BaseDef.MaxHp));
         HitF = AddFeature(new HitFeature(this, BaseDef.Hit, m_Property.ListBodyRenderer));
-        TargetF = AddFeature(new TargetFeature(this));
         ActionLayer = new ActionLayer(this, BaseDef);
 
         SetFeatures();
-        BrainF = CreateBrain();
+        BrainLayer = CreateBrain();
 
         // 피격 반응 수치가 없으면 체력만 깎이고 반응은 없다
         if (BaseDef.Hit == null)
@@ -86,7 +84,7 @@ public abstract class UnitController : PoolableMono
         }
 
         ActionLayer.Tick(deltaTime);
-        BrainF.Tick(deltaTime);
+        BrainLayer.Tick(deltaTime);
 
         foreach (var feature in m_ListFeature)
         {
@@ -107,14 +105,14 @@ public abstract class UnitController : PoolableMono
         }
 
         ActionLayer.Reset();
-        BrainF.Reset();
+        BrainLayer.Reset();
     }
 
     public void OnDespawn()
     {
         // 풀로 돌아가기 직전
         ActorID = 0;
-        BrainF.Clear();
+        BrainLayer.Clear();
         ActionLayer.Clear();
         foreach (var feature in m_ListFeature)
         {
@@ -128,14 +126,14 @@ public abstract class UnitController : PoolableMono
         if (IsDead)
             return;
 
-        BrainF.OnHit(hit);
+        BrainLayer.OnHit(hit);
         ActionLayer.RequestHit();
     }
 
     private void OnDied()
     {
         ActionLayer.RequestDead();
-        BrainF.OnDied();
+        BrainLayer.OnDied();
     }
     
     public void Despawn()
@@ -153,9 +151,9 @@ public abstract class UnitController : PoolableMono
     
     // virtual ---
 
-    protected abstract void SetFeatures();          // 타입별 Feature 등록(부위·공격 고르기·대시 등)
+    protected abstract void SetFeatures();          // 타입별 부품 등록(부위·판정 모양·대시 등)
     
-    protected abstract BrainFeature CreateBrain();  // 판단(입력·AI)
+    protected abstract BrainLayer CreateBrain();  // 판단(입력·AI)
 
     protected virtual void OnDisable()
     {
