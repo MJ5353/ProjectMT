@@ -155,3 +155,9 @@
 - 직접 1118 점검 잔여 항목을 논의하고 입력 생성 클래스·CameraManager·씬 컨트롤러 분리를 결정, 생성 클래스는 직접 만들고 자리(InputManager·CameraManager)를 잡음.
 - AI가 InputManager·CameraManager 구현, PlayerBrain 입력·카메라 교체, ResourceManager.Load 통일, SceneController를 Base·Battle·Lobby로 나누고 씬 파일 스크립트 참조를 옮김.
 - 씬 이름 분기는 각 씬 컨트롤러가 Service를 정하는 방식으로 바꿈. 컴파일·플레이·커밋 안 함.
+
+## 저장소 문서 정리
+
+- 직접 "Records는 원격 저장소에서 수정, Rule은 남기되 중복 정리"를 지시. AI가 점검·메모 문서를 Goals(진행 중)와 Records(지난 기록)로 옮기는 안을 내고 직접 채택.
+- 기획·설계 문서는 진행 구획을 빼고 상세·결정·미정만 남김. 시장 사전정리의 확정 사항만 시장 기획서에 반영.
+- 루트 CLAUDE.md·AGENTS.md는 작업 규칙을 가리키기만 하게 바꾸고, 규칙 문서 간 중복 문장 정리. Unit 구조설계는 병행 작업 중이라 보류.
