@@ -9,7 +9,7 @@ public class HuntTabView : TabView
 {
     [Header("지도")]
     [SerializeField] private RectTransform m_MapRoot = null;
-    [SerializeField] private Button m_NodeTemplate = null;
+    [SerializeField] private UIMapNode m_NodeTemplate = null;
 
     [Header("정보")]
     [SerializeField] private TMP_Text m_InfoName = null;
@@ -20,7 +20,7 @@ public class HuntTabView : TabView
     [SerializeField] private Button m_EnterButton = null;
 
     private readonly List<MapDef> m_ListMap = new();
-    private readonly List<Button> m_ListNode = new();
+    private readonly List<UIMapNode> m_ListNode = new();
     private readonly List<UIItemSlot> m_ListMushroomSlot = new();
 
     private MapDef m_Selected;
@@ -65,19 +65,19 @@ public class HuntTabView : TabView
 
         foreach (MapDef mapDef in m_ListMap)
         {
-            Button node = Instantiate(m_NodeTemplate, m_MapRoot);
+            UIMapNode node = Instantiate(m_NodeTemplate, m_MapRoot);
             node.name = $"Node_{mapDef.ID}";
             node.gameObject.SetActive(true);
 
             RectTransform rt = (RectTransform)node.transform;
             rt.anchorMin = mapDef.MapPosition;
             rt.anchorMax = mapDef.MapPosition;
-            rt.anchoredPosition = Vector2.zero;
+            rt.anchoredPosition = ((RectTransform)m_NodeTemplate.transform).anchoredPosition; // 지도 위치에서 원본 노드 위치만큼 띄운다(로비 씬 NodeTemplate에서 조절)
 
-            node.GetComponentInChildren<TMP_Text>().text = mapDef.DisplayName;
+            node.Set(mapDef);
 
             MapDef captured = mapDef;
-            node.onClick.AddListener(() => Select(captured));
+            node.Button.onClick.AddListener(() => Select(captured));
             m_ListNode.Add(node);
         }
     }
@@ -98,15 +98,15 @@ public class HuntTabView : TabView
         for (int i = 0; i < m_ListNode.Count; i++)
         {
             MapDef mapDef = m_ListMap[i];
-            Button node = m_ListNode[i];
+            UIMapNode node = m_ListNode[i];
 
             Color color = UIStyle.PanelLight;
             if (hunt.IsCleared(mapDef))
                 color = UIStyle.Gold;
             else if (hunt.IsUnlocked(mapDef))
-                color = UIStyle.Accent;
+                color = UIStyle.Text; // 입장 가능: 평소 글자색(상아)
 
-            node.targetGraphic.color = color;
+            node.SetState(color, hunt.IsUnlocked(mapDef));
             node.transform.localScale = mapDef == m_Selected ? Vector3.one * 1.2f : Vector3.one;
         }
     }

@@ -148,6 +148,32 @@ public static class LobbyUISetup
         return view.gameObject.AddComponent<TabView>();
     }
 
+    // 지도 그림(256x144). 노드 자리(MapDef.MapPosition)에 맞춰 그려져 있어 노드 영역에 꽉 채운다. 이미 만든 로비 씬에도 쓴다
+    public static void SetMapBackground(RectTransform nodeRoot)
+    {
+        if (nodeRoot.TryGetComponent(out Image image) == false)
+            image = nodeRoot.gameObject.AddComponent<Image>();
+        image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(EditorPath.UISpriteDir + "UI_Map_Background.png");
+        image.color = Color.white;
+        image.preserveAspect = false;
+        image.raycastTarget = false;
+    }
+
+    // 노드 버튼에 지역 아이콘 칸과 UIMapNode를 붙인다. 이미 만든 로비 씬에도 쓴다
+    public static UIMapNode AddMapNode(Button node, TMP_Text nodeName)
+    {
+        RectTransform iconRt = UIBuilder.Stretch("Icon", node.transform);
+        iconRt.SetSiblingIndex(0);
+        Image icon = UIBuilder.AddImage(iconRt, Color.white);
+        icon.preserveAspect = true;
+
+        UIMapNode mapNode = node.gameObject.AddComponent<UIMapNode>();
+        UIBuilder.SetRef(mapNode, "m_Button", node);
+        UIBuilder.SetRef(mapNode, "m_Icon", icon);
+        UIBuilder.SetRef(mapNode, "m_NameLabel", nodeName); // !!) m_Name은 Object 이름과 겹쳐 직렬화가 깨진다
+        return mapNode;
+    }
+
     private static TabView BuildHuntTab(RectTransform parent)
     {
         RectTransform view = UIBuilder.Stretch("View_토벌", parent);
@@ -162,15 +188,18 @@ public static class LobbyUISetup
         mapTitle.color = UIStyle.TextDim;
 
         RectTransform nodeRoot = UIBuilder.Stretch("Nodes", map, 60f);
+        SetMapBackground(nodeRoot);
 
-        RectTransform nodeRt = UIBuilder.Anchored("NodeTemplate", nodeRoot, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(110, 110));
+        RectTransform nodeRt = UIBuilder.Anchored("NodeTemplate", nodeRoot, new Vector2(0.5f, 0.5f), new Vector2(0, 15), new Vector2(200, 200)); // 위치(0, 15)는 지도 자리에서 띄우는 거리
         nodeRt.pivot = new Vector2(0.5f, 0.5f);
-        Image nodeImage = UIBuilder.AddImage(nodeRt, UIStyle.Accent, true);
+        Image nodeImage = UIBuilder.AddImage(nodeRt, Color.clear, true); // 바탕 없이 누르는 영역만
         Button node = nodeRt.gameObject.AddComponent<Button>();
         node.targetGraphic = nodeImage;
 
-        RectTransform nodeLabelRt = UIBuilder.Rect("Name", nodeRt, Vector2.zero, new Vector2(1, 0), new Vector2(-120, -50), new Vector2(120, -8));
-        UIBuilder.Label(nodeLabelRt, "지역", UIStyle.FontSmall);
+        RectTransform nodeLabelRt = UIBuilder.Rect("Name", nodeRt, Vector2.zero, new Vector2(1, 0), new Vector2(-20, -56), new Vector2(20, -8));
+        UIBuilder.AddImage(nodeLabelRt, new Color(0f, 0f, 0f, 0.6f)); // 지도 그림 위에서 이름이 보이게
+        TMP_Text nodeName = UIBuilder.Label(nodeLabelRt, "지역", 28);
+        UIMapNode mapNode = AddMapNode(node, nodeName);
 
         // 오른쪽: 지역 정보
         RectTransform info = UIBuilder.Rect("Info", view, new Vector2(0.62f, 0f), Vector2.one, new Vector2(15, 30), new Vector2(-30, -30));
@@ -206,7 +235,7 @@ public static class LobbyUISetup
 
         HuntTabView hunt = view.gameObject.AddComponent<HuntTabView>();
         UIBuilder.SetRef(hunt, "m_MapRoot", nodeRoot);
-        UIBuilder.SetRef(hunt, "m_NodeTemplate", node);
+        UIBuilder.SetRef(hunt, "m_NodeTemplate", mapNode);
         UIBuilder.SetRef(hunt, "m_InfoName", infoName);
         UIBuilder.SetRef(hunt, "m_InfoState", infoState);
         UIBuilder.SetRef(hunt, "m_InfoDesc", infoDesc);
