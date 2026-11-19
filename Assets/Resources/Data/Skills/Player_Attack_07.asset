@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DisplayName: "\uD68C\uC624\uB9AC"
   <ID>k__BackingField: Player_Attack_07
   <Description>k__BackingField: 
-  <Icon>k__BackingField: {fileID: 0}
+  <Icon>k__BackingField: {fileID: 5641166015968763874, guid: 24a232549b704afda2315fb59fcc0181, type: 3}
   <Kind>k__BackingField: 0
   <Attack>k__BackingField:
     <Clip>k__BackingField: Attack_07

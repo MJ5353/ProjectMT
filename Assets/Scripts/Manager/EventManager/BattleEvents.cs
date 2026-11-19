@@ -43,3 +43,8 @@ public readonly struct BattleEnded
         IsWin = isWin;
     }
 }
+
+// 플레이어가 쓰러짐. 전투는 끝나지 않고 부활/귀가를 고르게 한다(BattleHud가 팝업을 띄운다)
+public readonly struct PlayerDowned
+{
+}

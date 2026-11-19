@@ -200,12 +200,12 @@ public static class BattleSetup
             cam.farClipPlane = 200f;
         }
 
-        new GameObject(nameof(BattleHud)).AddComponent<BattleHud>();
         RectTransform popupRoot = UIBuilder.CreateCanvas("BattlePopupCanvas", 110);
         MapDef mapDef = AssetDatabase.LoadAssetAtPath<MapDef>(CommonPath.DefaultMapDef);
         sceneController.EditorSetup(popupRoot, cam, mapDef);
 
-        // 결과 화면(UI 스레드 담당)
+        // 전투 HUD·결과 화면(UI 스레드 담당)
+        BattleUISetup.AddBattleHud();
         BattleUISetup.AddResultScreen();
 
         EditorSceneManager.SaveScene(scene, CommonPath.BattleScene);

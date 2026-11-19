@@ -192,3 +192,14 @@
 - 직접 "예고가 있는 몬스터 공격 전부 + 돌진 경로 사각형까지"로 결정. AI는 사각형을 다음으로 미루자고 했으나 직접 이번에 함께 하기로 함.
 - AI가 TelegraphController(흐린 범위 + 차오르는 채움)와 EffectService.ShowTelegraph/HideTelegraph를 만들고, AttackAction이 예고 시작부터 판정 시작까지 판정 자리를 바닥에 그리게 함. 돌진은 판정 구간 이동 거리만큼 긴 사각형.
 - Unity 에디터 명령으로 원·사각형 프리팹과 머티리얼(반투명 빨강)을 만듦. 시작 돌진(Lunge)·판정 뼈 자세 차이는 반영 안 함(shortcut 주석). 플레이 확인 안 함.
+
+## 전투 HUD · 전투 종료 규칙
+
+- 직접 규칙을 정함: 처치 수·승리 조건 없음, 토벌 종료는 주운 버섯 그대로, 밤 시간이 끝나면 쫓겨나고 주운 버섯은 썩은 버섯으로, 사망은 아이템 없이 부활(골드)/귀가 팝업, 팝업 중 밤 시계 정지, 스킬 아이콘은 표시만. AI는 얻은 버섯 확인을 버튼 대신 HUD 개수 표시로 제안했고 직접 채택.
+- AI가 BattleService를 끝난 방식(EBattleState: Exited·TimedOut·GaveUp)과 보상(DicReward)으로 바꾸고, MapDef.NightTime(300초)·PlayerDef.ReviveGold(100)·ReviveInvincibleTime(2초)·UnitController.Revive를 추가. 썩은 버섯은 ItemDef(Item_Rotten, Icon_Rotten)로 만듦.
+- AI가 uGUI BattleHud(밤 시계 UINightClock·체력·공격/대시 아이콘·버섯 수·토벌 종료)와 DeathPopup을 만들고, BattleUISetup.AddBattleHud로 프리팹을 만들어 전투 씬의 IMGUI HUD를 교체. 컴파일 통과, 플레이 확인 안 함.
+
+## 플레이어 스킬 아이콘
+
+- 직접 요청: 플레이어 스킬 7개(Player_Attack_01~07)에 HUD 반투명 원형 슬롯용 24px 도트 아이콘.
+- AI가 기존 HUD_Attack처럼 흰 글리프+어두운 외곽선 스타일로 Python 스크립트로 그려 Art/UI/Sprites/Icon_Player_Attack_01~07(Point, 압축 없음)에 넣고 각 SkillDef.Icon에 연결. 01 베기=초승달, 02 올려베기·03 좌로·04 우로=화살표 궤적, 05 내려찍기=칼+충격, 06 달리다 베기=칼+속도선, 07 회오리=나선. 원형 슬롯 미리보기로 모양만 점검, 게임 화면 확인 안 함.

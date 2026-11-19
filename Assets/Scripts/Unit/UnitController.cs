@@ -179,6 +179,17 @@ public class UnitController : PoolableMono
         BrainBase.OnDied();
     }
 
+    // 체력을 채우고 사망에서 일으킨다. 잠깐 무적을 줘서 일어나자마자 맞지 않게 한다
+    public void Revive(float invincibleTime)
+    {
+        if (IsDead == false)
+            return;
+
+        HealthF.Reset();
+        UnitExecutor.Revive();
+        HitF.SetInvincible(invincibleTime);
+    }
+
     public void Despawn()
     {
         UnitService units = GameManager.Instance?.UnitS;

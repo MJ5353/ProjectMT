@@ -66,6 +66,8 @@ public static class CommonPath
     public const string DefaultMapDef = MapDataDir + "Map_001_Field.asset"; // Battle 씬을 만들 때 넣는 지역
     public const string MonsterBalance = BalanceDataDir + "MonsterBalance.asset";
     public const string ResultScreenPrefab = BattleUIPrefabDir + "ResultScreen.prefab";
+    public const string BattleHudPrefab = BattleUIPrefabDir + "BattleHud.prefab";
+    public const string DeathPopupPrefab = BattleUIPrefabDir + "DeathPopup.prefab";
     public const string GaugePrefab = CommonUIPrefabDir + "UIGauge.prefab";
     public const string ItemSlotPrefab = CommonUIPrefabDir + "UIItemSlot.prefab";
     public const string ButtonPrefab = CommonUIPrefabDir + "UIButton.prefab";

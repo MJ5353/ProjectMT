@@ -58,6 +58,9 @@ public class MapDef : DataDef
     [field: SerializeField, Tooltip("플레이어가 시작할 맵 슬롯 번호")]
     public int PlayerSlot { get; private set; } = DefaultPlayerSlot;
 
+    [field: SerializeField]
+    public float NightTime { get; private set; } = 180f; // 밤 길이(초). 다 되면 쫓겨나고 주운 버섯은 썩은 버섯이 된다.
+
     [SerializeField]
     private List<SpawnEntry> m_ListSpawn = new();
 

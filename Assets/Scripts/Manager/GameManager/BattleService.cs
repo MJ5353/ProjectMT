@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,31 +7,54 @@ using UnityEngine;
 public enum EBattleState
 {
     Playing,
-    Won,
-    Lost,
+    Exited,     // 토벌 종료 버튼. 주운 버섯을 그대로 받는다
+    TimedOut,   // 밤이 끝나 쫓겨남. 주운 버섯은 썩은 버섯이 된다
+    GaveUp,     // 쓰러진 뒤 귀가. 아무것도 못 받는다
 }
 
 // ==================================================
 
-// 전투 한 판 진행. 몬스터 스폰·리스폰, 처치 수, 주운 버섯, 승패를 맡는다.
-// 끝나면 주운 버섯을 인벤토리에 넣고 게임 흐름을 결과(Result)로 넘긴다
+// [mj] todo) 위치를 옮겨야 할 것 같은데?
+// 주운 버섯 묶음 키. 같은 버섯도 신선도가 다르면 따로 센다(HUD 목록, 시장 판매가)
+public readonly struct LootKey : IEquatable<LootKey>
+{
+    public readonly string ItemID;
+    public readonly EFreshness Freshness;
+
+    public LootKey(string itemID, EFreshness freshness)
+    {
+        ItemID = itemID;
+        Freshness = freshness;
+    }
+
+    public bool Equals(LootKey other) => ItemID == other.ItemID && Freshness == other.Freshness;
+    public override bool Equals(object obj) => obj is LootKey other && Equals(other);
+    public override int GetHashCode() => HashCode.Combine(ItemID, Freshness);
+}
+
+// ==================================================
+
+// 전투 한 판(하룻밤) 진행. 몬스터 스폰·리스폰, 밤 카운트다운, 주운 버섯, 쓰러짐·부활, 끝내는 방식을 맡는다.
+// 끝나면 끝난 방식에 따라 보상을 인벤토리에 넣고 게임 흐름을 결과(Result)로 넘긴다
 public sealed class BattleService : ServiceBase
 {
     public const float SpawnLift = 0.3f; // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
     private const float RespawnBlockDistance = 15f; // 플레이어가 이보다 가까우면 리스폰을 미룬다(눈앞에 갑자기 생기지 않게)
-    private const int GoalKillCount = 10; // 이만큼 잡으면 승리 (보스가 들어오기 전 임시 조건)
     private const string DefaultPlayerID = "Player";
+    private const string GoldID = "Currency_Gold";
+    private const string RottenItemID = "Item_Rotten"; // 밤이 끝나 썩은 버섯
 
-    private readonly Dictionary<string, int> m_DicLoot = new();
+    private readonly Dictionary<LootKey, int> m_DicLoot = new(); // 주운 버섯. 신선도별
+    private readonly Dictionary<string, int> m_DicReward = new(); // 끝날 때 실제로 인벤토리에 넣은 것(결과 화면용)
     private readonly List<SpawnState> m_ListSpawn = new();
     private readonly Dictionary<int, SpawnState> m_DicSpawnByUnitID = new();
     private Transform[] m_SpawnSlots; // [i] = SpawnSlot_{i+1}. 생성한 맵에서 받는다
     private UnitController m_Player;
+    private PlayerDef m_PlayerDef;
 
     public MapDef Map { get; }
     public EBattleState State { get; private set; } = EBattleState.Playing;
-    public int KillCount { get; private set; }
-    public float ElapsedTime { get; private set; }
+    public float ElapsedTime { get; private set; } // 쓰러져 있는 동안은 흐르지 않는다
 
     // 슬롯 하나의 플레이 중 상태
     private class SpawnState
@@ -47,9 +71,14 @@ public sealed class BattleService : ServiceBase
         }
     }
     
-    public int KillGoal => GoalKillCount;
     public UnitController Player => m_Player;
-    public IReadOnlyDictionary<string, int> DicLoot => m_DicLoot;
+    public IReadOnlyDictionary<LootKey, int> DicLoot => m_DicLoot;
+    public IReadOnlyDictionary<string, int> DicReward => m_DicReward;
+    public float NightTime => Map != null ? Map.NightTime : 0f;
+    public float RemainTime => Mathf.Max(0f, NightTime - ElapsedTime);
+    public bool IsPlayerDown => m_Player != null && m_Player.IsDead;
+    public int ReviveGold => m_PlayerDef != null ? m_PlayerDef.ReviveGold : 0;
+    public bool CanRevive => IsPlayerDown && (PlayerDataManager.Instance?.Inventory.Has(GoldID, ReviveGold) ?? false);
     
     // ------------------------------------------------
 
@@ -60,11 +89,15 @@ public sealed class BattleService : ServiceBase
 
     public override void Tick(float deltaTime)
     {
-        if (State != EBattleState.Playing)
+        // 쓰러져 부활/귀가를 고르는 동안은 밤도 리스폰도 멈춘다
+        if (State != EBattleState.Playing || IsPlayerDown)
             return;
 
         ElapsedTime += deltaTime;
         UpdateRespawn(deltaTime);
+
+        if (NightTime > 0f && ElapsedTime >= NightTime)
+            End(EBattleState.TimedOut);
     }
 
     // virtual ---
@@ -78,7 +111,6 @@ public sealed class BattleService : ServiceBase
             m_Player.HealthF.Died += OnPlayerDied;
 
         GameManager.Instance.UnitS.UnitRemoved += ReleaseSpawnSlot;
-        SEventManager.Subscribe<MonsterKilled>(OnMonsterKilled);
         SEventManager.Subscribe<LootPicked>(OnLootPicked);
 
         if (Map == null)
@@ -107,7 +139,6 @@ public sealed class BattleService : ServiceBase
     public override void Clear()
     {
         GameManager.Instance.UnitS.UnitRemoved -= ReleaseSpawnSlot;
-        SEventManager.Unsubscribe<MonsterKilled>(OnMonsterKilled);
         SEventManager.Unsubscribe<LootPicked>(OnLootPicked);
 
         HealthFeature health = m_Player?.HealthF;
@@ -117,11 +148,31 @@ public sealed class BattleService : ServiceBase
         m_DicSpawnByUnitID.Clear();
         m_ListSpawn.Clear();
         m_DicLoot.Clear();
+        m_DicReward.Clear();
         m_Player = null;
+        m_PlayerDef = null;
         m_SpawnSlots = null; // 맵 오브젝트는 씬과 함께 사라진다
     }
 
     public void Retry() => GameManager.Instance?.RetryBattle();
+
+    public void ExitHunt() => End(EBattleState.Exited);
+
+    public void GiveUp() => End(EBattleState.GaveUp);
+
+    // 골드를 내고 쓰러진 플레이어를 일으킨다. 골드가 모자라면 false
+    public bool TryRevive()
+    {
+        if (State != EBattleState.Playing || IsPlayerDown == false)
+            return false;
+
+        PlayerDataManager playerDataM = PlayerDataManager.Instance;
+        if (playerDataM == null || playerDataM.Inventory.TryRemove(GoldID, ReviveGold) == false)
+            return false;
+
+        m_Player.Revive(m_PlayerDef.ReviveInvincibleTime);
+        return true;
+    }
 
     public bool TryGoLobby()
     {
@@ -166,6 +217,7 @@ public sealed class BattleService : ServiceBase
         Vector3 position = spawn != null ? spawn.position + Vector3.up * SpawnLift : Vector3.zero;
         Quaternion rotation = spawn != null ? GetSpawnRotation(spawn) : Quaternion.identity;
 
+        m_PlayerDef = playerDef;
         m_Player = GameManager.Instance.UnitS.Spawn(playerDef, position, rotation);
     }
 
@@ -235,49 +287,40 @@ public sealed class BattleService : ServiceBase
 
     #region OnAction
     
-    private void OnMonsterKilled(MonsterKilled evt)
-    {
-        if (State != EBattleState.Playing || evt.Units != GameManager.Instance.UnitS)
-            return;
-
-        ReleaseSpawnSlot(evt.UnitID);
-        KillCount++;
-        
-        if (KillCount >= GoalKillCount)
-            End(true);
-    }
-
     private void OnLootPicked(LootPicked evt)
     {
-        m_DicLoot.TryGetValue(evt.ItemID, out int count);
-        m_DicLoot[evt.ItemID] = count + evt.Amount;
+        LootKey key = new(evt.ItemID, evt.Freshness);
+        m_DicLoot.TryGetValue(key, out int count);
+        m_DicLoot[key] = count + evt.Amount;
     }
 
+    // 바로 끝내지 않고 부활/귀가를 고르게 한다(BattleHud가 팝업을 띄운다)
     private void OnPlayerDied()
     {
-        End(false);
+        if (State == EBattleState.Playing)
+            SEventManager.Publish(new PlayerDowned());
     }
     
-    private void End(bool isWin)
+    private void End(EBattleState result)
     {
         if (State != EBattleState.Playing)
             return;
 
-        State = isWin ? EBattleState.Won : EBattleState.Lost;
+        State = result;
         if (m_Player != null)
             m_Player.HealthF.Died -= OnPlayerDied;
 
-        // [mj] todo) 패배 시 보상 규칙. 지금은 주운 것을 그대로 준다
+        FillReward(result);
         PlayerDataManager playerDataM = PlayerDataManager.Instance;
         if (playerDataM != null)
         {
-            foreach (var pair in m_DicLoot)
+            foreach (var pair in m_DicReward)
             {
                 playerDataM.Inventory.Add(pair.Key, pair.Value);
             }
 
-            // 이긴 지역을 깬 것으로 표시해 다음 지역을 연다(UI 스레드 토벌 탭)
-            if (isWin)
+            // 스스로 나오면 지역을 깬 것으로 표시해 다음 지역을 연다(토벌 탭)
+            if (result == EBattleState.Exited)
                 playerDataM.Hunt.MarkCleared(Map);
 
             playerDataM.RunSave();
@@ -287,7 +330,27 @@ public sealed class BattleService : ServiceBase
         if (gameM != null && gameM.Current == EGameState.Battle)
             gameM.ChangeState(EGameState.Result);
 
-        SEventManager.Publish(new BattleEnded(isWin));
+        SEventManager.Publish(new BattleEnded(result == EBattleState.Exited));
+    }
+
+    // 토벌 종료는 주운 그대로, 밤이 끝나면 주운 개수만큼 썩은 버섯, 귀가는 빈손
+    private void FillReward(EBattleState result)
+    {
+        m_DicReward.Clear();
+        int total = 0;
+        foreach (var pair in m_DicLoot)
+        {
+            total += pair.Value;
+            // [mj] todo) 인벤토리는 아직 신선도를 모른다. 시장이 들어오면 신선도별로 넘긴다
+            if (result == EBattleState.Exited)
+            {
+                m_DicReward.TryGetValue(pair.Key.ItemID, out int count);
+                m_DicReward[pair.Key.ItemID] = count + pair.Value;
+            }
+        }
+
+        if (result == EBattleState.TimedOut && total > 0)
+            m_DicReward[RottenItemID] = total;
     }
     
     #endregion

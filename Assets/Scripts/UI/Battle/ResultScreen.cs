@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// 전투 결과 화면. BattleEnded를 받으면 열리고, BattleService에서 시간·처치 수·주운 버섯을 읽어 보여 준다.
+// 전투 결과 화면. BattleEnded를 받으면 열리고, BattleService에서 끝난 방식·시간·받은 보상(DicReward)을 읽어 보여 준다.
 // [mj] todo) 신선 등급은 전투 쪽 데이터(ListLootGrade 가안)가 확정되면 칸 뱃지로 붙인다
 public class ResultScreen : MonoBehaviour
 {
@@ -60,12 +60,16 @@ public class ResultScreen : MonoBehaviour
         if (battleM == null || IsOpen)
             return;
 
-        bool isWin = battleM.State == EBattleState.Won;
-        m_Title.text = isWin ? "사냥 성공" : "쓰러졌다";
-        m_Title.color = isWin ? UIStyle.Gold : UIStyle.Accent;
-        m_Summary.text = $"시간 {FormatTime(battleM.ElapsedTime)}  ·  처치 {battleM.KillCount}";
+        m_Title.text = battleM.State switch
+        {
+            EBattleState.Exited => "토벌 종료",
+            EBattleState.TimedOut => "날이 밝았다",
+            _ => "빈손으로 귀가",
+        };
+        m_Title.color = battleM.State == EBattleState.Exited ? UIStyle.Gold : UIStyle.Accent;
+        m_Summary.text = $"시간 {FormatTime(battleM.ElapsedTime)}";
 
-        FillLoot(battleM.DicLoot);
+        FillLoot(battleM.DicReward);
         m_LobbyButton.gameObject.SetActive(Application.CanStreamedLevelBeLoaded(SceneNames.Lobby));
         SetButtonsInteractable(true);
 

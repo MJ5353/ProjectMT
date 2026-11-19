@@ -130,6 +130,13 @@ public class UnitExecutor
             Change(m_Dead);
     }
 
+    // 사망에서 대기로 되돌린다(부활). 사망은 무엇에도 끊기지 않아서 따로 연다
+    public void Revive()
+    {
+        if (m_Current == m_Dead)
+            Change(m_Move);
+    }
+
     // 이동(대기) 중일 때만 따른다. 방향은 수평으로 펴서 정규화한다. speed가 0이면 멈춰서 Idle
     public void SetMove(Vector3 direction, float speed, bool isRun = false)
     {
