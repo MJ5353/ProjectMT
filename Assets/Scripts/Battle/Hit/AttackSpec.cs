@@ -56,6 +56,9 @@ public class AttackSpec
     [field: SerializeField]
     public EBattlePartType HitPart { get; private set; } = EBattlePartType.None; // 판정 중심 부위 뼈. None이면 몸 앞(Height·Reach)
 
+    [field: SerializeField]
+    public AttackEffect Effect { get; private set; } = null; // 판정이 처음 열릴 때 판정 자리에 터지는 이펙트 프리팹. 판정 반지름만큼 커진다. 없으면 안 띄움
+
     // 몬스터 공격 고르기 --- 플레이어는 쓰지 않는다
     [field: SerializeField]
     public float MinRange { get; private set; } = 0f; // 대상이 이 거리 이상일 때만 고른다

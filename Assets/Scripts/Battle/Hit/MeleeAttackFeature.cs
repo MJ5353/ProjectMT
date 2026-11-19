@@ -122,6 +122,9 @@ public class MeleeAttackFeature : UnitFeature
         if (IsActive(time) == false)
             return 0;
 
+        if (m_IsTicked == false)
+            PlayEffect(m_Spec);
+
         m_IsTicked = true;
         if (m_Spec.RehitTime > 0f)
         {
@@ -134,6 +137,21 @@ public class MeleeAttackFeature : UnitFeature
         }
 
         return Perform(m_Spec);
+    }
+
+    // 판정 자리(땅 이펙트는 발밑)에 주인 방향으로 터뜨리고 판정 반지름만큼 키운다
+    private void PlayEffect(AttackSpec spec)
+    {
+        if (spec.Effect == null || ResourceManager.Instance == null)
+            return;
+
+        Transform owner = Owner.transform;
+        Vector3 position = GetCenter(owner, spec, Owner.Property.GetBattleBone(spec.HitPart));
+        if (spec.Effect.IsOnGround)
+            position.y = owner.position.y;
+
+        AttackEffect effect = ResourceManager.Instance.Spawn(spec.Effect, position, owner.rotation);
+        effect.transform.localScale = Vector3.one * spec.Radius;
     }
 
     private int Perform(AttackSpec spec)

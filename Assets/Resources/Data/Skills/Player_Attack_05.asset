@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c30f063eebc4d8b44992c73572b58eb1, type: 3}
   m_Name: Player_Attack_05
   m_EditorClassIdentifier: Assembly-CSharp::SkillDef
-  m_DisplayName: 막타 내려찍기
+  m_DisplayName: "\uB9C9\uD0C0 \uB0B4\uB824\uCC0D\uAE30"
   <ID>k__BackingField: Player_Attack_05
   <Description>k__BackingField: 
   <Icon>k__BackingField: {fileID: 0}
@@ -29,9 +29,12 @@ MonoBehaviour:
     <HitStop>k__BackingField: 0.1
     <Lunge>k__BackingField: 2
     <ActiveMoveSpeed>k__BackingField: 0
+    <RehitFrame>k__BackingField: 0
     <HitPart>k__BackingField: 0
+    <Effect>k__BackingField: {fileID: 5762958463423829920, guid: 63cbf305382d6a046a238b16ca84a167, type: 3}
     <MinRange>k__BackingField: 0
     <MaxRange>k__BackingField: 1.4
     <Cooldown>k__BackingField: 0
     <Weight>k__BackingField: 1
     <WindupTime>k__BackingField: 0
+    <Next>k__BackingField: {fileID: 0}

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c30f063eebc4d8b44992c73572b58eb1, type: 3}
   m_Name: Player_Attack_06
   m_EditorClassIdentifier: Assembly-CSharp::SkillDef
-  m_DisplayName: 달리다 베기
+  m_DisplayName: "\uB2EC\uB9AC\uB2E4 \uBCA0\uAE30"
   <ID>k__BackingField: Player_Attack_06
   <Description>k__BackingField: 
   <Icon>k__BackingField: {fileID: 0}
@@ -29,9 +29,12 @@ MonoBehaviour:
     <HitStop>k__BackingField: 0.07
     <Lunge>k__BackingField: 3
     <ActiveMoveSpeed>k__BackingField: 6
+    <RehitFrame>k__BackingField: 0
     <HitPart>k__BackingField: 0
+    <Effect>k__BackingField: {fileID: 8226906484477910167, guid: b571e8786a335df40bb7af2196fdb879, type: 3}
     <MinRange>k__BackingField: 0
     <MaxRange>k__BackingField: 1.4
     <Cooldown>k__BackingField: 0
     <Weight>k__BackingField: 1
     <WindupTime>k__BackingField: 0
+    <Next>k__BackingField: {fileID: 0}

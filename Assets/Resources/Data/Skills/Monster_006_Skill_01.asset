@@ -29,9 +29,12 @@ MonoBehaviour:
     <HitStop>k__BackingField: 0.06
     <Lunge>k__BackingField: 0
     <ActiveMoveSpeed>k__BackingField: 0
+    <RehitFrame>k__BackingField: 0
     <HitPart>k__BackingField: 0
+    <Effect>k__BackingField: {fileID: 5762958463423829920, guid: 63cbf305382d6a046a238b16ca84a167, type: 3}
     <MinRange>k__BackingField: 0
     <MaxRange>k__BackingField: 1.4
     <Cooldown>k__BackingField: 5
     <Weight>k__BackingField: 1
     <WindupTime>k__BackingField: 0.45
+    <Next>k__BackingField: {fileID: 0}

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c30f063eebc4d8b44992c73572b58eb1, type: 3}
   m_Name: Player_Attack_04
   m_EditorClassIdentifier: Assembly-CSharp::SkillDef
-  m_DisplayName: 우로 베기
+  m_DisplayName: "\uC6B0\uB85C \uBCA0\uAE30"
   <ID>k__BackingField: Player_Attack_04
   <Description>k__BackingField: 
   <Icon>k__BackingField: {fileID: 0}
@@ -29,7 +29,9 @@ MonoBehaviour:
     <HitStop>k__BackingField: 0.05
     <Lunge>k__BackingField: 1
     <ActiveMoveSpeed>k__BackingField: 0
+    <RehitFrame>k__BackingField: 0
     <HitPart>k__BackingField: 0
+    <Effect>k__BackingField: {fileID: 8226906484477910167, guid: b571e8786a335df40bb7af2196fdb879, type: 3}
     <MinRange>k__BackingField: 0
     <MaxRange>k__BackingField: 1.4
     <Cooldown>k__BackingField: 0

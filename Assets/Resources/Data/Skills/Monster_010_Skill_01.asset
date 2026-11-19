@@ -23,15 +23,18 @@ MonoBehaviour:
     m_HitFrame: 21
     <HitEndFrame>k__BackingField: 0
     <Reach>k__BackingField: 1
-    <Radius>k__BackingField: 1.0
+    <Radius>k__BackingField: 1
     <Height>k__BackingField: 0.6
     <Knockback>k__BackingField: 6
     <HitStop>k__BackingField: 0.06
     <Lunge>k__BackingField: 0
     <ActiveMoveSpeed>k__BackingField: 0
+    <RehitFrame>k__BackingField: 0
     <HitPart>k__BackingField: 2
+    <Effect>k__BackingField: {fileID: 8226906484477910167, guid: b571e8786a335df40bb7af2196fdb879, type: 3}
     <MinRange>k__BackingField: 0
     <MaxRange>k__BackingField: 1.5
     <Cooldown>k__BackingField: 5
     <Weight>k__BackingField: 1
     <WindupTime>k__BackingField: 0
+    <Next>k__BackingField: {fileID: 0}
