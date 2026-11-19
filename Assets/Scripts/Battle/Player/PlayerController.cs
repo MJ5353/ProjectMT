@@ -11,8 +11,8 @@ public class PlayerController : UnitController<PlayerDef>
 
     protected override void SetFeatures()
     {
-        Action.EnableDash(Def.DashSpeed, Def.DashTime, Def.DashCooldown, Def.IsDashInvincible, Def.DashAnimSpeed);
-        Action.Attack.CancelDelay = Def.CancelDelay;
+        ActionLayer.EnableDash(Def.DashSpeed, Def.DashTime, Def.DashCooldown, Def.IsDashInvincible, Def.DashAnimSpeed);
+        ActionLayer.Attack.CancelDelay = Def.CancelDelay;
     }
 
     protected override BrainFeature CreateBrain()

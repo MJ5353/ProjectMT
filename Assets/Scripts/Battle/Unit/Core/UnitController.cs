@@ -12,27 +12,27 @@ using UnityEngine;
 
 public abstract class UnitController : PoolableMono
 {
-    public int ActorID { get; private set; }                // ActorService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
-    protected abstract UnitDef BaseDef { get; }             // 몸 수치. 타입 있는 Def는 UnitController<TDef>.Def
+    public int ActorID { get; private set; }    // ActorService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
+    protected abstract UnitDef BaseDef { get; } // 몸 수치. 타입 있는 Def는 UnitController<TDef>.Def
     public abstract ETeam Team { get; }
 
-    [SerializeField] private UnitProperty m_Property = null;     // 프리팹 참조(몸·애니·렌더러·부위 뼈·소켓)
+    [SerializeField] private UnitProperty m_Property = null;    // 프리팹 참조(몸·애니·렌더러·부위 뼈·소켓)
 
-    // feature
+    // core
     private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
+    public BrainFeature BrainF { get; private set; }    // 판단 층(플레이어 입력·몬스터 AI)
+    public ActionLayer ActionLayer { get; private set; }    // 행동 층(이동·공격·대시·피격·사망). 판단 쪽은 여기에 요청만 한다
+    
+    // feature
     public HealthFeature HealthF { get; private set; }
     public MoveFeature MoveF { get; private set; }
     public AnimFeature AnimF { get; private set; }
     public HitFeature HitF { get; private set; }
-    public TargetFeature TargetF { get; private set; }      // 대상 찾기·기억·거리
+    public TargetFeature TargetF { get; private set; }  // 대상 찾기·기억·거리
+    public PartFeature PartF { get; protected set; }    // 버섯 부위. 없으면 null
     
-    // layer
-    public ActionLayer Action { get; private set; }         // 행동 층(이동·공격·대시·피격·사망). 판단 쪽은 여기에 요청만 한다
-    public BrainFeature BrainF { get; private set; }        // 판단 층(플레이어 입력·몬스터 AI)
-    public PartFeature PartF { get; protected set; }        // 버섯 부위. 없으면 null
-
     // get
-    public bool IsDead => HealthF.IsDead;                   // 사망 여부는 밖에서 여기로만 본다
+    public bool IsDead => HealthF.IsDead;   // 사망 여부는 밖에서 여기로만 본다
     public UnitProperty Property => m_Property;
     public Transform VisualRoot => m_Property.Animator.transform;
     public CharacterController HurtBody => m_Property.CharacterController;
@@ -54,7 +54,7 @@ public abstract class UnitController : PoolableMono
         HealthF = AddFeature(new HealthFeature(this, BaseDef.MaxHp));
         HitF = AddFeature(new HitFeature(this, BaseDef.Hit, m_Property.ListBodyRenderer));
         TargetF = AddFeature(new TargetFeature(this));
-        Action = new ActionLayer(this, BaseDef);
+        ActionLayer = new ActionLayer(this, BaseDef);
 
         SetFeatures();
         BrainF = CreateBrain();
@@ -85,7 +85,7 @@ public abstract class UnitController : PoolableMono
             feature.Tick(feature.IsUnscaledTime ? unscaledDeltaTime : deltaTime);
         }
 
-        Action.Tick(deltaTime);
+        ActionLayer.Tick(deltaTime);
         BrainF.Tick(deltaTime);
 
         foreach (var feature in m_ListFeature)
@@ -106,7 +106,7 @@ public abstract class UnitController : PoolableMono
             feature.Reset();
         }
 
-        Action.Reset();
+        ActionLayer.Reset();
         BrainF.Reset();
     }
 
@@ -115,7 +115,7 @@ public abstract class UnitController : PoolableMono
         // 풀로 돌아가기 직전
         ActorID = 0;
         BrainF.Clear();
-        Action.Clear();
+        ActionLayer.Clear();
         foreach (var feature in m_ListFeature)
         {
             feature.Clear();
@@ -129,12 +129,12 @@ public abstract class UnitController : PoolableMono
             return;
 
         BrainF.OnHit(hit);
-        Action.RequestHit();
+        ActionLayer.RequestHit();
     }
 
     private void OnDied()
     {
-        Action.RequestDead();
+        ActionLayer.RequestDead();
         BrainF.OnDied();
     }
     

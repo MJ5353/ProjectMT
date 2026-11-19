@@ -33,6 +33,6 @@ public class AIWanderState : AIState
             return;
         }
 
-        m_Controller.Action.SetMove(diff, Def.WanderSpeed);
+        m_Controller.ActionLayer.SetMove(diff, Def.WanderSpeed);
     }
 }

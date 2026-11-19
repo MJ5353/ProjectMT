@@ -90,9 +90,9 @@ public class AIFeature : BrainFeature
         {
             case EActionType.Attack:
                 attackChoice.StartCooldown();
-                AttackSpec comboNext = Owner.Action.ComboNext;
+                AttackSpec comboNext = Owner.ActionLayer.ComboNext;
                 if (isFinished && comboNext != null)
-                    Owner.Action.RequestAttack(comboNext, Vector3.zero, Owner.TargetF.TargetTransform);
+                    Owner.ActionLayer.RequestAttack(comboNext, Vector3.zero, Owner.TargetF.TargetTransform);
 
                 break;
             case EActionType.Hit:
@@ -114,7 +114,7 @@ public class AIFeature : BrainFeature
     // 공격·피격·대시는 행동 층이 끝까지 맡는다. 사망은 사망 뒤 처리(드롭·사라짐)를 위해 판단을 계속 돈다
     private bool IsActing()
     {
-        EActionType action = Owner.Action.Current;
+        EActionType action = Owner.ActionLayer.Current;
         return action == EActionType.Attack || action == EActionType.Hit || action == EActionType.Dash;
     }
 }

@@ -14,7 +14,7 @@ public abstract class BrainFeature : UnitFeature
     protected BrainFeature(UnitController owner) : base(owner)
     {
         // 행동 층은 판단보다 먼저 만들어진다(UnitController.Set)
-        Owner.Action.Ended += OnActionEndedInternal;
+        Owner.ActionLayer.Ended += OnActionLayerEndedInternal;
     }
 
     public override void Reset()
@@ -47,7 +47,7 @@ public abstract class BrainFeature : UnitFeature
         IsStopped = true;
         OnStop();
 
-        Owner.Action.Interrupt();
+        Owner.ActionLayer.Interrupt();
         Owner.MoveF.Stop();
         Owner.AnimF.SetSpeed(1f);
         if (Owner.IsDead == false)
@@ -56,7 +56,7 @@ public abstract class BrainFeature : UnitFeature
 
     // ==================================================
 
-    private void OnActionEndedInternal(EActionType action, bool isFinished)
+    private void OnActionLayerEndedInternal(EActionType action, bool isFinished)
     {
         if (IsStopped)
             return;

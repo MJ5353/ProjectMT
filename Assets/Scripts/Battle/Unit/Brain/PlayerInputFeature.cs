@@ -55,7 +55,7 @@ public class PlayerInputFeature : BrainFeature
             return;
 
         AttackSpec pressedAttack = GetPressedAttack(deltaTime);
-        if (m_DashAction.WasPressedThisFrame() && Owner.Action.RequestDash(GetDashDirection()))
+        if (m_DashAction.WasPressedThisFrame() && Owner.ActionLayer.RequestDash(GetDashDirection()))
             return;
 
         UpdateAttackInput(pressedAttack);
@@ -86,7 +86,7 @@ public class PlayerInputFeature : BrainFeature
     // 대기 중엔 바로, 공격 중엔 판정 시작 뒤 누른 것만 다음 타로 예약한다. 행동 층이 끊기를 허락해도 보낸다
     private void UpdateAttackInput(AttackSpec pressedAttack)
     {
-        ActionLayer action = Owner.Action;
+        ActionLayer action = Owner.ActionLayer;
         bool canBuffer = action.IsIdle || (action.Current == EActionType.Attack && action.Attack.CanBufferNext);
         if (pressedAttack != null && canBuffer)
             m_QueuedAttack = pressedAttack;
@@ -104,7 +104,7 @@ public class PlayerInputFeature : BrainFeature
         Vector3 input = GetMoveInput();
         float strength = Mathf.Clamp01(input.magnitude);
         float speed = strength < 0.1f ? 0f : m_Def.MoveSpeed * strength;
-        Owner.Action.SetMove(input, speed, strength >= m_Def.RunThreshold);
+        Owner.ActionLayer.SetMove(input, speed, strength >= m_Def.RunThreshold);
     }
 
     // get ---
@@ -128,7 +128,7 @@ public class PlayerInputFeature : BrainFeature
     // 달리는 중이면 달리다 베기, 아니면 콤보 다음 타. 콤보가 없으면 기본 공격
     private AttackSpec GetNextAttack()
     {
-        ActionLayer action = Owner.Action;
+        ActionLayer action = Owner.ActionLayer;
         if (action.IsIdle && m_Def.RunAttack != null && GetMoveInput().magnitude >= m_Def.RunThreshold)
             return m_Def.RunAttack.Attack;
 
