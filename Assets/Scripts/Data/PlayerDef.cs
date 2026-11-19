@@ -7,9 +7,6 @@ using UnityEngine.Serialization;
 [CreateAssetMenu(menuName = "MushTaker/Data/Player", fileName = "Player")]
 public class PlayerDef : UnitDef
 {
-    [field: SerializeField, FormerlySerializedAs("m_Prefab")]
-    public UnitController Prefab { get; private set; } = null;
-
     // 이동 --- 속도는 UnitDef.MoveSpeed
     [field: SerializeField, FormerlySerializedAs("m_RunThreshold")]
     public float RunThreshold { get; private set; } = 0.6f;    // 입력 세기가 이 값 이상이면 Run 애니
@@ -72,8 +69,4 @@ public class PlayerDef : UnitDef
     {
         return new PlayerBrain(unit, this);
     }
-
-#if UNITY_EDITOR
-    public void EditorSetPrefab(UnitController prefab) => Prefab = prefab;
-#endif
 }

@@ -26,14 +26,15 @@ public sealed class UnitService : ServiceBase
 
     // ------------------------------------------------
 
-    public T Spawn<T>(T prefab, Vector3 position, Quaternion rotation) where T : UnitController
+    // Def의 프리팹(몸)으로 만들고 Def를 넘긴다
+    public UnitController Spawn(UnitDef def, Vector3 position, Quaternion rotation)
     {
-        if (prefab == null)
+        if (def == null)
             return null;
 
         int unitID = ++m_LastUnitID;
         
-        T unit = m_Factory.Create(prefab, position, rotation, unitID);
+        UnitController unit = m_Factory.Create(def, position, rotation, unitID);
         if (unit == null)
             return null;
 

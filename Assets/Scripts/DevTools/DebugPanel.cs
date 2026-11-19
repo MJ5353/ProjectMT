@@ -90,7 +90,7 @@ public class DebugPanel : MonoBehaviour
 
         Vector3 forward = Vector3.ProjectOnPlane(player.forward, Vector3.up).normalized;
         Vector3 position = player.position + forward * distance + Vector3.up * BattleService.SpawnLift;
-        units.Spawn(def.Prefab, position, Quaternion.LookRotation(-forward, Vector3.up));
+        units.Spawn(def, position, Quaternion.LookRotation(-forward, Vector3.up));
     }
 
     public static MapDef GetDefaultMap(GameDatabase database)

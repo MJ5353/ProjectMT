@@ -106,10 +106,7 @@ public class MonsterDef : UnitDef
 
     // ------------------------------------------------
     
-    // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽고, 구운 프리팹을 Prefab에 채운다
-    [field: SerializeField]
-    public UnitController Prefab { get; private set; } = null;
-
+    // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽고, 구운 프리팹을 Prefab(UnitDef)에 채운다
     [field: SerializeField, FormerlySerializedAs("m_ModelName")]
     public string ModelName { get; private set; } = null;    // Art/Voxel/Models 아래 FBX 이름. 비면 에셋 이름(Monster_Xxx)의 Xxx
 
@@ -212,8 +209,6 @@ public class MonsterDef : UnitDef
     {
         m_ListDrop = listDrop;
     }
-
-    public void EditorSetPrefab(UnitController prefab) => Prefab = prefab;
 
     public void EditorSetParts(List<PartEntry> listPart)
     {

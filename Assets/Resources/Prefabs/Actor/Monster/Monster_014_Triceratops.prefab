@@ -100,7 +100,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d785ecba86e9c884197efe22e112424e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitController
-  m_Def: {fileID: 11400000, guid: 34b898b005297b34dbc4953ef94f853b, type: 2}
   m_Property: {fileID: 5698552969493646115}
 --- !u!1001 &7374360235843883172
 PrefabInstance:

@@ -145,7 +145,6 @@ public static class BattleSetup
 
         UnitController unit = root.AddComponent<UnitController>();
         SerializedObject so = new SerializedObject(unit);
-        so.FindProperty("m_Def").objectReferenceValue = def;
         so.FindProperty("m_Property").objectReferenceValue = property;
         so.ApplyModifiedPropertiesWithoutUndo();
         return root;

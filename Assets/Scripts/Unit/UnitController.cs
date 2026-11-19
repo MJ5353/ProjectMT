@@ -8,13 +8,13 @@ using UnityEngine;
 // 조립 순서: 공통 부품 → 실행기 → Def별 부품(Def.SetFeatures) → 판단(Def.CreateBrain).
 // 매 프레임 순서는 Tick 한 곳에 적는다: 부품 Tick → 실행기 → 판단 → 부품 LateTick(이동). 호출은 판단 → 실행기 → 부품 방향으로만
 // 피격·사망은 여기서 실행기(RequestHit·RequestDead)에 바로 넘기고, 그 뒤 할 일은 판단 쪽 훅이 정한다.
-// 직렬화 참조 둘은 에디터 메뉴(BattleSetup)가 프리팹을 만들 때 채운다. 프리팹 안의 참조는 UnitProperty에 모은다
+// 프리팹은 몸(UnitProperty)만 갖고, Def는 스폰 때 UnitFactory가 OnSpawn으로 넘긴다(같은 몸에 다른 Def 가능).
+// UnitProperty 참조는 에디터 메뉴(BattleSetup)가 프리팹을 만들 때 채운다
 
 public class UnitController : PoolableMono
 {
     public int UnitID { get; private set; }    // UnitService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
 
-    [SerializeField] private UnitDef m_Def = null;              // 수치 데이터(PlayerDef·MonsterDef). 직렬화 이름이 합치기 전과 같아 프리팹 데이터 유지
     [SerializeField] private UnitProperty m_Property = null;    // 프리팹 참조(몸·애니·렌더러·부위 뼈·소켓)
 
     // core
@@ -30,8 +30,8 @@ public class UnitController : PoolableMono
     public PartFeature PartF { get; private set; }    // 버섯 부위. 없으면 null(SetPartFeature로 붙인다)
 
     // get
-    public UnitDef Def => m_Def;
-    public ETeam Team => m_Def.Team;
+    public UnitDef Def { get; private set; }    // 수치 데이터(PlayerDef·MonsterDef). OnSpawn에서 받는다
+    public ETeam Team => Def.Team;
     public bool IsDead => HealthF.IsDead;   // 사망 여부는 밖에서 여기로만 본다
     public UnitProperty Property => m_Property;
     public Transform VisualRoot => m_Property.Animator.transform;
@@ -41,26 +41,26 @@ public class UnitController : PoolableMono
 
     private void Set()
     {
-        if (m_Def == null || m_Property == null)
+        if (m_Property == null)
         {
-            CLogger.Error(GetType().Name, $"Def 또는 UnitProperty가 비어 있습니다(프리팹 다시 굽기): {name}", this);
+            CLogger.Error(GetType().Name, $"UnitProperty가 비어 있습니다(프리팹 다시 굽기): {name}", this);
             enabled = false;
 
             return;
         }
 
-        MoveF = AddFeature(new MoveFeature(this, m_Property.CharacterController, m_Def.TurnSpeed));
+        MoveF = AddFeature(new MoveFeature(this, m_Property.CharacterController, Def.TurnSpeed));
         AnimF = AddFeature(new AnimFeature(this, m_Property.Animator));
-        HealthF = AddFeature(new HealthFeature(this, m_Def.MaxHp));
-        HitF = AddFeature(new HitFeature(this, m_Def.Hit, m_Property.ListBodyRenderer));
-        UnitExecutor = new UnitExecutor(this, m_Def);
+        HealthF = AddFeature(new HealthFeature(this, Def.MaxHp));
+        HitF = AddFeature(new HitFeature(this, Def.Hit, m_Property.ListBodyRenderer));
+        UnitExecutor = new UnitExecutor(this, Def);
 
-        m_Def.SetFeatures(this);
-        BrainBase = m_Def.CreateBrain(this);
+        Def.SetFeatures(this);
+        BrainBase = Def.CreateBrain(this);
 
         // 피격 반응 수치가 없으면 체력만 깎이고 반응은 없다
-        if (m_Def.Hit == null)
-            CLogger.Warning(GetType().Name, $"{m_Def.name}의 HitDef가 비어 있어 피격 반응이 없습니다", this);
+        if (Def.Hit == null)
+            CLogger.Warning(GetType().Name, $"{Def.name}의 HitDef가 비어 있어 피격 반응이 없습니다", this);
 
         HitF.Hit += OnHit;
         HealthF.Died += OnDied;
@@ -99,11 +99,46 @@ public class UnitController : PoolableMono
         }
     }
 
-    public void OnSpawn(int unitID)
+    // 이전 조립을 버린다. 옛 부품끼리의 구독은 부품째 버려지고, 컨트롤러 쪽 구독만 푼다
+    private void Unset()
     {
-        // UnitFactory가 풀에서 꺼낸 직후. 처음 상태로 되돌린다
-        if (m_ListFeature.Count == 0)
+        if (HitF != null)
+            HitF.Hit -= OnHit;
+
+        if (HealthF != null)
+            HealthF.Died -= OnDied;
+
+        m_ListFeature.Clear();
+        HealthF = null;
+        MoveF = null;
+        AnimF = null;
+        HitF = null;
+        PartF = null;
+        UnitExecutor = null;
+        BrainBase = null;
+    }
+
+    // UnitFactory가 풀에서 꺼낸 직후. Def가 바뀌었으면(또는 처음이면) 다시 조립하고, 처음 상태로 되돌린다
+    public void OnSpawn(int unitID, UnitDef def)
+    {
+        if (def == null)
+        {
+            CLogger.Error(GetType().Name, $"스폰할 Def가 비어 있습니다: {name}", this);
+            enabled = false;
+
+            return;
+        }
+
+        if (def != Def || m_ListFeature.Count == 0)
+        {
+            Unset();
+            Def = def;
+            enabled = true;
             Set();
+
+            if (enabled == false)
+                return;
+        }
 
         UnitID = unitID;
         foreach (var feature in m_ListFeature)
@@ -119,8 +154,8 @@ public class UnitController : PoolableMono
     {
         // 풀로 돌아가기 직전
         UnitID = 0;
-        BrainBase.Clear();
-        UnitExecutor.Clear();
+        BrainBase?.Clear();      // 조립 실패(Def·UnitProperty 없음)로 비어 있을 수 있다
+        UnitExecutor?.Clear();
         foreach (var feature in m_ListFeature)
         {
             feature.Clear();
@@ -171,7 +206,8 @@ public class UnitController : PoolableMono
 
     private void OnDrawGizmosSelected()
     {
-        if (m_Def == null || m_Property == null)
+        // 스폰 전(에디터에서 프리팹을 볼 때)은 Def가 없어 그리지 않는다
+        if (Def == null || m_Property == null)
             return;
 
         Gizmos.color = new Color(1f, 0.3f, 0.2f, 0.6f);
@@ -182,7 +218,7 @@ public class UnitController : PoolableMono
         }
 
 #if UNITY_EDITOR
-        m_Def.DrawGizmos(this);
+        Def.DrawGizmos(this);
 #endif
     }
 
@@ -192,7 +228,7 @@ public class UnitController : PoolableMono
     private List<AttackSpec> GetAttacks()
     {
         List<AttackSpec> listAttack = new();
-        m_Def.CollectAttacks(listAttack);
+        Def.CollectAttacks(listAttack);
         return listAttack;
     }
 

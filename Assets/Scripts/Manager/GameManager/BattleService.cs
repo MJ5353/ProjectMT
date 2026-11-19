@@ -169,7 +169,7 @@ public sealed class BattleService : ServiceBase
         Vector3 position = spawn != null ? spawn.position + Vector3.up * SpawnLift : Vector3.zero;
         Quaternion rotation = spawn != null ? GetSpawnRotation(spawn) : Quaternion.identity;
 
-        m_Player = GameManager.Instance.UnitS.Spawn(playerDef.Prefab, position, rotation);
+        m_Player = GameManager.Instance.UnitS.Spawn(playerDef, position, rotation);
     }
 
     // 슬롯 번호(1부터) → 맵 지점
@@ -196,7 +196,7 @@ public sealed class BattleService : ServiceBase
 
     private void Spawn(SpawnState spawn)
     {
-        UnitController controller = GameManager.Instance.UnitS.Spawn(spawn.Entry.Monster.Prefab, spawn.Point.position + Vector3.up * SpawnLift, GetSpawnRotation(spawn.Point));
+        UnitController controller = GameManager.Instance.UnitS.Spawn(spawn.Entry.Monster, spawn.Point.position + Vector3.up * SpawnLift, GetSpawnRotation(spawn.Point));
         if (controller == null)
             return;
 
