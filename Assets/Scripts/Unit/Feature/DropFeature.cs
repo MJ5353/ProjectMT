@@ -44,7 +44,7 @@ public class DropFeature : UnitFeature
             {
                 MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, origin, Quaternion.identity);
                 Vector2 spread = Random.insideUnitCircle * Define.MonsterDropSpread;
-                pickup.Launch(new Vector3(spread.x, Define.MonsterDropUpSpeed, spread.y), EFreshness.Low);
+                pickup.Launch(new Vector3(spread.x, Define.MonsterDropUpSpeed, spread.y), EFreshness.Low, BattleService.RollRarity());
             }
         }
     }

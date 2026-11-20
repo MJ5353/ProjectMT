@@ -3,15 +3,6 @@ using UnityEngine.Serialization;
 
 // ==================================================
 
-public enum ERarity
-{
-    Common,
-    Rare,
-    Epic,
-}
-
-// ==================================================
-
 // 버섯 정의. 재배 시간, 수확량, 강화치 등은 기획 표가 정해지면 추가한다
 [CreateAssetMenu(menuName = "MushTaker/Data/Mushroom", fileName = "Mushroom_")]
 public class MushroomDef : DataDef
@@ -21,13 +12,10 @@ public class MushroomDef : DataDef
     [field: SerializeField, Tooltip("도감 번호. 이름의 NNN과 같게 둔다(Mushroom_001_Songi → 1)")]
     public int DexNo { get; private set; } = 0;
 
-    [field: SerializeField, FormerlySerializedAs("m_Rarity")]
-    public ERarity Rarity { get; private set; } = ERarity.Common;
-
     [field: SerializeField, FormerlySerializedAs("m_Tint")]
     public Color Tint { get; private set; } = Color.white;
 
-    [field: SerializeField, Tooltip("시장 기본가(골드). 상인 배율·신선도·신뢰도가 곱해진다")]
+    [field: SerializeField, Tooltip("시장 기본가(골드). 상인 배율·희귀도·신선도·신뢰도가 곱해진다")]
     public int Price { get; private set; } = 10; // [mj] todo) 가안
 
     // 모델·픽업 이름에 쓰는 키

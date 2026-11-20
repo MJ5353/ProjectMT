@@ -278,7 +278,7 @@ public class PartFeature : UnitFeature
             MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, position, Quaternion.identity);
             
             Vector2 spread = Random.insideUnitCircle * Define.PartDropSpread;
-            pickup.Launch(new Vector3(spread.x, Define.PartDropUpSpeed, spread.y), freshness);
+            pickup.Launch(new Vector3(spread.x, Define.PartDropUpSpeed, spread.y), freshness, BattleService.RollRarity());
         }
     }
 

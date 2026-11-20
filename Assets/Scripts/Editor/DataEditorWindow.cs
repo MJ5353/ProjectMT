@@ -266,7 +266,7 @@ public sealed class DataEditorWindow : EditorWindow
         else if (type == typeof(MushroomDef))
         {
             AddPropertyColumn(nameof(MushroomDef.DexNo), "도감 번호", 75f);
-            AddPropertyColumn(nameof(MushroomDef.Rarity), "등급", 100f);
+            AddPropertyColumn(nameof(MushroomDef.Price), "기본가", 70f);
             AddPropertyColumn(nameof(MushroomDef.Tint), "색상", 100f);
             AddLabelColumn("픽업", 80f, def => MushroomPickupBuilder.LoadPickup((MushroomDef)def) != null ? "있음" : "빌드 필요");
         }

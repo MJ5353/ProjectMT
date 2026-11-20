@@ -124,12 +124,12 @@ public static class DataEditorChecks
             created.EditorSetIdentity(name + "_CustomID", "직접 수정한 이름");
             using (SerializedObject serializedDef = new SerializedObject(created))
             {
-                DataEditorUtility.FindProperty(serializedDef, nameof(MushroomDef.Rarity)).enumValueIndex = (int)ERarity.Rare;
+                DataEditorUtility.FindProperty(serializedDef, nameof(MushroomDef.Price)).intValue = 77;
                 serializedDef.ApplyModifiedProperties();
             }
             AssetDatabase.SaveAssetIfDirty(created);
             Require(string.IsNullOrEmpty(AssetDatabase.RenameAsset(defPath, name)), "임시 Def 이름 변경 실패");
-            Require(MushroomDefBuilder.CreateDef(model) == created && created.DisplayName == "직접 수정한 이름" && created.Rarity == ERarity.Rare, "재등록이 기존 값을 덮어씀");
+            Require(MushroomDefBuilder.CreateDef(model) == created && created.DisplayName == "직접 수정한 이름" && created.Price == 77, "재등록이 기존 값을 덮어씀");
             Require(MushroomDefBuilder.FindUnregisteredModels(DataTools.CollectDefs().OfType<MushroomDef>()).Contains(model) == false, "같은 도감 번호가 중복 제안됨");
             AssetDatabase.ImportAsset(renamedPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
             Require(AssetDatabase.LoadAssetAtPath<MushroomDef>(renamedPath).DexNo == dexNo, "저장 후 도감 번호 유지 실패");

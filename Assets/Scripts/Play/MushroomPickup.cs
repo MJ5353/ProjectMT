@@ -9,6 +9,14 @@ public enum EFreshness
     Low,
 }
 
+// 버섯 희귀도. 떨어질 때 지역(MapDef) 가중치로 정해진다
+public enum ERarity
+{
+    Common,
+    Rare,
+    Epic,
+}
+
 // ==================================================
 
 // 바닥에 떨어진 버섯. 튀어 올랐다 떨어진 뒤, 플레이어가 가까이 오면 빨려 들어가 주워진다.
@@ -30,6 +38,7 @@ public class MushroomPickup : PoolableMono
 
     public string ItemID => m_ItemID;
     public EFreshness Freshness { get; private set; }
+    public ERarity Rarity { get; private set; }
 
     // ------------------------------------------------
 
@@ -56,9 +65,10 @@ public class MushroomPickup : PoolableMono
             m_IsMagnet = true;
     }
 
-    public void Launch(Vector3 velocity, EFreshness freshness)
+    public void Launch(Vector3 velocity, EFreshness freshness, ERarity rarity)
     {
         Freshness = freshness;
+        Rarity = rarity;
         m_Velocity = velocity;
         m_IsLanded = false;
         m_IsMagnet = false;
@@ -126,7 +136,7 @@ public class MushroomPickup : PoolableMono
 
     private void Collect()
     {
-        SEventManager.Publish(new LootPicked(m_ItemID, m_Amount, Freshness));
+        SEventManager.Publish(new LootPicked(m_ItemID, m_Amount, Freshness, Rarity));
         EffectService effectS = GameManager.Instance?.EffectS;
         effectS?.Play(effectS.Pickup, transform.position, Quaternion.identity);
         

@@ -25,12 +25,14 @@ public readonly struct LootPicked
     public readonly string ItemID;
     public readonly int Amount;
     public readonly EFreshness Freshness;
+    public readonly ERarity Rarity;
 
-    public LootPicked(string itemID, int amount, EFreshness freshness)
+    public LootPicked(string itemID, int amount, EFreshness freshness, ERarity rarity)
     {
         ItemID = itemID;
         Amount = amount;
         Freshness = freshness;
+        Rarity = rarity;
     }
 }
 

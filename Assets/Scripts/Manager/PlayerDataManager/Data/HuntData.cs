@@ -17,21 +17,23 @@ public enum EMarketResult
 
 // ==================================================
 
-// 주운 버섯 묶음 키. 같은 버섯도 신선도가 다르면 따로 센다(HUD 목록, 시장 판매가)
+// 주운 버섯 묶음 키. 같은 버섯도 신선도·희귀도가 다르면 따로 센다(HUD 목록, 시장 판매가)
 public readonly struct LootKey : System.IEquatable<LootKey>
 {
     public readonly string ItemID;
     public readonly EFreshness Freshness;
+    public readonly ERarity Rarity;
 
-    public LootKey(string itemID, EFreshness freshness)
+    public LootKey(string itemID, EFreshness freshness, ERarity rarity)
     {
         ItemID = itemID;
         Freshness = freshness;
+        Rarity = rarity;
     }
 
-    public bool Equals(LootKey other) => ItemID == other.ItemID && Freshness == other.Freshness;
+    public bool Equals(LootKey other) => ItemID == other.ItemID && Freshness == other.Freshness && Rarity == other.Rarity;
     public override bool Equals(object obj) => obj is LootKey other && Equals(other);
-    public override int GetHashCode() => System.HashCode.Combine(ItemID, Freshness);
+    public override int GetHashCode() => System.HashCode.Combine(ItemID, Freshness, Rarity);
 }
 
 // ==================================================
@@ -273,7 +275,7 @@ public class HuntData : PlayerDataBase
         if (database == null || database.TryGet(key.ItemID, out MushroomDef mushroom) == false)
             return 0;
 
-        return m_Market.GetPrice(merchant, mushroom, key.Freshness, GetSwingRate(merchant));
+        return m_Market.GetPrice(merchant, mushroom, key.Rarity, key.Freshness, GetSwingRate(merchant));
     }
 
     // 상인의 오늘 시세 배율. 시장을 연 직후는 1
@@ -312,31 +314,12 @@ public class HuntData : PlayerDataBase
         int count = Mathf.Min(Define.MarketMerchantCount, m_ListCandidate.Count);
         for (int i = 0; i < count; ++i)
         {
-            int index = PickCandidate();
+            int index = Mathf.Max(0, CRandom.PickIndex(m_ListCandidate, m_Market.GetVisitWeight)); // 가중치가 모두 0이면 앞에서부터
             m_ListMerchant.Add(m_ListCandidate[index]);
             m_ListCandidate.RemoveAt(index);
         }
 
         m_ListCandidate.Clear();
-    }
-
-    private int PickCandidate()
-    {
-        float total = 0f;
-        foreach (MerchantDef merchant in m_ListCandidate)
-        {
-            total += m_Market.GetVisitWeight(merchant);
-        }
-
-        float roll = Random.value * total;
-        for (int i = 0; i < m_ListCandidate.Count; ++i)
-        {
-            roll -= m_Market.GetVisitWeight(m_ListCandidate[i]);
-            if (roll <= 0f)
-                return i;
-        }
-
-        return m_ListCandidate.Count - 1;
     }
 
     private void ClearMarket()

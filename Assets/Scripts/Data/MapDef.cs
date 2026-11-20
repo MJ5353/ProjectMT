@@ -33,11 +33,31 @@ public class MapDef : DataDef
         }
     }
 
+    // 희귀도 하나의 드롭 가중치
+    [Serializable]
+    public class RarityWeight
+    {
+        [field: SerializeField]
+        public ERarity Rarity { get; private set; } = ERarity.Common;
+
+        [field: SerializeField, Tooltip("다른 희귀도와의 비율. 합이 100일 필요는 없다")]
+        public float Weight { get; private set; } = 0f;
+
+        // ------------------------------------------------
+
+        public RarityWeight(ERarity rarity, float weight)
+        {
+            Rarity = rarity;
+            Weight = weight;
+        }
+    }
+
     public const string SpawnSlotPrefix = "SpawnSlot_"; // 맵 FBX의 스폰 지점 이름(SpawnSlot_001~)
     public const int DefaultPlayerSlot = 1;
 
     public IReadOnlyList<SpawnEntry> ListSpawn => m_ListSpawn;
     public IReadOnlyList<MushroomDef> ListMushroom => m_ListMushroom;
+    public IReadOnlyList<RarityWeight> ListRarityWeight => m_ListRarityWeight;
     public string ClearFlag => $"Clear_{ID}";
     public string PrefabPath => CommonPath.MapDir + ID; // 전투 때 생성할 맵. MapPrefabBuilder가 ID와 같은 이름으로 굽는다
 
@@ -64,7 +84,22 @@ public class MapDef : DataDef
     [SerializeField]
     private List<SpawnEntry> m_ListSpawn = new();
 
+    [SerializeField, Tooltip("이 지역에서 떨어지는 버섯의 희귀도 가중치. [mj] todo) 가안")]
+    private List<RarityWeight> m_ListRarityWeight = new()
+    {
+        new RarityWeight(ERarity.Common, 80f),
+        new RarityWeight(ERarity.Rare, 17f),
+        new RarityWeight(ERarity.Epic, 3f),
+    };
+
     // ------------------------------------------------
+
+    // 떨어지는 버섯 하나의 희귀도를 가중치로 뽑는다. 표가 비었거나 가중치가 모두 0이면 Common
+    public ERarity RollRarity()
+    {
+        int index = CRandom.PickIndex(m_ListRarityWeight, entry => entry.Weight);
+        return index >= 0 ? m_ListRarityWeight[index].Rarity : ERarity.Common;
+    }
 
     public static string GetSlotName(int slot) => $"{SpawnSlotPrefix}{slot:000}";
 

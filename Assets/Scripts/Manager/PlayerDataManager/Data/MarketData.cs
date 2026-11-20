@@ -69,13 +69,13 @@ public class MarketData : PlayerDataBase
         return Mathf.Max(0f, merchant.VisitWeight) * (1f + GetTrust(merchant.ID) * Define.TrustVisitRate);
     }
 
-    // 버섯 하나 값 = 기본가 × 상인 배율 × 신선도 배율 × 신뢰도 보정 × 오늘 시세(swingRate). 0이면 이 상인은 사지 않는다
-    public int GetPrice(MerchantDef merchant, MushroomDef mushroom, EFreshness freshness, float swingRate = 1f)
+    // 버섯 하나 값 = 기본가 × 상인 배율(희귀도 기준) × 신선도 배율 × 신뢰도 보정 × 오늘 시세(swingRate). 0이면 이 상인은 사지 않는다
+    public int GetPrice(MerchantDef merchant, MushroomDef mushroom, ERarity rarity, EFreshness freshness, float swingRate = 1f)
     {
         if (merchant == null || mushroom == null)
             return 0;
 
-        float rate = merchant.GetRate(mushroom.Rarity);
+        float rate = merchant.GetRate(rarity);
         if (rate <= 0f || mushroom.Price <= 0)
             return 0;
 

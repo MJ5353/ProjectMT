@@ -142,6 +142,13 @@ public sealed class BattleService : ServiceBase
 
     public void Retry() => GameManager.Instance?.RetryBattle();
 
+    // 떨어지는 버섯 하나의 희귀도. 지금 지역(MapDef)의 가중치로 굴린다. 전투 밖이면 Common
+    public static ERarity RollRarity()
+    {
+        MapDef map = GameManager.Instance?.BattleS?.Map;
+        return map != null ? map.RollRarity() : ERarity.Common;
+    }
+
     public void ExitHunt() => End(EBattleState.Exited);
 
     public void GiveUp() => End(EBattleState.GaveUp);
@@ -273,7 +280,7 @@ public sealed class BattleService : ServiceBase
     
     private void OnLootPicked(LootPicked evt)
     {
-        LootKey key = new(evt.ItemID, evt.Freshness);
+        LootKey key = new(evt.ItemID, evt.Freshness, evt.Rarity);
         m_DicLoot.TryGetValue(key, out int count);
         m_DicLoot[key] = count + evt.Amount;
     }
@@ -320,7 +327,7 @@ public sealed class BattleService : ServiceBase
             {
                 MushroomPickup pickup = resourceM.Spawn(prefab, origin, Quaternion.identity);
                 Vector2 spread = UnityEngine.Random.insideUnitCircle * Define.DownDropSpread;
-                pickup.Launch(new Vector3(spread.x, Define.DownDropUpSpeed, spread.y), pair.Key.Freshness);
+                pickup.Launch(new Vector3(spread.x, Define.DownDropUpSpeed, spread.y), pair.Key.Freshness, pair.Key.Rarity);
             }
         }
 
