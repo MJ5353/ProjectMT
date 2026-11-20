@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,26 +9,6 @@ public enum EBattleState
     Exited,     // 토벌 종료 버튼. 주운 버섯을 그대로 받는다
     TimedOut,   // 밤이 끝나 쫓겨남. 주운 버섯은 썩은 버섯이 된다
     GaveUp,     // 쓰러진 뒤 귀가. 아무것도 못 받는다
-}
-
-// ==================================================
-
-// [mj] todo) 위치를 옮겨야 할 것 같은데?
-// 주운 버섯 묶음 키. 같은 버섯도 신선도가 다르면 따로 센다(HUD 목록, 시장 판매가)
-public readonly struct LootKey : IEquatable<LootKey>
-{
-    public readonly string ItemID;
-    public readonly EFreshness Freshness;
-
-    public LootKey(string itemID, EFreshness freshness)
-    {
-        ItemID = itemID;
-        Freshness = freshness;
-    }
-
-    public bool Equals(LootKey other) => ItemID == other.ItemID && Freshness == other.Freshness;
-    public override bool Equals(object obj) => obj is LootKey other && Equals(other);
-    public override int GetHashCode() => HashCode.Combine(ItemID, Freshness);
 }
 
 // ==================================================
@@ -167,7 +146,6 @@ public sealed class BattleService : ServiceBase
 
     public void GiveUp() => End(EBattleState.GaveUp);
 
-    // 골드를 내고 쓰러진 플레이어를 일으킨다. 골드가 모자라면 false
     public bool TryRevive()
     {
         if (State != EBattleState.Playing || IsPlayerDown == false)

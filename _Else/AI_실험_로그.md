@@ -260,3 +260,4 @@
 - AI에 시장 데이터와 로직 초안을 맡김: MerchantDef, MarketData(상인 신뢰도 저장), HuntData의 하룻밤 시장 상태와 요청(Trade·Wait·EndMarket), Define 시장 수치, SaveData v4, 샘플 상인 메뉴.
 - AI가 처음 낸 MarketService·MarketRule 분리안은 직접 거절함. 시장은 팝업이고 시간이 결정 단위로만 흘러 서비스가 필요 없고, 나중에 서버로 옮길 부분이라 PlayerData(HuntData)가 상태와 결과를 갖고 UI는 요청만 보내도록 정함.
 - 거래 한 번에 최대 5개, 밤 15초 차감(표기 30분). 경쟁·담합·수집가 시간대·떠돌이 주문은 최소판에서 뺌. 컴파일·플레이 확인 안 함.
+- 30분 기다리기는 AI 초안(상인 다시 뽑기)을 고쳐, 상인별 가격 변동으로 바꾸도록 직접 지시함. 변동 폭은 MerchantDef.PriceSwing에 둠.

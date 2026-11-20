@@ -17,6 +17,25 @@ public enum EMarketResult
 
 // ==================================================
 
+// 주운 버섯 묶음 키. 같은 버섯도 신선도가 다르면 따로 센다(HUD 목록, 시장 판매가)
+public readonly struct LootKey : System.IEquatable<LootKey>
+{
+    public readonly string ItemID;
+    public readonly EFreshness Freshness;
+
+    public LootKey(string itemID, EFreshness freshness)
+    {
+        ItemID = itemID;
+        Freshness = freshness;
+    }
+
+    public bool Equals(LootKey other) => ItemID == other.ItemID && Freshness == other.Freshness;
+    public override bool Equals(object obj) => obj is LootKey other && Equals(other);
+    public override int GetHashCode() => System.HashCode.Combine(ItemID, Freshness);
+}
+
+// ==================================================
+
 // 거래 한 번에 파는 버섯 한 묶음
 public readonly struct MarketItem
 {
@@ -44,6 +63,7 @@ public class HuntData : PlayerDataBase
     private readonly Dictionary<LootKey, int> m_DicHarvest = new();   // 아직 못 판 버섯
     private readonly List<MerchantDef> m_ListMerchant = new();        // 오늘 와 있는 상인
     private readonly Dictionary<string, int> m_DicTrustGain = new();  // 시장이 닫힐 때 반영할 신뢰도
+    private readonly Dictionary<string, float> m_DicSwingRate = new(); // 상인별 오늘 시세 배율. 기다릴 때마다 MerchantDef.PriceSwing 폭으로 바뀐다
     private readonly Dictionary<LootKey, int> m_DicPick = new();      // 거래 검사용. 같은 버섯을 나눠 골라도 합쳐 센다
     private readonly List<MerchantDef> m_ListCandidate = new();       // 상인 뽑기용
 
@@ -203,13 +223,17 @@ public class HuntData : PlayerDataBase
         return EMarketResult.Success;
     }
 
-    // 30분 기다리기. 최소판은 상인을 다시 뽑는다
+    // 30분 기다리기. 상인마다 시세가 바뀐다
     public EMarketResult Wait()
     {
         if (CanAct == false)
             return EMarketResult.Closed;
 
-        RollMerchants();
+        foreach (MerchantDef merchant in m_ListMerchant)
+        {
+            m_DicSwingRate[merchant.ID] = merchant.RollSwingRate();
+        }
+
         SpendTime();
         return EMarketResult.Success;
     }
@@ -249,7 +273,16 @@ public class HuntData : PlayerDataBase
         if (database == null || database.TryGet(key.ItemID, out MushroomDef mushroom) == false)
             return 0;
 
-        return m_Market.GetPrice(merchant, mushroom, key.Freshness);
+        return m_Market.GetPrice(merchant, mushroom, key.Freshness, GetSwingRate(merchant));
+    }
+
+    // 상인의 오늘 시세 배율. 시장을 연 직후는 1
+    public float GetSwingRate(MerchantDef merchant)
+    {
+        if (merchant == null)
+            return 1f;
+
+        return m_DicSwingRate.TryGetValue(merchant.ID, out float rate) ? rate : 1f;
     }
 
     private void SpendTime()
@@ -317,6 +350,7 @@ public class HuntData : PlayerDataBase
         m_DicHarvest.Clear();
         m_ListMerchant.Clear();
         m_DicTrustGain.Clear();
+        m_DicSwingRate.Clear();
         m_DicPick.Clear();
         m_ListCandidate.Clear();
     }
