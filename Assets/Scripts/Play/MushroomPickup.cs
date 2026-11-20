@@ -35,6 +35,7 @@ public class MushroomPickup : PoolableMono
     private bool m_IsMagnet;
     private float m_Age;
     private float m_GroundY;
+    private EffectController m_Beam;    // 희귀도 빛기둥(Rare·Epic만). 땅에 닿으면 켜고 주울 때 끈다
 
     public string ItemID => m_ItemID;
     public EFreshness Freshness { get; private set; }
@@ -62,7 +63,10 @@ public class MushroomPickup : PoolableMono
             UpdateIdle(deltaTime);
 
         if (m_Age >= Define.PickupActivateDelay && IsPlayerNear())
+        {
             m_IsMagnet = true;
+            HideBeam();
+        }
     }
 
     public void Launch(Vector3 velocity, EFreshness freshness, ERarity rarity)
@@ -73,6 +77,14 @@ public class MushroomPickup : PoolableMono
         m_IsLanded = false;
         m_IsMagnet = false;
         m_Age = 0f;
+        HideBeam();
+    }
+
+    // virtual ---
+
+    public override void OnPoolDespawn()
+    {
+        HideBeam();
     }
 
     // ==================================================
@@ -94,6 +106,7 @@ public class MushroomPickup : PoolableMono
             next.y = hitInfo.point.y;
             m_GroundY = next.y;
             m_IsLanded = true;
+            ShowBeam(next);
         }
 
         transform.position = next;
@@ -132,6 +145,31 @@ public class MushroomPickup : PoolableMono
             return false;
 
         return Vector3.Distance(player.transform.position, transform.position) <= Define.PickupRadius;
+    }
+
+    // 희귀도 빛기둥. 색은 희귀도별 프리팹에 박혀 있다
+    private void ShowBeam(Vector3 groundPosition)
+    {
+        string path = Rarity switch
+        {
+            ERarity.Rare => CommonPath.RarityBeamRare,
+            ERarity.Epic => CommonPath.RarityBeamEpic,
+            _ => null,
+        };
+
+        if (path == null || ResourceManager.Instance == null)
+            return;
+
+        EffectController prefab = ResourceManager.Instance.Load<EffectController>(path);
+        m_Beam = ResourceManager.Instance.Spawn(prefab, groundPosition, Quaternion.identity);
+    }
+
+    private void HideBeam()
+    {
+        if (m_Beam != null)
+            ResourceManager.S_Despawn(m_Beam);
+
+        m_Beam = null;
     }
 
     private void Collect()

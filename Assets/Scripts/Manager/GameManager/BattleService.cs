@@ -6,7 +6,8 @@ using UnityEngine;
 public enum EBattleState
 {
     Playing,
-    Exited,     // 토벌 종료 버튼. 주운 버섯을 그대로 받는다
+    Market,     // 토벌 종료 뒤 현장 시장. 밤과 전투가 멈추고, 시장이 닫히면 Exited로 끝난다
+    Exited,     // 토벌 종료. 시장에서 판 골드와 못 판 버섯(썩은 버섯)을 받는다
     TimedOut,   // 밤이 끝나 쫓겨남. 주운 버섯은 썩은 버섯이 된다
     GaveUp,     // 쓰러진 뒤 귀가. 아무것도 못 받는다
 }
@@ -14,7 +15,8 @@ public enum EBattleState
 // ==================================================
 
 // 전투 한 판(하룻밤) 진행. 몬스터 스폰·리스폰, 밤 카운트다운, 주운 버섯, 쓰러짐·부활, 끝내는 방식을 맡는다.
-// 끝나면 끝난 방식에 따라 보상을 인벤토리에 넣고 게임 흐름을 결과(Result)로 넘긴다
+// 끝나면 끝난 방식에 따라 보상을 인벤토리에 넣고 게임 흐름을 결과(Result)로 넘긴다.
+// 토벌 종료는 바로 끝내지 않고 현장 시장(HuntData)을 연다. 시장이 열린 동안은 시간을 멈추고(TimeManager), MarketClosed를 받으면 끝낸다
 public sealed class BattleService : ServiceBase
 {
     public const float SpawnLift = 0.3f; // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
@@ -127,6 +129,11 @@ public sealed class BattleService : ServiceBase
     {
         GameManager.Instance.UnitS.UnitRemoved -= ReleaseSpawnSlot;
         SEventManager.Unsubscribe<LootPicked>(OnLootPicked);
+        SEventManager.Unsubscribe<MarketClosed>(OnMarketClosed);
+
+        // 시장 도중 씬이 바뀌어도 멈춘 시간이 남지 않게 한다
+        if (State == EBattleState.Market)
+            TimeManager.Instance?.SetPause(false);
 
         HealthFeature health = m_Player?.HealthF;
         if (health != null)
@@ -149,7 +156,24 @@ public sealed class BattleService : ServiceBase
         return map != null ? map.RollRarity() : ERarity.Common;
     }
 
-    public void ExitHunt() => End(EBattleState.Exited);
+    // 토벌 종료 버튼. isMarket이면 시장을 열고(팝업은 BattleHud가 띄운다), 아니면 주운 버섯을 그대로 받고 끝낸다
+    public void ExitHunt(bool isMarket = true)
+    {
+        if (State != EBattleState.Playing || IsPlayerDown)
+            return;
+
+        HuntData hunt = PlayerDataManager.Instance?.Hunt;
+        if (isMarket == false || hunt == null)
+        {
+            End(EBattleState.Exited);
+            return;
+        }
+
+        State = EBattleState.Market;
+        TimeManager.Instance?.SetPause(true);
+        SEventManager.Subscribe<MarketClosed>(OnMarketClosed);
+        hunt.BeginMarket(m_DicLoot, RemainTime, NightTime);
+    }
 
     public void GiveUp() => End(EBattleState.GaveUp);
 
@@ -334,22 +358,43 @@ public sealed class BattleService : ServiceBase
         m_DicLoot.Clear();
     }
     
+    // 시장이 닫혔다(시장 닫기 또는 밤이 다 감). 골드·썩은 버섯·신뢰도는 HuntData가 이미 넣었다. 결과 화면용으로만 남긴다
+    private void OnMarketClosed(MarketClosed evt)
+    {
+        SEventManager.Unsubscribe<MarketClosed>(OnMarketClosed);
+        TimeManager.Instance?.SetPause(false);
+
+        m_DicReward.Clear();
+        if (evt.Gold > 0)
+            m_DicReward[GoldID] = evt.Gold;
+        if (evt.RottenCount > 0)
+            m_DicReward[RottenItemID] = evt.RottenCount;
+
+        End(EBattleState.Exited);
+    }
+
     private void End(EBattleState result)
     {
-        if (State != EBattleState.Playing)
+        if (State != EBattleState.Playing && State != EBattleState.Market)
             return;
 
+        bool isFromMarket = State == EBattleState.Market;
         State = result;
         if (m_Player != null)
             m_Player.HealthF.Died -= OnPlayerDied;
 
-        FillReward(result);
         PlayerDataManager playerDataM = PlayerDataManager.Instance;
+        if (isFromMarket == false)
+            FillReward(result);
+
         if (playerDataM != null)
         {
-            foreach (var pair in m_DicReward)
+            if (isFromMarket == false)
             {
-                playerDataM.Inventory.Add(pair.Key, pair.Value);
+                foreach (var pair in m_DicReward)
+                {
+                    playerDataM.Inventory.Add(pair.Key, pair.Value);
+                }
             }
 
             // 스스로 나오면 지역을 깬 것으로 표시해 다음 지역을 연다(토벌 탭)
@@ -366,7 +411,7 @@ public sealed class BattleService : ServiceBase
         SEventManager.Publish(new BattleEnded(result == EBattleState.Exited));
     }
 
-    // 토벌 종료는 주운 그대로, 밤이 끝나면 주운 개수만큼 썩은 버섯, 귀가는 빈손
+    // 시장 없이 끝낼 때. 토벌 종료(시장 팝업이 없을 때)는 주운 그대로, 밤이 끝나면 주운 개수만큼 썩은 버섯, 귀가는 빈손
     private void FillReward(EBattleState result)
     {
         m_DicReward.Clear();
