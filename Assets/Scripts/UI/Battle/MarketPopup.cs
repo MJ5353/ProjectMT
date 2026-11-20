@@ -12,14 +12,14 @@ using UnityEngine.InputSystem;
 
 // 토벌 종료 뒤 현장 시장 팝업. 왼쪽 오늘 온 상인, 가운데 고른 상인, 오른쪽 위 고른 버섯·합계·[거래], 오른쪽 아래 남은 버섯.
 // 계산과 결과는 HuntData가 정하고 여기서는 요청(Trade·Wait·EndMarket)만 보낸다. 시장이 닫히면(MarketClosed) 스스로 닫힌다.
-// 열릴 때: 시계의 남은 시간이 화면 가운데로 날아와 주르륵 줄고, 그 아래 "지금 가면... n시간 n분은 거래할 수 있겠어!"가 후루룩 오른 뒤 본 화면이 나타난다. 누르면 바로 넘어간다.
+// 열릴 때: 시계의 남은 시간이 화면 가운데로 날아와 주르륵 줄고, 그 아래 "지금 가면... n시간 n분은 거래할 수 있겠어!"가 후루룩 오른다.
+// 연출 중에 누르면 끝 모습으로 건너뛰고, 끝 모습에서 한 번 더 누르면 연출을 닫고 본 화면이 나타난다.
 // 결과 화면 전환과 저장은 MarketClosed를 받은 쪽(BattleService)이 한다
 
 public class MarketPopup : Popup
 {
     private const float IntroMoveTime = 0.9f;   // 남은 시간이 가운데로 날아오는 시간
     private const float IntroCountTime = 2.4f;  // 남은 시간이 줄고 시장 시간이 오르는 시간
-    private const float IntroHoldTime = 1.2f;
     private const float FadeTime = 0.4f;
     private const int IntroBigSize = UIStyle.FontTitle;
 
@@ -66,7 +66,7 @@ public class MarketPopup : Popup
 
     private int m_SelectedIndex;
     private bool m_IsIntro;     // 시작 연출 중
-    private bool m_IsSkipIntro; // 연출 중 화면을 눌렀다. 끝 모습으로 바로 넘어간다
+    private bool m_IsSkipIntro; // 연출 중 화면을 눌렀다. 움직이는 중이면 끝 모습으로, 끝 모습이면 닫는다
 
     private static HuntData Hunt => PlayerDataManager.Instance?.Hunt;
     private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
@@ -501,9 +501,11 @@ public class MarketPopup : Popup
             yield return null;
         }
 
+        // 끝 모습에서 멈춰 있다가, 한 번 더 누르면 닫는다
         m_IntroTimer.text = UINightClock.FormatRealTime(0);
-        m_IntroMessage.text = FormatIntro(minutes);
-        for (float t = 0f; t < IntroHoldTime && m_IsSkipIntro == false; t += Time.unscaledDeltaTime)
+        m_IntroMessage.text = $"{FormatIntro(minutes)}\n<size={UIStyle.FontSmall}><color=#A9B39C>눌러서 계속</color></size>";
+        m_IsSkipIntro = false;
+        while (m_IsSkipIntro == false)
         {
             yield return null;
         }
