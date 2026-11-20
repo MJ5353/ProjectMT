@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 // ==================================================
 
-// 전투 HUD. 좌상단 밤 시계, 중앙 하단 체력, 공격·대시 아이콘(사용 중, 연계는 UISkillChain), 우상단 주운 버섯 목록(신선도별), 토벌 종료 버튼.
+// 전투 HUD. 좌상단 밤 시계, 중앙 하단 체력, 공격·대시 아이콘(사용 중, 연계는 UISkillChain), 우상단 주운 버섯 목록(신선도별), 토벌 종료 버튼(현장 시장 팝업).
 // 매 프레임 BattleService·플레이어를 읽어 그린다. 플레이어가 쓰러지면 부활/귀가 팝업을 띄운다
 
 public class BattleHud : MonoBehaviour
@@ -18,6 +18,7 @@ public class BattleHud : MonoBehaviour
     [SerializeField] private UILootRow m_LootRowTemplate = null; // 목록 밖에 꺼 둔 줄 원본
     [SerializeField] private Button m_ExitButton = null;
     [SerializeField] private DeathPopup m_DeathPopupPrefab = null;
+    [SerializeField] private MarketPopup m_MarketPopupPrefab = null; // 토벌 종료 뒤 현장 시장. 없으면 시장 없이 끝낸다
 
     private int m_LastHp = -1;
     private int m_LastLoot = -1;
@@ -146,9 +147,21 @@ public class BattleHud : MonoBehaviour
         }
     }
 
+    // 시장을 열고 팝업을 띄운다
     private void OnClickExit()
     {
-        GameManager.Instance?.BattleS?.ExitHunt();
+        GameManager gameM = GameManager.Instance;
+        BattleService battleS = gameM?.BattleS;
+        if (battleS == null)
+            return;
+
+        bool isMarket = m_MarketPopupPrefab != null;
+        if (isMarket == false)
+            CLogger.Warning("BattleHud", "시장 팝업 프리팹이 없어 시장 없이 끝냅니다. MushTaker/시장/시장 팝업 만들기를 실행하세요.");
+
+        battleS.ExitHunt(isMarket);
+        if (battleS.State == EBattleState.Market)
+            gameM.PopupS?.Open(m_MarketPopupPrefab);
     }
 
     private void OnPlayerDowned(PlayerDowned evt)

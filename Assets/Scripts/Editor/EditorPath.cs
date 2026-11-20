@@ -44,6 +44,7 @@ public static class EditorPath
     public const string ResultScreenPrefab = BattleUIPrefabDir + "ResultScreen.prefab";
     public const string BattleHudPrefab = BattleUIPrefabDir + "BattleHud.prefab";
     public const string DeathPopupPrefab = BattleUIPrefabDir + "DeathPopup.prefab";
+    public const string MarketPopupPrefab = BattleUIPrefabDir + "MarketPopup.prefab";
     public const string GaugePrefab = CommonUIPrefabDir + "UIGauge.prefab";
     public const string ItemSlotPrefab = CommonUIPrefabDir + "UIItemSlot.prefab";
     public const string ButtonPrefab = CommonUIPrefabDir + "UIButton.prefab";

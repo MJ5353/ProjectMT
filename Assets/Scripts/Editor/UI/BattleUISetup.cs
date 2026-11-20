@@ -29,6 +29,8 @@ public static class BattleUISetup
         if (AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.DeathPopupPrefab) == null)
             UIBuilder.SaveAsPrefab(BuildDeathPopup().gameObject, EditorPath.DeathPopupPrefab);
 
+        MarketUISetup.CreateIfMissing();
+
         GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.BattleHudPrefab);
         if (prefab == null)
         {
@@ -73,22 +75,8 @@ public static class BattleUISetup
         RectTransform safe = UIBuilder.CreateCanvas("BattleHud", HudSortingOrder);
         Transform root = safe.parent;
 
-        // 좌상단 밤 시계: 둥근 마스크 안에서 하늘 띠가 내려가고, 위에 흰 테두리, 아래에 남은 시간
-        RectTransform clockRoot = UIBuilder.Anchored("NightClock", safe, new Vector2(0, 1), new Vector2(40, -30), new Vector2(160, 160));
-        Image mask = SpriteImage("Mask", clockRoot, "HUD_NightClock_Fill", 0f);
-        mask.preserveAspect = false;
-        mask.gameObject.AddComponent<Mask>().showMaskGraphic = false;
-        RectTransform sky = UIBuilder.Rect("Sky", mask.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
-        sky.pivot = new Vector2(0.5f, 0f);
-        sky.sizeDelta = new Vector2(160f, 160f * 5f); // 48x240 도트 비율
-        SpriteImage(sky, "HUD_NightClock_Sky").preserveAspect = false;
-        SpriteImage("Frame", clockRoot, "HUD_NightClock_Frame", 0f);
-        RectTransform timeRect = UIBuilder.Rect("Time", clockRoot, Vector2.zero, new Vector2(1, 0), new Vector2(-40, -56), new Vector2(40, 0));
-        TMP_Text time = UIBuilder.Label(timeRect, "05:00", UIStyle.FontLarge);
-        UIBuilder.SetOutline(time);
-        UINightClock clock = clockRoot.gameObject.AddComponent<UINightClock>();
-        UIBuilder.SetRef(clock, "m_Sky", sky);
-        UIBuilder.SetRef(clock, "m_Text", time);
+        // 좌상단 밤 시계
+        UINightClock clock = BuildNightClock(safe);
 
         // 중앙 하단 체력
         UIGauge hp = UIBuilder.Gauge(safe, "Hp", new Vector2(720, 44), UIStyle.HpPlayer, true);
@@ -135,6 +123,7 @@ public static class BattleUISetup
         UIBuilder.SetRef(hud, "m_LootRowTemplate", rowTemplate);
         UIBuilder.SetRef(hud, "m_ExitButton", exit);
         UIBuilder.SetRef(hud, "m_DeathPopupPrefab", AssetDatabase.LoadAssetAtPath<DeathPopup>(EditorPath.DeathPopupPrefab));
+        UIBuilder.SetRef(hud, "m_MarketPopupPrefab", AssetDatabase.LoadAssetAtPath<MarketPopup>(EditorPath.MarketPopupPrefab));
 
         return hud;
     }
@@ -206,6 +195,36 @@ public static class BattleUISetup
         UIBuilder.SetRef(effect, "m_BannerText", text);
 
         return effect;
+    }
+
+    // 밤 시계: 둥근 마스크 안에서 하늘 띠가 내려가고, 위에 흰 테두리, 아래에 남은 시간과 시장용 작은 글자("행동당 30분").
+    // 전투 HUD와 시장 팝업이 같은 자리(좌상단)에 같은 모양으로 쓴다
+    public static UINightClock BuildNightClock(Transform parent)
+    {
+        RectTransform clockRoot = UIBuilder.Anchored("NightClock", parent, new Vector2(0, 1), new Vector2(40, -30), new Vector2(160, 160));
+        Image mask = SpriteImage("Mask", clockRoot, "HUD_NightClock_Fill", 0f);
+        mask.preserveAspect = false;
+        mask.gameObject.AddComponent<Mask>().showMaskGraphic = false;
+        RectTransform sky = UIBuilder.Rect("Sky", mask.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
+        sky.pivot = new Vector2(0.5f, 0f);
+        sky.sizeDelta = new Vector2(160f, 160f * 5f); // 48x240 도트 비율
+        SpriteImage(sky, "HUD_NightClock_Sky").preserveAspect = false;
+        SpriteImage("Frame", clockRoot, "HUD_NightClock_Frame", 0f);
+        RectTransform timeRect = UIBuilder.Rect("Time", clockRoot, Vector2.zero, new Vector2(1, 0), new Vector2(-40, -56), new Vector2(40, 0));
+        TMP_Text time = UIBuilder.Label(timeRect, "05:00", UIStyle.FontLarge);
+        UIBuilder.SetOutline(time);
+        RectTransform subRect = UIBuilder.Rect("Sub", clockRoot, Vector2.zero, new Vector2(1, 0), new Vector2(-40, -90), new Vector2(40, -56));
+        TMP_Text sub = UIBuilder.Label(subRect, "행동당 30분", UIStyle.FontSmall, TextAlignmentOptions.Left);
+        UIBuilder.SetOutline(sub);
+        sub.color = UIStyle.TextDim;
+        sub.gameObject.SetActive(false);
+
+        UINightClock clock = clockRoot.gameObject.AddComponent<UINightClock>();
+        UIBuilder.SetRef(clock, "m_Sky", sky);
+        UIBuilder.SetRef(clock, "m_Text", time);
+        UIBuilder.SetRef(clock, "m_SubText", sub);
+
+        return clock;
     }
 
     // 사망 팝업: 뒤가 비치는 어두운 배경 + 가운데 창(부활/귀가). 팝업 루트(PopupService) 아래에 꽉 차게 뜬다

@@ -17,26 +17,44 @@ MonoBehaviour:
   <Description>k__BackingField: 
   <Icon>k__BackingField: {fileID: 0}
   <RespawnBlockDistance>k__BackingField: 15
-  <ReviveGold>k__BackingField: 100
+  <ReviveGold>k__BackingField: 50
   <ReviveInvincibleTime>k__BackingField: 2
   <DownPopupDelay>k__BackingField: 2
   <DownDropHeight>k__BackingField: 0.8
   <DownDropSpread>k__BackingField: 2.5
   <DownDropUpSpeed>k__BackingField: 6
-  <PickupRadius>k__BackingField: 1.8
+  <PickupRadius>k__BackingField: 2
   <PickupMagnetSpeed>k__BackingField: 12
   <PickupActivateDelay>k__BackingField: 0.5
   <PickupCollectDistance>k__BackingField: 0.5
   <MonsterDropHeight>k__BackingField: 0.6
   <MonsterDropSpread>k__BackingField: 2
   <MonsterDropUpSpeed>k__BackingField: 5
+  <RarityRareColor>k__BackingField: {r: 0.25, g: 0.6, b: 1, a: 1}
+  <RarityEpicColor>k__BackingField: {r: 0.75, g: 0.3, b: 1, a: 1}
+  <RarityRingScale>k__BackingField: 2.5
   <PartRegrowTime>k__BackingField: 1.5
   <PartRegrowStartScale>k__BackingField: 0.3
   <PartDropUpSpeed>k__BackingField: 5
   <PartDropSpread>k__BackingField: 2
+  <MonsterHpBarShowTime>k__BackingField: 3
+  <MonsterHpBarOffset>k__BackingField: 0.4
+  <RoarShake>k__BackingField: 0.06
+  <RoarShakeTime>k__BackingField: 0.8
+  <RoarEffectTime>k__BackingField: 1.6
+  <RoarVignetteAlpha>k__BackingField: 0.7
   <CameraDistance>k__BackingField: 11
   <CameraPitch>k__BackingField: 50
   <CameraYaw>k__BackingField: 0
   <CameraLookHeight>k__BackingField: 1
   <CameraSmoothTime>k__BackingField: 0.12
   <ShakeInRatio>k__BackingField: 0.2
+  <MarketActionTime>k__BackingField: 15
+  <MarketActionMinutes>k__BackingField: 30
+  <MarketMerchantCount>k__BackingField: 3
+  <MarketTradeLimit>k__BackingField: 5
+  <MarketLowFreshRate>k__BackingField: 0.6
+  <TrustMax>k__BackingField: 100
+  <TrustPerTrade>k__BackingField: 5
+  <TrustPriceRate>k__BackingField: 0.005
+  <TrustVisitRate>k__BackingField: 0.02

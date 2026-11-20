@@ -1,0 +1,40 @@
+using System;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+// ==================================================
+
+// 시장 왼쪽 상인 목록 한 줄. 이름, 신뢰도 게이지, 고른 상태 테두리
+
+public class UIMerchantRow : MonoBehaviour
+{
+    [SerializeField] private Button m_Button = null;
+    [SerializeField] private TMP_Text m_NameText = null;
+    [SerializeField] private UIGauge m_Trust = null;
+    [SerializeField] private GameObject m_Selected = null;
+
+    private Action<UIMerchantRow> m_OnClick;
+
+    public int Index { get; private set; }
+
+    // ------------------------------------------------
+
+    private void Awake()
+    {
+        m_Button.onClick.AddListener(() => m_OnClick?.Invoke(this));
+    }
+
+    public void Set(int index, MerchantDef merchant, int trust, int trustMax, bool isSelected)
+    {
+        Index = index;
+        m_NameText.text = merchant.DisplayName;
+        m_Trust.SetValue(trust, trustMax, true);
+        m_Selected.SetActive(isSelected);
+    }
+
+    public void SetOnClick(Action<UIMerchantRow> onClick)
+    {
+        m_OnClick = onClick;
+    }
+}
