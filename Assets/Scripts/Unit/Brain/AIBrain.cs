@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // ==================================================
@@ -230,7 +231,10 @@ public class AIBrain : BrainBase
             return;
 
         IsEnraged = true;
-        AttackSelector.Enrage(Def.ListEnrageSkill, Def.EnrageCooldownRate);
+
+        IReadOnlyList<SkillDef> listEnrageSkill = m_UnitDef is MonsterDef monster ? monster.ListEnrageSkill : System.Array.Empty<SkillDef>();
+        AttackSelector.Enrage(listEnrageSkill, Def.EnrageCooldownRate);
+        
         m_IsRoarPending = true;
     }
 

@@ -38,3 +38,6 @@ Player|Attack_SlashR|Attack_04
 Player|Attack_Finish|Attack_05
 Player|Attack_RunSlash|Attack_06
 Player|Attack_Whirlwind|Attack_07
+Mon_005_Boss_Tree|RootPrison|Skill_04
+Mon_010_Boss_PolarBear|Frenzy|Skill_04
+Mon_015_Boss_Saurus|Leap|Skill_04

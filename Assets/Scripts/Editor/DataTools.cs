@@ -79,7 +79,9 @@ public static class DataTools
                 continue;
             }
 
-            foreach (SkillDef skill in unit.ListSkill)
+            // 분노 스킬(MonsterDef.ListEnrageSkill)도 애니 상태가 있어야 한다
+            IEnumerable<SkillDef> skills = unit is MonsterDef enrageOwner ? unit.ListSkill.Concat(enrageOwner.ListEnrageSkill) : unit.ListSkill;
+            foreach (SkillDef skill in skills)
             {
                 if (skill == null)
                 {

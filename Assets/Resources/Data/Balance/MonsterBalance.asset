@@ -18,8 +18,6 @@ MonoBehaviour:
   <MapDamageRate>k__BackingField: 1.4
   <MapSpeedAdd>k__BackingField: 0.08
   <OrderStepRate>k__BackingField: 0.2
-  <WanderSpeedRate>k__BackingField: 0.4
-  <LoseRangeAdd>k__BackingField: 5
   <MushroomTilt>k__BackingField: 12
   <MainMushroomWeight>k__BackingField: 0.7
   <Normal>k__BackingField:
@@ -27,9 +25,7 @@ MonoBehaviour:
     <DamageRate>k__BackingField: 1
     <HitStunTime>k__BackingField: 0.35
     <MoveSpeed>k__BackingField: 3
-    <SightRange>k__BackingField: 7
     <WindupTime>k__BackingField: 0.45
-    <AttackCooldown>k__BackingField: 1.2
     <SocketMin>k__BackingField: 1
     <SocketMax>k__BackingField: 2
     <MushroomScale>k__BackingField: {x: 0.6, y: 0.9}
@@ -41,9 +37,7 @@ MonoBehaviour:
     <DamageRate>k__BackingField: 2
     <HitStunTime>k__BackingField: 0.2
     <MoveSpeed>k__BackingField: 2.4
-    <SightRange>k__BackingField: 8
     <WindupTime>k__BackingField: 0.65
-    <AttackCooldown>k__BackingField: 1.7
     <SocketMin>k__BackingField: 2
     <SocketMax>k__BackingField: 3
     <MushroomScale>k__BackingField: {x: 0.9, y: 1.3}
@@ -55,9 +49,7 @@ MonoBehaviour:
     <DamageRate>k__BackingField: 2
     <HitStunTime>k__BackingField: 0.1
     <MoveSpeed>k__BackingField: 2.2
-    <SightRange>k__BackingField: 14
     <WindupTime>k__BackingField: 0.8
-    <AttackCooldown>k__BackingField: 2
     <SocketMin>k__BackingField: 99
     <SocketMax>k__BackingField: 99
     <MushroomScale>k__BackingField: {x: 1.2, y: 1.6}

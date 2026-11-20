@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 // ==================================================
@@ -61,14 +60,9 @@ public class AIDef : DataDef
     public float EnrageHpRate { get; private set; } = 0.5f;     // 체력이 이 비율 이하가 되면 분노. 0이면 분노 없음
 
     [field: SerializeField]
-    public float EnrageCooldownRate { get; private set; } = 0.6f; // 분노 뒤 공용 쿨 배율
-
-    [SerializeField] private List<SkillDef> m_ListEnrageSkill = new(); // 분노 뒤에만 후보에 드는 공격. 유닛 애니메이터에 상태가 있어야 한다
+    public float EnrageCooldownRate { get; private set; } = 0.6f; // 분노 뒤 공용 쿨 배율. 분노 뒤 더할 공격은 몬스터마다(MonsterDef.ListEnrageSkill)
 
     // 동료 ---
     [field: SerializeField]
     public float FollowDistance { get; private set; } = 2f;     // 주인과 이보다 멀어지면 따라간다
-
-    // get ---
-    public IReadOnlyList<SkillDef> ListEnrageSkill => m_ListEnrageSkill;
 }

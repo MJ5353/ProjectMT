@@ -29,5 +29,4 @@ MonoBehaviour:
   <DownTime>k__BackingField: 2.5
   <EnrageHpRate>k__BackingField: 0.5
   <EnrageCooldownRate>k__BackingField: 0.6
-  m_ListEnrageSkill: []
   <FollowDistance>k__BackingField: 2

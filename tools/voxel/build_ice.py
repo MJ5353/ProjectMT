@@ -224,6 +224,18 @@ def body_bukbugom():
         'Slam': (60, False, [K(18, 'Body', pitch=-40, up=0.1), *fronts(18, pitch=-50), K(18, 'Neck', pitch=-15), *backs(18, pitch=-8),
                              K(26, 'Body', pitch=4, s=(1.03, 0.97, 1)), *fronts(26, pitch=-6), K(26, 'Neck', pitch=18), K(26, 'Head', pitch=6),
                              K(36, 'Body', pitch=2), K(36, 'Neck', pitch=10)]),
+        # 광폭 연타(분노): 0~12 반쯤 일어섬 → 20 오른발 할퀴기 → 34 왼발 할퀴기 → 42 크게 일어섬 → 48 두 앞발 내려찍기 → 60~76 회복
+        'Frenzy': (76, False, [K(12, 'Body', pitch=-30, yaw=14), K(12, 'LegFR', pitch=-85, roll=-25), *backs(12, pitch=-8), K(12, 'Neck', pitch=-12, yaw=-8),
+                               K(12, 'Jaw', pitch=25), K(12, 'LegFL', pitch=-30),
+                               K(20, 'Body', pitch=-24, yaw=-20), K(20, 'LegFR', pitch=-20, roll=30), K(20, 'LegFL', pitch=-70, roll=25),
+                               K(20, 'Neck', yaw=12), K(20, 'Jaw', pitch=30),
+                               K(34, 'Body', pitch=-24, yaw=20), K(34, 'LegFL', pitch=-20, roll=-30), K(34, 'LegFR', pitch=-50, roll=-10),
+                               K(34, 'Neck', yaw=-12), K(34, 'Jaw', pitch=10),
+                               K(42, 'Body', pitch=-50, yaw=0, up=0.15), *fronts(42, pitch=-55, roll=0), K(42, 'Neck', pitch=-22, yaw=0),
+                               K(42, 'Head', pitch=-10), K(42, 'Jaw', pitch=35), *backs(42, pitch=-10),
+                               K(48, 'Body', pitch=5, up=0.0, s=(1.04, 0.96, 1)), *fronts(48, pitch=-4), K(48, 'Neck', pitch=20), K(48, 'Head', pitch=6),
+                               K(48, 'Jaw', pitch=10), *backs(48, pitch=0),
+                               K(60, 'Body', pitch=3, s=(1, 1, 1)), K(60, 'Neck', pitch=12), *fronts(60, pitch=-4), K(60, 'Jaw', pitch=0)]),
         # 돌진: 0~20 준비, 20~55 질주(이동은 코드), 55~70 제동
         'Charge': (70, False, [K(14, 'Body', pitch=6, up=-0.12), K(14, 'Neck', pitch=18), *backs(14, pitch=20),
                                *gallop(20, 26, pitch=4), *gallop(26, -26, pitch=-4, up=0.15), *gallop(32, 26, pitch=4),

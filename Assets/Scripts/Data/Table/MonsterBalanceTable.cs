@@ -13,6 +13,7 @@ public enum EMonsterTier
 // ==================================================
 
 // 몬스터 자동 배정 공식의 튜닝값. 데이터 편집기 > 몬스터 > 자동 배정이 읽어서 MonsterDef에 기입한다.
+// 시야·추적 포기 거리·공용 쿨·배회 속도 배율은 여기 말고 AI 프리셋(AIDef: AI_Normal·AI_Elite·AI_Boss)에서 정한다.
 // 순서: 지역 순서(Order)와 등급, 같은 등급 안 번호로 수치를 키운다.
 //   체력 = 기본 체력 × 등급 배율 × 지역 배율^(지역 순서-1) × (1 + 번호 가산 × 등급 안 순번)
 //   공격 = 기본 공격 × 등급 배율 × 지역 배율^(지역 순서-1) × (1 + 번호 가산 × 등급 안 순번)
@@ -37,14 +38,8 @@ public class MonsterBalanceTable : ScriptableObject
         [field: SerializeField, Tooltip("추적 속도(첫 지역 기준)")]
         public float MoveSpeed { get; private set; } = 3f;
 
-        [field: SerializeField, Tooltip("플레이어를 알아채는 거리")]
-        public float SightRange { get; private set; } = 7f;
-
         [field: SerializeField, Tooltip("공격 전 움츠리는 시간(예고)")]
         public float WindupTime { get; private set; } = 0.45f;
-
-        [field: SerializeField, Tooltip("공격 뒤 다음 공격까지(초)")]
-        public float AttackCooldown { get; private set; } = 1.2f;
 
         [field: SerializeField, Tooltip("버섯을 꽂을 소켓 수 최소")]
         public int SocketMin { get; private set; } = 1;
@@ -70,17 +65,15 @@ public class MonsterBalanceTable : ScriptableObject
         {
         }
 
-        public TierStat(float hpRate, float damageRate, float hitStunTime, float moveSpeed, float sightRange,
-            float windupTime, float attackCooldown, int socketMin, int socketMax, Vector2 mushroomScale, int dropMin,
+        public TierStat(float hpRate, float damageRate, float hitStunTime, float moveSpeed,
+            float windupTime, int socketMin, int socketMax, Vector2 mushroomScale, int dropMin,
             int dropMax, float extraDropChance)
         {
             HpRate = hpRate;
             DamageRate = damageRate;
             HitStunTime = hitStunTime;
             MoveSpeed = moveSpeed;
-            SightRange = sightRange;
             WindupTime = windupTime;
-            AttackCooldown = attackCooldown;
             SocketMin = socketMin;
             SocketMax = socketMax;
             MushroomScale = mushroomScale;
@@ -114,12 +107,6 @@ public class MonsterBalanceTable : ScriptableObject
     public float OrderStepRate { get; private set; } = 0.2f;
 
     // 파생 ---
-    [field: SerializeField, Tooltip("배회 속도 = 추적 속도 × 이 값")]
-    public float WanderSpeedRate { get; private set; } = 0.4f;
-
-    [field: SerializeField, Tooltip("추적 포기 거리 = 시야 + 이 값")]
-    public float LoseRangeAdd { get; private set; } = 5f;
-
     [field: SerializeField, Tooltip("소켓 버섯 기울기 무작위 범위(도). 0이면 똑바로")]
     public float MushroomTilt { get; private set; } = 12f;
 
@@ -128,13 +115,13 @@ public class MonsterBalanceTable : ScriptableObject
 
     // 등급 ---
     [field: SerializeField]
-    public TierStat Normal { get; private set; } = new(1f, 1f, 0.35f, 3f, 7f, 0.45f, 1.2f, 1, 2, new Vector2(0.6f, 0.9f), 1, 2, 0f);
+    public TierStat Normal { get; private set; } = new(1f, 1f, 0.35f, 3f, 0.45f, 1, 2, new Vector2(0.6f, 0.9f), 1, 2, 0f);
 
     [field: SerializeField]
-    public TierStat Elite { get; private set; } = new(2.5f, 2f, 0.2f, 2.4f, 8f, 0.65f, 1.7f, 2, 3, new Vector2(0.9f, 1.3f), 2, 3, 0.5f);
+    public TierStat Elite { get; private set; } = new(2.5f, 2f, 0.2f, 2.4f, 0.65f, 2, 3, new Vector2(0.9f, 1.3f), 2, 3, 0.5f);
 
     [field: SerializeField]
-    public TierStat Boss { get; private set; } = new(15f, 2f, 0.1f, 2.2f, 14f, 0.8f, 2f, 99, 99, new Vector2(1.2f, 1.6f), 4, 6, 1f);
+    public TierStat Boss { get; private set; } = new(15f, 2f, 0.1f, 2.2f, 0.8f, 99, 99, new Vector2(1.2f, 1.6f), 4, 6, 1f);
 
     // ------------------------------------------------
 

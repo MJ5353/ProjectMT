@@ -148,3 +148,5 @@ MonoBehaviour:
     <Min>k__BackingField: 2
     <Max>k__BackingField: 3
     <Chance>k__BackingField: 1
+  m_ListEnrageSkill:
+  - {fileID: 11400000, guid: ad91bd01758748bda3b0051f9c659c90, type: 2}

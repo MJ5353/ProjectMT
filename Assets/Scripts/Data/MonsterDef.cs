@@ -133,9 +133,13 @@ public class MonsterDef : UnitDef
 
     [SerializeField] private List<DropEntry> m_ListDrop = new();
 
+    // 분노 --- 보스(AI 프리셋 Boss)가 분노(AIDef.EnrageHpRate)한 뒤에만 후보에 드는 공격. ListSkill에 없는 것을 둔다(애니메이터에 상태가 있어야 함)
+    [SerializeField] private List<SkillDef> m_ListEnrageSkill = new();
+
     // get ---
     public IReadOnlyList<PartEntry> ListPart => m_ListPart;
     public IReadOnlyList<DropEntry> ListDrop => m_ListDrop;
+    public IReadOnlyList<SkillDef> ListEnrageSkill => m_ListEnrageSkill;
 
     // ------------------------------------------------
 

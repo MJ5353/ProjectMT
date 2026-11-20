@@ -55,12 +55,8 @@ public static class MonsterAutoFill
         public int Hp { get; set; }
         public int Damage { get; set; }
         public float MoveSpeed { get; set; }
-        public float WanderSpeed { get; set; }
-        public float SightRange { get; set; }
-        public float LoseRange { get; set; }
         public float HitStunTime { get; set; }
         public float WindupTime { get; set; }
-        public float AttackCooldown { get; set; }
 
         public List<DropPick> ListDrop { get; } = new();
         public List<MonsterDef.PartEntry> ListDecor { get; } = new();   // 몸 어디든 나는 장식 버섯(BattlePart None)
@@ -197,12 +193,8 @@ public static class MonsterAutoFill
         plan.Hp = table.CalcHp(plan.Tier, plan.MapIndex, plan.OrderInTier);
         plan.Damage = table.CalcDamage(plan.Tier, plan.MapIndex, plan.OrderInTier);
         plan.MoveSpeed = Round(table.CalcMoveSpeed(plan.Tier, plan.MapIndex));
-        plan.WanderSpeed = Round(plan.MoveSpeed * table.WanderSpeedRate);
-        plan.SightRange = stat.SightRange;
-        plan.LoseRange = stat.SightRange + table.LoseRangeAdd;
         plan.HitStunTime = stat.HitStunTime;
         plan.WindupTime = stat.WindupTime;
-        plan.AttackCooldown = stat.AttackCooldown;
     }
 
     // 지역 버섯 목록에서 이 몬스터가 쓸 버섯. 앞이 대표 버섯
