@@ -13,6 +13,7 @@ public static class UIStyle
     public const int FontNormal = 33;
     public const int FontLarge = 44;
     public const int FontTitle = 66;
+    public const int FontHuge = 88;
 
     // color ---
 
@@ -32,6 +33,15 @@ public static class UIStyle
     public static readonly Color HpBoss = Hex(0xD9573B);
     public static readonly Color GaugeTrail = Hex(0xFFF4D6, 0.85f);
 
+    public static readonly Color Positive = Hex(0x7BC950);
+    public static readonly Color Negative = Accent;
+
+    // rarity ---
+
+    public static readonly Color RarityCommon = Hex(0xA9B39C);
+    public static readonly Color RarityRare = Hex(0x4FA3E0);
+    public static readonly Color RarityEpic = Hex(0xB45EE0);
+
     // ==================================================
 
     public static Color Hex(int rgb, float alpha = 1f)
@@ -41,5 +51,21 @@ public static class UIStyle
         float b = (rgb & 0xFF) / 255f;
 
         return new Color(r, g, b, alpha);
+    }
+
+    public static Color GetRarityColor(ERarity rarity)
+    {
+        return rarity switch
+        {
+            ERarity.Epic => RarityEpic,
+            ERarity.Rare => RarityRare,
+            _ => RarityCommon,
+        };
+    }
+
+    // 리치 텍스트 색 태그
+    public static string ColorTag(Color color, string text)
+    {
+        return $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{text}</color>";
     }
 }

@@ -51,16 +51,11 @@ public class MarketPopup : Popup
     [SerializeField] private TMP_Text m_WaitLabel = null;
     [SerializeField] private Button m_CloseButton = null;
 
-    // 희귀도 색(뱃지). 바닥 고리 색이 정해지면 맞춘다
-    private static readonly Color RarityCommon = UIStyle.Hex(0xA9B39C);
-    private static readonly Color RarityRare = UIStyle.Hex(0x4FA3E0);
-    private static readonly Color RarityEpic = UIStyle.Hex(0xB45EE0);
-
-    private readonly List<UIMerchantRow> m_ListRow = new();
-    private readonly List<UIItemSlot> m_ListStockSlot = new();
-    private readonly List<UIItemSlot> m_ListPickSlot = new();
-    private readonly List<LootKey> m_ListStockKey = new();   // m_ListStockSlot 순서
-    private readonly List<LootKey> m_ListPickKey = new();    // 고른 순서. m_ListPickSlot 순서
+    private UIListPool<UIMerchantRow> m_RowPool;
+    private UIListPool<UIItemSlot> m_StockPool;
+    private UIListPool<UIItemSlot> m_PickPool;
+    private readonly List<LootKey> m_ListStockKey = new();   // m_StockPool 순서
+    private readonly List<LootKey> m_ListPickKey = new();    // 고른 순서. m_PickPool 순서
     private readonly Dictionary<LootKey, int> m_DicPick = new();
     private readonly List<MarketItem> m_ListItem = new();    // HuntData 요청용
 
@@ -77,6 +72,10 @@ public class MarketPopup : Popup
 
     private void Awake()
     {
+        m_RowPool = new UIListPool<UIMerchantRow>(m_MerchantTemplate, m_MerchantList, row => row.SetOnClick(OnClickMerchant));
+        m_StockPool = new UIListPool<UIItemSlot>(m_SlotTemplate, m_StockList, slot => slot.SetOnClick(OnClickStock));
+        m_PickPool = new UIListPool<UIItemSlot>(m_SlotTemplate, m_PickList, slot => slot.SetOnClick(OnClickPick));
+
         m_TradeButton.onClick.AddListener(OnClickTrade);
         m_WaitButton.onClick.AddListener(OnClickWait);
         m_CloseButton.onClick.AddListener(OnClickClose);
@@ -156,21 +155,10 @@ public class MarketPopup : Popup
 
         for (int i = 0; i < listMerchant.Count; ++i)
         {
-            if (i >= m_ListRow.Count)
-            {
-                UIMerchantRow row = Instantiate(m_MerchantTemplate, m_MerchantList);
-                row.SetOnClick(OnClickMerchant);
-                m_ListRow.Add(row);
-            }
-
-            m_ListRow[i].gameObject.SetActive(true);
-            m_ListRow[i].Set(i, listMerchant[i], market.GetTrust(listMerchant[i].ID), Define.TrustMax, i == m_SelectedIndex);
+            m_RowPool.Get(i).Set(i, listMerchant[i], market.GetTrust(listMerchant[i].ID), Define.TrustMax, i == m_SelectedIndex);
         }
 
-        for (int i = listMerchant.Count; i < m_ListRow.Count; ++i)
-        {
-            m_ListRow[i].gameObject.SetActive(false);
-        }
+        m_RowPool.HideFrom(listMerchant.Count);
 
         MerchantDef merchant = SelectedMerchant;
         if (merchant == null)
@@ -188,10 +176,10 @@ public class MarketPopup : Popup
         m_MerchantDesc.text = merchant.Description;
 
         int swing = Mathf.RoundToInt((hunt.GetSwingRate(merchant) - 1f) * 100f);
-        string swingText = swing > 0 ? $"<color=#7BC950>+{swing}%</color>" : swing < 0 ? $"<color=#D9573B>{swing}%</color>" : "보통";
+        string swingText = swing > 0 ? UIStyle.ColorTag(UIStyle.Positive, $"+{swing}%") : swing < 0 ? UIStyle.ColorTag(UIStyle.Negative, $"{swing}%") : "보통";
         int gain = hunt.GetTrustGain(merchant.ID);
-        string gainText = gain > 0 ? $" <color=#7BC950>(+{gain})</color>" : string.Empty;
-        string otherText = merchant.OtherRate > 0f ? $"x{merchant.OtherRate:0.0#}" : "<color=#D9573B>안 삼</color>";
+        string gainText = gain > 0 ? " " + UIStyle.ColorTag(UIStyle.Positive, $"(+{gain})") : string.Empty;
+        string otherText = merchant.OtherRate > 0f ? $"x{merchant.OtherRate:0.0#}" : UIStyle.ColorTag(UIStyle.Negative, "안 삼");
 
         m_MerchantInfo.text =
             $"신뢰도  {market.GetTrust(merchant.ID)}{gainText}\n" +
@@ -238,11 +226,10 @@ public class MarketPopup : Popup
             m_DicPick.TryGetValue(key, out int picked);
             int price = merchant != null ? hunt.GetPrice(merchant, key) : 0;
 
-            UIItemSlot slot = GetSlot(m_ListStockSlot, m_StockList, i, OnClickStock);
-            SetSlot(slot, key, hunt.DicHarvest[key] - picked, price > 0 ? $"{price}G" : "안 삼");
+            SetSlot(m_StockPool.Get(i), key, hunt.DicHarvest[key] - picked, price > 0 ? $"{price}G" : "안 삼");
         }
 
-        HideFrom(m_ListStockSlot, m_ListStockKey.Count);
+        m_StockPool.HideFrom(m_ListStockKey.Count);
     }
 
     private void RefreshPick(HuntData hunt)
@@ -253,11 +240,10 @@ public class MarketPopup : Popup
             LootKey key = m_ListPickKey[i];
             int price = merchant != null ? hunt.GetPrice(merchant, key) : 0;
 
-            UIItemSlot slot = GetSlot(m_ListPickSlot, m_PickList, i, OnClickPick);
-            SetSlot(slot, key, m_DicPick[key], price > 0 ? $"{price}G" : "안 삼");
+            SetSlot(m_PickPool.Get(i), key, m_DicPick[key], price > 0 ? $"{price}G" : "안 삼");
         }
 
-        HideFrom(m_ListPickSlot, m_ListPickKey.Count);
+        m_PickPool.HideFrom(m_ListPickKey.Count);
     }
 
     // 합계와 [거래] 버튼. 판정은 HuntData.CheckTrade에 맡긴다
@@ -314,27 +300,6 @@ public class MarketPopup : Popup
 
     // slot ---
 
-    private UIItemSlot GetSlot(List<UIItemSlot> listSlot, RectTransform parent, int index, System.Action<UIItemSlot> onClick)
-    {
-        if (index >= listSlot.Count)
-        {
-            UIItemSlot slot = Instantiate(m_SlotTemplate, parent);
-            slot.SetOnClick(onClick);
-            listSlot.Add(slot);
-        }
-
-        listSlot[index].gameObject.SetActive(true);
-        return listSlot[index];
-    }
-
-    private static void HideFrom(List<UIItemSlot> listSlot, int index)
-    {
-        for (int i = index; i < listSlot.Count; ++i)
-        {
-            listSlot[i].gameObject.SetActive(false);
-        }
-    }
-
     // 칸: 아이콘 + 개수, 아래에 값, 뱃지 = 신선도(색은 희귀도)
     private static void SetSlot(UIItemSlot slot, LootKey key, int count, string priceText)
     {
@@ -344,17 +309,7 @@ public class MarketPopup : Popup
         Sprite icon = def != null ? def.Icon : null;
         Color tint = def != null ? def.Tint : UIStyle.PanelLight;
         slot.Set(key.ItemID, icon, priceText, count, tint);
-        slot.SetBadge(key.Freshness == EFreshness.High ? "신선" : "덜", GetRarityColor(key.Rarity));
-    }
-
-    private static Color GetRarityColor(ERarity rarity)
-    {
-        return rarity switch
-        {
-            ERarity.Epic => RarityEpic,
-            ERarity.Rare => RarityRare,
-            _ => RarityCommon,
-        };
+        slot.SetBadge(key.Freshness == EFreshness.High ? "신선" : "덜", UIStyle.GetRarityColor(key.Rarity));
     }
 
     private void SetMessage(string text)
@@ -373,7 +328,7 @@ public class MarketPopup : Popup
 
     private void OnClickStock(UIItemSlot slot)
     {
-        int index = m_ListStockSlot.IndexOf(slot);
+        int index = m_StockPool.List.IndexOf(slot);
         if (index < 0 || index >= m_ListStockKey.Count)
             return;
 
@@ -400,7 +355,7 @@ public class MarketPopup : Popup
 
     private void OnClickPick(UIItemSlot slot)
     {
-        int index = m_ListPickSlot.IndexOf(slot);
+        int index = m_PickPool.List.IndexOf(slot);
         if (index < 0 || index >= m_ListPickKey.Count)
             return;
 
@@ -481,7 +436,7 @@ public class MarketPopup : Popup
 
         for (float t = 0f; t < IntroMoveTime && m_IsSkipIntro == false; t += Time.unscaledDeltaTime)
         {
-            float k = EaseOut(t / IntroMoveTime);
+            float k = UITween.EaseOutCubic(t / IntroMoveTime);
             timer.position = Vector3.Lerp(from, to, k);
             timer.localScale = Vector3.one * Mathf.Lerp(fromScale, 1f, k);
             m_IntroMessage.alpha = k;
@@ -495,7 +450,7 @@ public class MarketPopup : Popup
         // 2. 남은 시간은 주르륵 줄고, 시장 시간은 후루룩 오른다
         for (float t = 0f; t < IntroCountTime && m_IsSkipIntro == false; t += Time.unscaledDeltaTime)
         {
-            float k = EaseOut(t / IntroCountTime);
+            float k = UITween.EaseOutCubic(t / IntroCountTime);
             m_IntroTimer.text = UINightClock.FormatRealTime(Mathf.RoundToInt(seconds * (1f - k)));
             m_IntroMessage.text = FormatIntro(Mathf.RoundToInt(minutes * k / 10f) * 10); // 10분 단위로 굴러간다
             yield return null;
@@ -503,7 +458,7 @@ public class MarketPopup : Popup
 
         // 끝 모습에서 멈춰 있다가, 한 번 더 누르면 닫는다
         m_IntroTimer.text = UINightClock.FormatRealTime(0);
-        m_IntroMessage.text = $"{FormatIntro(minutes)}\n<size={UIStyle.FontSmall}><color=#A9B39C>눌러서 계속</color></size>";
+        m_IntroMessage.text = $"{FormatIntro(minutes)}\n<size={UIStyle.FontSmall}>{UIStyle.ColorTag(UIStyle.TextDim, "눌러서 계속")}</size>";
         m_IsSkipIntro = false;
         while (m_IsSkipIntro == false)
         {
@@ -545,10 +500,8 @@ public class MarketPopup : Popup
         int minute = minutes % 60;
         string time = hour > 0 && minute == 0 ? $"{hour}시간" : hour > 0 ? $"{hour}시간 {minute}분" : $"{minute}분";
 
-        return $"지금 가면... <size={IntroBigSize}><color=#F2C14E>{time}</color></size>은 거래할 수 있겠어!";
+        return $"지금 가면... <size={IntroBigSize}>{UIStyle.ColorTag(UIStyle.Gold, time)}</size>은 거래할 수 있겠어!";
     }
-
-    private static float EaseOut(float t) => 1f - Mathf.Pow(1f - Mathf.Clamp01(t), 3f);
 
     // event ---
 

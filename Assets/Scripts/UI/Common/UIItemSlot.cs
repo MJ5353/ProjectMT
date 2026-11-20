@@ -11,6 +11,7 @@ public class UIItemSlot : MonoBehaviour
     [SerializeField] private TMP_Text m_Count = null;
     [SerializeField] private TMP_Text m_NameText = null;
     [SerializeField] private GameObject m_Badge = null;
+    [SerializeField] private Image m_BadgeImage = null;
     [SerializeField] private TMP_Text m_BadgeText = null;
     [SerializeField] private Button m_Button = null;
 
@@ -77,9 +78,8 @@ public class UIItemSlot : MonoBehaviour
 
         m_BadgeText.text = text;
 
-        Image badgeImage = m_Badge.GetComponent<Image>();
-        if (badgeImage != null)
-            badgeImage.color = color;
+        if (m_BadgeImage != null)
+            m_BadgeImage.color = color;
     }
 
     public void SetOnClick(Action<UIItemSlot> onClick)
@@ -106,12 +106,13 @@ public class UIItemSlot : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    public void EditorSetup(Image icon, TMP_Text count, TMP_Text displayName, GameObject badge, TMP_Text badgeText, Button button)
+    public void EditorSetup(Image icon, TMP_Text count, TMP_Text displayName, GameObject badge, Image badgeImage, TMP_Text badgeText, Button button)
     {
         m_Icon = icon;
         m_Count = count;
         m_NameText = displayName;
         m_Badge = badge;
+        m_BadgeImage = badgeImage;
         m_BadgeText = badgeText;
         m_Button = button;
     }

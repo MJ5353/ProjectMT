@@ -24,7 +24,6 @@ public static class MarketUISetup
     private const float RowHeight = 110f;
     private const float SlotSize = 120f;
     private const float SlotNameHeight = 40f; // UIItemSlot 이름(값) 줄
-    private const int IntroTimerSize = 88;    // 갈무리는 11의 배수 크기가 또렷하다
 
     // ------------------------------------------------
 
@@ -180,7 +179,7 @@ public static class MarketUISetup
         introGroup.blocksRaycasts = false;
         RectTransform timerRect = UIBuilder.Anchored("Timer", intro, new Vector2(0.5f, 0.5f), new Vector2(0, 90), new Vector2(600, 140));
         timerRect.pivot = new Vector2(0.5f, 0.5f);
-        TMP_Text introTimer = UIBuilder.Label(timerRect, "05:00", IntroTimerSize);
+        TMP_Text introTimer = UIBuilder.Label(timerRect, "05:00", UIStyle.FontHuge);
         RectTransform introMessageRect = UIBuilder.Anchored("Message", intro, new Vector2(0.5f, 0.5f), new Vector2(0, -60), new Vector2(1400, 110));
         introMessageRect.pivot = new Vector2(0.5f, 0.5f);
         TMP_Text introMessage = UIBuilder.Label(introMessageRect, "지금 가면... 4시간 30분은 거래할 수 있겠어!", UIStyle.FontNormal);

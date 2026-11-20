@@ -22,7 +22,7 @@ public class BattleHud : MonoBehaviour
 
     private int m_LastHp = -1;
     private int m_LastLoot = -1;
-    private readonly List<UILootRow> m_ListLootRow = new();
+    private UIListPool<UILootRow> m_LootPool;
     private readonly List<string> m_ListLootID = new();               // 처음 주운 순서
     private readonly Dictionary<string, int> m_DicFresh = new();      // 버섯별 신선 개수
     private readonly Dictionary<string, int> m_DicStale = new();      // 버섯별 덜 신선 개수
@@ -31,6 +31,7 @@ public class BattleHud : MonoBehaviour
 
     private void Awake()
     {
+        m_LootPool = new UIListPool<UILootRow>(m_LootRowTemplate, m_LootList);
         m_ExitButton.onClick.AddListener(OnClickExit);
     }
 
@@ -122,9 +123,6 @@ public class BattleHud : MonoBehaviour
         
         foreach (string itemID in m_ListLootID)
         {
-            if (index >= m_ListLootRow.Count)
-                m_ListLootRow.Add(Instantiate(m_LootRowTemplate, m_LootList));
-
             MushroomDef def = null;
             database?.TryGet(itemID, out def);
             string displayName = def != null ? def.DisplayName : itemID;
@@ -134,17 +132,12 @@ public class BattleHud : MonoBehaviour
             string text = fresh > 0 && stale > 0 ? $"{displayName} 신선 x{fresh} / 덜 신선 x{stale}" : 
                 fresh > 0 ? $"{displayName} 신선 x{fresh}" : $"{displayName} 덜 신선 x{stale}";
 
-            UILootRow row = m_ListLootRow[index];
-            row.gameObject.SetActive(true);
-            row.Set(def != null ? def.Icon : null, def != null ? def.Tint : UIStyle.PanelLight, text);
+            m_LootPool.Get(index).Set(def != null ? def.Icon : null, def != null ? def.Tint : UIStyle.PanelLight, text);
             
             index++;
         }
 
-        for (int i = index; i < m_ListLootRow.Count; i++)
-        {
-            m_ListLootRow[i].gameObject.SetActive(false);
-        }
+        m_LootPool.HideFrom(index);
     }
 
     // 시장을 열고 팝업을 띄운다

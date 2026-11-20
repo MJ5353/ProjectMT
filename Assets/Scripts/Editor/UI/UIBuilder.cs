@@ -255,12 +255,12 @@ public static class UIBuilder
         displayName.color = UIStyle.TextDim;
 
         RectTransform badge = Anchored("Badge", rt, new Vector2(0, 1), new Vector2(-6, 6), new Vector2(44, 32));
-        AddImage(badge, UIStyle.Gold);
+        Image badgeImage = AddImage(badge, UIStyle.Gold);
         TMP_Text badgeText = Label(badge, "S", UIStyle.FontSmall);
         badgeText.color = UIStyle.Background;
 
         UIItemSlot slot = rt.gameObject.AddComponent<UIItemSlot>();
-        slot.EditorSetup(icon, count, displayName, badge.gameObject, badgeText, button);
+        slot.EditorSetup(icon, count, displayName, badge.gameObject, badgeImage, badgeText, button);
 
         return slot;
     }

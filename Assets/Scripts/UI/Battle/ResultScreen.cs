@@ -20,7 +20,8 @@ public class ResultScreen : MonoBehaviour
     [SerializeField] private float m_FadeTime = 0.25f;
     [SerializeField] private float m_SlotInterval = 0.08f;
 
-    private readonly List<UIItemSlot> m_ListSlot = new();
+    private UIListPool<UIItemSlot> m_SlotPool;
+    private int m_SlotCount; // 이번 결과에 쓰는 칸 수
 
     public static ResultScreen Instance { get; private set; }
     public bool IsOpen { get; private set; }
@@ -32,6 +33,7 @@ public class ResultScreen : MonoBehaviour
         Instance = this;
 
         m_SlotTemplate.gameObject.SetActive(false);
+        m_SlotPool = new UIListPool<UIItemSlot>(m_SlotTemplate, m_LootRoot);
         m_RetryButton.onClick.AddListener(OnClickRetry);
         m_LobbyButton.onClick.AddListener(OnClickLobby);
 
@@ -86,17 +88,13 @@ public class ResultScreen : MonoBehaviour
 
     private void FillLoot(IReadOnlyDictionary<string, int> dicLoot)
     {
-        foreach (UIItemSlot slot in m_ListSlot)
-        {
-            Destroy(slot.gameObject);
-        }
+        m_SlotCount = 0;
 
-        m_ListSlot.Clear();
-
+        // 칸은 꺼 둔 채 준비하고, OpenRoutine이 하나씩 켠다
         GameManager gameM = GameManager.Instance;
         foreach (var pair in dicLoot)
         {
-            UIItemSlot slot = Instantiate(m_SlotTemplate, m_LootRoot);
+            UIItemSlot slot = m_SlotPool.Get(m_SlotCount, false);
             DataDef def = null;
             if (gameM != null && gameM.Database != null)
                 gameM.Database.TryGet(pair.Key, out def);
@@ -107,10 +105,11 @@ public class ResultScreen : MonoBehaviour
                 slot.Set(pair.Key, null, pair.Key, pair.Value, UIStyle.PanelLight);
 
             slot.SetBadge(null, Color.clear);
-            m_ListSlot.Add(slot);
+            ++m_SlotCount;
         }
 
-        m_EmptyLabel.SetActive(m_ListSlot.Count == 0);
+        m_SlotPool.HideFrom(m_SlotCount);
+        m_EmptyLabel.SetActive(m_SlotCount == 0);
     }
 
     // !!) 전투가 끝날 때 timeScale이 멈춰 있을 수 있어 연출은 모두 unscaled 시간으로 돈다
@@ -126,7 +125,7 @@ public class ResultScreen : MonoBehaviour
             float t = Mathf.Clamp01(time / m_FadeTime);
 
             m_Group.alpha = t;
-            m_Window.localScale = Vector3.one * Mathf.Lerp(0.9f, 1f, EaseOutBack(t));
+            m_Window.localScale = Vector3.one * Mathf.Lerp(0.9f, 1f, UITween.EaseOutBack(t));
             yield return null;
         }
 
@@ -134,8 +133,9 @@ public class ResultScreen : MonoBehaviour
         m_Window.localScale = Vector3.one;
 
         // 주운 버섯을 하나씩 튀어나오게 보여 준다
-        foreach (UIItemSlot slot in m_ListSlot)
+        for (int i = 0; i < m_SlotCount; ++i)
         {
+            UIItemSlot slot = m_SlotPool.List[i];
             slot.gameObject.SetActive(true);
             StartCoroutine(PopRoutine(slot.transform));
             yield return new WaitForSecondsRealtime(m_SlotInterval);
@@ -150,7 +150,7 @@ public class ResultScreen : MonoBehaviour
         while (time < duration)
         {
             time += Time.unscaledDeltaTime;
-            target.localScale = Vector3.one * EaseOutBack(Mathf.Clamp01(time / duration));
+            target.localScale = Vector3.one * UITween.EaseOutBack(time / duration);
             yield return null;
         }
 
@@ -167,10 +167,7 @@ public class ResultScreen : MonoBehaviour
             return;
 
         IsOpen = false;
-        foreach (UIItemSlot slot in m_ListSlot)
-        {
-            slot.gameObject.SetActive(false);
-        }
+        m_SlotPool.HideFrom(0);
     }
 
     private void SetButtonsInteractable(bool isInteractable)
@@ -230,14 +227,5 @@ public class ResultScreen : MonoBehaviour
     {
         int total = Mathf.FloorToInt(seconds);
         return $"{total / 60:00}:{total % 60:00}";
-    }
-
-    private static float EaseOutBack(float t)
-    {
-        const float c1 = 1.70158f;
-        const float c3 = c1 + 1f;
-
-        float x = t - 1f;
-        return 1f + c3 * x * x * x + c1 * x * x;
     }
 }

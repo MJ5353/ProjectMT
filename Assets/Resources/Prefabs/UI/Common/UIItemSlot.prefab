@@ -141,6 +141,7 @@ MonoBehaviour:
   m_Count: {fileID: 3520230334917131973}
   m_NameText: {fileID: 0}
   m_Badge: {fileID: 7244083255021379498}
+  m_BadgeImage: {fileID: 1589948436287499055}
   m_BadgeText: {fileID: 4542776835738304035}
   m_Button: {fileID: 2781672715817271265}
 --- !u!1 &743036066597107078
