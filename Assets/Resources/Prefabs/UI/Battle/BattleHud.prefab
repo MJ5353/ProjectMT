@@ -1803,6 +1803,7 @@ MonoBehaviour:
   m_Sky: {fileID: 7564821923045203648}
   m_Text: {fileID: 5231141815828077899}
   m_SubText: {fileID: 0}
+  m_MarketFontSize: 33
 --- !u!1 &4757832912053444911
 GameObject:
   m_ObjectHideFlags: 0
@@ -3124,7 +3125,7 @@ MonoBehaviour:
   m_LootRowTemplate: {fileID: 4959316964381935938}
   m_ExitButton: {fileID: 6771985886849952726}
   m_DeathPopupPrefab: {fileID: 3779711951270881450, guid: 6081d862cca5e234288f05c7aa7de2a9, type: 3}
-  m_MarketPopupPrefab: {fileID: 4255754112471187326, guid: c2f874cd70b724a44a908bec3be6f230, type: 3}
+  m_MarketPopupPrefab: {fileID: 8900873037593493994, guid: c2f874cd70b724a44a908bec3be6f230, type: 3}
 --- !u!1 &8807854857136936288
 GameObject:
   m_ObjectHideFlags: 0

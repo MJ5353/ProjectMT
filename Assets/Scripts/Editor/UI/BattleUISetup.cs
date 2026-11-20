@@ -198,8 +198,8 @@ public static class BattleUISetup
     }
 
     // 밤 시계: 둥근 마스크 안에서 하늘 띠가 내려가고, 위에 흰 테두리, 아래에 남은 시간과 시장용 작은 글자("행동당 30분").
-    // 전투 HUD와 시장 팝업이 같은 자리(좌상단)에 같은 모양으로 쓴다
-    public static UINightClock BuildNightClock(Transform parent)
+    // 전투 HUD와 시장 팝업이 같은 자리(좌상단)에 같은 모양으로 쓴다. 시장 팝업은 어두운 바탕 위라 외곽선 없는 글자를 쓴다
+    public static UINightClock BuildNightClock(Transform parent, bool isOutline = true)
     {
         RectTransform clockRoot = UIBuilder.Anchored("NightClock", parent, new Vector2(0, 1), new Vector2(40, -30), new Vector2(160, 160));
         Image mask = SpriteImage("Mask", clockRoot, "HUD_NightClock_Fill", 0f);
@@ -212,10 +212,14 @@ public static class BattleUISetup
         SpriteImage("Frame", clockRoot, "HUD_NightClock_Frame", 0f);
         RectTransform timeRect = UIBuilder.Rect("Time", clockRoot, Vector2.zero, new Vector2(1, 0), new Vector2(-40, -56), new Vector2(40, 0));
         TMP_Text time = UIBuilder.Label(timeRect, "05:00", UIStyle.FontLarge);
-        UIBuilder.SetOutline(time);
         RectTransform subRect = UIBuilder.Rect("Sub", clockRoot, Vector2.zero, new Vector2(1, 0), new Vector2(-40, -90), new Vector2(40, -56));
         TMP_Text sub = UIBuilder.Label(subRect, "행동당 30분", UIStyle.FontSmall, TextAlignmentOptions.Left);
-        UIBuilder.SetOutline(sub);
+        if (isOutline)
+        {
+            UIBuilder.SetOutline(time);
+            UIBuilder.SetOutline(sub);
+        }
+
         sub.color = UIStyle.TextDim;
         sub.gameObject.SetActive(false);
 

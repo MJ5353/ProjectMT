@@ -64,7 +64,7 @@ public class HuntData : PlayerDataBase
 
     private readonly Dictionary<LootKey, int> m_DicHarvest = new();   // 아직 못 판 버섯
     private readonly List<MerchantDef> m_ListMerchant = new();        // 오늘 와 있는 상인
-    private readonly Dictionary<string, int> m_DicTrustGain = new();  // 시장이 닫힐 때 반영할 신뢰도
+    private readonly Dictionary<string, int> m_DicTrustGain = new();  // 이번 시장에서 오른 신뢰도. 닫힐 때 반영하고, 결과 화면이 읽도록 다음 시장까지 남긴다
     private readonly Dictionary<string, float> m_DicSwingRate = new(); // 상인별 오늘 시세 배율. 기다릴 때마다 MerchantDef.PriceSwing 폭으로 바뀐다
     private readonly Dictionary<LootKey, int> m_DicPick = new();      // 거래 검사용. 같은 버섯을 나눠 골라도 합쳐 센다
     private readonly List<MerchantDef> m_ListCandidate = new();       // 상인 뽑기용
@@ -80,6 +80,7 @@ public class HuntData : PlayerDataBase
 
     public IReadOnlyDictionary<LootKey, int> DicHarvest => m_DicHarvest;
     public IReadOnlyList<MerchantDef> ListMerchant => m_ListMerchant;
+    public IReadOnlyDictionary<string, int> DicTrustGain => m_DicTrustGain;
     public bool CanAct => IsMarketOpen && RemainTime > 0f;
     private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
 
@@ -264,7 +265,6 @@ public class HuntData : PlayerDataBase
             m_Market.AddTrust(pair.Key, pair.Value);
         }
 
-        m_DicTrustGain.Clear();
         SEventManager.Publish(new MarketClosed(SoldGold, RottenCount));
     }
 
@@ -276,6 +276,12 @@ public class HuntData : PlayerDataBase
             return 0;
 
         return m_Market.GetPrice(merchant, mushroom, key.Rarity, key.Freshness, GetSwingRate(merchant));
+    }
+
+    // 이번 시장에서 이 상인에게 오른 신뢰도(닫힐 때 반영)
+    public int GetTrustGain(string merchantID)
+    {
+        return merchantID != null && m_DicTrustGain.TryGetValue(merchantID, out int gain) ? gain : 0;
     }
 
     // 상인의 오늘 시세 배율. 시장을 연 직후는 1
@@ -339,4 +345,27 @@ public class HuntData : PlayerDataBase
     }
 
     #endregion
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    // 개발용(DebugPanel) ---
+
+    public void DebugAddTime(float seconds)
+    {
+        if (IsMarketOpen == false)
+            return;
+
+        RemainTime = Mathf.Max(0f, RemainTime + seconds);
+        SEventManager.Publish(new MarketChanged());
+    }
+
+    public void DebugRerollMerchants()
+    {
+        if (IsMarketOpen == false)
+            return;
+
+        m_DicSwingRate.Clear();
+        RollMerchants();
+        SEventManager.Publish(new MarketChanged());
+    }
+#endif
 }

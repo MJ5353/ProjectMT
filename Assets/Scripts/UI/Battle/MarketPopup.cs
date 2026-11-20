@@ -1,17 +1,35 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
+
 // ==================================================
 
 // 토벌 종료 뒤 현장 시장 팝업. 왼쪽 오늘 온 상인, 가운데 고른 상인, 오른쪽 위 고른 버섯·합계·[거래], 오른쪽 아래 남은 버섯.
 // 계산과 결과는 HuntData가 정하고 여기서는 요청(Trade·Wait·EndMarket)만 보낸다. 시장이 닫히면(MarketClosed) 스스로 닫힌다.
+// 열릴 때: 시계의 남은 시간이 화면 가운데로 날아와 주르륵 줄고, 그 아래 "지금 가면... n시간 n분은 거래할 수 있겠어!"가 후루룩 오른 뒤 본 화면이 나타난다. 누르면 바로 넘어간다.
 // 결과 화면 전환과 저장은 MarketClosed를 받은 쪽(BattleService)이 한다
 
 public class MarketPopup : Popup
 {
+    private const float IntroMoveTime = 0.9f;   // 남은 시간이 가운데로 날아오는 시간
+    private const float IntroCountTime = 2.4f;  // 남은 시간이 줄고 시장 시간이 오르는 시간
+    private const float IntroHoldTime = 1.2f;
+    private const float FadeTime = 0.4f;
+    private const int IntroBigSize = UIStyle.FontTitle;
+
     [SerializeField] private UINightClock m_Clock = null;
+    [SerializeField] private CanvasGroup m_Body = null; // 시계를 뺀 나머지. 시작 연출 뒤 서서히 나타난다(시계는 HUD 자리에 그대로 있는 것처럼)
+
+    [Header("시작 연출")]
+    [SerializeField] private CanvasGroup m_Intro = null;
+    [SerializeField] private TMP_Text m_IntroTimer = null;   // 가운데 큰 mm:ss
+    [SerializeField] private TMP_Text m_IntroMessage = null; // 그 아래 "지금 가면... n시간 n분은 거래할 수 있겠어!"
 
     [Header("상인")]
     [SerializeField] private RectTransform m_MerchantList = null;     // 세로 목록(VerticalLayoutGroup)
@@ -19,7 +37,7 @@ public class MarketPopup : Popup
     [SerializeField] private Image m_MerchantIcon = null;
     [SerializeField] private TMP_Text m_MerchantName = null;
     [SerializeField] private TMP_Text m_MerchantDesc = null;
-    [SerializeField] private TMP_Text m_MerchantInfo = null;          // 신뢰도·오늘 시세
+    [SerializeField] private TMP_Text m_MerchantInfo = null;          // 신뢰도·오늘 시세·좋아하는 버섯
 
     [Header("거래")]
     [SerializeField] private RectTransform m_PickList = null;  // 고른 버섯(HorizontalLayoutGroup)
@@ -47,6 +65,8 @@ public class MarketPopup : Popup
     private readonly List<MarketItem> m_ListItem = new();    // HuntData 요청용
 
     private int m_SelectedIndex;
+    private bool m_IsIntro;     // 시작 연출 중
+    private bool m_IsSkipIntro; // 연출 중 화면을 눌렀다. 끝 모습으로 바로 넘어간다
 
     private static HuntData Hunt => PlayerDataManager.Instance?.Hunt;
     private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
@@ -64,6 +84,9 @@ public class MarketPopup : Popup
 
     private void Update()
     {
+        if (m_IsIntro && IsPressed())
+            m_IsSkipIntro = true;
+
         HuntData hunt = Hunt;
         if (hunt != null)
             m_Clock.SetTime(hunt.RemainTime, hunt.NightTime);
@@ -86,8 +109,8 @@ public class MarketPopup : Popup
         if (hunt != null)
             m_Clock.SetTime(hunt.RemainTime, hunt.NightTime);
 
-        m_Clock.SetMarket(true, true);
         Refresh();
+        StartCoroutine(CoIntro());
     }
 
     public override void OnClose()
@@ -122,7 +145,7 @@ public class MarketPopup : Popup
         RefreshPick(hunt);
         RefreshTotal(hunt);
 
-        m_SoldText.text = $"판 골드 {hunt.SoldGold}";
+        m_SoldText.text = $"{hunt.SoldGold:N0}G";
         m_WaitButton.interactable = hunt.CanAct;
     }
 
@@ -166,7 +189,25 @@ public class MarketPopup : Popup
 
         int swing = Mathf.RoundToInt((hunt.GetSwingRate(merchant) - 1f) * 100f);
         string swingText = swing > 0 ? $"<color=#7BC950>+{swing}%</color>" : swing < 0 ? $"<color=#D9573B>{swing}%</color>" : "보통";
-        m_MerchantInfo.text = $"신뢰도 {market.GetTrust(merchant.ID)}  ·  오늘 시세 {swingText}";
+        int gain = hunt.GetTrustGain(merchant.ID);
+        string gainText = gain > 0 ? $" <color=#7BC950>(+{gain})</color>" : string.Empty;
+        string otherText = merchant.OtherRate > 0f ? $"x{merchant.OtherRate:0.0#}" : "<color=#D9573B>안 삼</color>";
+
+        m_MerchantInfo.text =
+            $"신뢰도  {market.GetTrust(merchant.ID)}{gainText}\n" +
+            $"오늘 시세  {swingText}\n" +
+            $"{GetRarityName(merchant.PreferRarity)} 이상  x{merchant.PreferRate:0.0#}\n" +
+            $"그 밖  {otherText}";
+    }
+
+    private static string GetRarityName(ERarity rarity)
+    {
+        return rarity switch
+        {
+            ERarity.Epic => "에픽",
+            ERarity.Rare => "희귀",
+            _ => "일반",
+        };
     }
 
     // 남은 버섯 = 가진 수 - 고른 수. 칸 아래에 고른 상인의 한 개 값을 쓴다
@@ -410,6 +451,102 @@ public class MarketPopup : Popup
     {
         Hunt?.EndMarket();
     }
+
+    // intro ---
+
+    // !!) 시장 중에는 시간이 멈춰 있어(TimeManager) 모두 unscaled 시간으로 돈다
+    private IEnumerator CoIntro()
+    {
+        HuntData hunt = Hunt;
+        float remain = hunt != null ? hunt.RemainTime : 0f;
+        int seconds = Mathf.CeilToInt(remain);
+        int minutes = UINightClock.ToGameMinutes(remain);
+
+        m_IsIntro = true;
+        m_IsSkipIntro = false;
+        m_Body.alpha = 0f;
+        m_Body.blocksRaycasts = false;
+        m_Intro.gameObject.SetActive(true);
+        m_Intro.alpha = 1f;
+        m_Clock.SetTextVisible(false);
+
+        // 1. 시계 아래 남은 시간이 가운데로 날아오며 커진다
+        RectTransform timer = m_IntroTimer.rectTransform;
+        Vector3 to = timer.position;
+        Vector3 from = m_Clock.TextRect.position;
+        float fromScale = m_Clock.TextRect.rect.height / Mathf.Max(1f, timer.rect.height);
+        m_IntroTimer.text = UINightClock.FormatRealTime(seconds);
+        m_IntroMessage.text = FormatIntro(0);
+        m_IntroMessage.alpha = 0f;
+
+        for (float t = 0f; t < IntroMoveTime && m_IsSkipIntro == false; t += Time.unscaledDeltaTime)
+        {
+            float k = EaseOut(t / IntroMoveTime);
+            timer.position = Vector3.Lerp(from, to, k);
+            timer.localScale = Vector3.one * Mathf.Lerp(fromScale, 1f, k);
+            m_IntroMessage.alpha = k;
+            yield return null;
+        }
+
+        timer.position = to;
+        timer.localScale = Vector3.one;
+        m_IntroMessage.alpha = 1f;
+
+        // 2. 남은 시간은 주르륵 줄고, 시장 시간은 후루룩 오른다
+        for (float t = 0f; t < IntroCountTime && m_IsSkipIntro == false; t += Time.unscaledDeltaTime)
+        {
+            float k = EaseOut(t / IntroCountTime);
+            m_IntroTimer.text = UINightClock.FormatRealTime(Mathf.RoundToInt(seconds * (1f - k)));
+            m_IntroMessage.text = FormatIntro(Mathf.RoundToInt(minutes * k / 10f) * 10); // 10분 단위로 굴러간다
+            yield return null;
+        }
+
+        m_IntroTimer.text = UINightClock.FormatRealTime(0);
+        m_IntroMessage.text = FormatIntro(minutes);
+        for (float t = 0f; t < IntroHoldTime && m_IsSkipIntro == false; t += Time.unscaledDeltaTime)
+        {
+            yield return null;
+        }
+
+        // 3. 본 화면. 시계 자리에는 시장 시간
+        m_Clock.SetMarket(true);
+        m_Clock.SetTextVisible(true);
+
+        for (float t = 0f; t < FadeTime; t += Time.unscaledDeltaTime)
+        {
+            float k = t / FadeTime;
+            m_Intro.alpha = 1f - k;
+            m_Body.alpha = k;
+            yield return null;
+        }
+
+        m_Intro.gameObject.SetActive(false);
+        m_Body.alpha = 1f;
+        m_Body.blocksRaycasts = true;
+        m_IsIntro = false;
+    }
+
+    // 화면(마우스·터치) 누름. 연출 넘기기용
+    private static bool IsPressed()
+    {
+#if ENABLE_INPUT_SYSTEM
+        return Pointer.current != null && Pointer.current.press.wasPressedThisFrame;
+#else
+        return Input.GetMouseButtonDown(0);
+#endif
+    }
+
+    // "지금 가면... 4시간 30분은 거래할 수 있겠어!" (시간은 크게, 금색)
+    private static string FormatIntro(int minutes)
+    {
+        int hour = minutes / 60;
+        int minute = minutes % 60;
+        string time = hour > 0 && minute == 0 ? $"{hour}시간" : hour > 0 ? $"{hour}시간 {minute}분" : $"{minute}분";
+
+        return $"지금 가면... <size={IntroBigSize}><color=#F2C14E>{time}</color></size>은 거래할 수 있겠어!";
+    }
+
+    private static float EaseOut(float t) => 1f - Mathf.Pow(1f - Mathf.Clamp01(t), 3f);
 
     // event ---
 

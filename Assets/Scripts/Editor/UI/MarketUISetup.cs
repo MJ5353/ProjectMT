@@ -7,13 +7,24 @@ using UnityEngine.UI;
 
 // 현장 시장 팝업 프리팹 생성과 전투 HUD 연결. 이미 있으면 덮어쓰지 않는다(대장이 손본 프리팹 보호).
 // HUD 프리팹이 이미 있으면 m_MarketPopupPrefab 칸만 채운다
-// 배치: 좌상단 밤 시계(전투 HUD와 같은 자리), 왼쪽 상인 목록, 가운데 고른 상인, 오른쪽 위 팔 버섯·[거래], 오른쪽 아래 남은 버섯, 아래 [기다리기]·[시장 닫기]
+// 배치(1920x1080 기준): 좌상단 밤 시계(전투 HUD와 같은 자리), 우상단 판 골드.
+// 아래 세 칸: 왼쪽 상인 목록·[기다리기]·[시장 닫기] / 가운데 고른 상인 카드 / 오른쪽 위 팔 버섯·[거래], 오른쪽 아래 남은 버섯.
+// 맨 위에 시작 연출(가운데 큰 남은 시간 + 시장 시간). 글자는 외곽선 없이 기본 글꼴만 쓴다
 public static class MarketUISetup
 {
-    private const float RowHeight = 130f;
+    private const float Margin = 40f;         // 화면 가장자리
+    private const float Pad = 24f;            // 패널 안쪽 여백
+    private const float Gap = 16f;            // 칸 사이
+    private const float Column = 24f;         // 세 칸 사이
+    private const float ContentTop = -300f;   // 시계(+시장 시간 두 줄) 아래부터 쓴다
+    private const float LeftWidth = 380f;
+    private const float CenterWidth = 440f;
+    private const float PickHeight = 280f;
+    private const float TradeWidth = 240f;
+    private const float RowHeight = 110f;
     private const float SlotSize = 120f;
     private const float SlotNameHeight = 40f; // UIItemSlot 이름(값) 줄
-    private const float Gap = 16f;
+    private const int IntroTimerSize = 88;    // 갈무리는 11의 배수 크기가 또렷하다
 
     // ------------------------------------------------
 
@@ -22,6 +33,21 @@ public static class MarketUISetup
     {
         CreateIfMissing();
         LinkToBattleHud();
+    }
+
+    // 배치를 바꾼 뒤 다시 뽑을 때. 프리팹을 손봤다면 그 수정은 사라진다
+    [MenuItem("MushTaker/시장/시장 팝업 다시 만들기 + HUD 연결")]
+    public static void RebuildMarketPopup()
+    {
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.MarketPopupPrefab) != null)
+        {
+            if (EditorUtility.DisplayDialog("시장 팝업 다시 만들기", "지금 시장 팝업 프리팹을 지우고 새로 만듭니다. 프리팹에서 손본 부분은 사라집니다.", "다시 만들기", "취소") == false)
+                return;
+
+            AssetDatabase.DeleteAsset(EditorPath.MarketPopupPrefab);
+        }
+
+        CreateMarketPopup();
     }
 
     // 없을 때만 만든다. 전투 HUD를 만들 때(BattleUISetup)도 부른다
@@ -66,78 +92,107 @@ public static class MarketUISetup
         root.anchorMin = Vector2.zero;
         root.anchorMax = Vector2.one;
         root.offsetMin = root.offsetMax = Vector2.zero;
-        UIBuilder.AddImage(root, new Color(UIStyle.Background.r, UIStyle.Background.g, UIStyle.Background.b, 0.94f), true); // 뒤 화면 터치를 막는다
+        UIBuilder.AddImage(root, new Color(UIStyle.Background.r, UIStyle.Background.g, UIStyle.Background.b, 0.96f), true); // 뒤 화면 터치를 막는다
 
-        UINightClock clock = BattleUISetup.BuildNightClock(root);
+        UINightClock clock = BattleUISetup.BuildNightClock(root, false);
 
-        // 왼쪽 상인 목록 ---
-        RectTransform left = UIBuilder.Rect("Merchants", root, Vector2.zero, new Vector2(0, 1), new Vector2(40, 180), new Vector2(440, -360));
-        Title(root, "MerchantTitle", "오늘 온 상인", new Vector2(40, -300));
+        RectTransform body = UIBuilder.Stretch("Body", root);
+        CanvasGroup bodyGroup = body.gameObject.AddComponent<CanvasGroup>();
+
+        // 오른쪽 위 판 골드 ---
+        RectTransform soldBox = UIBuilder.Anchored("Sold", body, Vector2.one, new Vector2(-Margin, -Margin), new Vector2(340, 110));
+        UIBuilder.AddImage(soldBox, UIStyle.Panel);
+        Caption(soldBox, "Caption", "판 골드", new Vector2(Pad, -12));
+        RectTransform soldValueRect = UIBuilder.Rect("Value", soldBox, Vector2.zero, Vector2.one, new Vector2(Pad, 8), new Vector2(-Pad, -40));
+        TMP_Text sold = UIBuilder.Label(soldValueRect, "0G", UIStyle.FontLarge, TextAlignmentOptions.Right);
+        sold.color = UIStyle.Gold;
+
+        // 왼쪽: 상인 목록 + 아래 버튼 ---
+        Caption(body, "MerchantCaption", "오늘 온 상인", new Vector2(Margin, ContentTop));
+        RectTransform left = UIBuilder.Rect("Merchants", body, Vector2.zero, new Vector2(0, 1), new Vector2(Margin, 280), new Vector2(Margin + LeftWidth, ContentTop - 50));
         VerticalLayoutGroup vertical = left.gameObject.AddComponent<VerticalLayoutGroup>();
         vertical.spacing = Gap;
         vertical.childAlignment = TextAnchor.UpperLeft;
         vertical.childControlWidth = vertical.childControlHeight = true;
         vertical.childForceExpandWidth = true;
         vertical.childForceExpandHeight = false;
-        UIMerchantRow rowTemplate = MerchantRow(root);
+        UIMerchantRow rowTemplate = MerchantRow(body);
 
-        // 가운데 고른 상인 ---
-        RectTransform center = UIBuilder.Rect("Merchant", root, Vector2.zero, new Vector2(0, 1), new Vector2(480, 180), new Vector2(1000, -40));
+        Button close = UIBuilder.Button(body, "CloseButton", "시장 닫기", new Vector2(LeftWidth, 100), UIStyle.AccentDark);
+        PlaceCorner(close, Vector2.zero, new Vector2(Margin, Margin));
+        Button wait = UIBuilder.Button(body, "WaitButton", "30분 기다리기", new Vector2(LeftWidth, 100), UIStyle.PanelLight);
+        PlaceCorner(wait, Vector2.zero, new Vector2(Margin, Margin + 100 + Gap));
+
+        // 가운데: 고른 상인 카드(그림·이름·설명·특징) ---
+        float centerLeft = Margin + LeftWidth + Column;
+        RectTransform center = UIBuilder.Rect("Merchant", body, Vector2.zero, new Vector2(0, 1), new Vector2(centerLeft, Margin), new Vector2(centerLeft + CenterWidth, ContentTop));
         UIBuilder.AddImage(center, UIStyle.Panel);
-        RectTransform iconRect = UIBuilder.Anchored("Icon", center, new Vector2(0.5f, 1f), new Vector2(0, -40), new Vector2(300, 300));
+        RectTransform iconRect = UIBuilder.Anchored("Icon", center, new Vector2(0.5f, 1f), new Vector2(0, -28), new Vector2(180, 180));
         Image icon = UIBuilder.AddImage(iconRect, Color.white);
         icon.preserveAspect = true;
-        TMP_Text merchantName = TopLabel(center, "Name", "상인", UIStyle.FontTitle, -360, 80);
+        TMP_Text merchantName = TopLabel(center, "Name", "상인", UIStyle.FontLarge, -224, 56, TextAlignmentOptions.Center);
         merchantName.color = UIStyle.Gold;
-        TMP_Text desc = TopLabel(center, "Desc", "설명", UIStyle.FontNormal, -450, 110);
+        TMP_Text desc = TopLabel(center, "Desc", "설명", UIStyle.FontSmall, -288, 72, TextAlignmentOptions.Top);
         desc.textWrappingMode = TextWrappingModes.Normal;
         desc.color = UIStyle.TextDim;
-        TMP_Text info = TopLabel(center, "Info", "신뢰도 0  ·  오늘 시세 보통", UIStyle.FontSmall, -580, 40);
+        RectTransform line = UIBuilder.Rect("Line", center, new Vector2(0, 1), Vector2.one, new Vector2(Pad, -376), new Vector2(-Pad, -374));
+        UIBuilder.AddImage(line, UIStyle.PanelLight);
+        RectTransform infoRect = UIBuilder.Rect("Info", center, Vector2.zero, Vector2.one, new Vector2(Pad, Pad), new Vector2(-Pad, -396));
+        TMP_Text info = UIBuilder.Label(infoRect, "신뢰도  0\n오늘 시세  보통\n희귀 이상  x2.0\n그 밖  x0.5", UIStyle.FontSmall, TextAlignmentOptions.TopLeft);
         info.richText = true;
+        info.lineSpacing = 40f;
 
-        // 오른쪽 위 팔 버섯 ---
-        RectTransform right = UIBuilder.Rect("Trade", root, Vector2.zero, Vector2.one, new Vector2(1040, 180), new Vector2(-40, -40));
-        RectTransform pickPanel = UIBuilder.Rect("Pick", right, new Vector2(0, 1), Vector2.one, new Vector2(0, -380), Vector2.zero);
+        // 오른쪽 위: 팔 버섯 + 합계 + [거래] ---
+        float rightLeft = centerLeft + CenterWidth + Column;
+        RectTransform right = UIBuilder.Rect("Trade", body, Vector2.zero, Vector2.one, new Vector2(rightLeft, Margin), new Vector2(-Margin, ContentTop));
+        RectTransform pickPanel = UIBuilder.Rect("Pick", right, new Vector2(0, 1), Vector2.one, new Vector2(0, -PickHeight), Vector2.zero);
         UIBuilder.AddImage(pickPanel, UIStyle.Panel);
-        Title(pickPanel, "Title", "팔 버섯 (눌러서 빼기)", new Vector2(20, -10));
-        RectTransform pickList = UIBuilder.Rect("List", pickPanel, new Vector2(0, 1), Vector2.one, new Vector2(20, -70 - SlotSize - SlotNameHeight), new Vector2(-20, -70));
+        Caption(pickPanel, "Caption", "팔 버섯  ·  눌러서 빼기", new Vector2(Pad, -12));
+        RectTransform pickList = UIBuilder.Rect("List", pickPanel, new Vector2(0, 1), new Vector2(1, 1), new Vector2(Pad, -60 - SlotSize - SlotNameHeight), new Vector2(-TradeWidth - Pad, -60));
         HorizontalLayoutGroup horizontal = pickList.gameObject.AddComponent<HorizontalLayoutGroup>();
         horizontal.spacing = Gap;
         horizontal.childAlignment = TextAnchor.UpperLeft;
         horizontal.childControlWidth = horizontal.childControlHeight = false;
         horizontal.childForceExpandWidth = horizontal.childForceExpandHeight = false;
 
-        RectTransform messageRect = UIBuilder.Rect("Message", pickPanel, Vector2.zero, new Vector2(1, 0), new Vector2(20, 20), new Vector2(-340, 70));
+        RectTransform totalRect = UIBuilder.Rect("Total", pickPanel, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-TradeWidth - Pad, -110), new Vector2(-Pad, -60));
+        TMP_Text total = UIBuilder.Label(totalRect, "0G  (0/5)", UIStyle.FontNormal, TextAlignmentOptions.Right);
+        total.color = UIStyle.Gold;
+        Button trade = UIBuilder.Button(pickPanel, "TradeButton", "거래", new Vector2(TradeWidth, 96), UIStyle.Accent);
+        PlaceCorner(trade, new Vector2(1, 1), new Vector2(-Pad, -124));
+
+        RectTransform messageRect = UIBuilder.Rect("Message", pickPanel, Vector2.zero, new Vector2(1, 0), new Vector2(Pad, 10), new Vector2(-Pad, 44));
         TMP_Text message = UIBuilder.Label(messageRect, string.Empty, UIStyle.FontSmall, TextAlignmentOptions.Left);
         message.color = UIStyle.Accent;
-        RectTransform totalRect = UIBuilder.Rect("Total", pickPanel, Vector2.zero, new Vector2(1, 0), new Vector2(20, 70), new Vector2(-340, 120));
-        TMP_Text total = UIBuilder.Label(totalRect, "합계 0G  (0/5)", UIStyle.FontNormal, TextAlignmentOptions.Left);
-        total.color = UIStyle.Gold;
 
-        Button trade = UIBuilder.Button(pickPanel, "TradeButton", "거래", new Vector2(280, 100), UIStyle.Accent);
-        PlaceCorner(trade, new Vector2(1, 0), new Vector2(-20, 20));
-
-        // 오른쪽 아래 남은 버섯(스크롤) ---
-        RectTransform stockPanel = UIBuilder.Rect("Stock", right, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0, -400));
+        // 오른쪽 아래: 남은 버섯(스크롤 격자) ---
+        RectTransform stockPanel = UIBuilder.Rect("Stock", right, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0, -PickHeight - Column));
         UIBuilder.AddImage(stockPanel, UIStyle.Panel);
-        Title(stockPanel, "Title", "남은 버섯 (눌러서 담기 · 아래는 이 상인의 한 개 값)", new Vector2(20, -10));
+        Caption(stockPanel, "Caption", "남은 버섯  ·  눌러서 담기  ·  칸 아래는 이 상인의 값", new Vector2(Pad, -12));
         RectTransform stockList = ScrollGrid(stockPanel);
 
-        UIItemSlot slotTemplate = UIBuilder.ItemSlot(root, "SlotTemplate", SlotSize);
+        UIItemSlot slotTemplate = UIBuilder.ItemSlot(body, "SlotTemplate", SlotSize);
         slotTemplate.gameObject.SetActive(false);
 
-        // 아래 줄 ---
-        RectTransform soldRect = UIBuilder.Anchored("Sold", root, Vector2.zero, new Vector2(40, 40), new Vector2(400, 110));
-        TMP_Text sold = UIBuilder.Label(soldRect, "판 골드 0", UIStyle.FontLarge, TextAlignmentOptions.Left);
-        sold.color = UIStyle.Gold;
-
-        Button wait = UIBuilder.Button(root, "WaitButton", "30분 기다리기", new Vector2(340, 110), UIStyle.PanelLight);
-        PlaceCorner(wait, new Vector2(1, 0), new Vector2(-380, 40));
-        Button close = UIBuilder.Button(root, "CloseButton", "시장 닫기", new Vector2(300, 110), UIStyle.AccentDark);
-        PlaceCorner(close, new Vector2(1, 0), new Vector2(-40, 40));
+        // 시작 연출(맨 위). 가운데 큰 남은 시간 + 아래 시장 시간 ---
+        RectTransform intro = UIBuilder.Stretch("Intro", root);
+        CanvasGroup introGroup = intro.gameObject.AddComponent<CanvasGroup>();
+        introGroup.blocksRaycasts = false;
+        RectTransform timerRect = UIBuilder.Anchored("Timer", intro, new Vector2(0.5f, 0.5f), new Vector2(0, 90), new Vector2(600, 140));
+        timerRect.pivot = new Vector2(0.5f, 0.5f);
+        TMP_Text introTimer = UIBuilder.Label(timerRect, "05:00", IntroTimerSize);
+        RectTransform introMessageRect = UIBuilder.Anchored("Message", intro, new Vector2(0.5f, 0.5f), new Vector2(0, -60), new Vector2(1400, 110));
+        introMessageRect.pivot = new Vector2(0.5f, 0.5f);
+        TMP_Text introMessage = UIBuilder.Label(introMessageRect, "지금 가면... 4시간 30분은 거래할 수 있겠어!", UIStyle.FontNormal);
+        introMessage.richText = true;
+        intro.gameObject.SetActive(false);
 
         MarketPopup popup = root.gameObject.AddComponent<MarketPopup>();
         UIBuilder.SetRef(popup, "m_Clock", clock);
+        UIBuilder.SetRef(popup, "m_Body", bodyGroup);
+        UIBuilder.SetRef(popup, "m_Intro", introGroup);
+        UIBuilder.SetRef(popup, "m_IntroTimer", introTimer);
+        UIBuilder.SetRef(popup, "m_IntroMessage", introMessage);
         UIBuilder.SetRef(popup, "m_MerchantList", left);
         UIBuilder.SetRef(popup, "m_MerchantTemplate", rowTemplate);
         UIBuilder.SetRef(popup, "m_MerchantIcon", icon);
@@ -158,35 +213,38 @@ public static class MarketUISetup
         return popup;
     }
 
-    // 상인 한 줄 원본: 고른 테두리(뒤), 바탕 버튼, 이름, 신뢰도 게이지. 목록 밖에 꺼 둔다
+    // 상인 한 줄 원본: 고른 테두리(뒤), 바탕 버튼, 이름·신뢰도 숫자, 아래 신뢰도 게이지. 목록 밖에 꺼 둔다
     private static UIMerchantRow MerchantRow(Transform parent)
     {
-        RectTransform row = UIBuilder.Anchored("MerchantRowTemplate", parent, new Vector2(0, 1), new Vector2(40, -340), new Vector2(400, RowHeight));
+        RectTransform row = UIBuilder.Anchored("MerchantRowTemplate", parent, new Vector2(0, 1), new Vector2(Margin, ContentTop - 50), new Vector2(LeftWidth, RowHeight));
         row.gameObject.AddComponent<LayoutElement>().preferredHeight = RowHeight;
 
         Image selected = UIBuilder.Panel("Selected", row, UIStyle.Gold);
-        ((RectTransform)selected.transform).offsetMin = new Vector2(-6, -6);
-        ((RectTransform)selected.transform).offsetMax = new Vector2(6, 6);
+        ((RectTransform)selected.transform).offsetMin = new Vector2(-4, -4);
+        ((RectTransform)selected.transform).offsetMax = new Vector2(4, 4);
 
-        Image back = UIBuilder.Panel("Back", row, UIStyle.PanelLight, true);
+        Image back = UIBuilder.Panel("Back", row, UIStyle.Panel, true);
         Button button = row.gameObject.AddComponent<Button>();
         button.targetGraphic = back;
 
-        RectTransform nameRect = UIBuilder.Rect("Name", row, new Vector2(0, 1), Vector2.one, new Vector2(20, -70), new Vector2(-20, -10));
+        RectTransform nameRect = UIBuilder.Rect("Name", row, new Vector2(0, 1), Vector2.one, new Vector2(Pad, -64), new Vector2(-Pad, -14));
         TMP_Text nameText = UIBuilder.Label(nameRect, "상인", UIStyle.FontNormal, TextAlignmentOptions.Left);
 
-        RectTransform trustLabel = UIBuilder.Rect("TrustLabel", row, Vector2.zero, new Vector2(1, 0), new Vector2(20, 14), new Vector2(-20, 50));
-        TMP_Text trustText = UIBuilder.Label(trustLabel, "신뢰", UIStyle.FontSmall, TextAlignmentOptions.Left);
+        TMP_Text trustText = UIBuilder.Label(nameRect, "신뢰 0", UIStyle.FontSmall, TextAlignmentOptions.Right, "Trust");
         trustText.color = UIStyle.TextDim;
 
-        UIGauge trust = UIBuilder.Gauge(row, "Trust", new Vector2(280, 24), UIStyle.Gold, false);
+        UIGauge trust = UIBuilder.Gauge(row, "TrustGauge", new Vector2(LeftWidth - Pad * 2f, 18), UIStyle.Gold, false);
         RectTransform trustRect = (RectTransform)trust.transform;
-        trustRect.anchorMin = trustRect.anchorMax = trustRect.pivot = new Vector2(1, 0);
-        trustRect.anchoredPosition = new Vector2(-20, 20);
+        trustRect.anchorMin = new Vector2(0, 0);
+        trustRect.anchorMax = new Vector2(1, 0);
+        trustRect.pivot = new Vector2(0.5f, 0f);
+        trustRect.offsetMin = new Vector2(Pad, 22);
+        trustRect.offsetMax = new Vector2(-Pad, 40);
 
         UIMerchantRow merchantRow = row.gameObject.AddComponent<UIMerchantRow>();
         UIBuilder.SetRef(merchantRow, "m_Button", button);
         UIBuilder.SetRef(merchantRow, "m_NameText", nameText);
+        UIBuilder.SetRef(merchantRow, "m_TrustText", trustText);
         UIBuilder.SetRef(merchantRow, "m_Trust", trust);
         UIBuilder.SetRef(merchantRow, "m_Selected", selected.gameObject);
         row.gameObject.SetActive(false);
@@ -197,7 +255,7 @@ public static class MarketUISetup
     // 세로 스크롤 + 격자. 칸이 늘면 아래로 길어진다. 격자(Content)를 돌려준다
     private static RectTransform ScrollGrid(RectTransform panel)
     {
-        RectTransform viewport = UIBuilder.Rect("Viewport", panel, Vector2.zero, Vector2.one, new Vector2(20, 20), new Vector2(-20, -70));
+        RectTransform viewport = UIBuilder.Rect("Viewport", panel, Vector2.zero, Vector2.one, new Vector2(Pad, Pad), new Vector2(-Pad, -60));
         viewport.gameObject.AddComponent<RectMask2D>();
         UIBuilder.AddImage(viewport, Color.clear, true); // 빈 곳을 끌어도 스크롤되게
 
@@ -206,7 +264,7 @@ public static class MarketUISetup
         GridLayoutGroup grid = content.gameObject.AddComponent<GridLayoutGroup>();
         grid.cellSize = new Vector2(SlotSize, SlotSize + SlotNameHeight);
         grid.spacing = new Vector2(Gap * 2f, Gap);
-        grid.padding = new RectOffset(10, 10, 10, 10);
+        grid.padding = new RectOffset(0, 0, 4, 4);
         grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
         grid.childAlignment = TextAnchor.UpperLeft;
         content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -222,19 +280,20 @@ public static class MarketUISetup
 
     // ---
 
-    private static TMP_Text Title(Transform parent, string name, string text, Vector2 topLeft)
+    // 패널 머리글(작고 흐린 글자)
+    private static TMP_Text Caption(Transform parent, string name, string text, Vector2 topLeft)
     {
-        RectTransform rt = UIBuilder.Anchored(name, parent, new Vector2(0, 1), topLeft, new Vector2(800, 50));
+        RectTransform rt = UIBuilder.Anchored(name, parent, new Vector2(0, 1), topLeft, new Vector2(900, 40));
         TMP_Text label = UIBuilder.Label(rt, text, UIStyle.FontSmall, TextAlignmentOptions.Left);
         label.color = UIStyle.TextDim;
 
         return label;
     }
 
-    private static TMP_Text TopLabel(Transform parent, string name, string text, int size, float top, float height)
+    private static TMP_Text TopLabel(Transform parent, string name, string text, int size, float top, float height, TextAlignmentOptions align)
     {
-        RectTransform rt = UIBuilder.Rect(name, parent, new Vector2(0, 1), Vector2.one, new Vector2(30, top - height), new Vector2(-30, top));
-        return UIBuilder.Label(rt, text, size);
+        RectTransform rt = UIBuilder.Rect(name, parent, new Vector2(0, 1), Vector2.one, new Vector2(Pad, top - height), new Vector2(-Pad, top));
+        return UIBuilder.Label(rt, text, size, align);
     }
 
     private static void PlaceCorner(Button button, Vector2 anchor, Vector2 position)

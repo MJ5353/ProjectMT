@@ -67,7 +67,7 @@ public class ResultScreen : MonoBehaviour
             _ => "빈손으로 귀가",
         };
         m_Title.color = battleM.State == EBattleState.Exited ? UIStyle.Gold : UIStyle.Accent;
-        m_Summary.text = $"시간 {FormatTime(battleM.ElapsedTime)}";
+        m_Summary.text = $"시간 {FormatTime(battleM.ElapsedTime)}{FormatTrust(battleM.State)}";
 
         FillLoot(battleM.DicReward);
         m_LobbyButton.gameObject.SetActive(Application.CanStreamedLevelBeLoaded(SceneNames.Lobby));
@@ -199,6 +199,31 @@ public class ResultScreen : MonoBehaviour
         SetButtonsInteractable(false);
         if (battleM.TryGoLobby() == false)
             SetButtonsInteractable(true);
+    }
+
+    // 시장에서 오른 상인 신뢰도. "  ·  신뢰도 약재상 +10, 요리사 +5"
+    private static string FormatTrust(EBattleState state)
+    {
+        HuntData hunt = PlayerDataManager.Instance?.Hunt;
+        GameDatabase database = GameManager.Instance?.Database;
+        if (state != EBattleState.Exited || hunt == null || hunt.DicTrustGain.Count == 0)
+            return string.Empty;
+
+        System.Text.StringBuilder builder = new("  ·  신뢰도 ");
+        bool isFirst = true;
+        foreach (var pair in hunt.DicTrustGain)
+        {
+            MerchantDef merchant = null;
+            database?.TryGet(pair.Key, out merchant);
+
+            if (isFirst == false)
+                builder.Append(", ");
+
+            builder.Append($"{(merchant != null ? merchant.DisplayName : pair.Key)} +{pair.Value}");
+            isFirst = false;
+        }
+
+        return builder.ToString();
     }
 
     private static string FormatTime(float seconds)

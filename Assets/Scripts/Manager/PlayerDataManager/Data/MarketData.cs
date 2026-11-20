@@ -50,6 +50,10 @@ public class MarketData : PlayerDataBase
             m_DicTrustByID[merchantID] = trust;
     }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    public void DebugResetTrust() => m_DicTrustByID.Clear();
+#endif
+
     // get ---
 
     public int GetTrust(string merchantID)
