@@ -6,4 +6,5 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "MushTaker/Data/Item", fileName = "Item_")]
 public class ItemDef : DataDef
 {
+    public const string RottenID = "Item_Rotten"; // 팔지 못하고 밤이 끝난 버섯
 }

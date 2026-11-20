@@ -6,4 +6,5 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "MushTaker/Data/Currency", fileName = "Currency_")]
 public class CurrencyDef : DataDef
 {
+    public const string GoldID = "Currency_Gold";
 }

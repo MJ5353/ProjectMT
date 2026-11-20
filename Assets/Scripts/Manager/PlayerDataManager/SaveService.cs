@@ -64,6 +64,7 @@ public class SaveService
     {
         data.items ??= new();
         data.flags ??= new();
+        data.merchants ??= new();
 
         data.version = SaveData.CurrentVersion;
 

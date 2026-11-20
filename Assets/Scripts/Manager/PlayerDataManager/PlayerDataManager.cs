@@ -15,6 +15,7 @@ public class PlayerDataManager : MonoSingleton<PlayerDataManager>
     public InventoryData Inventory { get; private set; }
     public FlagData Flag { get; private set; }
     public HuntData Hunt { get; private set; }
+    public MarketData Market { get; private set; }
 
     // ==================================================
 
@@ -76,7 +77,8 @@ public class PlayerDataManager : MonoSingleton<PlayerDataManager>
     {
         Inventory = AddData(new InventoryData());
         Flag = AddData(new FlagData());
-        Hunt = AddData(new HuntData(Flag));
+        Market = AddData(new MarketData());
+        Hunt = AddData(new HuntData(Flag, Inventory, Market));
 
         for (int i = 0; i < m_ListData.Count; ++i)
         {

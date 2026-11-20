@@ -49,3 +49,21 @@ public readonly struct TabChanged
         To = to;
     }
 }
+
+// 시장 상태가 바뀜(상인, 남은 버섯, 남은 밤). 시장 팝업이 다시 그린다
+public readonly struct MarketChanged
+{
+}
+
+// 시장이 닫힘. 판 골드와 썩은 버섯은 이미 인벤토리에 들어갔다
+public readonly struct MarketClosed
+{
+    public readonly int Gold;
+    public readonly int RottenCount;
+
+    public MarketClosed(int gold, int rottenCount)
+    {
+        Gold = gold;
+        RottenCount = rottenCount;
+    }
+}

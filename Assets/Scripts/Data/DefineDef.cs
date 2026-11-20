@@ -105,4 +105,32 @@ public class DefineDef : DataDef
 
     [field: SerializeField]
     public float ShakeInRatio { get; private set; } = 0.2f;         // 흔들림 시간 중 다가가는 구간 비율. 나머지는 부드럽게 복귀
+
+    // 시장 ---
+    [field: SerializeField]
+    public float MarketActionTime { get; private set; } = 15f;      // 거래·기다리기 한 번에 줄어드는 밤(초). 화면 표기는 MarketActionMinutes
+
+    [field: SerializeField]
+    public int MarketActionMinutes { get; private set; } = 30;      // 거래·기다리기 한 번의 화면 표기(분)
+
+    [field: SerializeField]
+    public int MarketMerchantCount { get; private set; } = 3;       // 밤마다 오는 상인 수
+
+    [field: SerializeField]
+    public int MarketTradeLimit { get; private set; } = 5;          // 거래 한 번에 팔 수 있는 버섯 수
+
+    [field: SerializeField]
+    public float MarketLowFreshRate { get; private set; } = 0.6f;   // [mj] todo) 가안. 덜 신선한 버섯 가격 배율
+
+    [field: SerializeField]
+    public int TrustMax { get; private set; } = 100;                // 상인 신뢰도 상한
+
+    [field: SerializeField]
+    public int TrustPerTrade { get; private set; } = 5;             // 거래 한 번에 오르는 신뢰도
+
+    [field: SerializeField]
+    public float TrustPriceRate { get; private set; } = 0.005f;     // 신뢰도 1당 가격 가산(100이면 +50%)
+
+    [field: SerializeField]
+    public float TrustVisitRate { get; private set; } = 0.02f;      // 신뢰도 1당 방문 가중치 가산(100이면 3배)
 }

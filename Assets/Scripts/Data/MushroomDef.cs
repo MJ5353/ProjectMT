@@ -27,6 +27,9 @@ public class MushroomDef : DataDef
     [field: SerializeField, FormerlySerializedAs("m_Tint")]
     public Color Tint { get; private set; } = Color.white;
 
+    [field: SerializeField, Tooltip("시장 기본가(골드). 상인 배율·신선도·신뢰도가 곱해진다")]
+    public int Price { get; private set; } = 10; // [mj] todo) 가안
+
     // 모델·픽업 이름에 쓰는 키
     public string Key => ID != null && ID.StartsWith(KeyPrefix) ? ID.Substring(KeyPrefix.Length) : ID;
     public string ModelName => $"Mush_{Key}";
