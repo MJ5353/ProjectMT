@@ -30,9 +30,6 @@ MonoBehaviour:
   <MonsterDropHeight>k__BackingField: 0.6
   <MonsterDropSpread>k__BackingField: 2
   <MonsterDropUpSpeed>k__BackingField: 5
-  <RarityRareColor>k__BackingField: {r: 0.25, g: 0.6, b: 1, a: 1}
-  <RarityEpicColor>k__BackingField: {r: 0.75, g: 0.3, b: 1, a: 1}
-  <RarityRingScale>k__BackingField: 2.5
   <PartRegrowTime>k__BackingField: 1.5
   <PartRegrowStartScale>k__BackingField: 0.3
   <PartDropUpSpeed>k__BackingField: 5
@@ -58,3 +55,11 @@ MonoBehaviour:
   <TrustPerTrade>k__BackingField: 5
   <TrustPriceRate>k__BackingField: 0.005
   <TrustVisitRate>k__BackingField: 0.02
+  <ClickBurstCount>k__BackingField: {x: 2, y: 4}
+  <ClickBurstTime>k__BackingField: 0.4
+  <ClickBurstSize>k__BackingField: {x: 100, y: 100}
+  <ClickBurstDistance>k__BackingField: {x: 50, y: 100}
+  <ClickBurstTilt>k__BackingField: 30
+  <ClickBurstSpin>k__BackingField: 90
+  <ClickBurstEndScale>k__BackingField: 0.3
+  <ClickBurstFadeStart>k__BackingField: 0.5
