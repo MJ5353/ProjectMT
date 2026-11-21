@@ -11,7 +11,7 @@ public sealed class BattleSceneController : SceneControllerBase
 
     public override EGameState State => EGameState.Battle;
 
-    public ScreenBattle Screen => GetScreen<ScreenBattle>();
+    public ScreenBattle ScreenUI => GetScreen<ScreenBattle>();
 
     // ------------------------------------------------
 

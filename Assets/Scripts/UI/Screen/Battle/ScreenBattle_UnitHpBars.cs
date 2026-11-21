@@ -35,19 +35,12 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
         m_BossRoot.E_SetActive(false);
     }
 
-    // 서비스는 씬 컨트롤러 Awake에서 등록되므로 Start에서 구독한다. 씬이 닫힐 때 UnitService.Clear가 구독을 비운다
+    // 서비스는 씬 컨트롤러 Start(-1100)에서 등록되므로 Start에서 구독한다. 해제는 따로 하지 않는다(씬이 닫힐 때 UnitService.Clear가 구독을 비운다)
     private void Start()
     {
         UnitService units = GameManager.Instance.UnitS;
         if (units != null)
             units.UnitRemoved += OnUnitRemoved;
-    }
-
-    private void OnDestroy()
-    {
-        UnitService units = GameManager.Instance.UnitS;
-        if (units != null)
-            units.UnitRemoved -= OnUnitRemoved;
     }
 
     private void LateUpdate()
@@ -117,10 +110,6 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
     // 몸(캐릭터 컨트롤러) 맨 위보다 조금 위를 화면 좌표로 옮긴다. 카메라 뒤면 false
     private bool TryPlace(UIGauge gauge, UnitController unit, Camera cam, DefineDef define)
     {
-        RectTransform rt = gauge.RectTransform;
-        if (rt == null)
-            return false;
-
         CharacterController body = unit.HurtBody;
         float top = 2f;
         if (body != null)
@@ -131,7 +120,7 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
             return false;
 
         RectTransformUtility.ScreenPointToLocalPointInRectangle(m_Root, screen, null, out Vector2 local);
-        rt.anchoredPosition = local;
+        gauge.RectTransform.anchoredPosition = local;
         return true;
     }
 

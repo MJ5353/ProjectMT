@@ -48,7 +48,8 @@ public static class UIBuilder
 
     // root ---
 
-    // 화면 하나 = 캔버스 하나. 자식은 SafeArea 아래에 붙인다
+    // 씬 UI 구성: 캔버스 하나 → 화면 프리팹(꽉 차게, 안에 SafeArea) → PopupRoot(SafeArea, 나중 형제라 화면 위에 그린다).
+    // 화면 프리팹이 노치까지 덮는 것(바탕·가장자리 연출)과 SafeArea 안 UI를 함께 든다
     public static RectTransform CreateCanvas(string name, int sortingOrder = 0)
     {
         GameObject go = new GameObject(name, typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -64,10 +65,39 @@ public static class UIBuilder
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = 1f;
 
-        RectTransform safe = Stretch("SafeArea", go.transform);
-        safe.gameObject.AddComponent<UISafeArea>();
+        return go.transform as RectTransform;
+    }
 
+    // 노치를 피하는 영역. 전체 화면 크기의 부모(캔버스·화면 루트) 바로 아래에 둔다
+    public static RectTransform CreateSafeArea(Transform parent, string name = "SafeArea")
+    {
+        RectTransform safe = Stretch(name, parent);
+        safe.gameObject.AddComponent<UISafeArea>();
         return safe;
+    }
+
+    // 화면 프리팹 루트(꽉 찬 Stretch). 자식 UI는 함께 만든 SafeArea 아래에 붙인다
+    public static RectTransform CreateScreenRoot(string name, out RectTransform safe)
+    {
+        RectTransform root = Stretch(name, null);
+        safe = CreateSafeArea(root);
+        return root;
+    }
+
+    // 화면 프리팹을 캔버스 아래 꽉 차게 놓는다. 프리팹이 없으면 null(호출부가 에러)
+    public static T PlaceScreen<T>(string prefabPath, Transform canvas) where T : ScreenBase
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        T screen = prefab != null ? Spawn<T>(prefab, canvas) : null;
+        if (screen == null)
+            return null;
+
+        RectTransform rt = screen.RectTransform;
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+        return screen;
     }
 
     public static void CreateEventSystemIfNeeded()
@@ -219,8 +249,7 @@ public static class UIBuilder
         if (gaugeRt != null)
             gaugeRt.sizeDelta = size;
 
-        gauge.transform.Find("Inner/Fill").GetComponent<Image>().color = fillColor;
-        gauge.GetComponentInChildren<TMP_Text>(true).gameObject.SetActive(isShowText);
+        gauge.EditorSetStyle(fillColor, isShowText);
 
         return gauge;
     }

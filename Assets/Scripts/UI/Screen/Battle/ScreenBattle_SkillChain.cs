@@ -46,8 +46,7 @@ public class ScreenBattle_SkillChain : MonoBehaviour
         if (main != m_MainSkill)
         {
             m_MainSkill = main;
-            m_MainIcon.sprite = main.E_Alive()?.Icon;
-            m_MainIcon.enabled = m_MainIcon.sprite != null;
+            m_MainIcon.E_SetImage(main.E_Alive()?.Icon);
         }
 
         // 공격 중이거나, 공격이 끝나고 콤보 리셋 시간 안이면 이어 쓸 수 있다

@@ -402,7 +402,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3160512907341047316}
+  - {fileID: 600592559550990529}
   m_Father: {fileID: 63960569580837506}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -410,7 +410,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -175}
   m_SizeDelta: {x: -80, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &7046330840995214291
+--- !u!1 &7005181852510954468
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -418,10 +418,10 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3160512907341047316}
-  - component: {fileID: 6033051461484281177}
-  - component: {fileID: 3590079595586043767}
-  - component: {fileID: 2039462595113129865}
+  - component: {fileID: 600592559550990529}
+  - component: {fileID: 7824116503907312756}
+  - component: {fileID: 397583516525625835}
+  - component: {fileID: 5013914151809553817}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -429,13 +429,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!224 &3160512907341047316
+--- !u!224 &600592559550990529
 RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7046330840995214291}
+  m_GameObject: {fileID: 7005181852510954468}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -448,21 +448,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &6033051461484281177
+--- !u!222 &7824116503907312756
 CanvasRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7046330840995214291}
+  m_GameObject: {fileID: 7005181852510954468}
   m_CullTransparentMesh: 1
---- !u!114 &3590079595586043767
+--- !u!114 &397583516525625835
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7046330840995214291}
+  m_GameObject: {fileID: 7005181852510954468}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
@@ -549,19 +549,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &2039462595113129865
+--- !u!114 &5013914151809553817
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7046330840995214291}
+  m_GameObject: {fileID: 7005181852510954468}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 38b557ca35f023d4ca2c526c009e7166, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UILabel
-  m_Text: {fileID: 3590079595586043767}
+  m_Text: {fileID: 397583516525625835}
   m_Key: Death_Desc
 --- !u!1001 &4042556540650689827
 PrefabInstance:
@@ -805,7 +805,7 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 9137683317018377854, guid: 525d450a6d48cc746a7ec48e4434ce28, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2283218246114687328}
+      addedObject: {fileID: 1246450148611955925}
   m_SourcePrefab: {fileID: 100100000, guid: 525d450a6d48cc746a7ec48e4434ce28, type: 3}
 --- !u!114 &74801455517404349 stripped
 MonoBehaviour:
@@ -828,7 +828,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 9137683317018377854, guid: 525d450a6d48cc746a7ec48e4434ce28, type: 3}
   m_PrefabInstance: {fileID: 6625166192606933398}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2283218246114687328
+--- !u!114 &1246450148611955925
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

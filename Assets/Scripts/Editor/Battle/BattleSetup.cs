@@ -200,11 +200,19 @@ public static class BattleSetup
             cam.farClipPlane = 200f;
         }
 
-        RectTransform popupRoot = UIBuilder.CreateCanvas("BattlePopupCanvas", 110);
         MapDef mapDef = AssetDatabase.LoadAssetAtPath<MapDef>(EditorPath.DefaultMapDef);
 
-        // 전투 화면(결과·사망·시장 팝업은 ScreenBattle이 PopupService로 띄운다)
-        ScreenBattle screen = BattleUISetup.AddBattleScreen();
+        // 캔버스 → 전투 화면 → PopupRoot(나중 형제라 위에 그린다). 결과·사망·시장 팝업은 ScreenBattle이 PopupService로 띄운다
+        RectTransform canvas = UIBuilder.CreateCanvas("UICanvas");
+        ScreenBattle screen = BattleUISetup.AddBattleScreen(canvas);
+        if (screen == null)
+        {
+            // 화면 없는 씬을 저장하지 않는다
+            CLogger.Error("BattleSetup", $"{EditorPath.ScreenBattlePrefab}에 ScreenBattle 프리팹이 없습니다. 모든 UI 다시 만들기를 먼저 실행하세요.");
+            return;
+        }
+
+        RectTransform popupRoot = UIBuilder.CreateSafeArea(canvas, "PopupRoot");
         sceneController.EditorSetup(popupRoot, cam, screen, mapDef);
 
         EditorSceneManager.SaveScene(scene, EditorPath.BattleScene);
