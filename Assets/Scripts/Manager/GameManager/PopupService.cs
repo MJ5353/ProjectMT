@@ -13,8 +13,8 @@ using UnityEngine.InputSystem;
 
 public sealed class PopupService : ServiceBase
 {
-    private readonly List<Popup> m_ListPopup = new();                        // 열려 있는 팝업. 마지막이 맨 위
-    private readonly Dictionary<EPopupType, Popup> m_DicInstance = new();    // 만들어 둔 팝업(열림·닫힘 모두)
+    private readonly List<PopupBase> m_ListPopup = new();                        // 열려 있는 팝업. 마지막이 맨 위
+    private readonly Dictionary<EPopupType, PopupBase> m_DicInstance = new();    // 만들어 둔 팝업(열림·닫힘 모두)
 
     private RectTransform m_Root;
     private PopupDef m_Def;
@@ -43,12 +43,12 @@ public sealed class PopupService : ServiceBase
     public override void Clear()
     {
         SEventManager.Unsubscribe<SceneUnloading>(OnSceneUnloading);
-        List<Popup> listInstance = new(m_DicInstance.Values);
+        List<PopupBase> listInstance = new(m_DicInstance.Values);
         
         m_ListPopup.Clear();
         m_DicInstance.Clear();
 
-        foreach (Popup popup in listInstance)
+        foreach (PopupBase popup in listInstance)
         {
             if (popup == null)
                 continue;
@@ -71,12 +71,12 @@ public sealed class PopupService : ServiceBase
 
     // 팝업 ID의 팝업을 띄운다. 만들어 둔 것이 있으면 다시 쓰고, 이미 열려 있으면 맨 위로 올려 다시 연다.
     // 원본이 없거나 T가 맞지 않으면 null(에러는 PopupDef가 한 번)
-    public T Open<T>(EPopupType type) where T : Popup
+    public T Open<T>(EPopupType type) where T : PopupBase
     {
         if (m_Root == null)
             return null;
 
-        if (m_DicInstance.TryGetValue(type, out Popup cached) == false || cached == null)
+        if (m_DicInstance.TryGetValue(type, out PopupBase cached) == false || cached == null)
         {
             T prefab = m_Def.E_Alive()?.Get<T>(type);
             if (prefab == null)
@@ -106,12 +106,12 @@ public sealed class PopupService : ServiceBase
         return popup;
     }
 
-    public void Close(Popup popup)
+    public void Close(PopupBase popupBase)
     {
-        if (m_ListPopup.Remove(popup) == false)
+        if (m_ListPopup.Remove(popupBase) == false)
             return;
 
-        popup.BeginClose(false);
+        popupBase.BeginClose(false);
     }
 
     public bool CloseTop()
@@ -119,7 +119,7 @@ public sealed class PopupService : ServiceBase
         if (m_ListPopup.Count <= 0)
             return false;
 
-        Popup top = m_ListPopup[^1];
+        PopupBase top = m_ListPopup[^1];
         if (top.IsCloseOnBack == false)
             return false;
 

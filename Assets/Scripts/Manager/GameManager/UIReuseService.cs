@@ -7,7 +7,7 @@ using UnityEngine;
 // 꺼낸 요소를 기억해 두었다가 씬이 바뀌기 직전(SceneUnloading)에 한꺼번에 풀로 돌려받는다. 화면 쪽은 씬 전환 때 따로 반납하지 않는다.
 // !!) GameManager가 PopupService보다 먼저 등록해서, 팝업이 지워지기 전에 팝업 안 칸부터 회수한다
 
-public sealed class UIFactory : ServiceBase
+public sealed class UIReuseService : ServiceBase
 {
     private readonly List<PoolableMonoUI> m_ListSpawned = new();
     private UIComponentDef m_Def;
@@ -39,6 +39,7 @@ public sealed class UIFactory : ServiceBase
             return null;
 
         // 원본(UIComponentDef)을 parent 아래로 꺼낸다. 원본이 없거나 T가 맞지 않으면 null(에러는 UIComponentDef가 한 번)
+        
         T item = ResourceManager.Instance.Spawn(prefab, parent);
         if (item != null)
             m_ListSpawned.Add(item);
@@ -48,10 +49,10 @@ public sealed class UIFactory : ServiceBase
 
     public void Despawn(PoolableMonoUI item)
     {
-        if (item == null)
+        // 꺼내 준 목록에 있을 때만 돌려받는다. 이미 회수한 칸을 또 넣으면 풀에 두 번 쌓여 두 곳이 같은 칸을 쓴다
+        if (item == null || m_ListSpawned.E_RemoveBack(item) == false)
             return;
 
-        m_ListSpawned.E_RemoveBack(item);
         ResourceManager.S_Despawn(item);
     }
 

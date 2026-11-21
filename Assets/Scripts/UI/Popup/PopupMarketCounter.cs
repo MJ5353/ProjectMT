@@ -8,7 +8,7 @@ using UnityEngine.UI;
 // 시장 남은 버섯 칸을 한 번 더 누르면 뜨는 개수 조절 팝업. 0~가진 개수 사이에서 판매 개수를 정한다.
 // 확인하면 콜백으로 개수만 돌려준다. 계산·판정은 HuntData.CheckTrade가 한다. 뒤로 가기로 닫으면 취소
 
-public class PopupMarket_Count : Popup
+public class PopupMarketCounter : PopupBase
 {
     private const int StepSmall = 1;
     private const int StepLarge = 10;

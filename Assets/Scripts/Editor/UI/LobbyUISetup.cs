@@ -15,8 +15,10 @@ public static class LobbyUISetup
     private const float TopBarHeight = 110f;
     private const float TabBarHeight = 150f;
 
-    // 하단 탭 순서(26.11.17 대장 확정, 파종 제외). 토벌이 기본 탭
-    private static readonly string[] s_TabNames = { "야시장", "토벌", "개량", "파견" };
+    // 하단 탭 순서(26.11.17 대장 확정: 정비·토벌·개량·파견, 야시장 탭 폐지). 토벌이 기본 탭
+    private static readonly string[] s_TabNames = { "정비", "토벌", "개량", "파견" };
+    private static readonly string[] s_TabIcons = { "Tab_Gear", "Tab_Hunt", "Tab_Breed", "Tab_Dispatch" }; // s_TabNames 순서
+    private const string GoldIconSprite = "Icon_Gold"; // 실행 중에는 UICountLabel이 재화 Def 아이콘으로 다시 채운다
     private const int HuntTabIndex = 1;
 
     // ------------------------------------------------
@@ -60,10 +62,10 @@ public static class LobbyUISetup
 
         RectTransform content = UIBuilder.Rect("Content", safe, Vector2.zero, Vector2.one, new Vector2(0, TabBarHeight), new Vector2(0, -TopBarHeight));
 
-        List<TabView> listView = new List<TabView>();
+        List<UITabView> listView = new List<UITabView>();
         for (int i = 0; i < s_TabNames.Length; i++)
         {
-            TabView view = i == HuntTabIndex ? BuildHuntTab(content) : BuildComingSoonTab(content, s_TabNames[i]);
+            UITabView view = i == HuntTabIndex ? BuildHuntTab(content) : BuildComingSoonTab(content, s_TabNames[i]);
             listView.Add(view);
         }
 
@@ -88,15 +90,17 @@ public static class LobbyUISetup
         RectTransform gold = UIBuilder.Anchored("Gold", bar, new Vector2(1, 0.5f), new Vector2(-40, 0), new Vector2(320, 72));
         UIBuilder.AddImage(gold, UIStyle.Dim);
 
-        RectTransform goldIcon = UIBuilder.Anchored("Icon", gold, new Vector2(0, 0.5f), new Vector2(14, 0), new Vector2(44, 44));
-        UIBuilder.AddImage(goldIcon, UIStyle.Gold);
+        RectTransform goldIconRt = UIBuilder.Anchored("Icon", gold, new Vector2(0, 0.5f), new Vector2(14, 0), new Vector2(44, 44));
+        Image goldIcon = UIBuilder.AddImage(goldIconRt, Color.white);
+        goldIcon.sprite = UIBuilder.LoadSprite(GoldIconSprite);
+        goldIcon.preserveAspect = true;
 
         TMP_Text goldText = UIBuilder.Label(gold, "0", UIStyle.FontNormal, TextAlignmentOptions.Right, "Count");
         goldText.rectTransform.offsetMax = new Vector2(-20, 0);
-        goldText.gameObject.AddComponent<UICountLabel>().EditorSetup(goldText, CurrencyDef.GoldID, "{0}");
+        goldText.gameObject.AddComponent<UICountLabel>().EditorSetup(goldText, goldIcon, CurrencyDef.GoldID, "{0}");
     }
 
-    private static void BuildTabBar(RectTransform parent, List<TabView> listView)
+    private static void BuildTabBar(RectTransform parent, List<UITabView> listView)
     {
         RectTransform bar = UIBuilder.Rect("TabBar", parent, Vector2.zero, new Vector2(1, 0), Vector2.zero, new Vector2(0, TabBarHeight));
         UIBuilder.AddImage(bar, UIStyle.Panel);
@@ -109,7 +113,7 @@ public static class LobbyUISetup
         layout.spacing = 6;
         layout.padding = new RectOffset(6, 6, 6, 0);
 
-        List<TabBar.Entry> listEntry = new List<TabBar.Entry>();
+        List<UITabBar.Entry> listEntry = new List<UITabBar.Entry>();
         for (int i = 0; i < s_TabNames.Length; i++)
         {
             RectTransform btnRt = UIBuilder.Rect($"Tab_{s_TabNames[i]}", bar, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -119,8 +123,10 @@ public static class LobbyUISetup
             button.targetGraphic = image;
 
             // [mj] todo) 탭 아이콘 자리. 지금은 색 칸
-            RectTransform icon = UIBuilder.Anchored("Icon", btnRt, new Vector2(0.5f, 1), new Vector2(0, -16), new Vector2(64, 64));
-            UIBuilder.AddImage(icon, UIStyle.TextDim);
+            RectTransform iconRt = UIBuilder.Anchored("Icon", btnRt, new Vector2(0.5f, 1), new Vector2(0, -16), new Vector2(64, 64));
+            Image icon = UIBuilder.AddImage(iconRt, Color.white);
+            icon.sprite = UIBuilder.LoadSprite(s_TabIcons[i]);
+            icon.preserveAspect = true;
 
             TMP_Text label = UIBuilder.Label(btnRt, s_TabNames[i], UIStyle.FontNormal, TextAlignmentOptions.Bottom);
             label.rectTransform.offsetMin = new Vector2(0, 14);
@@ -128,24 +134,24 @@ public static class LobbyUISetup
             RectTransform highlight = UIBuilder.Rect("Highlight", btnRt, new Vector2(0, 1), Vector2.one, new Vector2(0, -8), Vector2.zero);
             UIBuilder.AddImage(highlight, UIStyle.Gold);
 
-            listEntry.Add(new TabBar.Entry(button, listView[i], highlight.gameObject));
+            listEntry.Add(new UITabBar.Entry(button, listView[i], highlight.gameObject));
         }
 
-        TabBar tabBar = bar.gameObject.AddComponent<TabBar>();
-        tabBar.EditorSetTabs(listEntry);
+        UITabBar uiTabBar = bar.gameObject.AddComponent<UITabBar>();
+        uiTabBar.EditorSetTabs(listEntry);
 
-        SerializedObject so = new SerializedObject(tabBar);
+        SerializedObject so = new SerializedObject(uiTabBar);
         so.FindProperty("m_DefaultIndex").intValue = HuntTabIndex;
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
-    private static TabView BuildComingSoonTab(RectTransform parent, string tabName)
+    private static UITabView BuildComingSoonTab(RectTransform parent, string tabName)
     {
         RectTransform view = UIBuilder.Stretch($"View_{tabName}", parent);
         TMP_Text label = UIBuilder.Label(view, $"{tabName}\n<size={UIStyle.FontNormal}>준비 중</size>", UIStyle.FontTitle);
         label.color = UIStyle.TextDim;
 
-        return view.gameObject.AddComponent<TabView>();
+        return view.gameObject.AddComponent<UITabView>();
     }
 
     // 지도 그림(256x144). 노드 자리(MapDef.MapPosition)에 맞춰 그려져 있어 노드 영역에 꽉 채운다. 이미 만든 로비 씬에도 쓴다
@@ -174,7 +180,7 @@ public static class LobbyUISetup
         return mapNode;
     }
 
-    private static TabView BuildHuntTab(RectTransform parent)
+    private static UITabView BuildHuntTab(RectTransform parent)
     {
         RectTransform view = UIBuilder.Stretch("View_토벌", parent);
 
@@ -231,7 +237,7 @@ public static class LobbyUISetup
             enterRt.anchoredPosition = new Vector2(0, 40);
         }
 
-        HuntTabView hunt = view.gameObject.AddComponent<HuntTabView>();
+        HuntUITabView hunt = view.gameObject.AddComponent<HuntUITabView>();
         UIBuilder.SetRef(hunt, "m_MapRoot", nodeRoot);
         UIBuilder.SetRef(hunt, "m_NodeTemplate", mapNode);
         UIBuilder.SetRef(hunt, "m_InfoName", infoName);

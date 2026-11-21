@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 // 쓰러졌을 때 뜨는 팝업. 골드를 내고 부활하거나 빈손으로 귀가한다. 떠 있는 동안 밤 시계는 멈춘다(BattleService)
 
-public class PopupDeath : Popup
+public class PopupDeath : PopupBase
 {
     [SerializeField] private Button m_ReviveButton = null;
     [SerializeField] private Button m_HomeButton = null;

@@ -4,11 +4,6 @@ using UnityEngine;
 
 // ==================================================
 
-// 목록 칸 묶음. 칸은 UIFactory로 꺼내 m_Root 아래에 두고, 좌표는 LayoutGroup 없이 Arrange가 직접 계산한다.
-// 화면이 [SerializeField]로 들고 배치 옵션(영역·방향·칸 크기·간격…)은 여기 직렬화 필드에 둔다(값은 UI 생성기가 넣는다). 칸 종류·생성 콜백은 Init으로.
-// 화면이 떠 있는 동안은 남는 칸을 끄기만 하고, 씬이 바뀌면 UIFactory가 한꺼번에 회수한다(주인 화면도 씬과 함께 사라진다).
-// 흐름: UI가 가공 데이터 리스트를 갖고 Refresh(list, onSet) → 칸은 받은 값만 표시. 클릭은 IndexOf(item)로 UI 리스트에서 찾는다
-
 public enum EUIListAxis
 {
     Vertical,   // 위에서 아래로 한 줄씩
@@ -18,7 +13,10 @@ public enum EUIListAxis
 
 // ==================================================
 
-// 배치 옵션과 좌표 계산. 칸 종류를 모르는 부분이라 따로 둔다(에디터 미리보기도 이걸 쓴다)
+// 목록 칸 묶음. 칸은 UIFactory로 꺼내 m_Root 아래에 두고, 좌표는 LayoutGroup 없이 Arrange가 직접 계산한다.
+// 화면이 [SerializeField]로 들고 배치 옵션(영역·방향·칸 크기·간격…)은 여기 직렬화 필드에 둔다(값은 UI 생성기가 넣는다). 칸 종류·생성 콜백은 Init으로.
+// 화면이 떠 있는 동안은 남는 칸을 끄기만 하고, 씬이 바뀌면 UIFactory가 한꺼번에 회수한다(주인 화면도 씬과 함께 사라진다).
+// 흐름: UI가 가공 데이터 리스트를 갖고 Refresh(list, onSet) → 칸은 받은 값만 표시. 클릭은 IndexOf(item)로 UI 리스트에서 찾는다
 [Serializable]
 public abstract class UIListViewBase
 {
@@ -26,13 +24,14 @@ public abstract class UIListViewBase
     [SerializeField] private EUIListAxis m_Axis = EUIListAxis.Vertical;
     [SerializeField] private Vector2 m_CellSize = Vector2.zero;           // 칸 크기. 0인 축은 칸 원래 크기(격자는 둘 다 필요)
     [SerializeField] private Vector2 m_Spacing = Vector2.zero;            // 칸 사이(가로, 세로)
+    
     [SerializeField] private RectOffset m_Padding = new();                // 영역 안쪽 여백
     [SerializeField] private TextAnchor m_Alignment = TextAnchor.UpperLeft; // 칸 묶음을 영역 어디에 붙일지
     [SerializeField] private bool m_IsStretch = false;                    // 세로 목록은 폭, 가로 목록은 높이를 영역에 맞춘다
     [SerializeField] private bool m_IsFitContent = false;                 // 영역 크기를 칸 묶음에 맞춘다(세로·격자는 높이, 가로는 폭)
 
-    protected readonly List<RectTransform> m_ListRect = new(); // 칸 RectTransform. 자식 클래스가 칸 순서대로 채운다
     private readonly List<Vector2> m_ListCell = new();         // Arrange 계산용 칸 크기
+    protected readonly List<RectTransform> m_ListRect = new(); // 칸 RectTransform. 자식 클래스가 칸 순서대로 채운다
 
     // 마지막 배치 상태. 같으면 다시 계산하지 않는다
     private bool m_IsDirty = true;
@@ -46,14 +45,16 @@ public abstract class UIListViewBase
 
     // 앞에서 count개 칸의 크기·좌표를 정한다. 칸 앵커는 영역 왼쪽 위로 두고, 피벗은 칸 원래 값을 지킨다(튕김 연출 기준점 유지).
     // 칸 수·영역 크기가 그대로이고 새 칸도 없으면 건너뛴다(isForce면 항상)
-    public void Arrange(int count, bool isForce = false)
+    public void Arrange(int rectCnt, bool isForce = false)
     {
         RectTransform area = m_Root;
         if (area == null)
             return;
 
-        count = Mathf.Min(count, m_ListRect.Count);
-        if (isForce == false && m_IsDirty == false && count == m_ArrangedCount && area.rect.size == m_ArrangedArea)
+        rectCnt = Mathf.Min(rectCnt, m_ListRect.Count);
+        
+        // 사이즈 계산, 전체 재배치가 필요하지 않은 경우는 arrange 하지 않는다. 
+        if (isForce == false && m_IsDirty == false && rectCnt == m_ArrangedCount && area.rect.size == m_ArrangedArea)
             return;
 
         m_ListCell.Clear();
@@ -66,20 +67,26 @@ public abstract class UIListViewBase
         float innerHeight = area.rect.height - padding.vertical;
 
         // 1. 칸 크기
-        for (int i = 0; i < count; ++i)
+        for (int i = 0; i < rectCnt; ++i)
         {
-            m_ListCell.Add(GetCellSize(m_ListRect[i], axis, innerWidth, innerHeight));
+            RectTransform rect = m_ListRect[i];
+            m_ListCell.Add(GetCellSize(rect, axis, innerWidth, innerHeight));
         }
 
         // 2. 칸 묶음 크기(격자는 한 줄에 들어가는 칸 수부터)
-        int columns = 1;
+        int columnCnt = 1;
         if (axis == EUIListAxis.Grid)
         {
             Vector2 cell = m_CellSize;
-            columns = Mathf.Max(1, Mathf.FloorToInt((innerWidth + spacing.x) / Mathf.Max(1f, cell.x + spacing.x)));
+
+            float totalWidth = innerWidth + spacing.x;
+            float columnSize = Mathf.Max(1f, cell.x + spacing.x);
+
+            rectCnt = Mathf.FloorToInt(totalWidth / columnSize);
+            columnCnt = Mathf.Max(1, rectCnt);
         }
 
-        Vector2 content = GetContentSize(count, axis, columns, spacing);
+        Vector2 content = GetContentSize(rectCnt, axis, columnCnt, spacing);
 
         // 3. 영역을 묶음에 맞추거나, 남는 공간에서 정렬 위치를 고른다
         float alignX = (int)m_Alignment % 3 * 0.5f; // 왼쪽 0, 가운데 0.5, 오른쪽 1
@@ -98,7 +105,7 @@ public abstract class UIListViewBase
                 innerHeight = content.y;
             }
         }
-
+        
         float startX = padding.left + (innerWidth - content.x) * alignX;
         float startY = padding.top + (innerHeight - content.y) * alignY;
 
@@ -106,7 +113,7 @@ public abstract class UIListViewBase
         float x = startX;
         float y = startY;
         
-        for (int i = 0; i < count; ++i)
+        for (int i = 0; i < rectCnt; ++i)
         {
             Vector2 cell = m_ListCell[i];
             float cellX = x;
@@ -128,8 +135,8 @@ public abstract class UIListViewBase
                 }
                 case EUIListAxis.Grid:
                 {
-                    cellX = startX + i % columns * (cell.x + spacing.x);
-                    cellY = startY + i / columns * (cell.y + spacing.y);
+                    cellX = startX + i % columnCnt * (cell.x + spacing.x);
+                    cellY = startY + i / columnCnt * (cell.y + spacing.y);
                     break;
                 }
             }
@@ -138,7 +145,7 @@ public abstract class UIListViewBase
         }
 
         m_IsDirty = false;
-        m_ArrangedCount = count;
+        m_ArrangedCount = rectCnt;
         m_ArrangedArea = area.rect.size;
     }
 
@@ -154,7 +161,9 @@ public abstract class UIListViewBase
         if (rt != null)
             own = rt.rect.size;
 
-        Vector2 size = new Vector2(cell.x > 0f ? cell.x : own.x, cell.y > 0f ? cell.y : own.y);
+        float x = cell.x > 0f ? cell.x : own.x;
+        float y = cell.y > 0f ? cell.y : own.y;
+        Vector2 size = new Vector2(x, y);
         
         if (m_IsStretch && axis == EUIListAxis.Vertical)
             size.x = innerWidth;
@@ -214,6 +223,8 @@ public abstract class UIListViewBase
         rt.anchoredPosition = new Vector2(x + cell.x * rt.pivot.x, -y - cell.y * (1f - rt.pivot.y));
     }
 
+    #region Editor
+
 #if UNITY_EDITOR
     private const string PreviewName = "__ListPreview";
     private const float PreviewDefaultSize = 100f; // 칸 크기가 0인 축의 미리보기 크기
@@ -262,6 +273,8 @@ public abstract class UIListViewBase
         }
     }
 #endif
+
+    #endregion
 }
 
 // ==================================================
@@ -314,13 +327,14 @@ public class UIListView<T> : UIListViewBase where T : PoolableMonoUI
             if (m_Root == null)
                 return null;
 
-            T item = GameManager.Instance.UIFactory?.Spawn<T>(m_Type, m_Root);
+            T item = GameManager.Instance.UIReuseS?.Spawn<T>(m_Type, m_Root);
             if (item == null)
                 return null;
 
             m_OnSpawn?.Invoke(item);
             m_List.Add(item);
             m_ListRect.Add(item.RectTransform);
+            
             SetDirty(); // 새 칸은 아직 자리가 없다
         }
 
@@ -333,20 +347,20 @@ public class UIListView<T> : UIListViewBase where T : PoolableMonoUI
     // index부터 끝까지 끈다
     public void HideFrom(int index)
     {
-        for (int i = Mathf.Max(0, index); i < m_List.Count; ++i)
+        foreach (T item in m_List)
         {
-            m_List[i].E_SetActive(false);
+            item.E_SetActive(false);
         }
     }
 
     // 씬 전환 전에 일부러 돌려줄 때만 쓴다(보통은 UIFactory가 씬 전환 때 회수한다)
     public void Clear()
     {
-        UIFactory factory = GameManager.Instance.UIFactory;
+        UIReuseService reuseService = GameManager.Instance.UIReuseS;
         foreach (T item in m_List)
         {
-            if (factory != null)
-                factory.Despawn(item);
+            if (reuseService != null)
+                reuseService.Despawn(item);
             else
                 ResourceManager.S_Despawn(item);
         }

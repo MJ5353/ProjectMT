@@ -4,7 +4,7 @@ using UnityEngine;
 
 // 하단 탭 하나가 보여 주는 화면. 탭 화면 스크립트는 이 클래스를 상속해 OnOpen/OnClose를 채운다
 
-public class TabView : MonoBehaviour
+public class UITabView : MonoBehaviour
 {
     public void SetVisible(bool isVisible)
     {

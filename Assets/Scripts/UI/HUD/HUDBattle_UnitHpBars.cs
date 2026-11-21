@@ -95,7 +95,7 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
             bar.Remain = define.MonsterHpBarShowTime;
             if (bar.Gauge == null)
             {
-                bar.Gauge = GameManager.Instance.UIFactory?.Spawn<UIGauge>(EUIComponentType.HUDBattle_UnitHpBar, m_Root);
+                bar.Gauge = GameManager.Instance.UIReuseS?.Spawn<UIGauge>(EUIComponentType.HUDBattle_UnitHpBar, m_Root);
                 bar.Gauge.E_Alive()?.SetValue(bar.LastHp, unit.HealthF.MaxHp, true); // 줄기 전 값에서 시작해야 잔상이 보인다
             }
 
@@ -150,7 +150,7 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
         if (bar.Gauge == null)
             return;
 
-        GameManager.Instance.UIFactory?.Despawn(bar.Gauge);
+        GameManager.Instance.UIReuseS?.Despawn(bar.Gauge);
         bar.Gauge = null;
     }
 

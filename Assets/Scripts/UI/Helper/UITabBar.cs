@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 // 하단 탭바. 버튼과 화면을 짝지어 두고 누른 탭의 화면만 켠다. 바뀌면 TabChanged를 발행한다
 
-public class TabBar : MonoBehaviour
+public class UITabBar : MonoBehaviour
 {
     [SerializeField] private List<Entry> m_ListTab = new();
     [SerializeField] private int m_DefaultIndex = 0;
@@ -20,14 +20,14 @@ public class TabBar : MonoBehaviour
     public class Entry
     {
         [SerializeField] private Button m_Button = null;
-        [SerializeField] private TabView m_View = null;
+        [SerializeField] private UITabView m_View = null;
         [SerializeField, Tooltip("선택 표시(없어도 됨)")] private GameObject m_Highlight = null;
 
         public Button Button => m_Button;
-        public TabView View => m_View;
+        public UITabView View => m_View;
         public GameObject Highlight => m_Highlight;
 
-        public Entry(Button button, TabView view, GameObject highlight)
+        public Entry(Button button, UITabView view, GameObject highlight)
         {
             m_Button = button;
             m_View = view;

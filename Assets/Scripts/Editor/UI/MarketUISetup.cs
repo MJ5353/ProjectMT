@@ -186,7 +186,7 @@ public static class MarketUISetup
     }
 
     // 개수 조절 팝업: 어두운 바탕 + 가운데 창. 칸·이름 / 판매 개수·변화 / 값 / [-10][-1][+1][+10][전부] / [취소][확인]
-    private static PopupMarket_Count BuildCountPopup()
+    private static PopupMarketCounter BuildCountPopup()
     {
         RectTransform root = new GameObject("PopupMarket_Count", typeof(RectTransform)).GetComponent<RectTransform>();
         root.anchorMin = Vector2.zero;
@@ -228,7 +228,7 @@ public static class MarketUISetup
         Button confirm = UIBuilder.Button(window, "ConfirmButton", "확인", new Vector2(260, 100), UIStyle.Accent);
         PlaceCorner(confirm, new Vector2(0.5f, 0f), new Vector2(150, Pad * 2f));
 
-        PopupMarket_Count popup = root.gameObject.AddComponent<PopupMarket_Count>();
+        PopupMarketCounter popup = root.gameObject.AddComponent<PopupMarketCounter>();
         UIBuilder.SetRef(popup, "m_Group", root.gameObject.AddComponent<CanvasGroup>()); // 여는 연출(Popup)
         UIBuilder.SetRef(popup, "m_Window", window);
         UIBuilder.SetRef(popup, "m_Slot", slot);

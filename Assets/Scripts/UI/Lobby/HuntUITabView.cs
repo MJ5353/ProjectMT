@@ -9,7 +9,7 @@ using TMPro;
 // 토벌 탭. 왼쪽 지도에 지역 노드를 찍고, 고른 지역의 정보를 오른쪽에 보여 준 뒤 입장 버튼으로 전투에 들어간다.
 // 나오는 버섯 칸은 UIListView로 꺼내 쓴다(씬이 바뀌면 UIFactory가 회수)
 
-public class HuntTabView : TabView
+public class HuntUITabView : UITabView
 {
     // 지도 ---
     [SerializeField] private RectTransform m_MapRoot = null;

@@ -75,7 +75,7 @@ public static class UISetup
     [MenuItem("MushTaker/UI/UI 프리팹 표 갱신", false, 41)]
     public static void RefreshPrefabDefs()
     {
-        FillPrefabDef<PopupDef, EPopupType, Popup>(EditorPath.PopupDefAsset, PopupDef.PopupID);
+        FillPrefabDef<PopupDef, EPopupType, PopupBase>(EditorPath.PopupDefAsset, PopupDef.PopupID);
         FillPrefabDef<UIComponentDef, EUIComponentType, PoolableMonoUI>(EditorPath.UIComponentDefAsset, UIComponentDef.UIComponentID);
 
         AssetDatabase.SaveAssets();

@@ -8,7 +8,7 @@ using UnityEngine;
 // 연출은 UISequence. 창이 열린 뒤 이어지는 팝업별 연출은 OnBuildOpenSequence에 단계를 덧붙이고, SkipOpen으로 끝 모습으로 넘길 수 있다.
 // 닫으면 끄기만 하고 PopupService가 들고 있다가 같은 팝업을 다시 열 때 다시 쓴다(씬이 바뀔 때만 지운다). 그래서 OnOpen이 상태를 처음으로 되돌린다
 
-public class Popup : MonoBehaviour
+public class PopupBase : MonoBehaviour
 {
     [SerializeField] private CanvasGroup m_Group = null;      // 비어도 된다
     [SerializeField] private RectTransform m_Window = null;   // 비어도 된다

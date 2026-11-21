@@ -8,7 +8,7 @@ using UnityEngine.UI;
 // 전투 결과 팝업. BattleEnded를 받은 HUDBattle이 PopupService로 띄우고, BattleService에서 끝난 방식·시간·받은 보상(DicReward)을 읽어 보여 준다.
 // [mj] todo) 신선 등급은 전투 쪽 데이터(ListLootGrade 가안)가 확정되면 칸 뱃지로 붙인다
 
-public class PopupResult : Popup
+public class PopupResult : PopupBase
 {
     private const float SlotPopTime = 0.18f; // 칸 하나가 튀어나오는 시간
 

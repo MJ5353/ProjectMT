@@ -40,9 +40,7 @@ public class GameManager : MonoSingleton<GameManager>
     public EffectService EffectS { get; private set; }
     public HitStopService HitStopS { get; private set; }
     public PopupService PopupS { get; private set; }
-    
-    // factory
-    public UIFactory UIFactory { get; private set; }
+    public UIReuseService UIReuseS { get; private set; }
 
     // ------------------------------------------------
 
@@ -57,7 +55,7 @@ public class GameManager : MonoSingleton<GameManager>
         m_ServiceScene = scene;
 
         sceneController.RegisterServices(this);
-        UIFactory = Register(new UIFactory());
+        UIReuseS = Register(new UIReuseService());
         PopupS = Register(new PopupService());
         
         foreach (ServiceBase service in m_ListService)
@@ -110,9 +108,7 @@ public class GameManager : MonoSingleton<GameManager>
         UnitS = null;
         EffectS = null;
         HitStopS = null;
-
-        // 순서 유의
-        UIFactory = null;
+        UIReuseS = null;
         PopupS = null;
         
         m_ServiceScene = default;

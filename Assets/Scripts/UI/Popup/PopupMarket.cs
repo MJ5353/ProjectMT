@@ -15,7 +15,7 @@ using UnityEngine.InputSystem;
 // 연출 중에 누르면 끝 모습으로 건너뛰고, 끝 모습에서 한 번 더 누르면 연출을 닫고 본 화면이 나타난다.
 // 결과 화면 전환과 저장은 MarketClosed를 받은 쪽(BattleService)이 한다
 
-public class PopupMarket : Popup
+public class PopupMarket : PopupBase
 {
     private const float IntroMoveTime = 0.9f;   // 남은 시간이 가운데로 날아오는 시간
     private const float IntroCountTime = 2.4f;  // 남은 시간이 줄고 시장 시간이 오르는 시간
@@ -56,7 +56,7 @@ public class PopupMarket : Popup
     private readonly Dictionary<LootKey, int> m_DicPick = new();
     private readonly UISequence m_IntroSequence = new();    // 시작 연출. 움직이는 중에 누르면 끝 모습으로, 끝 모습에서 누르면 닫는다
 
-    private PopupMarket_Count m_CountPopup; // 떠 있는 개수 조절 팝업
+    private PopupMarketCounter _counterPopup; // 떠 있는 개수 조절 팝업
     private bool m_IsIntroContinue; // 끝 모습에서 눌렀다
     private int m_SelectedIndex;
 
@@ -527,14 +527,14 @@ public class PopupMarket : Popup
         if (merchant != null)
             price = hunt.GetPrice(merchant, key);
 
-        m_CountPopup = GameManager.Instance.PopupS?.Open<PopupMarket_Count>(EPopupType.PopupMarket_Count);
-        m_CountPopup.E_Alive()?.Setup(key, have, picked, price, count => OnCountConfirm(key, count));
+        _counterPopup = GameManager.Instance.PopupS?.Open<PopupMarketCounter>(EPopupType.PopupMarket_Count);
+        _counterPopup.E_Alive()?.Setup(key, have, picked, price, count => OnCountConfirm(key, count));
     }
 
     // 0개면 팔 목록에서 뺀다
     private void OnCountConfirm(LootKey key, int count)
     {
-        m_CountPopup = null;
+        _counterPopup = null;
         if (count <= 0)
             RemovePick(key);
         else
@@ -546,10 +546,10 @@ public class PopupMarket : Popup
 
     private void CloseCountPopup()
     {
-        if (m_CountPopup != null)
-            m_CountPopup.Close();
+        if (_counterPopup != null)
+            _counterPopup.Close();
 
-        m_CountPopup = null;
+        _counterPopup = null;
     }
 
     private void RemovePick(LootKey key)
