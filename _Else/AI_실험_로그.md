@@ -331,6 +331,8 @@
 - 직접 UI 칸 회수 확인을 AI에 맡김(코드 확인만). AI가 씬 전환 때 회수 순서는 맞다고 보고, 이미 회수한 칸을 다시 돌려주면 풀에 두 번 쌓이는 구멍을 찾아 `UIFactory.Despawn`이 꺼내 준 목록에 있을 때만 돌려받게 고침. 아이콘 깨짐은 디스크 참조가 모두 정상이라 증상 확인 대기. 컴파일·플레이 확인 안 함.
 - 직접 로비 아이콘이 모두 빠졌고 골드도 연결하라고 지시. AI가 로비 생성기가 탭·골드 아이콘을 색 칸으로만 만들던 것을 찾아 탭 그림(Tab_Gear·Hunt·Breed·Dispatch)과 골드 그림을 넣고, 탭 이름을 확정안(정비·토벌·개량·파견)으로 맞춤. `UICountLabel`이 재화 Def 아이콘으로 아이콘 칸을 채우게 함. 컴파일·플레이 확인 안 함.
 - 직접 UI 폴더·이름(Component·Helper·Popup·Screen, UIReuseService·PopupBase·ScreenLobby_HuntView 등)을 정리하고, 화면을 Screen 프리팹으로 두고 SceneController가 `m_Screen`을 캐싱하는 구조를 정함. AI가 `ScreenBase`·`GetScreen<T>()`를 만들고, 로비 생성기를 ScreenLobby 프리팹 생성과 씬 재생성으로 나누고, HUDBattle→ScreenBattle·PopupMarket_Count→PopupMarketCounter 이름과 프리팹 폴더를 스크립트 폴더에 맞춤. 컴파일만 확인, 플레이 확인 안 함.
+- 직접 Component·Helper 검토 10건을 채택(UIGauge는 유지)하고, 하드코딩 문구를 표로 모으자고 제안. 이름(StringDef·EStringKey)·화면 접두·UILabel 구조를 정하고, enum 순서 문제는 직접 "enum 이름 문자열을 키로" 방식을 제안해 채택. AI가 목록 HideFrom·격자 칸 수 버그, 풀 재사용 칸의 클릭 잔존을 고치고 `RarityDef`(희귀도 바탕·색·이름)·`StringDef`·`UILabel`·키 드롭다운 드로어·표 자동 동기화/검사를 만들어 시장을 뺀 화면 문구를 옮김. 컴파일만 확인, 플레이 확인 안 함.
+- 직접 `E_SetText(StringDef.S_Get(키))`를 키만 넘기는 확장으로 통일하라고 지시. AI가 `E_SetText(키)`·`E_SetText(키, args)`·`E_SetTextWithActive(키, isActive, args)`를 추가하고 화면 코드 10곳을 바꿈. 문자열을 합치거나 변수로 넘기는 곳은 그대로 둠. 컴파일만 확인.
 
 ## 게임 흐름 Flow 구조 설계
 
