@@ -9,7 +9,7 @@ using UnityEngine;
 
 public static class SaveTools
 {
-    [MenuItem("MushTaker/세이브/삭제", false, 200)]
+    [MenuItem("MushTaker/세이브/삭제", false, 11)]
     private static void DeleteSave()
     {
         string path = Path.Combine(Application.persistentDataPath, CommonPath.SaveFile);
@@ -33,7 +33,7 @@ public static class SaveTools
         CLogger.Log("SaveTools", $"세이브를 지웠습니다: {path}");
     }
 
-    [MenuItem("MushTaker/세이브/폴더 열기", false, 201)]
+    [MenuItem("MushTaker/세이브/폴더 열기", false, 12)]
     private static void OpenSaveFolder()
     {
         EditorUtility.RevealInFinder(Application.persistentDataPath);

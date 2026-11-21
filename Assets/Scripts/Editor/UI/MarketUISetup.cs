@@ -29,12 +29,12 @@ public static class MarketUISetup
 
     // 상인 줄 → 개수 조절 팝업 → 시장 팝업 순서로 만든다. isOverwrite면 있어도 다시 만든다(GUID 유지).
     // 상인 줄 원본은 따로 프리팹(Resources)으로 둔다. PopupMarket이 EUIComponentType.PopupMarket_MerchantRow로 UIListView에서 꺼낸다
-    public static void BuildPrefabs(bool isOverwrite)
+    public static readonly (string Path, System.Func<GameObject> Build)[] Prefabs =
     {
-        UIBuilder.SaveAsPrefab(MerchantRow().gameObject, EditorPath.MarketMerchantRowPrefab, isOverwrite);
-        UIBuilder.SaveAsPrefab(BuildCountPopup().gameObject, EditorPath.PopupMarketCounterPrefab, isOverwrite);
-        UIBuilder.SaveAsPrefab(BuildMarketPopup().gameObject, EditorPath.PopupMarketPrefab, isOverwrite);
-    }
+        (EditorPath.MarketMerchantRowPrefab, () => MerchantRow().gameObject),
+        (EditorPath.PopupMarketCounterPrefab, () => BuildCountPopup().gameObject),
+        (EditorPath.PopupMarketPrefab, () => BuildMarketPopup().gameObject),
+    };
 
     // ==================================================
 

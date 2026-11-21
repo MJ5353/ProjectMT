@@ -49,12 +49,6 @@ public static class MapSpawnAutoFill
 
     // ------------------------------------------------
 
-    [MenuItem("MushTaker/데이터/맵 스폰 자동 배정 (전체)", false, 20)]
-    private static void RunAll()
-    {
-        Run(DataTools.CollectDefs().OfType<MapDef>().ToList());
-    }
-
     public static bool Run(IReadOnlyList<MapDef> listMap)
     {
         if (listMap == null || listMap.Count == 0)

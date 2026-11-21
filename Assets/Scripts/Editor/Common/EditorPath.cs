@@ -23,7 +23,6 @@ public static class EditorPath
     public const string SkillDataDir = DataDir + "Skills/";
     public const string BalanceDataDir = DataDir + "Balance/";
     public const string UIDataDir = DataDir + "UI/";
-    public const string MerchantDataDir = DataDir + "Merchants/";
 
     public const string PrefabDir = ResourcesRoot + "Prefabs/";
     public const string ActorPrefabDir = ResourcesRoot + CommonPath.ActorDir;

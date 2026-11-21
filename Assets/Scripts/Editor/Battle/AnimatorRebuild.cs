@@ -9,7 +9,7 @@ using UnityEngine;
 
 public static class AnimatorRebuild
 {
-    [MenuItem("MushTaker/에셋/애니메이터 다시 만들기", false, 40)]
+    [MenuItem("MushTaker/에셋/애니메이터 다시 만들기", false, 5)]
     private static void Run()
     {
         int count = 0;
