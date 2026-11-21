@@ -28,7 +28,12 @@ public class PopupDeath : PopupBase
     {
         BattleService battleS = GameManager.Instance.BattleS;
         if (battleS == null)
+        {
+            // 다시 쓰는 팝업이라 지난번 값이 남지 않게 비우고 부활은 막는다
+            m_ReviveLabel.E_SetText(string.Empty);
+            m_ReviveButton.E_SetInteractable(false);
             return;
+        }
 
         m_ReviveLabel.E_SetString(EStringKey.Death_ReviveFormat, battleS.ReviveGold);
         m_ReviveButton.E_SetInteractable(battleS.CanRevive); // 골드가 모자라면 못 누른다

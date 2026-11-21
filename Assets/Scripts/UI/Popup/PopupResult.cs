@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,7 +11,8 @@ using UnityEngine.UI;
 
 public class PopupResult : PopupBase
 {
-    private const float SlotPopTime = 0.18f; // 칸 하나가 튀어나오는 시간
+    private const float SlotPopTime = 0.18f;  // 칸 하나가 튀어나오는 시간
+    private const float SlotInterval = 0.08f; // 다음 칸이 나오기까지 간격
 
     [SerializeField] private UIListView<UICommonSlot> m_SlotPool = new(); // 주운 버섯 칸(격자)
     [SerializeField] private TMP_Text m_Title = null;
@@ -18,7 +20,6 @@ public class PopupResult : PopupBase
     [SerializeField] private GameObject m_EmptyLabel = null;
     [SerializeField] private Button m_RetryButton = null;
     [SerializeField] private Button m_LobbyButton = null;
-    [SerializeField] private float m_SlotInterval = 0.08f;
 
     private readonly List<KeyValuePair<string, int>> m_ListLoot = new(); // 이번 결과에 보여 줄 보상(ID, 개수). m_SlotPool 순서
 
@@ -39,7 +40,16 @@ public class PopupResult : PopupBase
     {
         BattleService battleS = GameManager.Instance.BattleS;
         if (battleS == null)
+        {
+            // 다시 쓰는 팝업이라 지난번 결과가 남지 않게 비운다(버튼도 BattleService가 있어야 동작한다)
+            m_Title.E_SetText(string.Empty);
+            m_Summary.E_SetText(string.Empty);
+            
+            FillLoot(null);
+            SetButtonsInteractable(false);
+
             return;
+        }
 
         EStringKey title = battleS.State switch
         {
@@ -47,6 +57,7 @@ public class PopupResult : PopupBase
             EBattleState.TimedOut => EStringKey.Result_TitleTimedOut,
             _ => EStringKey.Result_TitleEmpty,
         };
+        
         m_Title.E_SetString(title);
         m_Title.E_SetColor(battleS.State == EBattleState.Exited ? UIStyle.Gold : UIStyle.Accent);
         m_Summary.E_SetString(EStringKey.Result_SummaryFormat, UINightClock.FormatRealTime(Mathf.FloorToInt(battleS.ElapsedTime)), FormatTrust(battleS.State));
@@ -85,12 +96,16 @@ public class PopupResult : PopupBase
     
     // ---
 
+    // dicLoot가 null이면 빈 결과로 보인다
     private void FillLoot(IReadOnlyDictionary<string, int> dicLoot)
     {
         m_ListLoot.Clear();
-        foreach (var pair in dicLoot)
+        if (dicLoot != null)
         {
-            m_ListLoot.Add(pair);
+            foreach (var pair in dicLoot)
+            {
+                m_ListLoot.Add(pair);
+            }
         }
 
         // 칸은 꺼 둔 채 준비하고, 여는 연출 뒤에 하나씩 켠다(그래서 Refresh 대신 Get)
@@ -123,7 +138,7 @@ public class PopupResult : PopupBase
 
             sequence.Call(() => slot.E_SetActive(true))
                 .Join(SlotPopTime, t => target.localScale = Vector3.one * UITween.EaseOutBack(t))
-                .Wait(m_SlotInterval);
+                .Wait(SlotInterval);
         }
     }
 
@@ -142,7 +157,7 @@ public class PopupResult : PopupBase
         if (state != EBattleState.Exited || hunt == null || hunt.DicTrustGain.Count == 0)
             return string.Empty;
 
-        System.Text.StringBuilder builder = new(StringDef.S_Get(EStringKey.Result_TrustPrefix));
+        StringBuilder builder = new(StringDef.S_Get(EStringKey.Result_TrustPrefix));
         bool isFirst = true;
         
         foreach (var pair in hunt.DicTrustGain)

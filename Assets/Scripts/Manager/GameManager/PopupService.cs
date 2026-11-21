@@ -63,7 +63,7 @@ public sealed class PopupService : ServiceBase
 
     public override void Tick(float deltaTime)
     {
-        if (m_ListPopup.Count <= 0 || !IsBackPressed())
+        if (m_ListPopup.Count <= 0 || IsBackPressed() == false)
             return;
         
         CloseTop();
