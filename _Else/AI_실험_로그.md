@@ -432,3 +432,8 @@
 
 - 직접 정비 탭 작업 전 정리를 요청함. AI가 기획서와 PlayerDef·InventoryData·SaveData·ScreenLobby·LobbyUISetup·플레이어 수치(체력 5, 공격 피해 1)를 읽고 최소판 범위·데이터·UI·정할 사안을 제시함.
 - 추천안: 장비 장착은 빼고 골드로 능력치(공격력·체력·회피) 올리기만. UpgradeDef + UpgradeData(PlayerDataBase) + 세이브 v5, 전투 반영은 플레이어 스폰 때 한 번, 정비 탭 화면은 LobbyUISetup이 만듦. 논의 단계라 코드는 고치지 않음.
+
+## PopupMarket 쪼개기 1·2
+
+- 직접 처음 의도가 데이터 위치가 아니라 길고 읽기 힘든 PopupMarket 정리와 UISequence 연출 정리였다고 정정함. AI가 고른 상태 분리·상인 카드 부품·여는 연출 합치기·#region 묶기를 제안했고 직접 1·2번만 진행을 지시함.
+- 고른 상태(개수 사전·표시 순서·요청 목록·맞추기·되돌리기)를 일반 클래스 PopupMarket_Pick으로, 가운데 상인 카드(그림·이름·설명·신뢰도·시세·선호 배율 글귀)를 부품 PopupMarket_MerchantInfo로 옮겨 PopupMarket이 550줄에서 483줄이 됨. 생성기가 카드 부품을 붙이고 참조를 연결해 UI 다시 만들기가 필요함. 컴파일·플레이 확인 안 함. 커밋하지 않음.

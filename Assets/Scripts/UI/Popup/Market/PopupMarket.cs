@@ -28,10 +28,7 @@ public class PopupMarket : PopupBase
     [SerializeField] private TMP_Text m_IntroMessage = null; // 그 아래 "지금 가면... n시간 n분은 거래할 수 있겠어!"
 
     [Header("상인")]
-    [SerializeField] private Image m_MerchantIcon = null;
-    [SerializeField] private TMP_Text m_MerchantName = null;
-    [SerializeField] private TMP_Text m_MerchantDesc = null;
-    [SerializeField] private TMP_Text m_MerchantInfo = null;          // 신뢰도·오늘 시세·좋아하는 버섯
+    [SerializeField] private PopupMarket_MerchantInfo m_MerchantInfo = null; // 가운데 고른 상인 카드
 
     [Header("거래")]
     [SerializeField] private TMP_Text m_TotalText = null;
@@ -47,10 +44,8 @@ public class PopupMarket : PopupBase
     [SerializeField] private UIListView<UICommonSlot> m_StockPool = new();          // 남은 버섯(격자, 스크롤 내용 높이도 맞춘다)
     [SerializeField] private UIListView<UICommonSlot> m_PickPool = new();           // 고른 버섯(가로)
 
-    private readonly Dictionary<LootKey, int> m_DicPick = new(); // 고른 버섯 → 팔 개수. 고른 상태는 이것 하나만 든다
+    private readonly PopupMarket_Pick m_Pick = new();       // 고른 버섯. 표시 순서는 m_PickPool 순서
     private readonly List<LootKey> m_ListStockKey = new();  // m_StockPool 순서. Refresh 때 다시 만든다
-    private readonly List<LootKey> m_ListPickKey = new();   // m_PickPool 순서. Refresh 때 m_DicPick에서 다시 만든다
-    private readonly List<MarketItem> m_ListItem = new();   // HuntData 요청용. BuildRequest가 m_DicPick에서 만든다
     private readonly UISequence m_IntroSequence = new();    // 시작 연출. 움직이는 중에 누르면 끝 모습으로, 끝 모습에서 누르면 닫는다
 
     private PopupMarketCounter m_CounterPopup; // 떠 있는 개수 조절 팝업
@@ -87,7 +82,7 @@ public class PopupMarket : PopupBase
         // 다시 여는 팝업이라 지난번 상태를 되돌린다(시계는 남은 시간 표시로)
         m_Clock.SetMarket(false);
         m_SelectedIndex = 0;
-        m_DicPick.Clear();
+        m_Pick.Clear();
         m_WaitLabel.E_SetString(EStringKey.Market_WaitFormat, Define.MarketActionMinutes);
 
         Refresh();
@@ -122,7 +117,7 @@ public class PopupMarket : PopupBase
         HuntData hunt = Hunt;
         m_Clock.SetTime(hunt.RemainTime, hunt.NightTime);
 
-        SyncPick(hunt);
+        m_Pick.Sync(hunt.DicHarvest, CompareLoot);
         RefreshMerchants(hunt);
         RefreshStock(hunt);
         RefreshPick();
@@ -134,31 +129,17 @@ public class PopupMarket : PopupBase
 
     private void RefreshMerchants(HuntData hunt)
     {
-        MarketData market = PlayerDataManager.Instance.Market;
         m_RowPool.Refresh(hunt.ListMerchant, SetMerchantRow);
 
         MerchantDef merchant = SelectedMerchant;
         if (merchant == null)
         {
-            m_MerchantIcon.E_SetImage(null);
-            m_MerchantName.E_SetString(EStringKey.Market_NoMerchant);
-            m_MerchantDesc.E_SetText(string.Empty);
-            m_MerchantInfo.E_SetText(string.Empty);
+            m_MerchantInfo.SetEmpty();
             return;
         }
 
-        m_MerchantIcon.E_SetImage(merchant.Icon);
-        m_MerchantName.E_SetText(merchant.DisplayName);
-        m_MerchantDesc.E_SetText(merchant.Description);
-
-        int swing = Mathf.RoundToInt((hunt.GetSwingRate(merchant) - 1f) * 100f);
-        string swingText = swing > 0 ? UIStyle.ColorTag(UIStyle.Positive, $"+{swing}%") : swing < 0 ? UIStyle.ColorTag(UIStyle.Negative, $"{swing}%") : StringDef.S_Get(EStringKey.Market_SwingNormal);
-        int gain = hunt.GetTrustGain(merchant.ID);
-        string gainText = gain > 0 ? " " + UIStyle.ColorTag(UIStyle.Positive, $"(+{gain})") : string.Empty;
-        string otherText = merchant.OtherRate > 0f ? $"x{merchant.OtherRate:0.0#}" : UIStyle.ColorTag(UIStyle.Negative, StringDef.S_Get(EStringKey.Market_NotBuying));
-        string rarityName = RarityDef.S_Get(merchant.PreferRarity)?.DisplayName ?? merchant.PreferRarity.ToString(); // 표가 없으면 enum 이름
-
-        m_MerchantInfo.E_SetString(EStringKey.Market_MerchantInfoFormat, market.GetTrust(merchant.ID), gainText, swingText, rarityName, merchant.PreferRate, otherText);
+        int trust = PlayerDataManager.Instance.Market.GetTrust(merchant.ID);
+        m_MerchantInfo.Set(merchant, trust, hunt.GetTrustGain(merchant.ID), hunt.GetSwingRate(merchant));
     }
 
     // 남은 버섯 = 가진 수 - 고른 수. 칸 아래에 고른 상인의 한 개 값을 쓴다.
@@ -178,78 +159,17 @@ public class PopupMarket : PopupBase
 
     private void RefreshPick()
     {
-        m_PickPool.Refresh(m_ListPickKey, SetPickSlot);
+        m_PickPool.Refresh(m_Pick.ListKey, SetPickSlot);
     }
 
     // 합계와 [거래] 버튼, 지금 고른 상태의 안내 글귀. 판정은 HuntData.CheckTrade에 맡긴다
     private void RefreshTotal(HuntData hunt)
     {
-        BuildRequest();
-        EMarketResult result = hunt.CheckTrade(SelectedMerchant, m_ListItem, out int gold);
+        EMarketResult result = hunt.CheckTrade(SelectedMerchant, m_Pick.BuildRequest(), out int gold);
 
-        m_TotalText.E_SetString(EStringKey.Market_TotalFormat, gold, m_DicPick.Count, Define.MarketTradeLimit);
+        m_TotalText.E_SetString(EStringKey.Market_TotalFormat, gold, m_Pick.Count, Define.MarketTradeLimit);
         m_TradeButton.E_SetInteractable(result == EMarketResult.Success);
         SetMessage(GetResultText(result));
-    }
-
-    // 고른 개수를 남은 버섯에 맞추고(거래·기다리기 뒤 사라지거나 줄어든 버섯은 빼거나 줄인다) 표시 순서 목록을 다시 만든다
-    private void SyncPick(HuntData hunt)
-    {
-        m_ListPickKey.Clear();
-        foreach (LootKey key in m_DicPick.Keys)
-        {
-            m_ListPickKey.Add(key);
-        }
-
-        for (int i = m_ListPickKey.Count - 1; i >= 0; --i)
-        {
-            LootKey key = m_ListPickKey[i];
-            hunt.DicHarvest.TryGetValue(key, out int have);
-            int count = Mathf.Min(m_DicPick[key], have);
-            if (count > 0)
-            {
-                m_DicPick[key] = count;
-                continue;
-            }
-
-            m_DicPick.Remove(key);
-            m_ListPickKey.RemoveAt(i);
-        }
-
-        m_ListPickKey.Sort(CompareLoot);
-    }
-
-    private void BuildRequest()
-    {
-        m_ListItem.Clear();
-        foreach (var pair in m_DicPick)
-        {
-            m_ListItem.Add(new MarketItem(pair.Key, pair.Value));
-        }
-    }
-
-    // 같은 버섯(도감 번호, Def가 없으면 ID) → 등급 높은 순 → 신선한 순
-    private static int CompareLoot(LootKey a, LootKey b)
-    {
-        int compare = GetDexNo(a.ItemID).CompareTo(GetDexNo(b.ItemID));
-        
-        if (compare == 0)
-            compare = string.CompareOrdinal(a.ItemID, b.ItemID);
-
-        if (compare != 0)
-            return compare;
-        
-        if (a.Rarity != b.Rarity)
-            return b.Rarity.CompareTo(a.Rarity);
-
-        return a.Freshness.CompareTo(b.Freshness);
-    }
-
-    // Def가 없으면 맨 뒤로 보내고 ID로 비교한다
-    private static int GetDexNo(string itemID)
-    {
-        GameDatabase.S_TryGet(itemID, out MushroomDef def); // 없으면 def는 null
-        return def.E_Alive()?.DexNo ?? int.MaxValue;
     }
 
     // slot ---
@@ -263,7 +183,7 @@ public class PopupMarket : PopupBase
     private void SetStockSlot(UICommonSlot slot, LootKey key)
     {
         HuntData hunt = Hunt;
-        m_DicPick.TryGetValue(key, out int picked);
+        int picked = m_Pick.GetCount(key);
         int have = hunt.DicHarvest[key];
         SetLootSlot(slot, key, have - picked, GetPriceText(hunt, key));
 
@@ -274,9 +194,15 @@ public class PopupMarket : PopupBase
 
     private void SetPickSlot(UICommonSlot slot, LootKey key)
     {
-        SetLootSlot(slot, key, m_DicPick[key], GetPriceText(Hunt, key));
+        SetLootSlot(slot, key, m_Pick.GetCount(key), GetPriceText(Hunt, key));
     }
 
+    // 안내 글귀. Refresh가 지금 상태의 글귀를 쓰고, 거래·기다리기 결과는 그 뒤에 덮어쓴다(다음 Refresh까지 남는다)
+    private void SetMessage(string text)
+    {
+        m_MessageText.E_SetText(text);
+    }
+    
     // 고른 상인의 한 개 값. 안 사면 "안 삼"
     private string GetPriceText(HuntData hunt, LootKey key)
     {
@@ -285,133 +211,6 @@ public class PopupMarket : PopupBase
         if (merchant != null)
             price = hunt.GetPrice(merchant, key);
         return price > 0 ? StringDef.S_Format(EStringKey.Market_PriceFormat, price) : StringDef.S_Get(EStringKey.Market_NotBuying);
-    }
-
-    // 칸: 아이콘 + 개수, 아래에 값, 바탕 = 희귀도, 곰팡이 얼룩 = 덜 신선
-    private static void SetLootSlot(UICommonSlot slot, LootKey key, int count, string priceText)
-    {
-        GameDatabase.S_TryGet(key.ItemID, out MushroomDef def); // 없으면 def는 null
-        slot.SetLoot(key, def, count, priceText);
-    }
-
-    // 안내 글귀. Refresh가 지금 상태의 글귀를 쓰고, 거래·기다리기 결과는 그 뒤에 덮어쓴다(다음 Refresh까지 남는다)
-    private void SetMessage(string text)
-    {
-        m_MessageText.E_SetText(text);
-    }
-
-    // 요청 결과 → 안내 글귀. 성공과 아직 안 고름(Empty)은 빈 글
-    private static string GetResultText(EMarketResult result)
-    {
-        return result switch
-        {
-            EMarketResult.Closed => StringDef.S_Get(EStringKey.Market_Result_Closed),
-            EMarketResult.NoMerchant => StringDef.S_Get(EStringKey.Market_Result_NoMerchant),
-            EMarketResult.OverLimit => StringDef.S_Format(EStringKey.Market_Result_OverLimitFormat, Define.MarketTradeLimit),
-            EMarketResult.NotEnough => StringDef.S_Get(EStringKey.Market_Result_NotEnough),
-            EMarketResult.NotBuying => StringDef.S_Get(EStringKey.Market_Result_NotBuying),
-            _ => string.Empty,
-        };
-    }
-
-    // click ---
-
-    private void OnClickMerchant(PopupMarket_MerchantRow row)
-    {
-        int index = m_RowPool.IndexOf(row);
-        if (index < 0)
-            return;
-
-        m_SelectedIndex = index;
-        Refresh();
-    }
-
-    private void OnClickStock(UICommonSlot slot)
-    {
-        int index = m_StockPool.IndexOf(slot);
-        if (index < 0 || index >= m_ListStockKey.Count)
-            return;
-
-        // 처음 누르면 그 묶음을 통째로 담고(일괄판매), 담긴 칸을 또 누르면 개수 조절 팝업을 띄운다
-        HuntData hunt = Hunt;
-        LootKey key = m_ListStockKey[index];
-        m_DicPick.TryGetValue(key, out int picked);
-
-        if (IsIntro || hunt.DicHarvest.TryGetValue(key, out int have) == false || have <= 0)
-            return;
-
-        if (picked > 0)
-        {
-            OpenCountPopup(hunt, key, have, picked);
-            return;
-        }
-
-        if (m_DicPick.Count >= Define.MarketTradeLimit)
-        {
-            SetMessage(GetResultText(EMarketResult.OverLimit));
-            return;
-        }
-
-        m_DicPick[key] = have;
-        Refresh();
-    }
-
-    private void OnClickPick(UICommonSlot slot)
-    {
-        int index = m_PickPool.IndexOf(slot);
-        if (index < 0 || index >= m_ListPickKey.Count)
-            return;
-
-        // 누르면 그 묶음을 통째로 뺀다(남은 버섯 칸의 딤·위 글자도 풀린다)
-        RemovePick(m_ListPickKey[index]);
-        Refresh();
-    }
-
-    private void OnClickTrade()
-    {
-        // 고른 목록은 요청으로 옮기고 먼저 비운다. 성공하면 Trade가 보내는 MarketChanged로 한 번만 갱신된다(밤이 다 가면 MarketClosed로 닫힌다)
-        BuildRequest();
-        m_DicPick.Clear();
-
-        EMarketResult result = Hunt.Trade(SelectedMerchant, m_ListItem, out int gold);
-        if (result == EMarketResult.Success)
-        {
-            SetMessage(StringDef.S_Format(EStringKey.Market_TradeGoldFormat, gold));
-            return;
-        }
-
-        // 실패하면 아무것도 바뀌지 않았으니 고른 목록을 되돌린다
-        foreach (MarketItem item in m_ListItem)
-        {
-            m_DicPick[item.Key] = item.Count;
-        }
-
-        Refresh();
-        SetMessage(GetResultText(result));
-    }
-
-    // 성공하면 MarketChanged로 갱신된 뒤 결과 글귀를 덮어쓴다
-    private void OnClickWait()
-    {
-        EMarketResult result = Hunt.Wait();
-        SetMessage(result == EMarketResult.Success ? StringDef.S_Get(EStringKey.Market_WaitDone) : GetResultText(result));
-    }
-
-    private void OnClickClose()
-    {
-        Hunt.EndMarket();
-    }
-
-    // 연출 중: 움직이는 중이면 끝 모습으로 건너뛰고, 끝 모습에서 기다리는 중이면 닫는다
-    private void OnClickIntro()
-    {
-        if (IsIntro == false)
-            return;
-
-        if (m_IntroSequence.IsWaiting)
-            m_IsIntroContinue = true;
-        else
-            m_IntroSequence.Skip();
     }
 
     // intro ---
@@ -518,14 +317,18 @@ public class PopupMarket : PopupBase
         m_CounterPopup.Setup(key, have, picked, price, count => OnCountConfirm(key, count), OnCountClosed);
     }
 
+    private void CloseCountPopup()
+    {
+        if (m_CounterPopup != null)
+            m_CounterPopup.Close();
+
+        m_CounterPopup = null;
+    }
+    
     // 0개면 팔 목록에서 뺀다
     private void OnCountConfirm(LootKey key, int count)
     {
-        if (count <= 0)
-            RemovePick(key);
-        else
-            m_DicPick[key] = count;
-
+        m_Pick.Set(key, count);
         Refresh();
     }
 
@@ -535,16 +338,150 @@ public class PopupMarket : PopupBase
         m_CounterPopup = null;
     }
 
-    private void CloseCountPopup()
-    {
-        if (m_CounterPopup != null)
-            m_CounterPopup.Close();
+    #region on click
 
-        m_CounterPopup = null;
+    private void OnClickMerchant(PopupMarket_MerchantRow row)
+    {
+        int index = m_RowPool.IndexOf(row);
+        if (index < 0)
+            return;
+
+        m_SelectedIndex = index;
+        Refresh();
     }
 
-    private void RemovePick(LootKey key)
+    private void OnClickStock(UICommonSlot slot)
     {
-        m_DicPick.Remove(key);
+        int index = m_StockPool.IndexOf(slot);
+        if (index < 0 || index >= m_ListStockKey.Count)
+            return;
+
+        // 처음 누르면 그 묶음을 통째로 담고(일괄판매), 담긴 칸을 또 누르면 개수 조절 팝업을 띄운다
+        HuntData hunt = Hunt;
+        LootKey key = m_ListStockKey[index];
+        int picked = m_Pick.GetCount(key);
+
+        if (IsIntro || hunt.DicHarvest.TryGetValue(key, out int have) == false || have <= 0)
+            return;
+
+        if (picked > 0)
+        {
+            OpenCountPopup(hunt, key, have, picked);
+            return;
+        }
+
+        if (m_Pick.Count >= Define.MarketTradeLimit)
+        {
+            SetMessage(GetResultText(EMarketResult.OverLimit));
+            return;
+        }
+
+        m_Pick.Set(key, have);
+        Refresh();
     }
+
+    private void OnClickPick(UICommonSlot slot)
+    {
+        int index = m_PickPool.IndexOf(slot);
+        if (index < 0 || index >= m_Pick.ListKey.Count)
+            return;
+
+        // 누르면 그 묶음을 통째로 뺀다(남은 버섯 칸의 딤·위 글자도 풀린다)
+        m_Pick.Remove(m_Pick.ListKey[index]);
+        Refresh();
+    }
+
+    private void OnClickTrade()
+    {
+        // 고른 목록은 요청으로 옮기고 먼저 비운다. 성공하면 Trade가 보내는 MarketChanged로 한 번만 갱신된다(밤이 다 가면 MarketClosed로 닫힌다)
+        // !!) request는 m_Pick이 다시 쓰는 목록이라, 성공해서 MarketChanged로 Refresh가 돌면 바뀐다. 실패하면 이벤트가 없어 그대로다
+        IReadOnlyList<MarketItem> request = m_Pick.BuildRequest();
+        m_Pick.Clear();
+
+        EMarketResult result = Hunt.Trade(SelectedMerchant, request, out int gold);
+        if (result == EMarketResult.Success)
+        {
+            SetMessage(StringDef.S_Format(EStringKey.Market_TradeGoldFormat, gold));
+            return;
+        }
+
+        // 실패하면 아무것도 바뀌지 않았으니 고른 목록을 되돌린다
+        m_Pick.Restore(request);
+
+        Refresh();
+        SetMessage(GetResultText(result));
+    }
+
+    private void OnClickWait()
+    {
+        EMarketResult result = Hunt.Wait();
+        SetMessage(result == EMarketResult.Success ? StringDef.S_Get(EStringKey.Market_WaitDone) : GetResultText(result));
+    }
+
+    private void OnClickClose()
+    {
+        Hunt.EndMarket();
+    }
+    
+    private void OnClickIntro()
+    {
+        if (IsIntro == false)
+            return;
+
+        if (m_IntroSequence.IsWaiting)
+            m_IsIntroContinue = true;
+        else
+            m_IntroSequence.Skip();
+    }
+
+    #endregion
+
+    #region static
+    
+    // 같은 버섯(도감 번호, Def가 없으면 ID) → 등급 높은 순 → 신선한 순
+    private static int CompareLoot(LootKey a, LootKey b)
+    {
+        int compare = GetDexNo(a.ItemID).CompareTo(GetDexNo(b.ItemID));
+        
+        if (compare == 0)
+            compare = string.CompareOrdinal(a.ItemID, b.ItemID);
+
+        if (compare != 0)
+            return compare;
+        
+        if (a.Rarity != b.Rarity)
+            return b.Rarity.CompareTo(a.Rarity);
+
+        return a.Freshness.CompareTo(b.Freshness);
+    }
+
+    // Def가 없으면 맨 뒤로 보내고 ID로 비교한다
+    private static int GetDexNo(string itemID)
+    {
+        GameDatabase.S_TryGet(itemID, out MushroomDef def); // 없으면 def는 null
+        return def.E_Alive()?.DexNo ?? int.MaxValue;
+    }
+    
+    // 칸: 아이콘 + 개수, 아래에 값, 바탕 = 희귀도, 곰팡이 얼룩 = 덜 신선
+    private static void SetLootSlot(UICommonSlot slot, LootKey key, int count, string priceText)
+    {
+        GameDatabase.S_TryGet(key.ItemID, out MushroomDef def); // 없으면 def는 null
+        slot.SetLoot(key, def, count, priceText);
+    }
+
+    // 요청 결과 → 안내 글귀. 성공과 아직 안 고름(Empty)은 빈 글
+    private static string GetResultText(EMarketResult result)
+    {
+        return result switch
+        {
+            EMarketResult.Closed => StringDef.S_Get(EStringKey.Market_Result_Closed),
+            EMarketResult.NoMerchant => StringDef.S_Get(EStringKey.Market_Result_NoMerchant),
+            EMarketResult.OverLimit => StringDef.S_Format(EStringKey.Market_Result_OverLimitFormat, Define.MarketTradeLimit),
+            EMarketResult.NotEnough => StringDef.S_Get(EStringKey.Market_Result_NotEnough),
+            EMarketResult.NotBuying => StringDef.S_Get(EStringKey.Market_Result_NotBuying),
+            _ => string.Empty,
+        };
+    }
+    
+    #endregion
 }

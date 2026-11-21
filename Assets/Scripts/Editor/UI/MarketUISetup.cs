@@ -65,6 +65,7 @@ public static class MarketUISetup
         float centerLeft = Margin + LeftWidth + Column;
         RectTransform center = UIBuilder.Rect("Merchant", body, Vector2.zero, new Vector2(0, 1), new Vector2(centerLeft, Margin), new Vector2(centerLeft + CenterWidth, -Margin));
         UIBuilder.AddImage(center, UIStyle.Panel);
+        PopupMarket_MerchantInfo merchantInfo = center.gameObject.AddComponent<PopupMarket_MerchantInfo>();
         RectTransform iconRect = UIBuilder.Anchored("Icon", center, new Vector2(0.5f, 1f), new Vector2(0, -28), new Vector2(180, 180));
         Image icon = UIBuilder.AddImage(iconRect, Color.white);
         icon.preserveAspect = true;
@@ -79,6 +80,10 @@ public static class MarketUISetup
         TMP_Text info = UIBuilder.Label(infoRect, "신뢰도  0\n오늘 시세  보통\n희귀 이상  x2.0\n그 밖  x0.5", UIStyle.FontSmall, TextAlignmentOptions.TopLeft);
         info.richText = true;
         info.lineSpacing = 40f;
+        UIBuilder.SetRef(merchantInfo, "m_Icon", icon);
+        UIBuilder.SetRef(merchantInfo, "m_NameText", merchantName);
+        UIBuilder.SetRef(merchantInfo, "m_DescText", desc);
+        UIBuilder.SetRef(merchantInfo, "m_InfoText", info);
 
         // 오른쪽 위: 팔 버섯 + 합계 + [거래] ---
         float rightLeft = centerLeft + CenterWidth + Column;
@@ -131,10 +136,7 @@ public static class MarketUISetup
         UIBuilder.SetRef(popup, "m_IntroTimer", introTimer);
         UIBuilder.SetRef(popup, "m_IntroMessage", introMessage);
         UIBuilder.SetListView(popup, "m_RowPool", merchantList);
-        UIBuilder.SetRef(popup, "m_MerchantIcon", icon);
-        UIBuilder.SetRef(popup, "m_MerchantName", merchantName);
-        UIBuilder.SetRef(popup, "m_MerchantDesc", desc);
-        UIBuilder.SetRef(popup, "m_MerchantInfo", info);
+        UIBuilder.SetRef(popup, "m_MerchantInfo", merchantInfo);
         UIBuilder.SetListView(popup, "m_PickPool", pickLayout);
         UIBuilder.SetListView(popup, "m_StockPool", stockList);
         UIBuilder.SetRef(popup, "m_TotalText", total);
