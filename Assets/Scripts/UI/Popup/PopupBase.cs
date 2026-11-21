@@ -99,7 +99,7 @@ public class PopupBase : MonoBehaviour
         m_IsFinished = true;
         OnClose();
 
-        gameObject.SetActive(false);
+        gameObject.E_SetActive(false);
     }
 
     private void SetTween(float alpha, float scale)

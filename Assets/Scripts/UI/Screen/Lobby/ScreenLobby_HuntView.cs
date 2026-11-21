@@ -80,7 +80,7 @@ public class ScreenLobby_HuntView : UITabView
                 continue;
 
             node.name = $"Node_{mapDef.ID}";
-            node.gameObject.SetActive(true);
+            node.E_SetActive(true);
 
             RectTransform rt = node.transform as RectTransform;
             if (rt != null)

@@ -15,6 +15,8 @@ public static class UIDataSetup
     // 키를 처음 표에 넣을 때만 쓰는 초기값(한국어). 여기 없는 새 키는 빈 값으로 들어가 경고가 난다
     private static readonly Dictionary<EStringKey, string> s_DicDefaultString = new()
     {
+        { EStringKey.Common_GameTitle, "버섯을 줍자!" },
+
         { EStringKey.Lobby_Tab_Gear, "정비" },
         { EStringKey.Lobby_Tab_Hunt, "토벌" },
         { EStringKey.Lobby_Tab_Breed, "개량" },

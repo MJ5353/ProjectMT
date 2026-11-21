@@ -120,7 +120,7 @@ public class PopupResult : PopupBase
             UICommonSlot slot = m_SlotPool.List[i];
             Transform target = slot.transform;
 
-            sequence.Call(() => slot.gameObject.SetActive(true))
+            sequence.Call(() => slot.E_SetActive(true))
                 .Join(SlotPopTime, t => target.localScale = Vector3.one * UITween.EaseOutBack(t))
                 .Wait(m_SlotInterval);
         }

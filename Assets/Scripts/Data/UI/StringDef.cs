@@ -10,6 +10,9 @@ public enum EStringKey
 {
     None,
 
+    // common
+    Common_GameTitle,
+
     // lobby
     Lobby_Tab_Gear,
     Lobby_Tab_Hunt,

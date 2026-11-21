@@ -22,16 +22,13 @@ public class UITooltip : MonoBehaviour
 
     private static readonly Vector3[] s_Corners = new Vector3[4]; // GetWorldCorners 결과. 매번 만들지 않는다
 
-    private RectTransform m_Rect;
+    // !!) 꺼진 채 만들어져 Awake가 Show 전에 안 불릴 수 있어 캐싱하지 않는다
+    private RectTransform Rect => transform as RectTransform;
+
     private RectTransform m_Target;
     private Coroutine m_Routine;
 
     // ------------------------------------------------
-
-    private void Awake()
-    {
-        m_Rect = transform as RectTransform;
-    }
 
     // 같은 대상이 이미 떠 있으면 닫는다
     public void Toggle(RectTransform target, string text)
@@ -47,12 +44,12 @@ public class UITooltip : MonoBehaviour
 
     public void Show(RectTransform target, string text)
     {
-        if (m_Rect == null || target == null)
+        if (target == null)
             return;
 
         m_Target = target;
         m_Label.E_SetText(text);
-        gameObject.SetActive(true);
+        gameObject.E_SetActive(true);
 
         if (m_Routine != null)
             StopCoroutine(m_Routine);
@@ -64,7 +61,7 @@ public class UITooltip : MonoBehaviour
     {
         m_Target = null;
         m_Routine = null; // 꺼지면 코루틴도 멈춘다
-        gameObject.SetActive(false);
+        gameObject.E_SetActive(false);
     }
 
     // 대상 윗변 가운데를 이 말풍선 부모 좌표로
@@ -73,14 +70,14 @@ public class UITooltip : MonoBehaviour
         target.GetWorldCorners(s_Corners);
         Vector3 topCenter = (s_Corners[1] + s_Corners[2]) * 0.5f;
 
-        m_Rect.position = topCenter;
-        return m_Rect.anchoredPosition + new Vector2(0f, Gap);
+        Rect.position = topCenter;
+        return Rect.anchoredPosition + new Vector2(0f, Gap);
     }
 
     // 페이드 + 0.6 → 1 튕김 + 살짝 떠오름. 팝업과 같이 unscaled 시간으로 돈다
     private IEnumerator CoShow(Vector2 position)
     {
-        yield return UITween.CoPlay(ShowTime, t => SetShow(m_Rect, position, t, UITween.EaseOutBack(t), UITween.EaseOutCubic(t)));
+        yield return UITween.CoPlay(ShowTime, t => SetShow(Rect, position, t, UITween.EaseOutBack(t), UITween.EaseOutCubic(t)));
         m_Routine = null;
     }
 

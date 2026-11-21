@@ -127,7 +127,7 @@ public static class LobbyUISetup
         RectTransform bar = UIBuilder.Rect("TopBar", parent, new Vector2(0, 1), Vector2.one, new Vector2(0, -TopBarHeight), Vector2.zero);
         UIBuilder.AddImage(bar, UIStyle.Panel);
 
-        TMP_Text title = UIBuilder.Label(bar, "MushTaker", UIStyle.FontLarge, TextAlignmentOptions.Left, "Title");
+        TMP_Text title = UIBuilder.Label(bar, EStringKey.Common_GameTitle, UIStyle.FontLarge, TextAlignmentOptions.Left, "Title");
         title.rectTransform.offsetMin = new Vector2(40, 0);
 
         // 재화: 오른쪽 위. 늘어나면 칸을 복사해 ID만 바꾼다

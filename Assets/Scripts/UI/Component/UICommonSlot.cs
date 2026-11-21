@@ -22,8 +22,6 @@ public class UICommonSlot : PoolableMonoUI
     // [mj] todo) 일반화. slot layer table 만들어서 slot cover, slot extra bg 등을 설정할 수 있게
     [SerializeField] private GameObject m_Mold = null; // 곰팡이 얼룩. 덜 신선할 때만 켠다
 
-    // [mj] todo) rarity table로 연결해서 path로 가져오게...
-    // → RarityDef로 옮김(희귀도 → 바탕 그림·색·이름). 경로 대신 Def가 그림을 직접 참조한다
 
     private Action<UICommonSlot> m_OnClick;
 

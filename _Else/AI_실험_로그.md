@@ -333,6 +333,7 @@
 - 직접 UI 폴더·이름(Component·Helper·Popup·Screen, UIReuseService·PopupBase·ScreenLobby_HuntView 등)을 정리하고, 화면을 Screen 프리팹으로 두고 SceneController가 `m_Screen`을 캐싱하는 구조를 정함. AI가 `ScreenBase`·`GetScreen<T>()`를 만들고, 로비 생성기를 ScreenLobby 프리팹 생성과 씬 재생성으로 나누고, HUDBattle→ScreenBattle·PopupMarket_Count→PopupMarketCounter 이름과 프리팹 폴더를 스크립트 폴더에 맞춤. 컴파일만 확인, 플레이 확인 안 함.
 - 직접 Component·Helper 검토 10건을 채택(UIGauge는 유지)하고, 하드코딩 문구를 표로 모으자고 제안. 이름(StringDef·EStringKey)·화면 접두·UILabel 구조를 정하고, enum 순서 문제는 직접 "enum 이름 문자열을 키로" 방식을 제안해 채택. AI가 목록 HideFrom·격자 칸 수 버그, 풀 재사용 칸의 클릭 잔존을 고치고 `RarityDef`(희귀도 바탕·색·이름)·`StringDef`·`UILabel`·키 드롭다운 드로어·표 자동 동기화/검사를 만들어 시장을 뺀 화면 문구를 옮김. 컴파일만 확인, 플레이 확인 안 함.
 - 직접 `E_SetText(StringDef.S_Get(키))`를 키만 넘기는 확장으로 통일하라고 지시. AI가 `E_SetText(키)`·`E_SetText(키, args)`·`E_SetTextWithActive(키, isActive, args)`를 추가하고 화면 코드 10곳을 바꿈. 문자열을 합치거나 변수로 넘기는 곳은 그대로 둠. 컴파일만 확인.
+- 직접 로비 버섯 칸을 눌러도 툴팁이 안 뜬다고 알림. AI가 원인을 툴팁이 꺼진 채 만들어져 Awake(RectTransform 캐싱)가 안 불리고 Show가 바로 빠져나가는 것으로 찾아 캐싱을 없앰. 이어서 SetActive 직접 호출 6곳을 E_SetActive로 통일하고, 로비 상단 제목을 게임 제목 "버섯을 줍자!"(`Common_GameTitle`)로 바꿈. 컴파일만 확인.
 
 ## 게임 흐름 Flow 구조 설계
 
