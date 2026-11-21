@@ -19,7 +19,7 @@
 | 클래스 | 종류 | 맡는 것 |
 |---|---|---|
 | `GameManager` | Manager | 씬 전환(`ChangeScene`), 전환 직전 `FlowManager.End()`, 전역 데이터(`Database`·`Define`) |
-| `FlowManager` | Manager | 현재 Flow 하나, 공용 Service(`PopupService`), 일시정지 이유 묶음, Tick 전달 |
+| `FlowManager` | Manager | 현재 Flow 하나, 공용 Service(`UIFactory`·`PopupService`), 일시정지 이유 묶음, Tick 전달 |
 | `FlowBase` 계열 | 일반 클래스 | 씬 하나의 진행 상태 머신과 그 씬 전용 Service |
 | `SceneControllerBase` | 씬 Mono | 매니저 생성, UI 루트·카메라 등록, 어떤 Flow인지 정해 `Begin`, 앱 일시정지·포커스 전달 |
 
@@ -63,14 +63,14 @@
 
 1. **씬 진입**: `SceneControllerBase.Awake`(매니저 생성·UI 루트·카메라) → `Start`에서 `FlowManager.Begin(CreateFlow())` → Flow `Enter`(Service 등록·Init, 첫 상태 진입).
 2. **진행**: `SceneControllerBase.Update` → `FlowManager.Tick` → 공용 Service Tick + 현재 Flow 상태 Update.
-3. **씬 전환**: `GameManager.ChangeScene` → `FlowManager.End()`(Flow `Exit`, 팝업 정리) → 씬 로드. 정리 입구는 여기 한 곳이고 `SceneUnloading` 이벤트는 이 순서로 대체한다. `OnDestroy`는 정리가 안 된 경우의 안전망만 맡는다.
+3. **씬 전환**: `GameManager.ChangeScene` → `FlowManager.End()`(Flow `Exit` → `UIFactory` UI 요소 회수 → `PopupService` 팝업 파괴) → 씬 로드. 요소 회수가 팝업 파괴보다 먼저여야 한다(UI 스레드 26.11.21). 정리 입구는 여기 한 곳이고 `SceneUnloading` 이벤트는 이 순서로 대체한다. `OnDestroy`는 정리가 안 된 경우의 안전망만 맡는다.
 4. **다시 하기(Retry)**: 씬을 다시 로드하지 않는다. 현재 BattleFlow를 `Exit`로 정리하고 같은 지역으로 새 BattleFlow를 `Begin`한다.
 
 ### Retry에서 챙길 것
 
 - 유닛·이펙트·주운 버섯 픽업은 Flow `Exit`의 Service `Clear`에서 모두 풀로 돌려보낸다. 하나라도 남으면 다음 판에 겹친다.
 - 맵 프리팹은 지역이 같으므로 두고 재사용할지, 매번 다시 스폰할지 정해야 한다(미정).
-- 결과 팝업은 공용 `PopupService`가 들고 있어 Flow `Exit`로는 닫히지 않는다. Result 상태 `Exit`에서 직접 닫는다.
+- 결과 팝업은 공용 `PopupService`가 들고 있어 Flow `Exit`로는 닫히지 않는다. Result 상태 `Exit`에서 직접 닫는다. 팝업은 닫으면 꺼지고 종류당 하나를 재사용하므로, 다시 열 때 내용을 새로 채워야 한다.
 - 전투 HUD처럼 씬에 남는 UI는 새 판 시작을 알아야 한다. BattleFlow `Enter`가 시작 이벤트를 내고 HUD가 이를 받아 초기화한다.
 - 카메라 추적 대상은 Start 상태에서 새 플레이어로 다시 지정한다.
 
