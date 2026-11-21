@@ -91,3 +91,9 @@ MonoBehaviour:
     <Value>k__BackingField: "\uB85C\uBE44\uB85C"
   - <Key>k__BackingField: Common_GameTitle
     <Value>k__BackingField: "\uBC84\uC12F\uC744 \uC90D\uC790!"
+  - <Key>k__BackingField: Common_Yes
+    <Value>k__BackingField: "\uC608"
+  - <Key>k__BackingField: Common_No
+    <Value>k__BackingField: "\uC544\uB2C8\uC624"
+  - <Key>k__BackingField: Battle_ExitConfirm
+    <Value>k__BackingField: "\uD1A0\uBC8C\uC744 \uC885\uB8CC\uD560\uAE4C\uC694?"

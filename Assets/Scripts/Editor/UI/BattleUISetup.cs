@@ -20,6 +20,7 @@ public static class BattleUISetup
     public static readonly (string Path, System.Func<GameObject> Build)[] Prefabs =
     {
         (EditorPath.PopupDeathPrefab, () => BuildDeathPopup().gameObject),
+        (EditorPath.PopupConfirmPrefab, () => BuildConfirmPopup().gameObject),
         (EditorPath.PopupResultPrefab, () => BuildResultPopup().gameObject),
         (EditorPath.BattleLootRowPrefab, () => LootRow().gameObject),
         (EditorPath.BattleSkillIconPrefab, () => SkillIcon().gameObject),
@@ -239,6 +240,32 @@ public static class BattleUISetup
         UIBuilder.SetRef(popup, "m_ReviveButton", revive);
         UIBuilder.SetRef(popup, "m_ReviveLabel", revive.GetComponentInChildren<TMP_Text>());
         UIBuilder.SetRef(popup, "m_HomeButton", home);
+
+        return popup;
+    }
+
+    // 예/아니오 확인 팝업(공용, 지금은 토벌 종료 확인에 쓴다): 어두운 배경 + 가운데 창(문구, 예/아니오)
+    private static PopupConfirm BuildConfirmPopup()
+    {
+        RectTransform root = UIBuilder.Stretch(nameof(EPopupType.PopupConfirm), null);
+        UIBuilder.AddImage(root, new Color(0f, 0f, 0f, 0.45f), true); // 뒤 화면 터치를 막는다
+
+        RectTransform window = UIBuilder.Anchored("Window", root, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(720, 360));
+        UIBuilder.AddImage(window, UIStyle.Panel, true);
+
+        TMP_Text message = TopLabel(window, "Message", "확인", UIStyle.FontLarge, -60, 100);
+
+        Button yes = UIBuilder.Button(window, "YesButton", EStringKey.Common_Yes, new Vector2(260, 110), UIStyle.Accent);
+        PlaceBottom(yes, -150);
+        Button no = UIBuilder.Button(window, "NoButton", EStringKey.Common_No, new Vector2(260, 110), UIStyle.PanelLight);
+        PlaceBottom(no, 150);
+
+        PopupConfirm popup = root.gameObject.AddComponent<PopupConfirm>();
+        UIBuilder.SetRef(popup, "m_Group", root.gameObject.AddComponent<CanvasGroup>()); // 여는 연출(PopupBase)
+        UIBuilder.SetRef(popup, "m_Window", window);
+        UIBuilder.SetRef(popup, "m_Message", message);
+        UIBuilder.SetRef(popup, "m_YesButton", yes);
+        UIBuilder.SetRef(popup, "m_NoButton", no);
 
         return popup;
     }

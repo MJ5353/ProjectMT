@@ -16,6 +16,8 @@ public static class UIDataSetup
     private static readonly Dictionary<EStringKey, string> s_DicDefaultString = new()
     {
         { EStringKey.Common_GameTitle, "버섯을 줍자!" },
+        { EStringKey.Common_Yes, "예" },
+        { EStringKey.Common_No, "아니오" },
 
         { EStringKey.Lobby_Tab_Gear, "정비" },
         { EStringKey.Lobby_Tab_Hunt, "토벌" },
@@ -32,6 +34,7 @@ public static class UIDataSetup
         { EStringKey.Lobby_Hunt_LockedFormat, "잠김 · {0}을(를) 먼저 토벌" },
 
         { EStringKey.Battle_Exit, "토벌 종료" },
+        { EStringKey.Battle_ExitConfirm, "토벌을 종료할까요?" },
         { EStringKey.Battle_Enrage, "분노!" },
         { EStringKey.Battle_RoarEnragedFormat, "{0} 분노!" },
         { EStringKey.Battle_LootBothFormat, "{0} 신선 x{1} / 덜 신선 x{2}" },

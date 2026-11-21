@@ -12,6 +12,8 @@ public enum EStringKey
 
     // common
     Common_GameTitle,
+    Common_Yes,
+    Common_No,
 
     // lobby
     Lobby_Tab_Gear,
@@ -30,6 +32,7 @@ public enum EStringKey
 
     // battle
     Battle_Exit,
+    Battle_ExitConfirm,
     Battle_Enrage,
     Battle_RoarEnragedFormat,   // {0} 보스 이름
     Battle_LootBothFormat,      // {0} 버섯 {1} 신선 {2} 덜 신선

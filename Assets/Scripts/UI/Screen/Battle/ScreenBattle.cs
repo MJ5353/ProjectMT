@@ -130,8 +130,34 @@ public class ScreenBattle : ScreenBase
 
     // on action ---
     
-    // 시장을 열고 팝업(PopupMarket)을 띄운다. 시장 프리팹이 없으면 시장 없이 끝낸다
+    // 바로 나가지 않고 "토벌을 종료할까요?"를 묻는다. 묻는 동안 게임을 멈춘다. 확인 팝업 프리팹이 없으면 묻지 않고 나간다
     private void OnClickExit()
+    {
+        PopupConfirm confirm = GameManager.Instance.PopupS?.Open<PopupConfirm>(EPopupType.PopupConfirm);
+        if (confirm == null)
+        {
+            ExitHunt();
+            return;
+        }
+
+        TimeManager.Instance.SetPause(true);
+        confirm.Set(EStringKey.Battle_ExitConfirm, OnConfirmExit, OnCancelExit);
+    }
+
+    // 멈춤을 먼저 풀고 나간다(시장이 열리면 BattleService가 다시 멈춘다)
+    private void OnConfirmExit()
+    {
+        TimeManager.Instance.SetPause(false);
+        ExitHunt();
+    }
+
+    private void OnCancelExit()
+    {
+        TimeManager.Instance.SetPause(false);
+    }
+
+    // 시장을 열고 팝업(PopupMarket)을 띄운다. 시장 프리팹이 없으면 시장 없이 끝낸다
+    private void ExitHunt()
     {
         GameManager gameM = GameManager.Instance;
         BattleService battleS = gameM.BattleS;
