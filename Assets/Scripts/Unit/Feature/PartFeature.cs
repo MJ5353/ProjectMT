@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Object = UnityEngine.Object;
+
 using Random = UnityEngine.Random;
 
 // ==================================================
@@ -257,7 +257,7 @@ public class PartFeature : UnitFeature
 
         for (int i = 0; i < part.PlacedCount; i++)
         {
-            effectS.Play(effectS.PartBreak, part.ListMushroom[i].Socket.position, Quaternion.identity);
+            effectS.Play(ECommonEffectType.PartBreak, part.ListMushroom[i].Socket.position, Quaternion.identity);
         }
     }
 

@@ -152,34 +152,27 @@ public class MushroomPickup : PoolableMono
     // 희귀도 빛기둥. 색은 희귀도별 프리팹에 박혀 있다
     private void ShowBeam(Vector3 groundPosition)
     {
-        string path = Rarity switch
+        ECommonEffectType type;
+        switch (Rarity)
         {
-            ERarity.Rare => CommonPath.RarityBeamRare,
-            ERarity.Epic => CommonPath.RarityBeamEpic,
-            _ => null,
-        };
+            case ERarity.Rare: type = ECommonEffectType.RarityBeam_Rare; break;
+            case ERarity.Epic: type = ECommonEffectType.RarityBeam_Epic; break;
+            default: return;
+        }
 
-        if (path == null)
-            return;
-
-        EffectController prefab = ResourceManager.Instance.Load<EffectController>(path);
-        m_Beam = ResourceManager.Instance.Spawn(prefab, groundPosition, Quaternion.identity);
+        m_Beam = GameManager.Instance.EffectS?.Show(type, groundPosition, Quaternion.identity);
     }
 
     private void HideBeam()
     {
-        if (m_Beam != null)
-            ResourceManager.S_Despawn(m_Beam);
-
+        GameManager.Instance.EffectS?.Hide(m_Beam);
         m_Beam = null;
     }
 
     private void Collect()
     {
         SEventManager.Publish(new LootPicked(m_ItemID, m_Amount, Freshness, Rarity));
-        EffectService effectS = GameManager.Instance.EffectS;
-        effectS?.Play(effectS.Pickup, transform.position, Quaternion.identity);
-        
+        GameManager.Instance.EffectS?.Play(ECommonEffectType.Pickup, transform.position, Quaternion.identity);
         ResourceManager.S_Despawn(this);
     }
 }

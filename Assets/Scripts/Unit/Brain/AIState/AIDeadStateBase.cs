@@ -43,6 +43,6 @@ public class AIDeadStateBase : AIStateBase
         
         float radius = m_Controller.HurtBody.E_Alive()?.radius ?? 0.5f;
         float scale = radius * 2f; // 몸이 없으면 1
-        effectS.Play(effectS.Death, m_Controller.transform.position, Quaternion.identity, scale);
+        effectS.Play(ECommonEffectType.Death, m_Controller.transform.position, Quaternion.identity, scale);
     }
 }

@@ -11,13 +11,8 @@ public static class CommonPath
     public const string HitFlashMaterial = MaterialDir + "HitFlash";
     public const string HitChunkMaterial = MaterialDir + "HitChunk";
     public const string EffectDir = "Prefabs/Effect/";
-    public const string PartBreakEffect = EffectDir + "FX_PartBreak";
-    public const string DeathEffect = EffectDir + "FX_Death";
-    public const string PickupEffect = EffectDir + "FX_Pickup";
     public const string TelegraphCircle = EffectDir + "FX_TelegraphCircle";
     public const string TelegraphLine = EffectDir + "FX_TelegraphLine";
-    public const string RarityBeamRare = EffectDir + "FX_RarityBeam_Rare";
-    public const string RarityBeamEpic = EffectDir + "FX_RarityBeam_Epic";
     
     // 콘텐츠 리소스는 폴더 + 이름(Def ID)으로 찾는다. Def는 프리팹을 참조하지 않는다
     public const string ActorDir = "Prefabs/Actor/";           // 플레이어 프리팹(Player)
