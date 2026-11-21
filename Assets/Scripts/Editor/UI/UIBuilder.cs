@@ -206,6 +206,32 @@ public static class UIBuilder
         return slot;
     }
 
+    // 칸 위에 뜨는 이름 말풍선. 글자 길이에 맞춰 늘어난다. 목록보다 뒤 형제로 만들어야 칸 위에 그려진다
+    public static UITooltip Tooltip(Transform parent, string name = "Tooltip")
+    {
+        RectTransform rt = Anchored(name, parent, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(120, 48));
+        rt.pivot = new Vector2(0.5f, 0f);
+        AddImage(rt, UIStyle.Dim);
+        CanvasGroup group = rt.gameObject.AddComponent<CanvasGroup>();
+        group.blocksRaycasts = false;
+
+        HorizontalLayoutGroup layout = rt.gameObject.AddComponent<HorizontalLayoutGroup>();
+        layout.padding = new RectOffset(16, 16, 8, 8);
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        ContentSizeFitter fitter = rt.gameObject.AddComponent<ContentSizeFitter>();
+        fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        TMP_Text label = Label(rt, "이름", UIStyle.FontSmall);
+
+        UITooltip tooltip = rt.gameObject.AddComponent<UITooltip>();
+        tooltip.EditorSetup(group, label);
+        rt.gameObject.SetActive(false);
+
+        return tooltip;
+    }
+
     // build (프리팹 원본) ---
 
     public static Button BuildButton(Transform parent)
@@ -279,16 +305,12 @@ public static class UIBuilder
         TMP_Text displayName = Label(nameRt, string.Empty, UIStyle.FontSmall);
         displayName.color = UIStyle.TextDim;
 
-        RectTransform badge = Anchored("Badge", rt, new Vector2(0, 1), new Vector2(-6, 6), new Vector2(44, 32));
-        Image badgeImage = AddImage(badge, UIStyle.Gold);
-        TMP_Text badgeText = Label(badge, "S", UIStyle.FontSmall);
-        badgeText.color = UIStyle.Background;
-
         GameObject dim = BuildSlotDim(rt).gameObject;
         TMP_Text caption = BuildSlotCaption(rt);
 
         UICommonSlot slot = rt.gameObject.AddComponent<UICommonSlot>();
-        slot.EditorSetup(bg, icon, mold, dim, caption, count, displayName, badge.gameObject, badgeImage, badgeText, button);
+        slot.EditorSetup(bg, icon, mold, dim, caption, count, displayName, button,
+            new[] { LoadSprite("UI_Slot_Common"), LoadSprite("UI_Slot_Rare"), LoadSprite("UI_Slot_Epic") }); // ERarity 순서
 
         return slot;
     }

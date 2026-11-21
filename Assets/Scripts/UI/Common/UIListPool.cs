@@ -35,13 +35,13 @@ public class UIListPool<T> where T : PoolableMonoUI
         {
             T item = Get(i);
             if (item != null)
-                onSet?.Invoke(item, list[i]);
+                onSet?.Invoke(item, list.E_GetOrDefault(i));
         }
 
         HideFrom(count);
     }
 
-    // 결과 화면 연출처럼 칸을 하나씩 다룰 때. 모자라면 풀에서 꺼낸다
+    // index번 칸을 돌려준다. 모자라면 풀에서 꺼내 채우고, isActive대로 켜거나 끈다(Refresh가 쓰고, 꺼 둔 채 준비할 때는 직접 부른다)
     public T Get(int index, bool isActive = true)
     {
         while (index >= m_List.Count)

@@ -61,7 +61,7 @@ public sealed class PopupService : ServiceBase
 
         T popup = Object.Instantiate(prefab, m_Root);
         m_ListPopup.Add(popup);
-        popup.OnOpen();
+        popup.Open();
 
         return popup;
     }

@@ -8,15 +8,13 @@ using UnityEngine.UI;
 // [mj] todo) 신선 등급은 전투 쪽 데이터(ListLootGrade 가안)가 확정되면 칸 뱃지로 붙인다
 public class PopupResult : Popup
 {
-    [SerializeField] private CanvasGroup m_Group = null;
-    [SerializeField] private RectTransform m_Window = null;
     [SerializeField] private TMP_Text m_Title = null;
     [SerializeField] private TMP_Text m_Summary = null;
     [SerializeField] private RectTransform m_LootRoot = null;
     [SerializeField] private GameObject m_EmptyLabel = null;
     [SerializeField] private Button m_RetryButton = null;
     [SerializeField] private Button m_LobbyButton = null;
-    [SerializeField] private float m_FadeTime = 0.25f;
+    
     [SerializeField] private float m_SlotInterval = 0.08f;
 
     private UIListPool<UICommonSlot> m_SlotPool;
@@ -35,7 +33,7 @@ public class PopupResult : Popup
 
     // virtual ---
 
-    public override void OnOpen()
+    protected override void OnOpen()
     {
         BattleService battleM = GameManager.Instance?.BattleS;
         if (battleM == null)
@@ -53,8 +51,6 @@ public class PopupResult : Popup
         FillLoot(battleM.DicReward);
         m_LobbyButton.gameObject.SetActive(Application.CanStreamedLevelBeLoaded(SceneNames.Lobby));
         SetButtonsInteractable(true);
-
-        StartCoroutine(OpenRoutine());
     }
 
     public override void OnClose()
@@ -62,91 +58,8 @@ public class PopupResult : Popup
         m_SlotPool.Clear();
     }
 
-    // ---
-
-    private void FillLoot(IReadOnlyDictionary<string, int> dicLoot)
-    {
-        m_ListLoot.Clear();
-        foreach (var pair in dicLoot)
-        {
-            m_ListLoot.Add(pair);
-        }
-
-        // 칸은 꺼 둔 채 준비하고, OpenRoutine이 하나씩 켠다(그래서 Refresh 대신 Get)
-        GameDatabase database = GameManager.Instance?.Database;
-        for (int i = 0; i < m_ListLoot.Count; ++i)
-        {
-            UICommonSlot slot = m_SlotPool.Get(i, false);
-            if (slot == null)
-                break;
-
-            string itemID = m_ListLoot[i].Key;
-            int count = m_ListLoot[i].Value;
-            DataDef def = null;
-            database?.TryGet(itemID, out def);
-
-            if (def != null)
-                slot.Set(def, count);
-            else
-                slot.Set(itemID, null, itemID, count, UIStyle.PanelLight);
-
-            slot.SetBadge(null, Color.clear);
-        }
-
-        m_SlotPool.HideFrom(m_ListLoot.Count);
-        m_EmptyLabel.SetActive(m_ListLoot.Count == 0);
-    }
-
-    // !!) 전투가 끝날 때 timeScale이 멈춰 있을 수 있어 연출은 모두 unscaled 시간으로 돈다
-    private IEnumerator OpenRoutine()
-    {
-        m_Group.alpha = 0f;
-
-        float time = 0f;
-        while (time < m_FadeTime)
-        {
-            time += Time.unscaledDeltaTime;
-            float t = Mathf.Clamp01(time / m_FadeTime);
-
-            m_Group.alpha = t;
-            m_Window.localScale = Vector3.one * Mathf.Lerp(0.9f, 1f, UITween.EaseOutBack(t));
-            yield return null;
-        }
-
-        m_Group.alpha = 1f;
-        m_Window.localScale = Vector3.one;
-
-        // 주운 버섯을 하나씩 튀어나오게 보여 준다
-        for (int i = 0; i < m_SlotPool.Count && i < m_ListLoot.Count; ++i)
-        {
-            UICommonSlot slot = m_SlotPool.List[i];
-            slot.gameObject.SetActive(true);
-            StartCoroutine(PopRoutine(slot.transform));
-            yield return new WaitForSecondsRealtime(m_SlotInterval);
-        }
-    }
-
-    private static IEnumerator PopRoutine(Transform target)
-    {
-        const float duration = 0.18f;
-
-        float time = 0f;
-        while (time < duration)
-        {
-            time += Time.unscaledDeltaTime;
-            target.localScale = Vector3.one * UITween.EaseOutBack(time / duration);
-            yield return null;
-        }
-
-        target.localScale = Vector3.one;
-    }
-
-    private void SetButtonsInteractable(bool isInteractable)
-    {
-        m_RetryButton.interactable = isInteractable;
-        m_LobbyButton.interactable = isInteractable;
-    }
-
+    #region OnClick
+    
     private void OnClickRetry()
     {
         BattleService battleM = GameManager.Instance?.BattleS;
@@ -165,10 +78,83 @@ public class PopupResult : Popup
             return;
 
         SetButtonsInteractable(false);
+        
         if (battleM.TryGoLobby() == false)
             SetButtonsInteractable(true);
     }
 
+    #endregion
+    
+    // ---
+
+    private void FillLoot(IReadOnlyDictionary<string, int> dicLoot)
+    {
+        m_ListLoot.Clear();
+        foreach (var pair in dicLoot)
+        {
+            m_ListLoot.Add(pair);
+        }
+
+        // 칸은 꺼 둔 채 준비하고, CoAfterOpen이 하나씩 켠다(그래서 Refresh 대신 Get)
+        GameDatabase database = GameManager.Instance?.Database;
+        for (int i = 0; i < m_ListLoot.Count; ++i)
+        {
+            UICommonSlot slot = m_SlotPool.Get(i, false);
+            if (slot == null)
+                break;
+
+            string itemID = m_ListLoot[i].Key;
+            int count = m_ListLoot[i].Value;
+            DataDef def = null;
+            database?.TryGet(itemID, out def);
+
+            if (def != null)
+                slot.Set(def, count);
+            else
+                slot.Set(itemID, null, itemID, count, UIStyle.PanelLight);
+        }
+
+        m_SlotPool.HideFrom(m_ListLoot.Count);
+        m_EmptyLabel.SetActive(m_ListLoot.Count == 0);
+    }
+
+    // 창이 열린 뒤 주운 버섯을 하나씩 튀어나오게 보여 준다
+    // !!) 전투가 끝날 때 timeScale이 멈춰 있을 수 있어 연출은 모두 unscaled 시간으로 돈다
+    protected override IEnumerator CoAfterOpen()
+    {
+        for (int i = 0; i < m_SlotPool.Count && i < m_ListLoot.Count; ++i)
+        {
+            UICommonSlot slot = m_SlotPool.List[i];
+            slot.gameObject.SetActive(true);
+            
+            StartCoroutine(PopRoutine(slot.transform));
+            yield return new WaitForSecondsRealtime(m_SlotInterval);
+        }
+    }
+
+    private void SetButtonsInteractable(bool isInteractable)
+    {
+        m_RetryButton.interactable = isInteractable;
+        m_LobbyButton.interactable = isInteractable;
+    }
+
+    // static ---
+
+    private static IEnumerator PopRoutine(Transform target)
+    {
+        const float duration = 0.18f;
+
+        float time = 0f;
+        while (time < duration)
+        {
+            time += Time.unscaledDeltaTime;
+            target.localScale = Vector3.one * UITween.EaseOutBack(time / duration);
+            yield return null;
+        }
+
+        target.localScale = Vector3.one;
+    }
+    
     // 시장에서 오른 상인 신뢰도. "  ·  신뢰도 약재상 +10, 요리사 +5"
     private static string FormatTrust(EBattleState state)
     {
@@ -179,6 +165,7 @@ public class PopupResult : Popup
 
         System.Text.StringBuilder builder = new("  ·  신뢰도 ");
         bool isFirst = true;
+        
         foreach (var pair in hunt.DicTrustGain)
         {
             MerchantDef merchant = null;

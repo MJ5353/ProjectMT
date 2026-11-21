@@ -24,7 +24,7 @@ public class PopupDeath : Popup
 
     // virtual ---
 
-    public override void OnOpen()
+    protected override void OnOpen()
     {
         BattleService battleS = GameManager.Instance?.BattleS;
         if (battleS == null)

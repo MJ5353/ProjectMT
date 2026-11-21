@@ -225,6 +225,7 @@ public static class LobbyUISetup
         mushLayout.childAlignment = TextAnchor.UpperLeft;
 
         UICommonSlot mushTemplate = UIBuilder.CommonSlot(mushRoot, "MushroomTemplate", 96f);
+        UITooltip mushTooltip = UIBuilder.Tooltip(info, "MushroomTooltip"); // 목록 뒤에 만들어 칸 위에 그린다
 
         Button enter = UIBuilder.Button(info, "EnterButton", "입장", new Vector2(360, 120));
         RectTransform enterRt = (RectTransform)enter.transform;
@@ -241,6 +242,7 @@ public static class LobbyUISetup
         UIBuilder.SetRef(hunt, "m_InfoDesc", infoDesc);
         UIBuilder.SetRef(hunt, "m_MushroomRoot", mushRoot);
         UIBuilder.SetRef(hunt, "m_MushroomTemplate", mushTemplate);
+        UIBuilder.SetRef(hunt, "m_MushroomTooltip", mushTooltip);
         UIBuilder.SetRef(hunt, "m_EnterButton", enter);
 
         return hunt;

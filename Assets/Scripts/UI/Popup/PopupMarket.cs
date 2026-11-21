@@ -97,7 +97,7 @@ public class PopupMarket : Popup
 
     // virtual ---
 
-    public override void OnOpen()
+    protected override void OnOpen()
     {
         SEventManager.Subscribe<MarketChanged>(OnMarketChanged);
         SEventManager.Subscribe<MarketClosed>(OnMarketClosed);
@@ -328,7 +328,6 @@ public class PopupMarket : Popup
         slot.Set(key.ItemID, icon, priceText, count, tint);
         slot.SetRarity(key.Rarity);
         slot.SetFreshness(key.Freshness);
-        slot.SetBadge(null, Color.clear);
     }
 
     private void SetMessage(string text)

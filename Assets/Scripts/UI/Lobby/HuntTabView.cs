@@ -17,6 +17,7 @@ public class HuntTabView : TabView
     [SerializeField] private TMP_Text m_InfoDesc = null;
     [SerializeField] private RectTransform m_MushroomRoot = null;
     [SerializeField] private UICommonSlot m_MushroomTemplate = null;
+    [SerializeField] private UITooltip m_MushroomTooltip = null; // 칸을 누르면 그 칸 위에 버섯 이름. 목록에 하나
     [SerializeField] private Button m_EnterButton = null;
 
     private readonly List<MapDef> m_ListMap = new();
@@ -119,6 +120,8 @@ public class HuntTabView : TabView
         }
 
         m_ListMushroomSlot.Clear();
+        if (m_MushroomTooltip != null) // 로비 UI를 다시 만들기 전엔 비어 있다
+            m_MushroomTooltip.Hide();
 
         if (m_Selected == null)
         {
@@ -151,8 +154,9 @@ public class HuntTabView : TabView
 
             UICommonSlot slot = Instantiate(m_MushroomTemplate, m_MushroomRoot);
             slot.gameObject.SetActive(true);
-            slot.Set(mushroom, 0);
-            slot.SetBadge(null, Color.clear);
+            slot.Set(mushroom.ID, mushroom.Icon, string.Empty, 0, mushroom.Tint); // 이름은 칸 아래 대신 툴팁으로
+            string displayName = mushroom.DisplayName;
+            slot.SetOnClick(s => m_MushroomTooltip.Toggle((RectTransform)s.transform, displayName));
             m_ListMushroomSlot.Add(slot);
         }
     }

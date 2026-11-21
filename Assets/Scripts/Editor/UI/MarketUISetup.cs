@@ -234,6 +234,8 @@ public static class MarketUISetup
         PlaceCorner(confirm, new Vector2(0.5f, 0f), new Vector2(150, Pad * 2f));
 
         PopupMarket_Count popup = root.gameObject.AddComponent<PopupMarket_Count>();
+        UIBuilder.SetRef(popup, "m_Group", root.gameObject.AddComponent<CanvasGroup>()); // 여는 연출(Popup)
+        UIBuilder.SetRef(popup, "m_Window", window);
         UIBuilder.SetRef(popup, "m_Slot", slot);
         UIBuilder.SetRef(popup, "m_NameText", nameText);
         UIBuilder.SetRef(popup, "m_CountText", count);

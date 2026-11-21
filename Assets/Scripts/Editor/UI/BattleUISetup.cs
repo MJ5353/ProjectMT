@@ -228,6 +228,8 @@ public static class BattleUISetup
         PlaceBottom(home, 190);
 
         PopupDeath popup = root.gameObject.AddComponent<PopupDeath>();
+        UIBuilder.SetRef(popup, "m_Group", root.gameObject.AddComponent<CanvasGroup>()); // 여는 연출(Popup)
+        UIBuilder.SetRef(popup, "m_Window", window);
         UIBuilder.SetRef(popup, "m_ReviveButton", revive);
         UIBuilder.SetRef(popup, "m_ReviveLabel", revive.GetComponentInChildren<TMP_Text>());
         UIBuilder.SetRef(popup, "m_HomeButton", home);
