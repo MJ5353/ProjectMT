@@ -127,6 +127,16 @@ public static class CommonExtensions
         image.color = color;
     }
 
+    // 그림만 바꾼다(색은 그대로). 그림이 없으면 칸을 끈다(enabled). null이면 넘어간다
+    public static void E_SetImage(this UnityEngine.UI.Image image, UnityEngine.Sprite sprite)
+    {
+        if (image == null)
+            return;
+
+        image.sprite = sprite;
+        image.enabled = sprite != null;
+    }
+
     // 글자·그림 색. null이면 넘어간다
     public static void E_SetColor(this UnityEngine.UI.Graphic graphic, UnityEngine.Color color)
     {

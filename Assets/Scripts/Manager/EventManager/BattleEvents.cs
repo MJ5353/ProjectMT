@@ -36,6 +36,11 @@ public readonly struct LootPicked
     }
 }
 
+// 주운 버섯 목록(BattleService.DicLoot)이 바뀜. 줍거나, 쓰러져 떨궜을 때
+public readonly struct LootChanged
+{
+}
+
 public readonly struct BattleEnded
 {
     public readonly bool IsWin;

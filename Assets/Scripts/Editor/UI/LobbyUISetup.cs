@@ -71,18 +71,18 @@ public static class LobbyUISetup
 
         GameObject screenGo = PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.ScreenLobbyPrefab), safe) as GameObject;
         ScreenLobby screen = screenGo != null ? screenGo.GetComponent<ScreenLobby>() : null;
-        if (screen != null)
+        if (screen == null)
         {
-            RectTransform screenRt = screen.RectTransform;
-            screenRt.anchorMin = Vector2.zero;
-            screenRt.anchorMax = Vector2.one;
-            screenRt.offsetMin = Vector2.zero;
-            screenRt.offsetMax = Vector2.zero;
-        }
-        else
-        {
+            // 화면 없는 씬을 저장하지 않는다(새 씬은 저장 전이라 버려진다)
             CLogger.Error("LobbyUISetup", $"{EditorPath.ScreenLobbyPrefab}에 ScreenLobby 프리팹이 없습니다. 모든 UI 다시 만들기를 먼저 실행하세요.");
+            return;
         }
+
+        RectTransform screenRt = screen.RectTransform;
+        screenRt.anchorMin = Vector2.zero;
+        screenRt.anchorMax = Vector2.one;
+        screenRt.offsetMin = Vector2.zero;
+        screenRt.offsetMax = Vector2.zero;
 
         RectTransform popupRoot = UIBuilder.Stretch("PopupRoot", safe);
         sceneController.EditorSetup(popupRoot, cam, screen);

@@ -117,10 +117,6 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
     // 몸(캐릭터 컨트롤러) 맨 위보다 조금 위를 화면 좌표로 옮긴다. 카메라 뒤면 false
     private bool TryPlace(UIGauge gauge, UnitController unit, Camera cam, DefineDef define)
     {
-        RectTransform rt = gauge.RectTransform;
-        if (rt == null)
-            return false;
-
         CharacterController body = unit.HurtBody;
         float top = 2f;
         if (body != null)
@@ -131,7 +127,7 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
             return false;
 
         RectTransformUtility.ScreenPointToLocalPointInRectangle(m_Root, screen, null, out Vector2 local);
-        rt.anchoredPosition = local;
+        gauge.RectTransform.anchoredPosition = local;
         return true;
     }
 

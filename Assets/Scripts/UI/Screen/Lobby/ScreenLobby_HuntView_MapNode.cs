@@ -16,14 +16,15 @@ public class ScreenLobby_HuntView_MapNode : MonoBehaviour
     [SerializeField] private TMP_Text m_NameLabel = null;
 
     public Button Button => m_Button;
+    public MapDef MapDef { get; private set; }
 
     // ------------------------------------------------
 
     public void Set(MapDef mapDef)
     {
+        MapDef = mapDef;
         m_NameLabel.E_SetText(mapDef.DisplayName);
-        m_Icon.sprite = mapDef.Icon;
-        m_Icon.enabled = mapDef.Icon != null;
+        m_Icon.E_SetImage(mapDef.Icon);
     }
 
     public void SetState(Color color, bool isUnlocked)

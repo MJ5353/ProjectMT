@@ -21,7 +21,6 @@ public class ScreenBattle : ScreenBase
     private readonly Dictionary<string, int> m_DicStale = new();      // 버섯별 덜 신선 개수
     
     private int m_LastHp = -1;
-    private int m_LastLoot = -1;
 
     // ------------------------------------------------
 
@@ -35,12 +34,14 @@ public class ScreenBattle : ScreenBase
     {
         SEventManager.Subscribe<PlayerDowned>(OnPlayerDowned);
         SEventManager.Subscribe<BattleEnded>(OnBattleEnded);
+        SEventManager.Subscribe<LootChanged>(OnLootChanged);
     }
 
     private void OnDisable()
     {
         SEventManager.Unsubscribe<PlayerDowned>(OnPlayerDowned);
         SEventManager.Unsubscribe<BattleEnded>(OnBattleEnded);
+        SEventManager.Unsubscribe<LootChanged>(OnLootChanged);
     }
 
     private void Update()
@@ -53,7 +54,6 @@ public class ScreenBattle : ScreenBase
         m_ExitButton.E_SetInteractable(battleS.State == EBattleState.Playing && battleS.IsPlayerDown == false);
 
         UpdatePlayer(battleS.Player);
-        UpdateLoot(battleS);
     }
 
     // ---
@@ -77,23 +77,7 @@ public class ScreenBattle : ScreenBase
         m_DashActive.E_SetActive(executor.Current == EActionType.Dash);
     }
 
-    // 주운 개수가 바뀔 때만 목록을 다시 그린다
-    private void UpdateLoot(BattleService battleS)
-    {
-        int total = 0;
-        foreach (var pair in battleS.DicLoot)
-        {
-            total += pair.Value;
-        }
-
-        if (total == m_LastLoot)
-            return;
-
-        m_LastLoot = total;
-        RefreshLootList(battleS.DicLoot);
-    }
-
-    // 주울 때만 다시 그린다. 버섯 하나에 한 줄("송이 신선 x2 / 덜 신선 x1"). 줄은 버리지 않고 다시 쓴다
+    // 주울 때·떨굴 때만(LootChanged) 다시 그린다. 버섯 하나에 한 줄("송이 신선 x2 / 덜 신선 x1"). 줄은 버리지 않고 다시 쓴다
     private void RefreshLootList(IReadOnlyDictionary<LootKey, int> dicLoot)
     {
         m_ListLootID.Clear();
@@ -160,6 +144,11 @@ public class ScreenBattle : ScreenBase
         
         if (battleS.State == EBattleState.Market)
             gameM.PopupS?.Open<PopupMarket>(EPopupType.PopupMarket);
+    }
+
+    private void OnLootChanged(LootChanged evt)
+    {
+        RefreshLootList(GameManager.Instance.BattleS.DicLoot);
     }
 
     private void OnPlayerDowned(PlayerDowned evt)

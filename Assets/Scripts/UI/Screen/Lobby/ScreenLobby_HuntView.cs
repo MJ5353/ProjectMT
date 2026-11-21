@@ -42,12 +42,10 @@ public class ScreenLobby_HuntView : UITabView
 
     protected override void OnOpen()
     {
-        if (m_ListNode.Count == 0)
+        if (m_ListMap.Count == 0)
             BuildNodes();
 
         HuntData hunt = PlayerDataManager.Instance.Hunt;
-        if (hunt == null)
-            return;
 
         // 마지막에 고른 지역, 없으면 열린 지역 중 가장 뒤
         MapDef target = hunt.SelectedMap;
@@ -60,25 +58,23 @@ public class ScreenLobby_HuntView : UITabView
     // 탭을 떠나면 툴팁을 닫는다(돌아왔을 때 사라진 칸 위에 남지 않게)
     protected override void OnClose()
     {
-        m_MushroomTooltip.E_Alive()?.Hide();
+        m_MushroomTooltip.Hide();
     }
 
     // ---
 
+    // 노드는 자기 지역(MapDef)을 들고 있어 m_ListMap과 순서가 어긋나도 상관없다
     private void BuildNodes()
     {
-        m_ListMap.AddRange(GameManager.Instance.Database.GetAll<MapDef>().OrderBy(r => r.Order));
-
         RectTransform templateRt = m_NodeTemplate.transform as RectTransform;
         if (templateRt == null)
             return;
 
+        m_ListMap.AddRange(GameManager.Instance.Database.GetAll<MapDef>().OrderBy(mapDef => mapDef.Order));
+
         foreach (MapDef mapDef in m_ListMap)
         {
             ScreenLobby_HuntView_MapNode node = ResourceManager.S_Create(m_NodeTemplate, m_MapRoot);
-            if (node == null)
-                continue;
-
             node.name = $"Node_{mapDef.ID}";
             node.E_SetActive(true);
 
@@ -109,13 +105,9 @@ public class ScreenLobby_HuntView : UITabView
     private void RefreshNodes()
     {
         HuntData hunt = PlayerDataManager.Instance.Hunt;
-        if (hunt == null)
-            return;
-
-        for (int i = 0; i < m_ListNode.Count; i++)
+        foreach (ScreenLobby_HuntView_MapNode node in m_ListNode)
         {
-            MapDef mapDef = m_ListMap.E_GetOrDefault(i);
-            ScreenLobby_HuntView_MapNode node = m_ListNode.E_GetOrDefault(i);
+            MapDef mapDef = node.MapDef;
 
             Color color = UIStyle.PanelLight;
             if (hunt.IsCleared(mapDef))
@@ -130,9 +122,7 @@ public class ScreenLobby_HuntView : UITabView
 
     private void RefreshInfo()
     {
-        if (m_MushroomTooltip != null) // 로비 UI를 다시 만들기 전엔 비어 있다
-            m_MushroomTooltip.Hide();
-
+        m_MushroomTooltip.Hide();
         m_ListMushroom.Clear();
         
         if (m_Selected == null)
@@ -149,9 +139,9 @@ public class ScreenLobby_HuntView : UITabView
         m_InfoDesc.E_SetText(m_Selected.Description);
 
         HuntData hunt = PlayerDataManager.Instance.Hunt;
-        bool isUnlocked = hunt != null && hunt.IsUnlocked(m_Selected);
+        bool isUnlocked = hunt.IsUnlocked(m_Selected);
         
-        if (hunt != null && hunt.IsCleared(m_Selected))
+        if (hunt.IsCleared(m_Selected))
             m_InfoState.E_SetString(EStringKey.Lobby_Hunt_Cleared);
         else if (isUnlocked)
             m_InfoState.E_SetString(EStringKey.Lobby_Hunt_Unlocked);
@@ -184,7 +174,7 @@ public class ScreenLobby_HuntView : UITabView
     private void OnClickMushroom(UICommonSlot slot)
     {
         MushroomDef def = m_ListMushroom.E_GetOrDefault(m_MushroomPool.IndexOf(slot));
-        if (def == null || m_MushroomTooltip == null)
+        if (def == null)
             return;
 
         m_MushroomTooltip.Toggle(slot.RectTransform, def.DisplayName);
@@ -196,7 +186,7 @@ public class ScreenLobby_HuntView : UITabView
             return;
         
         HuntData hunt = PlayerDataManager.Instance.Hunt;
-        if (hunt == null || hunt.IsUnlocked(m_Selected) == false)
+        if (hunt.IsUnlocked(m_Selected) == false)
             return;
 
         hunt.Select(m_Selected);

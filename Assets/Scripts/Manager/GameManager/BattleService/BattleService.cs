@@ -316,6 +316,7 @@ public sealed class BattleService : ServiceBase
         LootKey key = new(evt.ItemID, evt.Freshness, evt.Rarity);
         m_DicLoot.TryGetValue(key, out int count);
         m_DicLoot[key] = count + evt.Amount;
+        SEventManager.Publish(new LootChanged());
     }
 
     // 바로 끝내지 않고 부활/귀가를 고르게 한다(ScreenBattle가 팝업을 띄운다)
@@ -365,6 +366,7 @@ public sealed class BattleService : ServiceBase
         }
 
         m_DicLoot.Clear();
+        SEventManager.Publish(new LootChanged());
     }
     
     // 시장이 닫혔다(시장 닫기 또는 밤이 다 감). 골드·썩은 버섯·신뢰도는 HuntData가 이미 넣었다. 결과 화면용으로만 남긴다
