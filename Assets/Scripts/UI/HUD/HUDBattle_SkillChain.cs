@@ -11,7 +11,7 @@ using UnityEngine.UI;
 public class HUDBattle_SkillChain : MonoBehaviour
 {
     [SerializeField] private Image m_MainIcon = null;
-    [SerializeField] private UIListLayout m_ChainRoot = null;     // 작은 아이콘 줄(가로)
+    [SerializeField] private UIListView<HUDBattle_SkillIcon> m_ChainPool = new(); // 작은 아이콘 줄(가로)
 
     private const float DimAlpha = 0.4f; // 아직 이을 수 없을 때 작은 아이콘 불투명도
 
@@ -19,7 +19,6 @@ public class HUDBattle_SkillChain : MonoBehaviour
     private readonly List<SkillDef> m_ListNext = new();
     private readonly List<SkillDef> m_ListShown = new(); // 지금 줄에 보이는 스킬. m_ChainPool 순서
     
-    private UIListView<HUDBattle_SkillIcon> m_ChainPool;
     private PlayerDef m_Def;
     private SkillDef m_MainSkill;
     private float m_ShownAlpha = -1f;
@@ -28,7 +27,7 @@ public class HUDBattle_SkillChain : MonoBehaviour
 
     private void Awake()
     {
-        m_ChainPool = new UIListView<HUDBattle_SkillIcon>(EUIComponentType.HUDBattle_SkillIcon, m_ChainRoot);
+        m_ChainPool.Init(EUIComponentType.HUDBattle_SkillIcon);
     }
 
     private void Update()
@@ -120,7 +119,6 @@ public class HUDBattle_SkillChain : MonoBehaviour
         m_ShownAlpha = alpha;
         m_ListShown.Clear();
         m_ListShown.AddRange(m_ListNext);
-
         m_ChainPool.Refresh(m_ListShown, SetChainIcon);
     }
 

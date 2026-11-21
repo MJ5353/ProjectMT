@@ -6,7 +6,7 @@ using TMPro;
 
 // 몬스터 체력바. 잡몹·엘리트는 맞으면 머리 위에 작은 바가 잠깐(Define.MonsterHpBarShowTime) 뜨고,
 // 보스는 어그로가 끌리면 화면 위에 큰 바가 뜬다(분노하면 분노 표시). 매 프레임 UnitService의 유닛을 읽어 그린다.
-// 머리 위 바는 UIFactory로 꺼내고 돌려준다(씬이 바뀌면 UIFactory가 남은 바를 회수).
+// 머리 위 바는 UIFactory로 꺼내고, 유닛이 지워지면(UnitService.UnitRemoved) 돌려준다(씬이 바뀌면 UIFactory가 남은 바를 회수).
 
 public class HUDBattle_UnitHpBars : MonoBehaviour
 {
@@ -17,7 +17,6 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
     [SerializeField] private GameObject m_EnrageIcon = null;
 
     private readonly Dictionary<int, Bar> m_DicBar = new();
-    private readonly List<int> m_ListRemove = new();
 
     private UnitController m_Boss;
     private int m_BossLastHp = -1;
@@ -27,7 +26,6 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
         public UIGauge Gauge;
         public int LastHp;
         public float Remain;
-        public bool IsSeen;
     }
 
     // ------------------------------------------------
@@ -35,6 +33,21 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
     private void Awake()
     {
         m_BossRoot.SetActive(false);
+    }
+
+    // 서비스는 씬 컨트롤러 Awake에서 등록되므로 Start에서 구독한다. 씬이 닫힐 때 UnitService.Clear가 구독을 비운다
+    private void Start()
+    {
+        UnitService units = GameManager.Instance?.UnitS;
+        if (units != null)
+            units.UnitRemoved += OnUnitRemoved;
+    }
+
+    private void OnDestroy()
+    {
+        UnitService units = GameManager.Instance?.UnitS;
+        if (units != null)
+            units.UnitRemoved -= OnUnitRemoved;
     }
 
     private void LateUpdate()
@@ -47,11 +60,6 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
 
         DefineDef define = GameManager.Instance.Define;
         float deltaTime = Time.unscaledDeltaTime;
-
-        foreach (Bar bar in m_DicBar.Values)
-        {
-            bar.IsSeen = false;
-        }
 
         foreach (UnitController unit in units.ListUnit)
         {
@@ -67,21 +75,6 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
             UpdateBar(unit, cam, define, deltaTime);
         }
 
-        // 사라진 유닛의 바는 돌려놓는다
-        // [mj] todo) 이거 unit 삭제 이벤트랑 연결해 이지랄하지말고
-        foreach (var pair in m_DicBar)
-        {
-            if (pair.Value.IsSeen == false)
-                m_ListRemove.Add(pair.Key);
-        }
-
-        foreach (int unitID in m_ListRemove)
-        {
-            Release(m_DicBar[unitID]);
-            m_DicBar.Remove(unitID);
-        }
-
-        m_ListRemove.Clear();
         UpdateBoss();
     }
 
@@ -97,7 +90,6 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
             m_DicBar.Add(unit.UnitID, bar);
         }
 
-        bar.IsSeen = true;
         if (hp < bar.LastHp)
         {
             bar.Remain = define.MonsterHpBarShowTime;
@@ -143,6 +135,16 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
         return true;
     }
 
+    // 지워진 유닛의 바를 돌려놓고, 잡고 있던 보스면 놓는다
+    private void OnUnitRemoved(int unitID)
+    {
+        if (m_DicBar.Remove(unitID, out Bar bar))
+            Release(bar);
+
+        if (m_Boss.E_Alive()?.UnitID == unitID)
+            ReleaseBoss();
+    }
+
     private static void Release(Bar bar)
     {
         if (bar.Gauge == null)
@@ -176,10 +178,9 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
         if (m_Boss == null)
             return;
 
-        if (m_Boss.IsDead || m_Boss.gameObject.activeInHierarchy == false)
+        if (m_Boss.IsDead)
         {
-            m_Boss = null;
-            m_BossRoot.SetActive(false);
+            ReleaseBoss();
             return;
         }
 
@@ -191,5 +192,11 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
         }
 
         m_EnrageIcon.E_SetActive(m_Boss.BrainBase is AIBrain ai && ai.IsEnraged);
+    }
+
+    private void ReleaseBoss()
+    {
+        m_Boss = null;
+        m_BossRoot.SetActive(false);
     }
 }

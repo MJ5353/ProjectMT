@@ -323,13 +323,58 @@ public static class UIBuilder
         return slot;
     }
 
-    // 목록 영역에 배치 값(UIListLayout)을 붙인다. 좌표는 런타임에 UIListView가 계산한다(LayoutGroup 쓰지 않음)
-    public static UIListLayout ListLayout(RectTransform root, UIListLayout.EAxis axis, Vector2 cellSize, Vector2 spacing, TextAnchor alignment,
-        RectOffset padding = null, bool isStretch = false, bool isFitContent = false)
+    // UIListView 배치 옵션. 생성기에서 영역을 만들 때 값을 모아 두었다가 SetListView로 화면 필드에 넣는다
+    public class ListOption
     {
-        UIListLayout layout = root.gameObject.AddComponent<UIListLayout>();
-        layout.EditorSetup(axis, cellSize, spacing, padding, alignment, isStretch, isFitContent);
-        return layout;
+        public RectTransform Root;
+        public EUIListAxis Axis;
+        public Vector2 CellSize;
+        public Vector2 Spacing;
+        public TextAnchor Alignment;
+        public RectOffset Padding;
+        public bool IsStretch;
+        public bool IsFitContent;
+
+        public ListOption(RectTransform root, EUIListAxis axis, Vector2 cellSize, Vector2 spacing, TextAnchor alignment,
+            RectOffset padding = null, bool isStretch = false, bool isFitContent = false)
+        {
+            Root = root;
+            Axis = axis;
+            CellSize = cellSize;
+            Spacing = spacing;
+            Alignment = alignment;
+            Padding = padding ?? new RectOffset();
+            IsStretch = isStretch;
+            IsFitContent = isFitContent;
+        }
+    }
+
+    // 화면의 UIListView 직렬화 필드(m_XxxPool)에 배치 옵션을 넣는다. 좌표는 런타임에 UIListView가 계산한다(LayoutGroup 쓰지 않음)
+    public static void SetListView(Object target, string field, ListOption option)
+    {
+        SerializedObject so = new SerializedObject(target);
+        SerializedProperty prop = so.FindProperty(field);
+        if (prop == null)
+        {
+            CLogger.Error("UIBuilder", $"{target.GetType().Name}.{field} 필드가 없습니다.", target);
+            return;
+        }
+
+        prop.FindPropertyRelative("m_Root").objectReferenceValue = option.Root;
+        prop.FindPropertyRelative("m_Axis").enumValueIndex = (int)option.Axis;
+        prop.FindPropertyRelative("m_CellSize").vector2Value = option.CellSize;
+        prop.FindPropertyRelative("m_Spacing").vector2Value = option.Spacing;
+        prop.FindPropertyRelative("m_Alignment").enumValueIndex = (int)option.Alignment;
+        prop.FindPropertyRelative("m_IsStretch").boolValue = option.IsStretch;
+        prop.FindPropertyRelative("m_IsFitContent").boolValue = option.IsFitContent;
+
+        SerializedProperty padding = prop.FindPropertyRelative("m_Padding");
+        padding.FindPropertyRelative("m_Left").intValue = option.Padding.left;
+        padding.FindPropertyRelative("m_Right").intValue = option.Padding.right;
+        padding.FindPropertyRelative("m_Top").intValue = option.Padding.top;
+        padding.FindPropertyRelative("m_Bottom").intValue = option.Padding.bottom;
+
+        so.ApplyModifiedPropertiesWithoutUndo();
     }
 
     // serialize ---

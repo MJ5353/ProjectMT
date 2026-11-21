@@ -13,14 +13,13 @@ public class HUDBattle : MonoBehaviour
     [SerializeField] private UIGauge m_Hp = null;
     [SerializeField] private GameObject m_AttackActive = null; // 공격 중 테두리
     [SerializeField] private GameObject m_DashActive = null;   // 대시 중 테두리
-    [SerializeField] private UIListLayout m_LootList = null;    // 세로 목록
     [SerializeField] private Button m_ExitButton = null;
+    [SerializeField] private UIListView<HUDBattle_LootRow> m_LootPool = new(); // 세로 목록
 
     private readonly List<string> m_ListLootID = new();               // 처음 주운 순서. m_LootPool 순서
     private readonly Dictionary<string, int> m_DicFresh = new();      // 버섯별 신선 개수
     private readonly Dictionary<string, int> m_DicStale = new();      // 버섯별 덜 신선 개수
     
-    private UIListView<HUDBattle_LootRow> m_LootPool;
     private int m_LastHp = -1;
     private int m_LastLoot = -1;
 
@@ -28,7 +27,7 @@ public class HUDBattle : MonoBehaviour
 
     private void Awake()
     {
-        m_LootPool = new UIListView<HUDBattle_LootRow>(EUIComponentType.HUDBattle_LootRow, m_LootList);
+        m_LootPool.Init(EUIComponentType.HUDBattle_LootRow);
         m_ExitButton.onClick.AddListener(OnClickExit);
     }
 

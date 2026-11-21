@@ -4,16 +4,33 @@ using UnityEngine;
 
 // ==================================================
 
-// 목록 칸 묶음. 칸은 UIFactory로 꺼내 UIListLayout(영역) 아래에 두고, 좌표는 LayoutGroup 없이 Arrange가 직접 계산한다.
+// 목록 칸 묶음. 칸은 UIFactory로 꺼내 m_Root 아래에 두고, 좌표는 LayoutGroup 없이 Arrange가 직접 계산한다.
+// 화면이 [SerializeField]로 들고 배치 옵션(영역·방향·칸 크기·간격…)은 여기 직렬화 필드에 둔다(값은 UI 생성기가 넣는다). 칸 종류·생성 콜백은 Init으로.
 // 화면이 떠 있는 동안은 남는 칸을 끄기만 하고, 씬이 바뀌면 UIFactory가 한꺼번에 회수한다(주인 화면도 씬과 함께 사라진다).
 // 흐름: UI가 가공 데이터 리스트를 갖고 Refresh(list, onSet) → 칸은 받은 값만 표시. 클릭은 IndexOf(item)로 UI 리스트에서 찾는다
 
+public enum EUIListAxis
+{
+    Vertical,   // 위에서 아래로 한 줄씩
+    Horizontal, // 왼쪽에서 오른쪽으로
+    Grid,       // 왼쪽에서 오른쪽, 넘치면 다음 줄
+}
+
+[Serializable]
 public class UIListView<T> where T : PoolableMonoUI
 {
-    private readonly EUIComponentType m_Type;
-    private readonly Action<T> m_OnSpawn; // 처음 꺼낼 때 한 번(클릭 연결 등. 대입으로 연결해 쌓이지 않게)
-    
-    private readonly UIListLayout m_Layout;
+    [SerializeField] private RectTransform m_Root = null;                 // 칸을 놓을 영역
+    [SerializeField] private EUIListAxis m_Axis = EUIListAxis.Vertical;
+    [SerializeField] private Vector2 m_CellSize = Vector2.zero;           // 칸 크기. 0인 축은 칸 원래 크기(격자는 둘 다 필요)
+    [SerializeField] private Vector2 m_Spacing = Vector2.zero;            // 칸 사이(가로, 세로)
+    [SerializeField] private RectOffset m_Padding = new();                // 영역 안쪽 여백
+    [SerializeField] private TextAnchor m_Alignment = TextAnchor.UpperLeft; // 칸 묶음을 영역 어디에 붙일지
+    [SerializeField] private bool m_IsStretch = false;                    // 세로 목록은 폭, 가로 목록은 높이를 영역에 맞춘다
+    [SerializeField] private bool m_IsFitContent = false;                 // 영역 크기를 칸 묶음에 맞춘다(세로·격자는 높이, 가로는 폭)
+
+    private EUIComponentType m_Type;
+    private Action<T> m_OnSpawn; // 처음 꺼낼 때 한 번(클릭 연결 등. 대입으로 연결해 쌓이지 않게)
+
     private readonly List<T> m_List = new();
     private readonly List<Vector2> m_ListCell = new(); // Arrange 계산용 칸 크기
 
@@ -25,10 +42,10 @@ public class UIListView<T> where T : PoolableMonoUI
     // 클릭된 칸의 순서. 없으면 -1
     public int IndexOf(T item) => m_List.IndexOf(item);
     
-    public UIListView(EUIComponentType type, UIListLayout layout, Action<T> onSpawn = null)
+    // 화면 Awake에서 한 번 부른다
+    public void Init(EUIComponentType type, Action<T> onSpawn = null)
     {
         m_Type = type;
-        m_Layout = layout;
         m_OnSpawn = onSpawn;
     }
 
@@ -53,11 +70,10 @@ public class UIListView<T> where T : PoolableMonoUI
     {
         while (index >= m_List.Count)
         {
-            Transform parent = m_Layout.E_Alive()?.transform;
-            if (parent == null)
+            if (m_Root == null)
                 return null;
 
-            T item = GameManager.Instance?.UIFactory?.Spawn<T>(m_Type, parent);
+            T item = GameManager.Instance?.UIFactory?.Spawn<T>(m_Type, m_Root);
             if (item == null)
                 return null;
 
@@ -83,17 +99,16 @@ public class UIListView<T> where T : PoolableMonoUI
     // 앞에서 count개 칸의 크기·좌표를 정한다. 칸 앵커는 영역 왼쪽 위로 두고, 피벗은 칸 원래 값을 지킨다(튕김 연출 기준점 유지)
     public void Arrange(int count)
     {
-        RectTransform area = m_Layout.E_Alive()?.Rect;
+        RectTransform area = m_Root;
         if (area == null)
             return;
 
         count = Mathf.Min(count, m_List.Count);
         m_ListCell.Clear();
 
-        RectOffset padding = m_Layout.Padding;
-        Vector2 spacing = m_Layout.Spacing;
-        UIListLayout.EAxis axis = m_Layout.Axis;
-        
+        RectOffset padding = m_Padding;
+        Vector2 spacing = m_Spacing;
+        EUIListAxis axis = m_Axis;
         float innerWidth = area.rect.width - padding.horizontal;
         float innerHeight = area.rect.height - padding.vertical;
 
@@ -105,20 +120,20 @@ public class UIListView<T> where T : PoolableMonoUI
 
         // 2. 칸 묶음 크기(격자는 한 줄에 들어가는 칸 수부터)
         int columns = 1;
-        if (axis == UIListLayout.EAxis.Grid)
+        if (axis == EUIListAxis.Grid)
         {
-            Vector2 cell = m_Layout.CellSize;
+            Vector2 cell = m_CellSize;
             columns = Mathf.Max(1, Mathf.FloorToInt((innerWidth + spacing.x) / Mathf.Max(1f, cell.x + spacing.x)));
         }
 
         Vector2 content = GetContentSize(count, axis, columns, spacing);
 
         // 3. 영역을 묶음에 맞추거나, 남는 공간에서 정렬 위치를 고른다
-        float alignX = (int)m_Layout.Alignment % 3 * 0.5f; // 왼쪽 0, 가운데 0.5, 오른쪽 1
-        float alignY = (int)m_Layout.Alignment / 3 * 0.5f; // 위 0, 가운데 0.5, 아래 1
-        if (m_Layout.IsFitContent)
+        float alignX = (int)m_Alignment % 3 * 0.5f; // 왼쪽 0, 가운데 0.5, 오른쪽 1
+        float alignY = (int)m_Alignment / 3 * 0.5f; // 위 0, 가운데 0.5, 아래 1
+        if (m_IsFitContent)
         {
-            if (axis == UIListLayout.EAxis.Horizontal)
+            if (axis == EUIListAxis.Horizontal)
             {
                 area.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, content.x + padding.horizontal);
                 innerWidth = content.x;
@@ -145,19 +160,19 @@ public class UIListView<T> where T : PoolableMonoUI
 
             switch (axis)
             {
-                case UIListLayout.EAxis.Vertical:
+                case EUIListAxis.Vertical:
                 {
                     cellX = startX + (content.x - cell.x) * alignX;
                     y += cell.y + spacing.y;
                     break;
                 }
-                case UIListLayout.EAxis.Horizontal:
+                case EUIListAxis.Horizontal:
                 {   
                     cellY = startY + (content.y - cell.y) * alignY;
                     x += cell.x + spacing.x;
                     break;
                 }
-                case UIListLayout.EAxis.Grid:
+                case EUIListAxis.Grid:
                 {
                     cellX = startX + i % columns * (cell.x + spacing.x);
                     cellY = startY + i / columns * (cell.y + spacing.y);
@@ -186,10 +201,10 @@ public class UIListView<T> where T : PoolableMonoUI
 
     // arrange ---
 
-    private Vector2 GetCellSize(RectTransform rt, UIListLayout.EAxis axis, float innerWidth, float innerHeight)
+    private Vector2 GetCellSize(RectTransform rt, EUIListAxis axis, float innerWidth, float innerHeight)
     {
-        Vector2 cell = m_Layout.CellSize;
-        if (axis == UIListLayout.EAxis.Grid)
+        Vector2 cell = m_CellSize;
+        if (axis == EUIListAxis.Grid)
             return cell;
 
         Vector2 own = Vector2.zero;
@@ -198,22 +213,22 @@ public class UIListView<T> where T : PoolableMonoUI
 
         Vector2 size = new Vector2(cell.x > 0f ? cell.x : own.x, cell.y > 0f ? cell.y : own.y);
         
-        if (m_Layout.IsStretch && axis == UIListLayout.EAxis.Vertical)
+        if (m_IsStretch && axis == EUIListAxis.Vertical)
             size.x = innerWidth;
-        else if (m_Layout.IsStretch && axis == UIListLayout.EAxis.Horizontal)
+        else if (m_IsStretch && axis == EUIListAxis.Horizontal)
             size.y = innerHeight;
 
         return size;
     }
 
-    private Vector2 GetContentSize(int count, UIListLayout.EAxis axis, int columns, Vector2 spacing)
+    private Vector2 GetContentSize(int count, EUIListAxis axis, int columns, Vector2 spacing)
     {
         if (count <= 0)
             return Vector2.zero;
 
-        if (axis == UIListLayout.EAxis.Grid)
+        if (axis == EUIListAxis.Grid)
         {
-            Vector2 cell = m_Layout.CellSize;
+            Vector2 cell = m_CellSize;
             int usedColumns = Mathf.Min(count, columns);
             int rows = (count + columns - 1) / columns;
             
@@ -223,7 +238,7 @@ public class UIListView<T> where T : PoolableMonoUI
         Vector2 content = Vector2.zero;
         foreach (Vector2 cell in m_ListCell)
         {
-            if (axis == UIListLayout.EAxis.Vertical)
+            if (axis == EUIListAxis.Vertical)
             {
                 content.x = Mathf.Max(content.x, cell.x);
                 content.y += cell.y;
@@ -235,7 +250,7 @@ public class UIListView<T> where T : PoolableMonoUI
             }
         }
 
-        if (axis == UIListLayout.EAxis.Vertical)
+        if (axis == EUIListAxis.Vertical)
             content.y += (count - 1) * spacing.y;
         else
             content.x += (count - 1) * spacing.x;

@@ -19,22 +19,21 @@ public class HuntTabView : TabView
     [SerializeField] private TMP_Text m_InfoName = null;
     [SerializeField] private TMP_Text m_InfoState = null;
     [SerializeField] private TMP_Text m_InfoDesc = null;
-    [SerializeField] private UIListLayout m_MushroomRoot = null; // 칸 크기·간격은 여기 값으로 UIListView가 배치
     [SerializeField] private UITooltip m_MushroomTooltip = null; // 칸을 누르면 그 칸 위에 버섯 이름. 목록에 하나
     [SerializeField] private Button m_EnterButton = null;
+    [SerializeField] private UIListView<UICommonSlot> m_MushroomPool = new(); // 나오는 버섯 칸(가로)
 
     private readonly List<MapDef> m_ListMap = new();
     private readonly List<UIMapNode> m_ListNode = new();
     private readonly List<MushroomDef> m_ListMushroom = new(); // 고른 지역에서 나오는 버섯. m_MushroomPool 순서
-
-    private UIListView<UICommonSlot> m_MushroomPool;
+    
     private MapDef m_Selected;
 
     // ------------------------------------------------
 
     private void Awake()
     {
-        m_MushroomPool = new UIListView<UICommonSlot>(EUIComponentType.UICommonSlot, m_MushroomRoot, OnSpawnMushroomSlot);
+        m_MushroomPool.Init(EUIComponentType.UICommonSlot, OnSpawnMushroomSlot);
         m_NodeTemplate.gameObject.SetActive(false);
         m_EnterButton.onClick.AddListener(OnClickEnter);
     }

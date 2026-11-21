@@ -82,7 +82,7 @@ public static class BattleUISetup
 
         // 그 아래 주운 버섯 목록(버섯·신선도별)
         RectTransform lootRect = UIBuilder.Anchored("LootList", safe, new Vector2(1, 1), new Vector2(-40, -200), new Vector2(507, 0));
-        UIListLayout lootList = UIBuilder.ListLayout(lootRect, UIListLayout.EAxis.Vertical, new Vector2(0, 43), new Vector2(0, 3), TextAnchor.UpperRight,
+        UIBuilder.ListOption lootList = new(lootRect, EUIListAxis.Vertical, new Vector2(0, 43), new Vector2(0, 3), TextAnchor.UpperRight,
             isStretch: true, isFitContent: true);
 
         AddUnitHpBars(safe);
@@ -93,7 +93,7 @@ public static class BattleUISetup
         UIBuilder.SetRef(hud, "m_Hp", hp);
         UIBuilder.SetRef(hud, "m_AttackActive", attackActive);
         UIBuilder.SetRef(hud, "m_DashActive", dashActive);
-        UIBuilder.SetRef(hud, "m_LootList", lootList);
+        UIBuilder.SetListView(hud, "m_LootPool", lootList);
         UIBuilder.SetRef(hud, "m_ExitButton", exit);
 
         return hud;
@@ -288,12 +288,12 @@ public static class BattleUISetup
     private static HUDBattle_SkillChain AddSkillChain(RectTransform attackSlot)
     {
         RectTransform chainRoot = UIBuilder.Rect("Chain", attackSlot, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-200, 16), new Vector2(200, 16 + SkillIconSize));
-        UIListLayout chainLayout = UIBuilder.ListLayout(chainRoot, UIListLayout.EAxis.Horizontal, new Vector2(SkillIconSize, SkillIconSize), new Vector2(10, 0), TextAnchor.LowerCenter);
+        UIBuilder.ListOption chainLayout = new(chainRoot, EUIListAxis.Horizontal, new Vector2(SkillIconSize, SkillIconSize), new Vector2(10, 0), TextAnchor.LowerCenter);
 
         // 작은 아이콘은 HUDBattle_SkillIcon 프리팹(CommonPath)을 HUDBattle_SkillChain이 풀로 꺼낸다
         HUDBattle_SkillChain chain = attackSlot.gameObject.AddComponent<HUDBattle_SkillChain>();
         UIBuilder.SetRef(chain, "m_MainIcon", attackSlot.Find("Icon").GetComponent<Image>());
-        UIBuilder.SetRef(chain, "m_ChainRoot", chainLayout);
+        UIBuilder.SetListView(chain, "m_ChainPool", chainLayout);
 
         return chain;
     }
@@ -359,7 +359,7 @@ public static class BattleUISetup
 
         // 주운 버섯 칸 영역
         RectTransform lootRoot = UIBuilder.Rect("LootRoot", window, Vector2.zero, Vector2.one, new Vector2(60, 200), new Vector2(-60, -290));
-        UIListLayout lootLayout = UIBuilder.ListLayout(lootRoot, UIListLayout.EAxis.Grid, new Vector2(120, 120), new Vector2(48, 64), TextAnchor.UpperCenter);
+        UIBuilder.ListOption lootLayout = new(lootRoot, EUIListAxis.Grid, new Vector2(120, 120), new Vector2(48, 64), TextAnchor.UpperCenter);
 
         // 칸 원본은 UICommonSlot 프리팹(EUIComponentType.UICommonSlot). PopupResult가 UIListView로 꺼낸다
         TMP_Text empty = UIBuilder.Label(lootRoot.parent, "주운 버섯이 없어요", UIStyle.FontNormal, TextAlignmentOptions.Center, "EmptyLabel");
@@ -379,7 +379,7 @@ public static class BattleUISetup
         UIBuilder.SetRef(popup, "m_Window", window);
         UIBuilder.SetRef(popup, "m_Title", title);
         UIBuilder.SetRef(popup, "m_Summary", summary);
-        UIBuilder.SetRef(popup, "m_LootRoot", lootLayout);
+        UIBuilder.SetListView(popup, "m_SlotPool", lootLayout);
         UIBuilder.SetRef(popup, "m_EmptyLabel", empty.gameObject);
         UIBuilder.SetRef(popup, "m_RetryButton", retry);
         UIBuilder.SetRef(popup, "m_LobbyButton", lobby);

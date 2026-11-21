@@ -216,7 +216,7 @@ public static class LobbyUISetup
         mushHeader.color = UIStyle.TextDim;
 
         RectTransform mushRoot = UIBuilder.Rect("Mushrooms", info, new Vector2(0, 1), Vector2.one, new Vector2(30, -480), new Vector2(-30, -345));
-        UIListLayout mushLayout = UIBuilder.ListLayout(mushRoot, UIListLayout.EAxis.Horizontal, new Vector2(96, 96), new Vector2(30, 0), TextAnchor.UpperLeft);
+        UIBuilder.ListOption mushLayout = new(mushRoot, EUIListAxis.Horizontal, new Vector2(96, 96), new Vector2(30, 0), TextAnchor.UpperLeft);
 
         // 칸은 UICommonSlot 프리팹(EUIComponentType.UICommonSlot)을 HuntTabView가 UIListView로 꺼낸다
         UITooltip mushTooltip = UIBuilder.Tooltip(info, "MushroomTooltip"); // 목록 뒤에 만들어 칸 위에 그린다
@@ -237,7 +237,7 @@ public static class LobbyUISetup
         UIBuilder.SetRef(hunt, "m_InfoName", infoName);
         UIBuilder.SetRef(hunt, "m_InfoState", infoState);
         UIBuilder.SetRef(hunt, "m_InfoDesc", infoDesc);
-        UIBuilder.SetRef(hunt, "m_MushroomRoot", mushLayout);
+        UIBuilder.SetListView(hunt, "m_MushroomPool", mushLayout);
         UIBuilder.SetRef(hunt, "m_MushroomTooltip", mushTooltip);
         UIBuilder.SetRef(hunt, "m_EnterButton", enter);
 
