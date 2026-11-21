@@ -52,11 +52,11 @@ public static class MarketUISetup
         CanvasGroup bodyGroup = body.gameObject.AddComponent<CanvasGroup>();
 
         // 왼쪽: 상인 목록 + 아래 버튼 ---
-        Caption(body, "MerchantCaption", "오늘 온 상인", new Vector2(Margin, ContentTop));
+        UIBuilder.AddStringKey(Caption(body, "MerchantCaption", string.Empty, new Vector2(Margin, ContentTop)), EStringKey.Market_MerchantCaption);
         RectTransform left = UIBuilder.Rect("Merchants", body, Vector2.zero, new Vector2(0, 1), new Vector2(Margin, 280), new Vector2(Margin + LeftWidth, ContentTop - 50));
         UIBuilder.ListOption merchantList = new(left, EUIListAxis.Vertical, new Vector2(0, RowHeight), new Vector2(0, Gap), TextAnchor.UpperLeft, isStretch: true);
 
-        Button close = UIBuilder.Button(body, "CloseButton", "시장 닫기", new Vector2(LeftWidth, 100), UIStyle.AccentDark);
+        Button close = UIBuilder.Button(body, "CloseButton", EStringKey.Market_Close, new Vector2(LeftWidth, 100), UIStyle.AccentDark);
         PlaceCorner(close, Vector2.zero, new Vector2(Margin, Margin));
         Button wait = UIBuilder.Button(body, "WaitButton", "30분 기다리기", new Vector2(LeftWidth, 100), UIStyle.PanelLight);
         PlaceCorner(wait, Vector2.zero, new Vector2(Margin, Margin + 100 + Gap));
@@ -85,7 +85,7 @@ public static class MarketUISetup
         RectTransform right = UIBuilder.Rect("Trade", body, Vector2.zero, Vector2.one, new Vector2(rightLeft, Margin), new Vector2(-Margin, -Margin));
         RectTransform pickPanel = UIBuilder.Rect("Pick", right, new Vector2(0, 1), Vector2.one, new Vector2(0, -PickHeight), Vector2.zero);
         UIBuilder.AddImage(pickPanel, UIStyle.Panel);
-        Caption(pickPanel, "Caption", "팔 버섯  ·  눌러서 묶음 빼기", new Vector2(Pad, -12));
+        UIBuilder.AddStringKey(Caption(pickPanel, "Caption", string.Empty, new Vector2(Pad, -12)), EStringKey.Market_PickCaption);
         RectTransform soldRect = UIBuilder.Rect("Sold", pickPanel, new Vector2(0, 1), Vector2.one, new Vector2(Pad, -52), new Vector2(-Pad, -12));
         TMP_Text sold = UIBuilder.Label(soldRect, "판 골드 0G", UIStyle.FontSmall, TextAlignmentOptions.Right);
         sold.color = UIStyle.Gold;
@@ -95,7 +95,7 @@ public static class MarketUISetup
         RectTransform totalRect = UIBuilder.Rect("Total", pickPanel, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-TradeWidth - Pad, -110), new Vector2(-Pad, -60));
         TMP_Text total = UIBuilder.Label(totalRect, "합계 0G  (0/5묶음)", UIStyle.FontNormal, TextAlignmentOptions.Right);
         total.color = UIStyle.Gold;
-        Button trade = UIBuilder.Button(pickPanel, "TradeButton", "거래", new Vector2(TradeWidth, 96), UIStyle.Accent);
+        Button trade = UIBuilder.Button(pickPanel, "TradeButton", EStringKey.Market_Trade, new Vector2(TradeWidth, 96), UIStyle.Accent);
         PlaceCorner(trade, new Vector2(1, 1), new Vector2(-Pad, -124));
 
         RectTransform messageRect = UIBuilder.Rect("Message", pickPanel, Vector2.zero, new Vector2(1, 0), new Vector2(Pad, 10), new Vector2(-Pad, 44));
@@ -105,7 +105,7 @@ public static class MarketUISetup
         // 오른쪽 아래: 남은 버섯(스크롤 격자) ---
         RectTransform stockPanel = UIBuilder.Rect("Stock", right, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0, -PickHeight - Column));
         UIBuilder.AddImage(stockPanel, UIStyle.Panel);
-        Caption(stockPanel, "Caption", "남은 버섯  ·  눌러서 묶음 담기  ·  칸 아래는 이 상인의 한 개 값", new Vector2(Pad, -12));
+        UIBuilder.AddStringKey(Caption(stockPanel, "Caption", string.Empty, new Vector2(Pad, -12)), EStringKey.Market_StockCaption);
         UIBuilder.ListOption stockList = ScrollGrid(stockPanel);
 
         // 시작 연출(맨 위). 가운데 큰 남은 시간 + 아래 시장 시간 ---
@@ -224,11 +224,12 @@ public static class MarketUISetup
         Button minus1 = StepButton(window, "Minus1", "-1", stepSize, -130);
         Button plus1 = StepButton(window, "Plus1", "+1", stepSize, 0);
         Button plus10 = StepButton(window, "Plus10", "+10", stepSize, 130);
-        Button all = StepButton(window, "All", "전부", stepSize, 260);
+        Button all = StepButton(window, "All", string.Empty, stepSize, 260);
+        UIBuilder.AddStringKey(all.GetComponentInChildren<TMP_Text>(), EStringKey.Market_Counter_All);
 
-        Button cancel = UIBuilder.Button(window, "CancelButton", "취소", new Vector2(260, 100), UIStyle.PanelLight);
+        Button cancel = UIBuilder.Button(window, "CancelButton", EStringKey.Common_Cancel, new Vector2(260, 100), UIStyle.PanelLight);
         PlaceCorner(cancel, new Vector2(0.5f, 0f), new Vector2(-150, Pad * 2f));
-        Button confirm = UIBuilder.Button(window, "ConfirmButton", "확인", new Vector2(260, 100), UIStyle.Accent);
+        Button confirm = UIBuilder.Button(window, "ConfirmButton", EStringKey.Common_Confirm, new Vector2(260, 100), UIStyle.Accent);
         PlaceCorner(confirm, new Vector2(0.5f, 0f), new Vector2(150, Pad * 2f));
 
         PopupMarketCounter popup = root.gameObject.AddComponent<PopupMarketCounter>();

@@ -28,7 +28,7 @@ public class PopupMarket_MerchantRow : PoolableMonoUI
     {
         m_NameText.E_SetText(merchant.DisplayName);
         m_Trust.SetValue(trust, trustMax, true);
-        m_TrustText.E_SetText($"신뢰 {trust}");
+        m_TrustText.E_SetString(EStringKey.Market_Row_TrustFormat, trust);
         m_Selected.E_SetActive(isSelected);
     }
 

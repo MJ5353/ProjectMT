@@ -417,3 +417,8 @@
 
 - 직접 5번과 B(6~10번) 진행을 지시함. 안내 글귀는 EMarketResult→글귀 함수 하나로 모으고, Refresh가 지금 상태 글귀를 쓴 뒤 거래·기다리기 결과만 덮어쓰게 해 여기저기 있던 글귀 지우기를 없앰.
 - PopupMarket·HuntData·MarketData의 의미 없는 null 검사·?.(Hunt, PopupS, 상인·버섯 인자, DB, 목록)를 지움. 시계는 매 프레임 대신 Refresh(열 때·MarketChanged)에서만 갱신, 연출 넘기기는 입력 폴링 대신 시작 연출을 덮는 투명 버튼(m_IntroButton, MarketUISetup에 추가). 아이콘·켜기는 E_SetImage·E_SetActive로. UI 다시 만들기 전에는 버튼이 비어 연출이 안 넘어감. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## 시장 글귀 StringDef 이전·이름·중복 정리(15~19번)
+
+- 직접 15~19번 진행을 지시함. 시장 화면 글귀(상인 정보·합계·안내·시작 연출·개수 팝업·상인 줄, 생성기의 고정 글자)를 EStringKey Market_ 키 31개와 Common_Cancel·Common_Confirm으로 옮기고 UIDataSetup 초기값과 String.asset 값을 함께 넣음.
+- 희귀도 이름은 PopupMarket 자체 함수 대신 RarityDef 표 이름, BattleService의 골드·썩은 버섯 ID 상수는 CurrencyDef.GoldID·ItemDef.RottenID로 통일, _counterPopup은 m_CounterPopup으로, PopupResult 신뢰도 줄의 의미 없는 hunt null 검사 삭제. 컴파일·플레이 확인 안 함. 커밋하지 않음.

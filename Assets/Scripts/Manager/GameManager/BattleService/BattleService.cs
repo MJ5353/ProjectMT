@@ -21,8 +21,6 @@ public sealed class BattleService : ServiceBase
 {
     public const float SpawnLift = 0.3f; // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
     private const string DefaultPlayerID = "Player";
-    private const string GoldID = "Currency_Gold";
-    private const string RottenItemID = "Item_Rotten"; // 밤이 끝나 썩은 버섯
 
     private readonly Dictionary<LootKey, int> m_DicLoot = new(); // 주운 버섯. 신선도별
     private readonly Dictionary<string, int> m_DicReward = new(); // 끝날 때 실제로 인벤토리에 넣은 것(결과 화면용)
@@ -61,7 +59,7 @@ public sealed class BattleService : ServiceBase
     public float RemainTime => Mathf.Max(0f, NightTime - ElapsedTime);
     public bool IsPlayerDown => m_Player != null && m_Player.IsDead;
     public int ReviveGold => Define.ReviveGold;
-    public bool CanRevive => IsPlayerDown && PlayerDataManager.Instance.Inventory.Has(GoldID, ReviveGold);
+    public bool CanRevive => IsPlayerDown && PlayerDataManager.Instance.Inventory.Has(CurrencyDef.GoldID, ReviveGold);
     
     // ------------------------------------------------
 
@@ -183,7 +181,7 @@ public sealed class BattleService : ServiceBase
             return false;
 
         PlayerDataManager playerDataM = PlayerDataManager.Instance;
-        if (playerDataM.Inventory.TryRemove(GoldID, ReviveGold) == false)
+        if (playerDataM.Inventory.TryRemove(CurrencyDef.GoldID, ReviveGold) == false)
             return false;
 
         m_Player.Revive(Define.ReviveInvincibleTime);
@@ -378,10 +376,10 @@ public sealed class BattleService : ServiceBase
         m_DicReward.Clear();
         
         if (evt.Gold > 0)
-            m_DicReward[GoldID] = evt.Gold;
+            m_DicReward[CurrencyDef.GoldID] = evt.Gold;
         
         if (evt.RottenCount > 0)
-            m_DicReward[RottenItemID] = evt.RottenCount;
+            m_DicReward[ItemDef.RottenID] = evt.RottenCount;
 
         End(EBattleState.Exited);
     }
@@ -439,7 +437,7 @@ public sealed class BattleService : ServiceBase
         }
 
         if (result == EBattleState.TimedOut && total > 0)
-            m_DicReward[RottenItemID] = total;
+            m_DicReward[ItemDef.RottenID] = total;
     }
     
     #endregion

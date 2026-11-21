@@ -53,7 +53,7 @@ public class PopupMarket : PopupBase
     private readonly List<MarketItem> m_ListItem = new();   // HuntData 요청용. BuildRequest가 m_DicPick에서 만든다
     private readonly UISequence m_IntroSequence = new();    // 시작 연출. 움직이는 중에 누르면 끝 모습으로, 끝 모습에서 누르면 닫는다
 
-    private PopupMarketCounter _counterPopup; // 떠 있는 개수 조절 팝업
+    private PopupMarketCounter m_CounterPopup; // 떠 있는 개수 조절 팝업
     private bool m_IsIntroContinue; // 끝 모습에서 눌렀다
     private int m_SelectedIndex;
 
@@ -88,7 +88,7 @@ public class PopupMarket : PopupBase
         m_Clock.SetMarket(false);
         m_SelectedIndex = 0;
         m_DicPick.Clear();
-        m_WaitLabel.E_SetText($"{Define.MarketActionMinutes}분 기다리기");
+        m_WaitLabel.E_SetString(EStringKey.Market_WaitFormat, Define.MarketActionMinutes);
 
         Refresh();
         PlayIntro();
@@ -128,7 +128,7 @@ public class PopupMarket : PopupBase
         RefreshPick();
         RefreshTotal(hunt);
 
-        m_SoldText.E_SetText($"판 골드 {hunt.SoldGold:N0}G");
+        m_SoldText.E_SetString(EStringKey.Market_SoldFormat, hunt.SoldGold);
         m_WaitButton.E_SetInteractable(hunt.CanAct);
     }
 
@@ -141,7 +141,7 @@ public class PopupMarket : PopupBase
         if (merchant == null)
         {
             m_MerchantIcon.E_SetImage(null);
-            m_MerchantName.E_SetText("오늘은 상인이 없다");
+            m_MerchantName.E_SetString(EStringKey.Market_NoMerchant);
             m_MerchantDesc.E_SetText(string.Empty);
             m_MerchantInfo.E_SetText(string.Empty);
             return;
@@ -152,26 +152,13 @@ public class PopupMarket : PopupBase
         m_MerchantDesc.E_SetText(merchant.Description);
 
         int swing = Mathf.RoundToInt((hunt.GetSwingRate(merchant) - 1f) * 100f);
-        string swingText = swing > 0 ? UIStyle.ColorTag(UIStyle.Positive, $"+{swing}%") : swing < 0 ? UIStyle.ColorTag(UIStyle.Negative, $"{swing}%") : "보통";
+        string swingText = swing > 0 ? UIStyle.ColorTag(UIStyle.Positive, $"+{swing}%") : swing < 0 ? UIStyle.ColorTag(UIStyle.Negative, $"{swing}%") : StringDef.S_Get(EStringKey.Market_SwingNormal);
         int gain = hunt.GetTrustGain(merchant.ID);
         string gainText = gain > 0 ? " " + UIStyle.ColorTag(UIStyle.Positive, $"(+{gain})") : string.Empty;
-        string otherText = merchant.OtherRate > 0f ? $"x{merchant.OtherRate:0.0#}" : UIStyle.ColorTag(UIStyle.Negative, "안 삼");
+        string otherText = merchant.OtherRate > 0f ? $"x{merchant.OtherRate:0.0#}" : UIStyle.ColorTag(UIStyle.Negative, StringDef.S_Get(EStringKey.Market_NotBuying));
+        string rarityName = RarityDef.S_Get(merchant.PreferRarity)?.DisplayName ?? merchant.PreferRarity.ToString(); // 표가 없으면 enum 이름
 
-        m_MerchantInfo.E_SetText(
-            $"신뢰도  {market.GetTrust(merchant.ID)}{gainText}\n" +
-            $"오늘 시세  {swingText}\n" +
-            $"{GetRarityName(merchant.PreferRarity)} 이상  x{merchant.PreferRate:0.0#}\n" +
-            $"그 밖  {otherText}");
-    }
-
-    private static string GetRarityName(ERarity rarity)
-    {
-        return rarity switch
-        {
-            ERarity.Epic => "에픽",
-            ERarity.Rare => "희귀",
-            _ => "일반",
-        };
+        m_MerchantInfo.E_SetString(EStringKey.Market_MerchantInfoFormat, market.GetTrust(merchant.ID), gainText, swingText, rarityName, merchant.PreferRate, otherText);
     }
 
     // 남은 버섯 = 가진 수 - 고른 수. 칸 아래에 고른 상인의 한 개 값을 쓴다.
@@ -200,7 +187,7 @@ public class PopupMarket : PopupBase
         BuildRequest();
         EMarketResult result = hunt.CheckTrade(SelectedMerchant, m_ListItem, out int gold);
 
-        m_TotalText.E_SetText($"합계 {gold}G  ({m_DicPick.Count}/{Define.MarketTradeLimit}묶음)");
+        m_TotalText.E_SetString(EStringKey.Market_TotalFormat, gold, m_DicPick.Count, Define.MarketTradeLimit);
         m_TradeButton.E_SetInteractable(result == EMarketResult.Success);
         SetMessage(GetResultText(result));
     }
@@ -282,7 +269,7 @@ public class PopupMarket : PopupBase
 
         bool isAll = picked >= have;
         slot.SetDim(isAll);
-        slot.SetCaption(picked <= 0 ? null : isAll ? $"일괄판매(x{have})" : $"{have}→{have - picked}");
+        slot.SetCaption(picked <= 0 ? null : isAll ? StringDef.S_Format(EStringKey.Market_SellAllFormat, have) : $"{have}→{have - picked}");
     }
 
     private void SetPickSlot(UICommonSlot slot, LootKey key)
@@ -297,7 +284,7 @@ public class PopupMarket : PopupBase
         int price = 0;
         if (merchant != null)
             price = hunt.GetPrice(merchant, key);
-        return price > 0 ? $"{price}G" : "안 삼";
+        return price > 0 ? StringDef.S_Format(EStringKey.Market_PriceFormat, price) : StringDef.S_Get(EStringKey.Market_NotBuying);
     }
 
     // 칸: 아이콘 + 개수, 아래에 값, 바탕 = 희귀도, 곰팡이 얼룩 = 덜 신선
@@ -318,11 +305,11 @@ public class PopupMarket : PopupBase
     {
         return result switch
         {
-            EMarketResult.Closed => "시장이 닫혔다",
-            EMarketResult.NoMerchant => "상인을 먼저 골라야 한다",
-            EMarketResult.OverLimit => $"한 번에 {Define.MarketTradeLimit}묶음까지 팔 수 있다",
-            EMarketResult.NotEnough => "가진 것보다 많이 골랐다",
-            EMarketResult.NotBuying => "이 상인이 사지 않는 버섯이 섞여 있다",
+            EMarketResult.Closed => StringDef.S_Get(EStringKey.Market_Result_Closed),
+            EMarketResult.NoMerchant => StringDef.S_Get(EStringKey.Market_Result_NoMerchant),
+            EMarketResult.OverLimit => StringDef.S_Format(EStringKey.Market_Result_OverLimitFormat, Define.MarketTradeLimit),
+            EMarketResult.NotEnough => StringDef.S_Get(EStringKey.Market_Result_NotEnough),
+            EMarketResult.NotBuying => StringDef.S_Get(EStringKey.Market_Result_NotBuying),
             _ => string.Empty,
         };
     }
@@ -389,7 +376,7 @@ public class PopupMarket : PopupBase
         EMarketResult result = Hunt.Trade(SelectedMerchant, m_ListItem, out int gold);
         if (result == EMarketResult.Success)
         {
-            SetMessage($"+{gold}G");
+            SetMessage(StringDef.S_Format(EStringKey.Market_TradeGoldFormat, gold));
             return;
         }
 
@@ -407,7 +394,7 @@ public class PopupMarket : PopupBase
     private void OnClickWait()
     {
         EMarketResult result = Hunt.Wait();
-        SetMessage(result == EMarketResult.Success ? "상인들이 값을 다시 매겼다" : GetResultText(result));
+        SetMessage(result == EMarketResult.Success ? StringDef.S_Get(EStringKey.Market_WaitDone) : GetResultText(result));
     }
 
     private void OnClickClose()
@@ -470,7 +457,7 @@ public class PopupMarket : PopupBase
             .Call(() =>
             {
                 m_IntroTimer.E_SetText(UINightClock.FormatRealTime(0));
-                m_IntroMessage.E_SetText($"{FormatIntro(minutes)}\n<size={UIStyle.FontSmall}>{UIStyle.ColorTag(UIStyle.TextDim, "눌러서 계속")}</size>");
+                m_IntroMessage.E_SetText($"{FormatIntro(minutes)}\n<size={UIStyle.FontSmall}>{UIStyle.ColorTag(UIStyle.TextDim, StringDef.S_Get(EStringKey.Market_IntroContinue))}</size>");
             })
             .WaitUntil(() => m_IsIntroContinue)
             // 3. 본 화면. 시계 자리에는 시장 시간
@@ -497,9 +484,11 @@ public class PopupMarket : PopupBase
     {
         int hour = minutes / 60;
         int minute = minutes % 60;
-        string time = hour > 0 && minute == 0 ? $"{hour}시간" : hour > 0 ? $"{hour}시간 {minute}분" : $"{minute}분";
+        string time = hour > 0 && minute == 0 ? StringDef.S_Format(EStringKey.Market_HourFormat, hour)
+            : hour > 0 ? StringDef.S_Format(EStringKey.Market_HourMinuteFormat, hour, minute)
+            : StringDef.S_Format(EStringKey.Market_MinuteFormat, minute);
 
-        return $"지금 가면... <size={IntroBigSize}>{UIStyle.ColorTag(UIStyle.Gold, time)}</size>은 거래할 수 있겠어!";
+        return StringDef.S_Format(EStringKey.Market_IntroFormat, $"<size={IntroBigSize}>{UIStyle.ColorTag(UIStyle.Gold, time)}</size>");
     }
 
     // event ---
@@ -525,14 +514,14 @@ public class PopupMarket : PopupBase
         if (merchant != null)
             price = hunt.GetPrice(merchant, key);
 
-        _counterPopup = GameManager.Instance.PopupS.Open<PopupMarketCounter>(EPopupType.PopupMarketCounter);
-        _counterPopup.Setup(key, have, picked, price, count => OnCountConfirm(key, count));
+        m_CounterPopup = GameManager.Instance.PopupS.Open<PopupMarketCounter>(EPopupType.PopupMarketCounter);
+        m_CounterPopup.Setup(key, have, picked, price, count => OnCountConfirm(key, count));
     }
 
     // 0개면 팔 목록에서 뺀다
     private void OnCountConfirm(LootKey key, int count)
     {
-        _counterPopup = null;
+        m_CounterPopup = null;
         if (count <= 0)
             RemovePick(key);
         else
@@ -543,10 +532,10 @@ public class PopupMarket : PopupBase
 
     private void CloseCountPopup()
     {
-        if (_counterPopup != null)
-            _counterPopup.Close();
+        if (m_CounterPopup != null)
+            m_CounterPopup.Close();
 
-        _counterPopup = null;
+        m_CounterPopup = null;
     }
 
     private void RemovePick(LootKey key)

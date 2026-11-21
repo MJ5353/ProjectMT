@@ -14,6 +14,8 @@ public enum EStringKey
     Common_GameTitle,
     Common_Yes,
     Common_No,
+    Common_Cancel,
+    Common_Confirm,
 
     // lobby
     Lobby_Tab_Gear,
@@ -42,6 +44,39 @@ public enum EStringKey
     // clock (UINightClock, 전투·시장 공용)
     Clock_MarketCloseFormat,    // {0} 시간 {1} 분
     Clock_ActionTimeFormat,     // {0} 행동당 분
+
+    // market (PopupMarket·PopupMarketCounter·PopupMarket_MerchantRow)
+    Market_MerchantCaption,
+    Market_Close,
+    Market_WaitFormat,               // {0} 분
+    Market_PickCaption,
+    Market_StockCaption,
+    Market_Trade,
+    Market_SoldFormat,               // {0} 판 골드
+    Market_TotalFormat,              // {0} 합계 골드 {1} 고른 묶음 {2} 묶음 상한
+    Market_NoMerchant,
+    Market_MerchantInfoFormat,       // {0} 신뢰도 {1} 오른 신뢰도 {2} 시세 {3} 희귀도 {4} 선호 배율 {5} 그 밖 배율
+    Market_SwingNormal,
+    Market_NotBuying,
+    Market_PriceFormat,              // {0} 한 개 값
+    Market_SellAllFormat,            // {0} 개수
+    Market_TradeGoldFormat,          // {0} 받은 골드
+    Market_WaitDone,
+    Market_Result_Closed,
+    Market_Result_NoMerchant,
+    Market_Result_OverLimitFormat,   // {0} 묶음 상한
+    Market_Result_NotEnough,
+    Market_Result_NotBuying,
+    Market_IntroFormat,              // {0} 시간(꾸밈 포함)
+    Market_IntroContinue,
+    Market_HourFormat,               // {0} 시
+    Market_HourMinuteFormat,         // {0} 시 {1} 분
+    Market_MinuteFormat,             // {0} 분
+    Market_Counter_CountFormat,      // {0} 팔 개수 {1} 가진 개수
+    Market_Counter_PriceFormat,      // {0} 한 개 값 {1} 합계
+    Market_Counter_NotBuying,
+    Market_Counter_All,
+    Market_Row_TrustFormat,          // {0} 신뢰도
 
     // death
     Death_Title,

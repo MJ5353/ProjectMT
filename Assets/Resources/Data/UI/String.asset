@@ -97,3 +97,69 @@ MonoBehaviour:
     <Value>k__BackingField: "\uC544\uB2C8\uC624"
   - <Key>k__BackingField: Battle_ExitConfirm
     <Value>k__BackingField: "\uD1A0\uBC8C\uC744 \uC885\uB8CC\uD560\uAE4C\uC694?"
+  - <Key>k__BackingField: Common_Cancel
+    <Value>k__BackingField: "\uCDE8\uC18C"
+  - <Key>k__BackingField: Common_Confirm
+    <Value>k__BackingField: "\uD655\uC778"
+  - <Key>k__BackingField: Market_MerchantCaption
+    <Value>k__BackingField: "\uC624\uB298 \uC628 \uC0C1\uC778"
+  - <Key>k__BackingField: Market_Close
+    <Value>k__BackingField: "\uC2DC\uC7A5 \uB2EB\uAE30"
+  - <Key>k__BackingField: Market_WaitFormat
+    <Value>k__BackingField: "{0}\uBD84 \uAE30\uB2E4\uB9AC\uAE30"
+  - <Key>k__BackingField: Market_PickCaption
+    <Value>k__BackingField: "\uD314 \uBC84\uC12F  \u00B7  \uB20C\uB7EC\uC11C \uBB36\uC74C \uBE7C\uAE30"
+  - <Key>k__BackingField: Market_StockCaption
+    <Value>k__BackingField: "\uB0A8\uC740 \uBC84\uC12F  \u00B7  \uB20C\uB7EC\uC11C \uBB36\uC74C \uB2F4\uAE30  \u00B7  \uCE78 \uC544\uB798\uB294 \uC774 \uC0C1\uC778\uC758 \uD55C \uAC1C \uAC12"
+  - <Key>k__BackingField: Market_Trade
+    <Value>k__BackingField: "\uAC70\uB798"
+  - <Key>k__BackingField: Market_SoldFormat
+    <Value>k__BackingField: "\uD310 \uACE8\uB4DC {0:N0}G"
+  - <Key>k__BackingField: Market_TotalFormat
+    <Value>k__BackingField: "\uD569\uACC4 {0}G  ({1}/{2}\uBB36\uC74C)"
+  - <Key>k__BackingField: Market_NoMerchant
+    <Value>k__BackingField: "\uC624\uB298\uC740 \uC0C1\uC778\uC774 \uC5C6\uB2E4"
+  - <Key>k__BackingField: Market_MerchantInfoFormat
+    <Value>k__BackingField: "\uC2E0\uB8B0\uB3C4  {0}{1}\n\uC624\uB298 \uC2DC\uC138  {2}\n{3} \uC774\uC0C1  x{4:0.0#}\n\uADF8 \uBC16  {5}"
+  - <Key>k__BackingField: Market_SwingNormal
+    <Value>k__BackingField: "\uBCF4\uD1B5"
+  - <Key>k__BackingField: Market_NotBuying
+    <Value>k__BackingField: "\uC548 \uC0BC"
+  - <Key>k__BackingField: Market_PriceFormat
+    <Value>k__BackingField: "{0}G"
+  - <Key>k__BackingField: Market_SellAllFormat
+    <Value>k__BackingField: "\uC77C\uAD04\uD310\uB9E4(x{0})"
+  - <Key>k__BackingField: Market_TradeGoldFormat
+    <Value>k__BackingField: "+{0}G"
+  - <Key>k__BackingField: Market_WaitDone
+    <Value>k__BackingField: "\uC0C1\uC778\uB4E4\uC774 \uAC12\uC744 \uB2E4\uC2DC \uB9E4\uACBC\uB2E4"
+  - <Key>k__BackingField: Market_Result_Closed
+    <Value>k__BackingField: "\uC2DC\uC7A5\uC774 \uB2EB\uD614\uB2E4"
+  - <Key>k__BackingField: Market_Result_NoMerchant
+    <Value>k__BackingField: "\uC0C1\uC778\uC744 \uBA3C\uC800 \uACE8\uB77C\uC57C \uD55C\uB2E4"
+  - <Key>k__BackingField: Market_Result_OverLimitFormat
+    <Value>k__BackingField: "\uD55C \uBC88\uC5D0 {0}\uBB36\uC74C\uAE4C\uC9C0 \uD314 \uC218 \uC788\uB2E4"
+  - <Key>k__BackingField: Market_Result_NotEnough
+    <Value>k__BackingField: "\uAC00\uC9C4 \uAC83\uBCF4\uB2E4 \uB9CE\uC774 \uACE8\uB790\uB2E4"
+  - <Key>k__BackingField: Market_Result_NotBuying
+    <Value>k__BackingField: "\uC774 \uC0C1\uC778\uC774 \uC0AC\uC9C0 \uC54A\uB294 \uBC84\uC12F\uC774 \uC11E\uC5EC \uC788\uB2E4"
+  - <Key>k__BackingField: Market_IntroFormat
+    <Value>k__BackingField: "\uC9C0\uAE08 \uAC00\uBA74... {0}\uC740 \uAC70\uB798\uD560 \uC218 \uC788\uACA0\uC5B4!"
+  - <Key>k__BackingField: Market_IntroContinue
+    <Value>k__BackingField: "\uB20C\uB7EC\uC11C \uACC4\uC18D"
+  - <Key>k__BackingField: Market_HourFormat
+    <Value>k__BackingField: "{0}\uC2DC\uAC04"
+  - <Key>k__BackingField: Market_HourMinuteFormat
+    <Value>k__BackingField: "{0}\uC2DC\uAC04 {1}\uBD84"
+  - <Key>k__BackingField: Market_MinuteFormat
+    <Value>k__BackingField: "{0}\uBD84"
+  - <Key>k__BackingField: Market_Counter_CountFormat
+    <Value>k__BackingField: "\uD310\uB9E4 {0} / {1}"
+  - <Key>k__BackingField: Market_Counter_PriceFormat
+    <Value>k__BackingField: "\uD55C \uAC1C {0}G  \u00B7  \uD569\uACC4 {1:N0}G"
+  - <Key>k__BackingField: Market_Counter_NotBuying
+    <Value>k__BackingField: "\uC774 \uC0C1\uC778\uC740 \uC0AC\uC9C0 \uC54A\uB294\uB2E4"
+  - <Key>k__BackingField: Market_Counter_All
+    <Value>k__BackingField: "\uC804\uBD80"
+  - <Key>k__BackingField: Market_Row_TrustFormat
+    <Value>k__BackingField: "\uC2E0\uB8B0 {0}"

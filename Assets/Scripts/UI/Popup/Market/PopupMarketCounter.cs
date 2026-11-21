@@ -69,9 +69,11 @@ public class PopupMarketCounter : PopupBase
     {
         m_Count = Mathf.Clamp(count, 0, m_Have);
 
-        m_CountText.E_SetText($"판매 {m_Count} / {m_Have}");
+        m_CountText.E_SetString(EStringKey.Market_Counter_CountFormat, m_Count, m_Have);
         m_ChangeText.E_SetText($"{m_Have}→{m_Have - m_Count}");
-        m_PriceText.E_SetText(m_Price > 0 ? $"한 개 {m_Price}G  ·  합계 {m_Price * m_Count:N0}G" : UIStyle.ColorTag(UIStyle.Negative, "이 상인은 사지 않는다"));
+        m_PriceText.E_SetText(m_Price > 0
+            ? StringDef.S_Format(EStringKey.Market_Counter_PriceFormat, m_Price, m_Price * m_Count)
+            : UIStyle.ColorTag(UIStyle.Negative, StringDef.S_Get(EStringKey.Market_Counter_NotBuying)));
 
         bool canMinus = m_Count > 0;
         bool canPlus = m_Count < m_Have;

@@ -154,7 +154,7 @@ public class PopupResult : PopupBase
     private static string FormatTrust(EBattleState state)
     {
         HuntData hunt = PlayerDataManager.Instance.Hunt;
-        if (state != EBattleState.Exited || hunt == null || hunt.DicTrustGain.Count == 0)
+        if (state != EBattleState.Exited || hunt.DicTrustGain.Count == 0)
             return string.Empty;
 
         StringBuilder builder = new(StringDef.S_Get(EStringKey.Result_TrustPrefix));
