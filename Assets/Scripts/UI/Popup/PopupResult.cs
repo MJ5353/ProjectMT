@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 // ==================================================
 
-// 전투 결과 팝업. BattleEnded를 받은 HUDBattle이 PopupService로 띄우고, BattleService에서 끝난 방식·시간·받은 보상(DicReward)을 읽어 보여 준다.
+// 전투 결과 팝업. BattleEnded를 받은 ScreenBattle이 PopupService로 띄우고, BattleService에서 끝난 방식·시간·받은 보상(DicReward)을 읽어 보여 준다.
 // [mj] todo) 신선 등급은 전투 쪽 데이터(ListLootGrade 가안)가 확정되면 칸 뱃지로 붙인다
 
 public class PopupResult : PopupBase

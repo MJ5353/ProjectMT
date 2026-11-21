@@ -9,6 +9,7 @@ public abstract class SceneControllerBase : MonoBehaviour
 {
     [SerializeField] private RectTransform m_UIRoot = null;
     [SerializeField] private Camera m_MainCamera = null;
+    [SerializeField] private ScreenBase m_Screen = null; // 이 씬의 화면(ScreenLobby·ScreenBattle). 자식이 GetScreen<T>()로 꺼내 쓴다
 
     // 이 씬을 바로 실행했을 때 시작할 게임 상태
     public abstract EGameState State { get; }
@@ -49,6 +50,8 @@ public abstract class SceneControllerBase : MonoBehaviour
     // 이 씬 전용 Service를 GameManager에 등록한다. 공용(팝업)은 GameManager가 넣는다
     public virtual void RegisterServices(GameManager gameM) { }
 
+    protected T GetScreen<T>() where T : ScreenBase => m_Screen as T;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetSingletons()
     {
@@ -68,10 +71,11 @@ public abstract class SceneControllerBase : MonoBehaviour
     private static void OnQuitting() => s_IsQuitting = true;
 
 #if UNITY_EDITOR
-    public void EditorSetup(RectTransform uiRoot, Camera mainCamera)
+    public void EditorSetup(RectTransform uiRoot, Camera mainCamera, ScreenBase screen)
     {
         m_UIRoot = uiRoot;
         m_MainCamera = mainCamera;
+        m_Screen = screen;
     }
 #endif
 }

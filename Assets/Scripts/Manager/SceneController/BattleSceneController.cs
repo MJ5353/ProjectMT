@@ -11,6 +11,8 @@ public sealed class BattleSceneController : SceneControllerBase
 
     public override EGameState State => EGameState.Battle;
 
+    public ScreenBattle Screen => GetScreen<ScreenBattle>();
+
     // ------------------------------------------------
 
     public override void RegisterServices(GameManager gameM)
@@ -35,9 +37,9 @@ public sealed class BattleSceneController : SceneControllerBase
     }
 
 #if UNITY_EDITOR
-    public void EditorSetup(RectTransform uiRoot, Camera mainCamera, MapDef defaultMap)
+    public void EditorSetup(RectTransform uiRoot, Camera mainCamera, ScreenBattle screen, MapDef defaultMap)
     {
-        EditorSetup(uiRoot, mainCamera);
+        EditorSetup(uiRoot, mainCamera, screen);
         m_DefaultMap = defaultMap;
     }
 #endif

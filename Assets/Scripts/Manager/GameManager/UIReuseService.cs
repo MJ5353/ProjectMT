@@ -19,7 +19,7 @@ public sealed class UIReuseService : ServiceBase
     public override void Init()
     {
         if (GameDatabase.S_TryGet(UIComponentDef.UIComponentID, out m_Def) == false)
-            CLogger.Error("UIFactory", "UIComponentDef가 DB에 없습니다. UI 프리팹 표 갱신을 실행하세요.");
+            CLogger.Error("UIReuseService", "UIComponentDef가 DB에 없습니다. UI 프리팹 표 갱신을 실행하세요.");
         
         SEventManager.Subscribe<SceneUnloading>(OnSceneUnloading);
     }

@@ -8,7 +8,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// 로비 씬 UI를 재생성한다. 지역 데이터는 데이터 편집기에서 관리한다.
+// 로비 화면(ScreenLobby) 프리팹을 만들고, 로비 씬을 재생성한다. 지역 데이터는 데이터 편집기에서 관리한다.
+// 프리팹은 UISetup의 "모든 UI 다시 만들기"가 BuildPrefabs로 만들고, 씬은 그 프리팹을 SafeArea 아래에 놓는다
 public static class LobbyUISetup
 {
 
@@ -40,10 +41,19 @@ public static class LobbyUISetup
         BuildScene();
     }
 
+    // isOverwrite면 있어도 다시 만든다(같은 경로에 덮어써 GUID 유지)
+    public static void BuildPrefabs(bool isOverwrite)
+    {
+        UIBuilder.SaveAsPrefab(BuildScreen().gameObject, EditorPath.ScreenLobbyPrefab, isOverwrite);
+    }
+
     // ==================================================
 
+    // 카메라·EventSystem·캔버스(SafeArea·바탕) → SafeArea 아래 ScreenLobby 프리팹 → 그 위에 그려질 PopupRoot(나중 형제)
     private static void BuildScene()
     {
+        UISetup.BuildAllPrefabs(false); // 없는 프리팹만 만든다
+
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         LobbySceneController sceneController = new GameObject(nameof(LobbySceneController)).AddComponent<LobbySceneController>();
 
@@ -58,27 +68,60 @@ public static class LobbyUISetup
         RectTransform safe = UIBuilder.CreateCanvas("LobbyCanvas");
         UIBuilder.Panel("Background", safe.parent, UIStyle.Background).transform.SetAsFirstSibling();
 
-        BuildTopBar(safe);
-
-        RectTransform content = UIBuilder.Rect("Content", safe, Vector2.zero, Vector2.one, new Vector2(0, TabBarHeight), new Vector2(0, -TopBarHeight));
-
-        List<UITabView> listView = new List<UITabView>();
-        for (int i = 0; i < s_TabNames.Length; i++)
+        GameObject screenGo = PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.ScreenLobbyPrefab), safe) as GameObject;
+        ScreenLobby screen = screenGo != null ? screenGo.GetComponent<ScreenLobby>() : null;
+        if (screen != null)
         {
-            UITabView view = i == HuntTabIndex ? BuildHuntTab(content) : BuildComingSoonTab(content, s_TabNames[i]);
-            listView.Add(view);
+            RectTransform screenRt = screen.RectTransform;
+            screenRt.anchorMin = Vector2.zero;
+            screenRt.anchorMax = Vector2.one;
+            screenRt.offsetMin = Vector2.zero;
+            screenRt.offsetMax = Vector2.zero;
+        }
+        else
+        {
+            CLogger.Error("LobbyUISetup", $"{EditorPath.ScreenLobbyPrefab}에 ScreenLobby 프리팹이 없습니다. 모든 UI 다시 만들기를 먼저 실행하세요.");
         }
 
-        BuildTabBar(safe, listView);
-
         RectTransform popupRoot = UIBuilder.Stretch("PopupRoot", safe);
-        sceneController.EditorSetup(popupRoot, cam);
+        sceneController.EditorSetup(popupRoot, cam, screen);
 
         EditorSceneManager.SaveScene(scene, EditorPath.LobbyScene);
         AddToBuildSettings();
     }
 
-    private static void BuildTopBar(RectTransform parent)
+    // 루트(Stretch, ScreenLobby) 아래 TopBar·Content(탭 뷰들)·TabBar. 팝업 루트는 넣지 않는다(씬에서 형제로 둔다)
+    private static ScreenLobby BuildScreen()
+    {
+        RectTransform root = UIBuilder.Stretch(nameof(ScreenLobby), null);
+
+        UICountLabel goldLabel = BuildTopBar(root);
+
+        RectTransform content = UIBuilder.Rect("Content", root, Vector2.zero, Vector2.one, new Vector2(0, TabBarHeight), new Vector2(0, -TopBarHeight));
+
+        List<UITabView> listView = new List<UITabView>();
+        ScreenLobby_HuntView huntView = null;
+        for (int i = 0; i < s_TabNames.Length; i++)
+        {
+            if (i == HuntTabIndex)
+            {
+                huntView = BuildHuntTab(content);
+                listView.Add(huntView);
+            }
+            else
+            {
+                listView.Add(BuildComingSoonTab(content, s_TabNames[i]));
+            }
+        }
+
+        UITabBar tabBar = BuildTabBar(root, listView);
+
+        ScreenLobby screen = root.gameObject.AddComponent<ScreenLobby>();
+        screen.EditorSetup(tabBar, huntView, goldLabel);
+        return screen;
+    }
+
+    private static UICountLabel BuildTopBar(RectTransform parent)
     {
         RectTransform bar = UIBuilder.Rect("TopBar", parent, new Vector2(0, 1), Vector2.one, new Vector2(0, -TopBarHeight), Vector2.zero);
         UIBuilder.AddImage(bar, UIStyle.Panel);
@@ -97,10 +140,12 @@ public static class LobbyUISetup
 
         TMP_Text goldText = UIBuilder.Label(gold, "0", UIStyle.FontNormal, TextAlignmentOptions.Right, "Count");
         goldText.rectTransform.offsetMax = new Vector2(-20, 0);
-        goldText.gameObject.AddComponent<UICountLabel>().EditorSetup(goldText, goldIcon, CurrencyDef.GoldID, "{0}");
+        UICountLabel goldLabel = goldText.gameObject.AddComponent<UICountLabel>();
+        goldLabel.EditorSetup(goldText, goldIcon, CurrencyDef.GoldID, "{0}");
+        return goldLabel;
     }
 
-    private static void BuildTabBar(RectTransform parent, List<UITabView> listView)
+    private static UITabBar BuildTabBar(RectTransform parent, List<UITabView> listView)
     {
         RectTransform bar = UIBuilder.Rect("TabBar", parent, Vector2.zero, new Vector2(1, 0), Vector2.zero, new Vector2(0, TabBarHeight));
         UIBuilder.AddImage(bar, UIStyle.Panel);
@@ -143,6 +188,7 @@ public static class LobbyUISetup
         SerializedObject so = new SerializedObject(uiTabBar);
         so.FindProperty("m_DefaultIndex").intValue = HuntTabIndex;
         so.ApplyModifiedPropertiesWithoutUndo();
+        return uiTabBar;
     }
 
     private static UITabView BuildComingSoonTab(RectTransform parent, string tabName)
@@ -165,22 +211,22 @@ public static class LobbyUISetup
         image.raycastTarget = false;
     }
 
-    // 노드 버튼에 지역 아이콘 칸과 UIMapNode를 붙인다. 이미 만든 로비 씬에도 쓴다
-    public static UIMapNode AddMapNode(Button node, TMP_Text nodeName)
+    // 노드 버튼에 지역 아이콘 칸과 ScreenLobby_HuntView_MapNode를 붙인다. 이미 만든 로비 씬에도 쓴다
+    public static ScreenLobby_HuntView_MapNode AddMapNode(Button node, TMP_Text nodeName)
     {
         RectTransform iconRt = UIBuilder.Stretch("Icon", node.transform);
         iconRt.SetSiblingIndex(0);
         Image icon = UIBuilder.AddImage(iconRt, Color.white);
         icon.preserveAspect = true;
 
-        UIMapNode mapNode = node.gameObject.AddComponent<UIMapNode>();
+        ScreenLobby_HuntView_MapNode mapNode = node.gameObject.AddComponent<ScreenLobby_HuntView_MapNode>();
         UIBuilder.SetRef(mapNode, "m_Button", node);
         UIBuilder.SetRef(mapNode, "m_Icon", icon);
         UIBuilder.SetRef(mapNode, "m_NameLabel", nodeName); // !!) m_Name은 Object 이름과 겹쳐 직렬화가 깨진다
         return mapNode;
     }
 
-    private static UITabView BuildHuntTab(RectTransform parent)
+    private static ScreenLobby_HuntView BuildHuntTab(RectTransform parent)
     {
         RectTransform view = UIBuilder.Stretch("View_토벌", parent);
 
@@ -205,7 +251,7 @@ public static class LobbyUISetup
         RectTransform nodeLabelRt = UIBuilder.Rect("Name", nodeRt, Vector2.zero, new Vector2(1, 0), new Vector2(-20, -56), new Vector2(20, -8));
         UIBuilder.AddImage(nodeLabelRt, new Color(0f, 0f, 0f, 0.6f)); // 지도 그림 위에서 이름이 보이게
         TMP_Text nodeName = UIBuilder.Label(nodeLabelRt, "지역", 28);
-        UIMapNode mapNode = AddMapNode(node, nodeName);
+        ScreenLobby_HuntView_MapNode mapNode = AddMapNode(node, nodeName);
 
         // 오른쪽: 지역 정보
         RectTransform info = UIBuilder.Rect("Info", view, new Vector2(0.62f, 0f), Vector2.one, new Vector2(15, 30), new Vector2(-30, -30));
@@ -224,7 +270,7 @@ public static class LobbyUISetup
         RectTransform mushRoot = UIBuilder.Rect("Mushrooms", info, new Vector2(0, 1), Vector2.one, new Vector2(30, -480), new Vector2(-30, -345));
         UIBuilder.ListOption mushLayout = new(mushRoot, EUIListAxis.Horizontal, new Vector2(96, 96), new Vector2(30, 0), TextAnchor.UpperLeft);
 
-        // 칸은 UICommonSlot 프리팹(EUIComponentType.UICommonSlot)을 HuntTabView가 UIListView로 꺼낸다
+        // 칸은 UICommonSlot 프리팹(EUIComponentType.UICommonSlot)을 ScreenLobby_HuntView가 UIListView로 꺼낸다
         UITooltip mushTooltip = UIBuilder.Tooltip(info, "MushroomTooltip"); // 목록 뒤에 만들어 칸 위에 그린다
 
         Button enter = UIBuilder.Button(info, "EnterButton", "입장", new Vector2(360, 120));
@@ -237,7 +283,7 @@ public static class LobbyUISetup
             enterRt.anchoredPosition = new Vector2(0, 40);
         }
 
-        HuntUITabView hunt = view.gameObject.AddComponent<HuntUITabView>();
+        ScreenLobby_HuntView hunt = view.gameObject.AddComponent<ScreenLobby_HuntView>();
         UIBuilder.SetRef(hunt, "m_MapRoot", nodeRoot);
         UIBuilder.SetRef(hunt, "m_NodeTemplate", mapNode);
         UIBuilder.SetRef(hunt, "m_InfoName", infoName);

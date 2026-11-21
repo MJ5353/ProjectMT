@@ -32,7 +32,7 @@ public static class MarketUISetup
     public static void BuildPrefabs(bool isOverwrite)
     {
         UIBuilder.SaveAsPrefab(MerchantRow().gameObject, EditorPath.MarketMerchantRowPrefab, isOverwrite);
-        UIBuilder.SaveAsPrefab(BuildCountPopup().gameObject, EditorPath.PopupMarketCountPrefab, isOverwrite);
+        UIBuilder.SaveAsPrefab(BuildCountPopup().gameObject, EditorPath.PopupMarketCounterPrefab, isOverwrite);
         UIBuilder.SaveAsPrefab(BuildMarketPopup().gameObject, EditorPath.PopupMarketPrefab, isOverwrite);
     }
 
@@ -188,7 +188,7 @@ public static class MarketUISetup
     // 개수 조절 팝업: 어두운 바탕 + 가운데 창. 칸·이름 / 판매 개수·변화 / 값 / [-10][-1][+1][+10][전부] / [취소][확인]
     private static PopupMarketCounter BuildCountPopup()
     {
-        RectTransform root = new GameObject("PopupMarket_Count", typeof(RectTransform)).GetComponent<RectTransform>();
+        RectTransform root = new GameObject("PopupMarketCounter", typeof(RectTransform)).GetComponent<RectTransform>();
         root.anchorMin = Vector2.zero;
         root.anchorMax = Vector2.one;
         root.offsetMin = root.offsetMax = Vector2.zero;
@@ -229,7 +229,7 @@ public static class MarketUISetup
         PlaceCorner(confirm, new Vector2(0.5f, 0f), new Vector2(150, Pad * 2f));
 
         PopupMarketCounter popup = root.gameObject.AddComponent<PopupMarketCounter>();
-        UIBuilder.SetRef(popup, "m_Group", root.gameObject.AddComponent<CanvasGroup>()); // 여는 연출(Popup)
+        UIBuilder.SetRef(popup, "m_Group", root.gameObject.AddComponent<CanvasGroup>()); // 여는 연출(PopupBase)
         UIBuilder.SetRef(popup, "m_Window", window);
         UIBuilder.SetRef(popup, "m_Slot", slot);
         UIBuilder.SetRef(popup, "m_NameText", nameText);

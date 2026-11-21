@@ -32,9 +32,12 @@ public static class EditorPath
     public const string MapPrefabDir = ResourcesRoot + CommonPath.MapDir;
     public const string PrefabExtension = ".prefab";             // Resources 경로 → 에셋 경로: ResourcesRoot + 경로 + 확장자
     public const string UIPrefabDir = PrefabDir + "UI/";        // UI 프리팹 저장 위치. 런타임은 경로를 쓰지 않고 PopupDef·UIComponentDef가 프리팹을 직접 참조한다(등록 때 하위 폴더까지 enum 이름으로 찾는다)
+    public const string ComponentUIPrefabDir = UIPrefabDir + "Component/"; // 스크립트 폴더(UI/Component·Popup·Screen)와 같게 둔다
     public const string PopupUIPrefabDir = UIPrefabDir + "Popup/";
-    public const string HUDUIPrefabDir = UIPrefabDir + "HUD/";
-    public const string CommonUIPrefabDir = UIPrefabDir + "Common/";
+    public const string MarketPopupUIPrefabDir = PopupUIPrefabDir + "Market/";
+    public const string ScreenUIPrefabDir = UIPrefabDir + "Screen/";
+    public const string LobbyScreenUIPrefabDir = ScreenUIPrefabDir + "Lobby/";
+    public const string BattleScreenUIPrefabDir = ScreenUIPrefabDir + "Battle/";
     public const string MaterialAssetDir = ResourcesRoot + CommonPath.MaterialDir;
 
     // 에셋 파일 (에디터) ---
@@ -47,19 +50,20 @@ public static class EditorPath
     public const string PopupDefAsset = UIDataDir + PopupDef.PopupID + ".asset";
     public const string UIComponentDefAsset = UIDataDir + UIComponentDef.UIComponentID + ".asset";
     public const string PopupResultPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupResult) + PrefabExtension;
-    public const string HUDBattlePrefab = HUDUIPrefabDir + "HUDBattle.prefab";
+    public const string ScreenLobbyPrefab = LobbyScreenUIPrefabDir + nameof(ScreenLobby) + PrefabExtension;
+    public const string ScreenBattlePrefab = BattleScreenUIPrefabDir + nameof(ScreenBattle) + PrefabExtension;
     public const string PopupDeathPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupDeath) + PrefabExtension;
-    public const string PopupMarketPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupMarket) + PrefabExtension;
-    public const string PopupMarketCountPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupMarket_Count) + PrefabExtension;
-    
+    public const string PopupMarketPrefab = MarketPopupUIPrefabDir + nameof(EPopupType.PopupMarket) + PrefabExtension;
+    public const string PopupMarketCounterPrefab = MarketPopupUIPrefabDir + nameof(EPopupType.PopupMarketCounter) + PrefabExtension;
+
     // UI 요소 프리팹. 파일 이름은 EUIComponentType 이름과 같아야 UIComponentDef에 등록된다
-    public const string MarketMerchantRowPrefab = PopupUIPrefabDir + nameof(EUIComponentType.PopupMarket_MerchantRow) + PrefabExtension;
-    public const string BattleLootRowPrefab = HUDUIPrefabDir + nameof(EUIComponentType.HUDBattle_LootRow) + PrefabExtension;
-    public const string BattleSkillIconPrefab = HUDUIPrefabDir + nameof(EUIComponentType.HUDBattle_SkillIcon) + PrefabExtension;
-    public const string BattleUnitHpBarPrefab = HUDUIPrefabDir + nameof(EUIComponentType.HUDBattle_UnitHpBar) + PrefabExtension; // UIGauge
-    public const string GaugePrefab = CommonUIPrefabDir + "UIGauge.prefab";
-    public const string CommonSlotPrefab = CommonUIPrefabDir + nameof(EUIComponentType.UICommonSlot) + PrefabExtension;
-    public const string ButtonPrefab = CommonUIPrefabDir + "UIButton.prefab";
+    public const string MarketMerchantRowPrefab = MarketPopupUIPrefabDir + nameof(EUIComponentType.PopupMarket_MerchantRow) + PrefabExtension;
+    public const string BattleLootRowPrefab = BattleScreenUIPrefabDir + nameof(EUIComponentType.ScreenBattle_LootRow) + PrefabExtension;
+    public const string BattleSkillIconPrefab = BattleScreenUIPrefabDir + nameof(EUIComponentType.ScreenBattle_SkillIcon) + PrefabExtension;
+    public const string BattleUnitHpBarPrefab = BattleScreenUIPrefabDir + nameof(EUIComponentType.ScreenBattle_UnitHpBar) + PrefabExtension; // UIGauge
+    public const string GaugePrefab = ComponentUIPrefabDir + "UIGauge.prefab";
+    public const string CommonSlotPrefab = ComponentUIPrefabDir + nameof(EUIComponentType.UICommonSlot) + PrefabExtension;
+    public const string ButtonPrefab = ComponentUIPrefabDir + "UIButton.prefab";
     public const string Font = FontDir + "Galmuri11.ttf";
     public const string FontAsset = FontDir + "Galmuri11 SDF.asset";
     public const string FontOutlineAsset = FontDir + "Galmuri11_OutLine SDF.asset"; // 배경 없이 화면에 바로 뜨는 라벨용

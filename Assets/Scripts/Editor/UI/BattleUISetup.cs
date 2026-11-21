@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// 전투 씬 UI(HUDBattle과 그 팝업) 프리팹을 만든다. 메뉴는 UISetup의 "모든 UI 다시 만들기" 하나다
+// 전투 씬 UI(ScreenBattle과 그 팝업) 프리팹을 만든다. 메뉴는 UISetup의 "모든 UI 다시 만들기" 하나다
 public static class BattleUISetup
 {
 
@@ -16,8 +16,8 @@ public static class BattleUISetup
 
     // ==================================================
 
-    // 사망·결과 팝업 → 주운 버섯 줄 → 전투 HUD 순서로 만든다. isOverwrite면 있어도 다시 만든다(GUID 유지).
-    // 팝업은 HUD가 참조하지 않고 PopupService.Open<T>(EPopupType)가 PopupDef에서 꺼낸다
+    // 사망·결과 팝업 → 주운 버섯 줄 → 전투 화면(ScreenBattle) 순서로 만든다. isOverwrite면 있어도 다시 만든다(GUID 유지).
+    // 팝업은 ScreenBattle이 참조하지 않고 PopupService.Open<T>(EPopupType)가 PopupDef에서 꺼낸다
     public static void BuildPrefabs(bool isOverwrite)
     {
         UIBuilder.SaveAsPrefab(BuildDeathPopup().gameObject, EditorPath.PopupDeathPrefab, isOverwrite);
@@ -25,31 +25,32 @@ public static class BattleUISetup
         UIBuilder.SaveAsPrefab(LootRow().gameObject, EditorPath.BattleLootRowPrefab, isOverwrite);
         UIBuilder.SaveAsPrefab(SkillIcon().gameObject, EditorPath.BattleSkillIconPrefab, isOverwrite);
         UIBuilder.SaveAsPrefab(UnitHpBar().gameObject, EditorPath.BattleUnitHpBarPrefab, isOverwrite);
-        UIBuilder.SaveAsPrefab(BuildBattleHud().gameObject, EditorPath.HUDBattlePrefab, isOverwrite);
+        UIBuilder.SaveAsPrefab(BuildBattleScreen().gameObject, EditorPath.ScreenBattlePrefab, isOverwrite);
     }
 
-    // 전투 씬을 만들 때(BattleSetup) 부른다. 없는 UI 프리팹을 만들고 HUD를 씬에 넣는다. 씬에 새로 넣었으면 true
-    public static bool AddBattleHud()
+    // 전투 씬을 만들 때(BattleSetup) 부른다. 없는 UI 프리팹을 만들고 전투 화면을 씬에 넣는다. 이미 있으면 그것을 돌려준다
+    public static ScreenBattle AddBattleScreen()
     {
-        if (Object.FindAnyObjectByType<HUDBattle>(FindObjectsInactive.Include) != null)
+        ScreenBattle exist = Object.FindAnyObjectByType<ScreenBattle>(FindObjectsInactive.Include);
+        if (exist != null)
         {
-            CLogger.Log("BattleUISetup", "전투 HUD가 이미 씬에 있습니다.");
-            return false;
+            CLogger.Log("BattleUISetup", "전투 화면이 이미 씬에 있습니다.");
+            return exist;
         }
 
         UISetup.BuildAllPrefabs(false);
-        PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.HUDBattlePrefab));
+        GameObject go = PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.ScreenBattlePrefab)) as GameObject;
         UIBuilder.CreateEventSystemIfNeeded();
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 
-        return true;
+        return go != null ? go.GetComponent<ScreenBattle>() : null;
     }
 
     // ==================================================
 
-    private static HUDBattle BuildBattleHud()
+    private static ScreenBattle BuildBattleScreen()
     {
-        RectTransform safe = UIBuilder.CreateCanvas("HUDBattle", HudSortingOrder);
+        RectTransform safe = UIBuilder.CreateCanvas("ScreenBattle", HudSortingOrder);
         Transform root = safe.parent;
 
         // 좌상단 밤 시계
@@ -88,22 +89,22 @@ public static class BattleUISetup
         AddUnitHpBars(safe);
         AddRoarEffect(safe);
 
-        HUDBattle hud = root.gameObject.AddComponent<HUDBattle>();
-        UIBuilder.SetRef(hud, "m_Clock", clock);
-        UIBuilder.SetRef(hud, "m_Hp", hp);
-        UIBuilder.SetRef(hud, "m_AttackActive", attackActive);
-        UIBuilder.SetRef(hud, "m_DashActive", dashActive);
-        UIBuilder.SetListView(hud, "m_LootPool", lootList);
-        UIBuilder.SetRef(hud, "m_ExitButton", exit);
+        ScreenBattle screen = root.gameObject.AddComponent<ScreenBattle>();
+        UIBuilder.SetRef(screen, "m_Clock", clock);
+        UIBuilder.SetRef(screen, "m_Hp", hp);
+        UIBuilder.SetRef(screen, "m_AttackActive", attackActive);
+        UIBuilder.SetRef(screen, "m_DashActive", dashActive);
+        UIBuilder.SetListView(screen, "m_LootPool", lootList);
+        UIBuilder.SetRef(screen, "m_ExitButton", exit);
 
-        return hud;
+        return screen;
     }
 
     // 몬스터 머리 위 체력바 원본(독립 프리팹, UIGauge). 피벗은 아래 가운데라 머리 위 점에 바닥을 붙인다
     private static UIGauge UnitHpBar()
     {
         UIGauge bar = UIBuilder.BuildGauge(null);
-        bar.name = "HUDBattle_UnitHpBar";
+        bar.name = "ScreenBattle_UnitHpBar";
 
         RectTransform rt = bar.RectTransform;
         if (rt != null)
@@ -119,7 +120,7 @@ public static class BattleUISetup
     }
 
     // 화면 위 보스 체력바 + 머리 위 바 자리. HUD 맨 뒤에 깔아 다른 HUD를 가리지 않는다
-    private static HUDBattle_UnitHpBars AddUnitHpBars(RectTransform safe)
+    private static ScreenBattle_UnitHpBars AddUnitHpBars(RectTransform safe)
     {
         RectTransform root = UIBuilder.Stretch("UnitHpBars", safe);
         root.SetAsFirstSibling();
@@ -143,7 +144,7 @@ public static class BattleUISetup
             barRect.anchoredPosition = new Vector2(0, 8);
         }
 
-        HUDBattle_UnitHpBars bars = root.gameObject.AddComponent<HUDBattle_UnitHpBars>();
+        ScreenBattle_UnitHpBars bars = root.gameObject.AddComponent<ScreenBattle_UnitHpBars>();
         UIBuilder.SetRef(bars, "m_Root", root);
         UIBuilder.SetRef(bars, "m_BossRoot", boss.gameObject);
         UIBuilder.SetRef(bars, "m_BossBar", bossBar);
@@ -155,7 +156,7 @@ public static class BattleUISetup
     }
 
     // 보스 포효 연출: 노치까지 덮는 붉은 가장자리(맨 뒤) + 가운데 위 이름 띠(맨 앞)
-    private static HUDBattle_RoarEffect AddRoarEffect(RectTransform safe)
+    private static ScreenBattle_RoarEffect AddRoarEffect(RectTransform safe)
     {
         RectTransform vignette = UIBuilder.Stretch("RoarVignette", safe.parent);
         vignette.SetAsFirstSibling();
@@ -174,7 +175,7 @@ public static class BattleUISetup
         bannerGroup.blocksRaycasts = false;
         bannerGroup.interactable = false;
 
-        HUDBattle_RoarEffect effect = banner.gameObject.AddComponent<HUDBattle_RoarEffect>();
+        ScreenBattle_RoarEffect effect = banner.gameObject.AddComponent<ScreenBattle_RoarEffect>();
         UIBuilder.SetRef(effect, "m_Vignette", vignetteGroup);
         UIBuilder.SetRef(effect, "m_Banner", bannerGroup);
         UIBuilder.SetRef(effect, "m_BannerText", text);
@@ -241,7 +242,7 @@ public static class BattleUISetup
         PlaceBottom(home, 190);
 
         PopupDeath popup = root.gameObject.AddComponent<PopupDeath>();
-        UIBuilder.SetRef(popup, "m_Group", root.gameObject.AddComponent<CanvasGroup>()); // 여는 연출(Popup)
+        UIBuilder.SetRef(popup, "m_Group", root.gameObject.AddComponent<CanvasGroup>()); // 여는 연출(PopupBase)
         UIBuilder.SetRef(popup, "m_Window", window);
         UIBuilder.SetRef(popup, "m_ReviveButton", revive);
         UIBuilder.SetRef(popup, "m_ReviveLabel", revive.GetComponentInChildren<TMP_Text>());
@@ -251,9 +252,9 @@ public static class BattleUISetup
     }
 
     // 주운 버섯 목록 한 줄 원본(독립 프리팹)
-    private static HUDBattle_LootRow LootRow()
+    private static ScreenBattle_LootRow LootRow()
     {
-        RectTransform row = UIBuilder.Rect("HUDBattle_LootRow", null, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-507, -43), Vector2.zero);
+        RectTransform row = UIBuilder.Rect("ScreenBattle_LootRow", null, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-507, -43), Vector2.zero);
         UIBuilder.AddImage(row, new Color(0f, 0f, 0f, 0.6f));
 
         RectTransform iconRect = UIBuilder.Anchored("Icon", row, new Vector2(0, 0.5f), new Vector2(5, 0), new Vector2(35, 35));
@@ -261,7 +262,7 @@ public static class BattleUISetup
         RectTransform textRect = UIBuilder.Rect("Text", row, Vector2.zero, Vector2.one, new Vector2(47, 0), new Vector2(-5, 0));
         TMP_Text text = UIBuilder.Label(textRect, "송이 신선 x1", LootFontSize, TextAlignmentOptions.Left);
 
-        HUDBattle_LootRow lootRow = row.gameObject.AddComponent<HUDBattle_LootRow>();
+        ScreenBattle_LootRow lootRow = row.gameObject.AddComponent<ScreenBattle_LootRow>();
         UIBuilder.SetRef(lootRow, "m_Icon", icon);
         UIBuilder.SetRef(lootRow, "m_Text", text);
 
@@ -285,13 +286,13 @@ public static class BattleUISetup
     }
 
     // 공격 칸 위에 이어 쓸 수 있는 스킬 줄(작은 원 아이콘). 큰 아이콘은 칸의 Icon을 지금 공격으로 바꿔 쓴다
-    private static HUDBattle_SkillChain AddSkillChain(RectTransform attackSlot)
+    private static ScreenBattle_SkillChain AddSkillChain(RectTransform attackSlot)
     {
         RectTransform chainRoot = UIBuilder.Rect("Chain", attackSlot, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-200, 16), new Vector2(200, 16 + SkillIconSize));
         UIBuilder.ListOption chainLayout = new(chainRoot, EUIListAxis.Horizontal, new Vector2(SkillIconSize, SkillIconSize), new Vector2(10, 0), TextAnchor.LowerCenter);
 
-        // 작은 아이콘은 HUDBattle_SkillIcon 프리팹(CommonPath)을 HUDBattle_SkillChain이 풀로 꺼낸다
-        HUDBattle_SkillChain chain = attackSlot.gameObject.AddComponent<HUDBattle_SkillChain>();
+        // 작은 아이콘은 ScreenBattle_SkillIcon 프리팹(CommonPath)을 ScreenBattle_SkillChain이 풀로 꺼낸다
+        ScreenBattle_SkillChain chain = attackSlot.gameObject.AddComponent<ScreenBattle_SkillChain>();
         UIBuilder.SetRef(chain, "m_MainIcon", attackSlot.Find("Icon").GetComponent<Image>());
         UIBuilder.SetListView(chain, "m_ChainPool", chainLayout);
 
@@ -299,15 +300,15 @@ public static class BattleUISetup
     }
 
     // 이어 쓸 수 있는 스킬 줄의 작은 아이콘 원본(독립 프리팹): 반투명 원 바탕 + 아이콘
-    private static HUDBattle_SkillIcon SkillIcon()
+    private static ScreenBattle_SkillIcon SkillIcon()
     {
-        RectTransform rt = UIBuilder.Anchored("HUDBattle_SkillIcon", null, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(SkillIconSize, SkillIconSize));
+        RectTransform rt = UIBuilder.Anchored("ScreenBattle_SkillIcon", null, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(SkillIconSize, SkillIconSize));
         SpriteImage("Back", rt, CircleSprite, 0f).color = new Color(0f, 0f, 0f, 0.6f);
         Image icon = SpriteImage("Icon", rt, "HUD_Attack", SkillIconSize * 0.2f);
         CanvasGroup group = rt.gameObject.AddComponent<CanvasGroup>();
         group.blocksRaycasts = false;
 
-        HUDBattle_SkillIcon skillIcon = rt.gameObject.AddComponent<HUDBattle_SkillIcon>();
+        ScreenBattle_SkillIcon skillIcon = rt.gameObject.AddComponent<ScreenBattle_SkillIcon>();
         UIBuilder.SetRef(skillIcon, "m_Group", group);
         UIBuilder.SetRef(skillIcon, "m_Icon", icon);
 

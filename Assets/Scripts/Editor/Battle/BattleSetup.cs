@@ -202,10 +202,10 @@ public static class BattleSetup
 
         RectTransform popupRoot = UIBuilder.CreateCanvas("BattlePopupCanvas", 110);
         MapDef mapDef = AssetDatabase.LoadAssetAtPath<MapDef>(EditorPath.DefaultMapDef);
-        sceneController.EditorSetup(popupRoot, cam, mapDef);
 
-        // 전투 HUD(결과·사망·시장 팝업은 HUD가 PopupService로 띄운다)
-        BattleUISetup.AddBattleHud();
+        // 전투 화면(결과·사망·시장 팝업은 ScreenBattle이 PopupService로 띄운다)
+        ScreenBattle screen = BattleUISetup.AddBattleScreen();
+        sceneController.EditorSetup(popupRoot, cam, screen, mapDef);
 
         EditorSceneManager.SaveScene(scene, EditorPath.BattleScene);
         AddToBuildSettings();

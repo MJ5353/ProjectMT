@@ -8,4 +8,6 @@ using UnityEngine;
 public sealed class LobbySceneController : SceneControllerBase
 {
     public override EGameState State => EGameState.Lobby;
+
+    public ScreenLobby Screen => GetScreen<ScreenLobby>();
 }

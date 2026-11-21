@@ -7,7 +7,7 @@ public enum EPopupType
     PopupDeath,
     PopupResult,
     PopupMarket,
-    PopupMarket_Count,
+    PopupMarketCounter,
 }
 
 // ==================================================

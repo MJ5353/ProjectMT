@@ -33,7 +33,7 @@ public static class UISetup
     }
 
     // 지금 쓰는 UI 프리팹을 모두 새로 만든다. 같은 경로에 덮어써 GUID가 유지되므로 씬의 프리팹 인스턴스·참조는 따라온다.
-    // 씬(Battle·Lobby)은 열거나 저장하지 않는다. 로비 씬 UI는 씬 안에 있으므로 "초기 설정/로비 씬 재생성"으로 다시 만든다
+    // 씬(Battle·Lobby)은 열거나 저장하지 않는다. 로비 씬 자체(캔버스·PopupRoot)는 "초기 설정/로비 씬 재생성"으로 다시 만든다
     [MenuItem("MushTaker/UI/모든 UI 다시 만들기", false, 40)]
     public static void RebuildAll()
     {
@@ -43,13 +43,13 @@ public static class UISetup
             return;
         }
 
-        if (EditorUtility.DisplayDialog("모든 UI 다시 만들기", "공용 부품·팝업·HUD 프리팹을 모두 새로 만듭니다. 프리팹에서 손본 부분은 사라집니다.", "다시 만들기", "취소") == false)
+        if (EditorUtility.DisplayDialog("모든 UI 다시 만들기", "공용 부품·팝업·화면 프리팹을 모두 새로 만듭니다. 프리팹에서 손본 부분은 사라집니다.", "다시 만들기", "취소") == false)
             return;
 
         BuildAllPrefabs(true);
     }
 
-    // 순서가 중요하다: 공용 부품 → 시장(줄·팝업) → 전투(팝업·줄·HUD). 뒤의 것이 앞의 프리팹을 품거나 참조한다
+    // 순서가 중요하다: 공용 부품 → 로비 화면 → 시장(줄·팝업) → 전투(팝업·줄·화면). 뒤의 것이 앞의 프리팹을 품거나 참조한다
     public static void BuildAllPrefabs(bool isOverwrite)
     {
         if (UIBuilder.Font == null)
@@ -61,6 +61,7 @@ public static class UISetup
         UIBuilder.SaveAsPrefab(UIBuilder.BuildButton(null).gameObject, EditorPath.ButtonPrefab, isOverwrite);
         UIBuilder.SaveAsPrefab(UIBuilder.BuildGauge(null).gameObject, EditorPath.GaugePrefab, isOverwrite);
         UIBuilder.SaveAsPrefab(UIBuilder.BuildCommonSlot(null).gameObject, EditorPath.CommonSlotPrefab, isOverwrite);
+        LobbyUISetup.BuildPrefabs(isOverwrite);
         MarketUISetup.BuildPrefabs(isOverwrite);
         BattleUISetup.BuildPrefabs(isOverwrite);
 
