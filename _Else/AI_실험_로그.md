@@ -401,3 +401,14 @@
 - AI가 위 코드를 규칙 기준으로 검토해 9가지(전투에서도 켜짐, 별도 이펙트 Service, 런타임 GetComponent, 매번 new GameObject, 튜닝값 하드코딩, 강제 캐스트, 입력 직접 읽기, Debug.Assert, 공백)를 제시했고 대장이 전부 진행을 지시함.
 - UIClickEffectService를 없애고 EffectService 안의 일반 클래스 UIClickBurst로 옮김. EffectService는 모든 씬 공용으로 올리고, 씬 컨트롤러 UseClickBurst를 켠 씬(지금은 로비, 타이틀·로딩 씬은 아직 없음)에서만 돈다.
 - 조각은 새 공용 UI 요소 UICommonImage(PoolableMonoUI, 생성기 메뉴로 프리팹 생성)를 UIReuseService로 꺼내 재사용하고, UI 루트 맨 위에 띄움. 수치는 DefineDef ClickBurst*로, 입력은 InputManager.UI(Click·Point)로 옮김. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+# 26.11.22 - 시장 거래 흐름 정리
+
+## 주요 작업
+
+- 직접 시장 코드 재점검을 요청하고, AI가 뽑은 19건 중 1~4번(거래 흐름)만 진행을 지시함.
+
+## 시장 거래 흐름 1~4번
+
+- HuntData: 판정을 private Validate 하나로 모으고 CheckTrade·Trade가 그것을 부르게 함. Trade가 out gold로 받은 골드를 돌려줘 UI가 판정을 따로 부르지 않음. 숨은 공용 버퍼 m_DicPick은 m_DicTradeBuffer로 이름을 바꿈.
+- PopupMarket: 고른 상태를 m_DicPick 하나로 줄이고 표시 목록·요청 목록은 Refresh·BuildRequest 때 다시 만듦. 거래는 고른 목록을 비운 뒤 요청하고, 갱신은 Trade가 보내는 MarketChanged 한 번만 받음(실패하면 되돌리고 갱신). 거래 한 번 판정 3번→2번(미리보기 1·거래 1), Refresh 2번→1번, 닫힌 팝업 갱신 없앰. 컴파일·플레이 확인 안 함. 커밋하지 않음.

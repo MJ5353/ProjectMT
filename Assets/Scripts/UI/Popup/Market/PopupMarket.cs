@@ -50,10 +50,10 @@ public class PopupMarket : PopupBase
     [SerializeField] private UIListView<UICommonSlot> m_StockPool = new();          // 남은 버섯(격자, 스크롤 내용 높이도 맞춘다)
     [SerializeField] private UIListView<UICommonSlot> m_PickPool = new();           // 고른 버섯(가로)
 
-    private readonly List<LootKey> m_ListStockKey = new();  // m_StockPool 순서
-    private readonly List<MarketItem> m_ListItem = new();   // HuntData 요청용
-    private readonly List<LootKey> m_ListPickKey = new();   // 고른 순서. m_PickPool 순서
-    private readonly Dictionary<LootKey, int> m_DicPick = new();
+    private readonly Dictionary<LootKey, int> m_DicPick = new(); // 고른 버섯 → 팔 개수. 고른 상태는 이것 하나만 든다
+    private readonly List<LootKey> m_ListStockKey = new();  // m_StockPool 순서. Refresh 때 다시 만든다
+    private readonly List<LootKey> m_ListPickKey = new();   // m_PickPool 순서. Refresh 때 m_DicPick에서 다시 만든다
+    private readonly List<MarketItem> m_ListItem = new();   // HuntData 요청용. BuildRequest가 m_DicPick에서 만든다
     private readonly UISequence m_IntroSequence = new();    // 시작 연출. 움직이는 중에 누르면 끝 모습으로, 끝 모습에서 누르면 닫는다
 
     private PopupMarketCounter _counterPopup; // 떠 있는 개수 조절 팝업
@@ -105,7 +105,6 @@ public class PopupMarket : PopupBase
         m_Clock.SetMarket(false);
         m_SelectedIndex = 0;
         m_DicPick.Clear();
-        m_ListPickKey.Clear();
         m_WaitLabel.E_SetText($"{Define.MarketActionMinutes}분 기다리기");
         SetMessage(string.Empty);
 
@@ -145,10 +144,10 @@ public class PopupMarket : PopupBase
         if (hunt == null)
             return;
 
-        RemoveMissingPick(hunt);
+        SyncPick(hunt);
         RefreshMerchants(hunt);
         RefreshStock(hunt);
-        RefreshPick(hunt);
+        RefreshPick();
         RefreshTotal(hunt);
 
         m_SoldText.E_SetText($"판 골드 {hunt.SoldGold:N0}G");
@@ -213,9 +212,8 @@ public class PopupMarket : PopupBase
         m_StockPool.Refresh(m_ListStockKey, SetStockSlot);
     }
 
-    private void RefreshPick(HuntData hunt)
+    private void RefreshPick()
     {
-        m_ListPickKey.Sort(CompareLoot);
         m_PickPool.Refresh(m_ListPickKey, SetPickSlot);
     }
 
@@ -225,16 +223,22 @@ public class PopupMarket : PopupBase
         BuildRequest();
         EMarketResult result = hunt.CheckTrade(SelectedMerchant, m_ListItem, out int gold);
 
-        m_TotalText.E_SetText($"합계 {gold}G  ({m_ListPickKey.Count}/{Define.MarketTradeLimit}묶음)");
+        m_TotalText.E_SetText($"합계 {gold}G  ({m_DicPick.Count}/{Define.MarketTradeLimit}묶음)");
         m_TradeButton.E_SetInteractable(result == EMarketResult.Success);
 
         if (result == EMarketResult.NotBuying)
             SetMessage("이 상인이 사지 않는 버섯이 섞여 있다");
     }
 
-    // 거래·기다리기 뒤 사라진 버섯은 고른 목록에서도 뺀다
-    private void RemoveMissingPick(HuntData hunt)
+    // 고른 개수를 남은 버섯에 맞추고(거래·기다리기 뒤 사라지거나 줄어든 버섯은 빼거나 줄인다) 표시 순서 목록을 다시 만든다
+    private void SyncPick(HuntData hunt)
     {
+        m_ListPickKey.Clear();
+        foreach (LootKey key in m_DicPick.Keys)
+        {
+            m_ListPickKey.Add(key);
+        }
+
         for (int i = m_ListPickKey.Count - 1; i >= 0; --i)
         {
             LootKey key = m_ListPickKey[i];
@@ -249,14 +253,16 @@ public class PopupMarket : PopupBase
             m_DicPick.Remove(key);
             m_ListPickKey.RemoveAt(i);
         }
+
+        m_ListPickKey.Sort(CompareLoot);
     }
 
     private void BuildRequest()
     {
         m_ListItem.Clear();
-        foreach (LootKey key in m_ListPickKey)
+        foreach (var pair in m_DicPick)
         {
-            m_ListItem.Add(new MarketItem(key, m_DicPick[key]));
+            m_ListItem.Add(new MarketItem(pair.Key, pair.Value));
         }
     }
 
@@ -264,10 +270,13 @@ public class PopupMarket : PopupBase
     private static int CompareLoot(LootKey a, LootKey b)
     {
         int compare = GetDexNo(a.ItemID).CompareTo(GetDexNo(b.ItemID));
+        
         if (compare == 0)
             compare = string.CompareOrdinal(a.ItemID, b.ItemID);
+
         if (compare != 0)
             return compare;
+        
         if (a.Rarity != b.Rarity)
             return b.Rarity.CompareTo(a.Rarity);
 
@@ -362,13 +371,12 @@ public class PopupMarket : PopupBase
             return;
         }
 
-        if (m_ListPickKey.Count >= Define.MarketTradeLimit)
+        if (m_DicPick.Count >= Define.MarketTradeLimit)
         {
             SetMessage($"한 번에 {Define.MarketTradeLimit}묶음까지 팔 수 있다");
             return;
         }
 
-        m_ListPickKey.Add(key);
         m_DicPick[key] = have;
         Refresh();
     }
@@ -392,19 +400,25 @@ public class PopupMarket : PopupBase
         if (hunt == null)
             return;
 
+        // 고른 목록은 요청으로 옮기고 먼저 비운다. 성공하면 Trade가 보내는 MarketChanged로 한 번만 갱신된다(밤이 다 가면 MarketClosed로 닫힌다)
         BuildRequest();
-        hunt.CheckTrade(SelectedMerchant, m_ListItem, out int gold);
-        EMarketResult result = hunt.Trade(SelectedMerchant, m_ListItem);
-        if (result != EMarketResult.Success)
+        m_DicPick.Clear();
+
+        EMarketResult result = hunt.Trade(SelectedMerchant, m_ListItem, out int gold);
+        if (result == EMarketResult.Success)
         {
-            SetMessage("거래할 수 없다");
+            SetMessage($"+{gold}G");
             return;
         }
 
-        m_DicPick.Clear();
-        m_ListPickKey.Clear();
-        SetMessage($"+{gold}G");
-        Refresh(); // 시장이 닫혔으면 MarketClosed로 이미 닫혀 있다
+        // 실패하면 아무것도 바뀌지 않았으니 고른 목록을 되돌린다
+        foreach (MarketItem item in m_ListItem)
+        {
+            m_DicPick[item.Key] = item.Count;
+        }
+
+        SetMessage("거래할 수 없다");
+        Refresh();
     }
 
     private void OnClickWait()
@@ -555,6 +569,5 @@ public class PopupMarket : PopupBase
     private void RemovePick(LootKey key)
     {
         m_DicPick.Remove(key);
-        m_ListPickKey.Remove(key);
     }
 }

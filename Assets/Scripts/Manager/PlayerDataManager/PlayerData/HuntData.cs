@@ -66,7 +66,7 @@ public class HuntData : PlayerDataBase
     private readonly List<MerchantDef> m_ListMerchant = new();        // 오늘 와 있는 상인
     private readonly Dictionary<string, int> m_DicTrustGain = new();  // 이번 시장에서 오른 신뢰도. 닫힐 때 반영하고, 결과 화면이 읽도록 다음 시장까지 남긴다
     private readonly Dictionary<string, float> m_DicSwingRate = new(); // 상인별 오늘 시세 배율. 기다릴 때마다 MerchantDef.PriceSwing 폭으로 바뀐다
-    private readonly Dictionary<LootKey, int> m_DicPick = new();      // 거래 검사용. 같은 버섯을 나눠 골라도 합쳐 센다
+    private readonly Dictionary<LootKey, int> m_DicTradeBuffer = new(); // Validate가 채우는 거래 묶음. 같은 버섯을 나눠 골라도 합쳐 센다
     private readonly List<MerchantDef> m_ListCandidate = new();       // 상인 뽑기용
 
     public MapDef SelectedMap { get; private set; }
@@ -154,15 +154,15 @@ public class HuntData : PlayerDataBase
         SEventManager.Publish(new MarketChanged());
     }
 
-    // 거래. 성공하면 버섯이 빠지고 골드·신뢰도가 쌓이며 밤이 Define.MarketActionTime만큼 줄어든다
-    public EMarketResult Trade(MerchantDef merchant, IReadOnlyList<MarketItem> listItem)
+    // 거래. 성공하면 버섯이 빠지고 골드·신뢰도가 쌓이며 밤이 Define.MarketActionTime만큼 줄어든다(MarketChanged).
+    // gold는 이번 거래로 받은 골드. 실패하면 0이고 아무것도 바뀌지 않는다
+    public EMarketResult Trade(MerchantDef merchant, IReadOnlyList<MarketItem> listItem, out int gold)
     {
-        EMarketResult result = CheckTrade(merchant, listItem, out int gold);
+        EMarketResult result = Validate(merchant, listItem, out gold);
         if (result != EMarketResult.Success)
             return result;
 
-        // CheckTrade가 채운 m_DicPick을 그대로 쓴다
-        foreach (var pair in m_DicPick)
+        foreach (var pair in m_DicTradeBuffer)
         {
             int count = m_DicHarvest[pair.Key] - pair.Value;
             if (count <= 0)
@@ -182,13 +182,19 @@ public class HuntData : PlayerDataBase
     // 거래할 수 있는지와 받을 골드. UI가 [거래] 버튼 상태와 합계 표시에 미리 쓴다
     public EMarketResult CheckTrade(MerchantDef merchant, IReadOnlyList<MarketItem> listItem, out int gold)
     {
+        return Validate(merchant, listItem, out gold);
+    }
+
+    // 거래 판정. 고른 묶음을 m_DicTradeBuffer에 합쳐 두고, 성공이면 Trade가 그 버퍼로 버섯을 뺀다
+    private EMarketResult Validate(MerchantDef merchant, IReadOnlyList<MarketItem> listItem, out int gold)
+    {
         gold = 0;
         if (CanAct == false)
             return EMarketResult.Closed;
         if (merchant == null || m_ListMerchant.Contains(merchant) == false)
             return EMarketResult.NoMerchant;
 
-        m_DicPick.Clear();
+        m_DicTradeBuffer.Clear();
         int total = 0;
         if (listItem != null)
         {
@@ -197,19 +203,19 @@ public class HuntData : PlayerDataBase
                 if (item.Count <= 0)
                     continue;
 
-                m_DicPick.TryGetValue(item.Key, out int count);
-                m_DicPick[item.Key] = count + item.Count;
+                m_DicTradeBuffer.TryGetValue(item.Key, out int count);
+                m_DicTradeBuffer[item.Key] = count + item.Count;
                 total += item.Count;
             }
         }
 
         if (total == 0)
             return EMarketResult.Empty;
-        if (m_DicPick.Count > Define.MarketTradeLimit) // 묶음(LootKey) 수로 센다. 묶음마다 개수 제한은 없다
+        if (m_DicTradeBuffer.Count > Define.MarketTradeLimit) // 묶음(LootKey) 수로 센다. 묶음마다 개수 제한은 없다
             return EMarketResult.OverLimit;
 
         int sum = 0;
-        foreach (var pair in m_DicPick)
+        foreach (var pair in m_DicTradeBuffer)
         {
             m_DicHarvest.TryGetValue(pair.Key, out int have);
             if (have < pair.Value)
@@ -339,7 +345,7 @@ public class HuntData : PlayerDataBase
         m_ListMerchant.Clear();
         m_DicTrustGain.Clear();
         m_DicSwingRate.Clear();
-        m_DicPick.Clear();
+        m_DicTradeBuffer.Clear();
         m_ListCandidate.Clear();
     }
 
