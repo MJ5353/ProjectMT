@@ -319,7 +319,8 @@
 - 직접 경로를 손으로 적는 표(PopupTable·UIComponentTable)는 런타임에 있을 이유가 없다고 지적, 에디터 자동 등록을 고름. AI가 `PopupDef`·`UIComponentDef`(enum → 프리팹 참조 SO, 공용 기반 `UIPrefabDef`)로 바꾸고, "모든 UI 다시 만들기"·"UI 프리팹 표 갱신" 메뉴가 enum 이름과 같은 프리팹을 찾아 채우게 함. 런타임 경로 문자열이 사라짐. 컴파일·플레이 확인 안 함.
 - 직접 `(RectTransform)` 강제 변환과 Unity 객체에 바로 쓴 `?.`·널 검사 삼항을 싫다고 지적. AI가 UI·UI 생성기에서 형변환을 `as`(또는 `RectTransform` 속성) + null이면 건너뛰기로, 널 검사 삼항과 `?.`를 `E_Alive()?.` + `??`로 바꿈. 컴파일·플레이 확인 안 함.
 - 직접 Popup 닫기 이름을 `BeginClose`·`EndClose`로 바꾸고(AI 제안), 팝업 파괴를 ResourceManager 삭제 요청으로 모으라고 지시. AI가 `ResourceManager.Delete`·`S_Delete`를 추가해 팝업 파괴와 풀 밖 인스턴스 삭제를 그쪽으로 옮김.
-- 직접 목록 배치를 LayoutGroup 없이 직접 좌표 계산으로 하라고 지시. AI가 배치 값만 든 `UIListLayout`을 목록 영역에 붙이고 `UIListView.Arrange`가 세로·가로·격자 좌표와 내용 크기를 계산하게 바꿈. 화면 7곳·UI 생성기의 LayoutGroup·ContentSizeFitter·LayoutElement를 지움. 스킬 연계 알파 비교는 `Mathf.Approximately`로. 컴파일·플레이 확인 안 함.
+- 직접 목록 배치를 LayoutGroup 없이 직접 좌표 계산으로 하라고 지시. AI가 처음엔 배치 값 컴포넌트 `UIListLayout`을 따로 만들었으나, 직접 "UIListView가 알아서" 하도록 지적해 배치 옵션을 `UIListView` 직렬화 필드(화면이 `[SerializeField]`로 들고 `Init`으로 칸 종류 지정)로 옮김. `UIListView.Arrange`가 세로·가로·격자 좌표와 내용 크기를 계산하게 바꿈. 화면 7곳·UI 생성기의 LayoutGroup·ContentSizeFitter·LayoutElement를 지움. 스킬 연계 알파 비교는 `Mathf.Approximately`로. 컴파일·플레이 확인 안 함.
+- 직접 머리 위 체력바를 매 프레임 "안 보인 유닛" 검사로 회수하던 것을 유닛 삭제 이벤트로 바꾸라고 지시. AI가 `UnitService.UnitRemoved`를 구독해 바를 돌려주고 잡고 있던 보스도 놓게 함. 컴파일·플레이 확인 안 함.
 
 
 ## 게임 흐름 Flow 구조 설계
