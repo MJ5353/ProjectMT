@@ -5,11 +5,11 @@ using UnityEngine;
 // ==================================================
 
 // 애니메이터 다시 만들기. 모델에 클립을 더한 뒤(보스 Skill_04 등) 돌리면 AC_*의 상태를 클립 목록대로 다시 채운다.
-// 프리팹·SkillDef·ListSkill은 건드리지 않는다(애니 이름 일괄 정리는 분노 스킬까지 ListSkill에 넣으므로 쓰지 않는다)
+// 프리팹·SkillDef·ListSkill은 건드리지 않는다
 
 public static class AnimatorRebuild
 {
-    [MenuItem("MushTaker/애니메이터 다시 만들기", false, 31)]
+    [MenuItem("MushTaker/에셋/애니메이터 다시 만들기", false, 5)]
     private static void Run()
     {
         int count = 0;

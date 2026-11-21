@@ -2,7 +2,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 로비 화면. 위 재화 줄·가운데 탭 뷰·아래 탭 바. 프리팹은 LobbyUISetup.BuildPrefabs가 만든다(팝업 루트는 씬에 따로 둔다)
+// 로비 화면. 위 재화 줄·가운데 탭 뷰·아래 탭 바. 프리팹은 LobbyUISetup.Prefabs 표로 만든다(팝업 루트는 씬에 따로 둔다)
 
 public class ScreenLobby : ScreenBase
 {

@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 // 로비 화면(ScreenLobby) 프리팹을 만들고, 로비 씬을 재생성한다. 지역 데이터는 데이터 편집기에서 관리한다.
-// 프리팹은 UISetup의 "모든 UI 다시 만들기"가 BuildPrefabs로 만들고, 씬은 그 프리팹을 SafeArea 아래에 놓는다
+// 프리팹은 UISetup의 "모든 UI 다시 만들기"가 Prefabs 표로 만들고, 씬은 그 프리팹을 SafeArea 아래에 놓는다
 public static class LobbyUISetup
 {
 
@@ -25,7 +25,7 @@ public static class LobbyUISetup
 
     // ------------------------------------------------
 
-    [MenuItem("MushTaker/초기 설정/로비 씬 재생성", false, 101)]
+    [MenuItem("MushTaker/초기 설정/로비 씬 재생성", false, 10)]
     public static void CreateLobbyScene()
     {
         if (UIBuilder.Font == null)
@@ -43,10 +43,10 @@ public static class LobbyUISetup
     }
 
     // isOverwrite면 있어도 다시 만든다(같은 경로에 덮어써 GUID 유지)
-    public static void BuildPrefabs(bool isOverwrite)
+    public static readonly (string Path, System.Func<GameObject> Build)[] Prefabs =
     {
-        UIBuilder.SaveAsPrefab(BuildScreen().gameObject, EditorPath.ScreenLobbyPrefab, isOverwrite);
-    }
+        (EditorPath.ScreenLobbyPrefab, () => BuildScreen().gameObject),
+    };
 
     // ==================================================
 

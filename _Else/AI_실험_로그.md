@@ -339,3 +339,11 @@
 
 - 직접 `EGameState`로 흐름을 묶는 방식을 거절하고 GameManager=씬 전환, FlowManager=씬 안 상태 관리(공용 Service), Flow별 전용 Service로 나누자고 제안함. AI가 현재 코드의 상태 머신 두 갈래(`EGameState`·`EBattleState`)와 정리 입구 중복을 짚고 Flow 기반 클래스·BattleFlow 상태(Start·Play·Down·Market·Result)를 제안함.
 - 직접 접근자는 호출부 변경, Retry는 씬 재로드 대신 BattleFlow 재시작으로 정함. AI의 일시정지 이유 플래그 분리안은 확인 전. 코드는 다른 스레드 편집 중이라 설계 문서(`_Else/DevDocs/Flow_구조설계.md`)만 작성함.
+
+## Editor 코드·폴더 정리
+
+- 직접 논의부터 하자고 요청. AI가 Editor 스크립트 30개의 메뉴·호출 관계를 훑어 정리 후보 7건(역할별 폴더, 빌더 위치, 얇은 래퍼, 일회성 도구, 호출처 없는 검사, 하드코딩 경로, 이름 꼬리 규칙)을 제시함. 직접 전부 채택.
+- AI가 루트 스크립트를 `Data`·`Common`·`Tools`·`Checks`로 나누고(.meta 함께 이동, GUID 유지) 픽업 빌더를 `Battle`로 옮김. `ProjectSetup` 메뉴를 `UISetup.PrepareUI`로 합치고, 쓰지 않던 `AnimNameMigration`을 지움(표는 직접 줄 추가 + 애니메이터 다시 만들기로 대체, 명명 규칙 문서 반영). `MarketSetup`→`MerchantSampleBuilder`, 상인 경로를 `EditorPath.MerchantDataDir`로. 이름 꼬리 규칙: 씬·UI 전체 생성 `~Setup`, 에셋 생성 `~Builder`, 기존 데이터 채우기 `~AutoFill`. 컴파일·플레이 확인 안 함.
+- 직접 MushTaker 메뉴가 어수선하다며 정리를 지시. AI가 메뉴를 데이터 편집기 / 데이터 / 에셋 / UI / 초기 설정 / 세이브 묶음으로 나누고 묶음 사이에 구분선이 생기게 우선순위를 다시 매김(UI·초기 설정·데이터 편집기 경로는 코드 안내 문구가 참조해서 유지).
+- 직접 데이터 편집기 좌측 목록 순서(몬스터·버섯·스킬·지역·팝업·UIComponent 먼저)와 한글 이름, 아래 줄에 Def 이름·개수를 지시. AI가 `DataEditorUtility`에 타입 순서·이름 표 하나를 두고 정렬·표시가 이를 따르게 함. 나머지 순서(플레이어·AI·피격·상인·아이템·재화·희귀도·문구·기본 설정)는 AI가 정함. 컴파일 확인 안 함.
+- 직접 불필요한 메뉴와 구분선을 빼고, 특정 UI만 골라 다시 만드는 기능을 요청. AI가 데이터 편집기 버튼과 겹치는 "맵 스폰 자동 배정 (전체)"와 상인 에셋이 이미 있는 "샘플 상인 만들기"(파일째)를 지우고, 우선순위를 이어 붙여 구분선을 없앰. UI 생성기 셋이 프리팹 (경로, 생성 함수) 표를 내놓고 `UISetup.GetPrefabs`가 순서대로 모으게 바꿔, 목록에서 골라 만드는 창(`UIRebuildWindow`)과 Project 창 선택 프리팹 다시 만들기(우클릭 포함)를 붙임. 컴파일 확인 안 함.

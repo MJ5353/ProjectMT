@@ -18,6 +18,13 @@ public static class UISetup
 
     // ==================================================
 
+    [MenuItem("MushTaker/초기 설정/UI 기반 준비", false, 7)]
+    public static void PrepareUI()
+    {
+        SetupBase();
+        BuildAllPrefabs(false);
+    }
+
     public static void SetupBase()
     {
         SetLandscape();
@@ -34,7 +41,7 @@ public static class UISetup
 
     // 지금 쓰는 UI 프리팹을 모두 새로 만든다. 같은 경로에 덮어써 GUID가 유지되므로 씬의 프리팹 인스턴스·참조는 따라온다.
     // 씬(Battle·Lobby)은 열거나 저장하지 않는다. 로비 씬 자체(캔버스·PopupRoot)는 "초기 설정/로비 씬 재생성"으로 다시 만든다
-    [MenuItem("MushTaker/UI/모든 UI 다시 만들기", false, 40)]
+    [MenuItem("MushTaker/UI/모든 UI 다시 만들기", false, 1)]
     public static void RebuildAll()
     {
         if (UIBuilder.Font == null)
@@ -52,29 +59,69 @@ public static class UISetup
     // 순서가 중요하다: 공용 부품 → 로비 화면 → 시장(줄·팝업) → 전투(팝업·줄·화면). 뒤의 것이 앞의 프리팹을 품거나 참조한다
     public static void BuildAllPrefabs(bool isOverwrite)
     {
+        BuildPrefabs(GetPrefabs(), isOverwrite);
+    }
+
+    // 만드는 순서대로 모든 UI 프리팹. 고른 것만 다시 만들 때도 이 순서를 지킨다
+    public static List<(string Path, Func<GameObject> Build)> GetPrefabs()
+    {
+        List<(string Path, Func<GameObject> Build)> listPrefab = new()
+        {
+            (EditorPath.ButtonPrefab, () => UIBuilder.BuildButton(null).gameObject),
+            (EditorPath.GaugePrefab, () => UIBuilder.BuildGauge(null).gameObject),
+            (EditorPath.CommonSlotPrefab, () => UIBuilder.BuildCommonSlot(null).gameObject),
+        };
+        listPrefab.AddRange(LobbyUISetup.Prefabs);
+        listPrefab.AddRange(MarketUISetup.Prefabs);
+        listPrefab.AddRange(BattleUISetup.Prefabs);
+        return listPrefab;
+    }
+
+    public static void BuildPrefabs(IEnumerable<(string Path, Func<GameObject> Build)> prefabs, bool isOverwrite)
+    {
         if (UIBuilder.Font == null)
         {
             CLogger.Warning("UISetup", "MushTaker/초기 설정/UI 기반 준비를 먼저 실행하세요.");
             return;
         }
 
-        UIBuilder.SaveAsPrefab(UIBuilder.BuildButton(null).gameObject, EditorPath.ButtonPrefab, isOverwrite);
-        UIBuilder.SaveAsPrefab(UIBuilder.BuildGauge(null).gameObject, EditorPath.GaugePrefab, isOverwrite);
-        UIBuilder.SaveAsPrefab(UIBuilder.BuildCommonSlot(null).gameObject, EditorPath.CommonSlotPrefab, isOverwrite);
-        LobbyUISetup.BuildPrefabs(isOverwrite);
-        MarketUISetup.BuildPrefabs(isOverwrite);
-        BattleUISetup.BuildPrefabs(isOverwrite);
+        foreach ((string path, Func<GameObject> build) in prefabs)
+            UIBuilder.SaveAsPrefab(build(), path, isOverwrite);
 
         AssetDatabase.SaveAssets();
         RefreshPrefabDefs();
         CLogger.Log("UISetup", "UI 프리팹 생성 완료. 열린 씬은 저장하지 않았습니다.");
     }
 
+    // Project 창에서 고른 UI 프리팹만 다시 만든다(우클릭 메뉴에도 뜬다)
+    [MenuItem("MushTaker/UI/선택한 UI 다시 만들기", false, 3)]
+    [MenuItem("Assets/MushTaker/선택한 UI 다시 만들기")]
+    private static void RebuildSelected()
+    {
+        List<(string Path, Func<GameObject> Build)> listSelected = GetSelectedPrefabs();
+        string names = string.Join("\n", listSelected.Select(prefab => Path.GetFileNameWithoutExtension(prefab.Path)));
+        if (EditorUtility.DisplayDialog("선택한 UI 다시 만들기", $"{names}\n\n프리팹에서 손본 부분은 사라집니다.", "다시 만들기", "취소"))
+            BuildPrefabs(listSelected, true);
+    }
+
+    [MenuItem("MushTaker/UI/선택한 UI 다시 만들기", true)]
+    [MenuItem("Assets/MushTaker/선택한 UI 다시 만들기", true)]
+    private static bool CanRebuildSelected()
+    {
+        return GetSelectedPrefabs().Count > 0;
+    }
+
+    private static List<(string Path, Func<GameObject> Build)> GetSelectedPrefabs()
+    {
+        HashSet<string> setPath = Selection.assetGUIDs.Select(AssetDatabase.GUIDToAssetPath).ToHashSet();
+        return GetPrefabs().Where(prefab => setPath.Contains(prefab.Path)).ToList();
+    }
+
     // 프리팹 표 ---
 
     // PopupDef·UIComponentDef를 enum 이름과 같은 프리팹으로 채운다. 프리팹을 손으로 만들었거나 옮겼을 때도 이 메뉴만 돌리면 된다.
     // 문구 표(StringDef: 새 키 추가·빈 값/없는 키 경고)와 희귀도 표(RarityDef: 없으면 만들기)도 함께 맞춘다
-    [MenuItem("MushTaker/UI/UI 프리팹 표 갱신", false, 41)]
+    [MenuItem("MushTaker/UI/UI 프리팹 표 갱신", false, 4)]
     public static void RefreshPrefabDefs()
     {
         FillPrefabDef<PopupDef, EPopupType, PopupBase>(EditorPath.PopupDefAsset, PopupDef.PopupID);

@@ -90,7 +90,7 @@ public sealed class DataEditorWindow : EditorWindow
         {
             Type type = m_ListType[index];
             element.Q<Label>("type-label").text = DataEditorUtility.GetTypeLabel(type);
-            element.Q<Label>("type-count").text = type.Name + "  ·  " + m_ListDef.Count(def => def.GetType() == type);
+            element.Q<Label>("type-count").text = $"{type.Name}  ·  {m_ListDef.Count(def => def.GetType() == type)}개";
         };
         m_TypeList.selectionChanged += items =>
         {

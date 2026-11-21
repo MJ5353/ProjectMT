@@ -84,7 +84,7 @@ blender -b -P tools/voxel/build_voxel_assets.py -- <출력폴더> [--preview]
 ### 북버곰 보스 추가 클립
 
 - Frenzy(76, 분노 전용 Skill_04, `build_ice.py`): 0~12 반쯤 일어섬 → 20 오른발 할퀴기 → 34 왼발 할퀴기 → 42 크게 일어섬 → 48 두 앞발 내려찍기.
-- 새 클립은 `Assets/Art/Voxel/Editor/AnimNameTable.txt`에 표준 이름 줄을 더하고, 가져온 뒤 메뉴 MushTaker/애니메이터 다시 만들기를 돌린다.
+- 새 클립은 `Assets/Art/Voxel/Editor/AnimNameTable.txt`에 표준 이름 줄을 더하고, 가져온 뒤 메뉴 MushTaker/에셋/애니메이터 다시 만들기를 돌린다.
 
 ### 에셋 목록
 

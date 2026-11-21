@@ -18,15 +18,15 @@ public static class BattleUISetup
 
     // 사망·결과 팝업 → 주운 버섯 줄 → 전투 화면(ScreenBattle) 순서로 만든다. isOverwrite면 있어도 다시 만든다(GUID 유지).
     // 팝업은 ScreenBattle이 참조하지 않고 PopupService.Open<T>(EPopupType)가 PopupDef에서 꺼낸다
-    public static void BuildPrefabs(bool isOverwrite)
+    public static readonly (string Path, System.Func<GameObject> Build)[] Prefabs =
     {
-        UIBuilder.SaveAsPrefab(BuildDeathPopup().gameObject, EditorPath.PopupDeathPrefab, isOverwrite);
-        UIBuilder.SaveAsPrefab(BuildResultPopup().gameObject, EditorPath.PopupResultPrefab, isOverwrite);
-        UIBuilder.SaveAsPrefab(LootRow().gameObject, EditorPath.BattleLootRowPrefab, isOverwrite);
-        UIBuilder.SaveAsPrefab(SkillIcon().gameObject, EditorPath.BattleSkillIconPrefab, isOverwrite);
-        UIBuilder.SaveAsPrefab(UnitHpBar().gameObject, EditorPath.BattleUnitHpBarPrefab, isOverwrite);
-        UIBuilder.SaveAsPrefab(BuildBattleScreen().gameObject, EditorPath.ScreenBattlePrefab, isOverwrite);
-    }
+        (EditorPath.PopupDeathPrefab, () => BuildDeathPopup().gameObject),
+        (EditorPath.PopupResultPrefab, () => BuildResultPopup().gameObject),
+        (EditorPath.BattleLootRowPrefab, () => LootRow().gameObject),
+        (EditorPath.BattleSkillIconPrefab, () => SkillIcon().gameObject),
+        (EditorPath.BattleUnitHpBarPrefab, () => UnitHpBar().gameObject),
+        (EditorPath.ScreenBattlePrefab, () => BuildBattleScreen().gameObject),
+    };
 
     // 전투 씬을 만들 때(BattleSetup) 부른다. 없는 UI 프리팹을 만들고 전투 화면을 씬에 넣는다. 이미 있으면 그것을 돌려준다
     public static ScreenBattle AddBattleScreen()
