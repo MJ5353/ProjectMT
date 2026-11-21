@@ -323,6 +323,15 @@ public static class UIBuilder
         return slot;
     }
 
+    // 목록 영역에 배치 값(UIListLayout)을 붙인다. 좌표는 런타임에 UIListView가 계산한다(LayoutGroup 쓰지 않음)
+    public static UIListLayout ListLayout(RectTransform root, UIListLayout.EAxis axis, Vector2 cellSize, Vector2 spacing, TextAnchor alignment,
+        RectOffset padding = null, bool isStretch = false, bool isFitContent = false)
+    {
+        UIListLayout layout = root.gameObject.AddComponent<UIListLayout>();
+        layout.EditorSetup(axis, cellSize, spacing, padding, alignment, isStretch, isFitContent);
+        return layout;
+    }
+
     // serialize ---
 
     // 화면 스크립트의 private 직렬화 필드(m_Xxx)를 채운다. 이름이 틀리면 에러 로그를 남긴다

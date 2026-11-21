@@ -55,6 +55,18 @@ public class GameDatabase : ScriptableObject
         return result != null;
     }
 
+    public static bool S_TryGet<T>(string dataID, out T result) where T : DataDef
+    {
+        result = null;
+        
+        var database = GameManager.Instance.Database;
+        if (database.E_Alive() == false || 
+            database.TryGet(dataID, out result) == false || result == null)
+            return false;
+        
+        return true;
+    }
+    
 #if UNITY_EDITOR
     // DataTools 메뉴 전용. 모은 목록으로 통째로 바꾼다
     public void EditorSetList(List<DataDef> listDef)

@@ -54,12 +54,7 @@ public static class MarketUISetup
         // 왼쪽: 상인 목록 + 아래 버튼 ---
         Caption(body, "MerchantCaption", "오늘 온 상인", new Vector2(Margin, ContentTop));
         RectTransform left = UIBuilder.Rect("Merchants", body, Vector2.zero, new Vector2(0, 1), new Vector2(Margin, 280), new Vector2(Margin + LeftWidth, ContentTop - 50));
-        VerticalLayoutGroup vertical = left.gameObject.AddComponent<VerticalLayoutGroup>();
-        vertical.spacing = Gap;
-        vertical.childAlignment = TextAnchor.UpperLeft;
-        vertical.childControlWidth = vertical.childControlHeight = true;
-        vertical.childForceExpandWidth = true;
-        vertical.childForceExpandHeight = false;
+        UIListLayout merchantList = UIBuilder.ListLayout(left, UIListLayout.EAxis.Vertical, new Vector2(0, RowHeight), new Vector2(0, Gap), TextAnchor.UpperLeft, isStretch: true);
 
         Button close = UIBuilder.Button(body, "CloseButton", "시장 닫기", new Vector2(LeftWidth, 100), UIStyle.AccentDark);
         PlaceCorner(close, Vector2.zero, new Vector2(Margin, Margin));
@@ -95,11 +90,7 @@ public static class MarketUISetup
         TMP_Text sold = UIBuilder.Label(soldRect, "판 골드 0G", UIStyle.FontSmall, TextAlignmentOptions.Right);
         sold.color = UIStyle.Gold;
         RectTransform pickList = UIBuilder.Rect("List", pickPanel, new Vector2(0, 1), new Vector2(1, 1), new Vector2(Pad, -60 - SlotSize - SlotNameHeight), new Vector2(-TradeWidth - Pad, -60));
-        HorizontalLayoutGroup horizontal = pickList.gameObject.AddComponent<HorizontalLayoutGroup>();
-        horizontal.spacing = Gap;
-        horizontal.childAlignment = TextAnchor.UpperLeft;
-        horizontal.childControlWidth = horizontal.childControlHeight = false;
-        horizontal.childForceExpandWidth = horizontal.childForceExpandHeight = false;
+        UIListLayout pickLayout = UIBuilder.ListLayout(pickList, UIListLayout.EAxis.Horizontal, Vector2.zero, new Vector2(Gap, 0), TextAnchor.UpperLeft);
 
         RectTransform totalRect = UIBuilder.Rect("Total", pickPanel, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-TradeWidth - Pad, -110), new Vector2(-Pad, -60));
         TMP_Text total = UIBuilder.Label(totalRect, "합계 0G  (0/5묶음)", UIStyle.FontNormal, TextAlignmentOptions.Right);
@@ -115,7 +106,7 @@ public static class MarketUISetup
         RectTransform stockPanel = UIBuilder.Rect("Stock", right, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0, -PickHeight - Column));
         UIBuilder.AddImage(stockPanel, UIStyle.Panel);
         Caption(stockPanel, "Caption", "남은 버섯  ·  눌러서 묶음 담기  ·  칸 아래는 이 상인의 한 개 값", new Vector2(Pad, -12));
-        RectTransform stockList = ScrollGrid(stockPanel);
+        UIListLayout stockList = ScrollGrid(stockPanel);
 
         // 시작 연출(맨 위). 가운데 큰 남은 시간 + 아래 시장 시간 ---
         RectTransform intro = UIBuilder.Stretch("Intro", root);
@@ -136,12 +127,12 @@ public static class MarketUISetup
         UIBuilder.SetRef(popup, "m_Intro", introGroup);
         UIBuilder.SetRef(popup, "m_IntroTimer", introTimer);
         UIBuilder.SetRef(popup, "m_IntroMessage", introMessage);
-        UIBuilder.SetRef(popup, "m_MerchantList", left);
+        UIBuilder.SetRef(popup, "m_MerchantList", merchantList);
         UIBuilder.SetRef(popup, "m_MerchantIcon", icon);
         UIBuilder.SetRef(popup, "m_MerchantName", merchantName);
         UIBuilder.SetRef(popup, "m_MerchantDesc", desc);
         UIBuilder.SetRef(popup, "m_MerchantInfo", info);
-        UIBuilder.SetRef(popup, "m_PickList", pickList);
+        UIBuilder.SetRef(popup, "m_PickList", pickLayout);
         UIBuilder.SetRef(popup, "m_StockList", stockList);
         UIBuilder.SetRef(popup, "m_TotalText", total);
         UIBuilder.SetRef(popup, "m_MessageText", message);
@@ -158,7 +149,6 @@ public static class MarketUISetup
     private static PopupMarket_MerchantRow MerchantRow()
     {
         RectTransform row = UIBuilder.Anchored("PopupMarket_MerchantRow", null, new Vector2(0, 1), Vector2.zero, new Vector2(LeftWidth, RowHeight));
-        row.gameObject.AddComponent<LayoutElement>().preferredHeight = RowHeight;
 
         Image selected = UIBuilder.Panel("Selected", row, UIStyle.Gold);
         selected.rectTransform.offsetMin = new Vector2(-4, -4);
@@ -272,8 +262,8 @@ public static class MarketUISetup
         return button;
     }
 
-    // 세로 스크롤 + 격자. 칸이 늘면 아래로 길어진다. 격자(Content)를 돌려준다
-    private static RectTransform ScrollGrid(RectTransform panel)
+    // 세로 스크롤 + 격자. 칸이 늘면 아래로 길어진다(UIListView가 Content 높이를 맞춤). 격자 배치 값을 돌려준다
+    private static UIListLayout ScrollGrid(RectTransform panel)
     {
         RectTransform viewport = UIBuilder.Rect("Viewport", panel, Vector2.zero, Vector2.one, new Vector2(Pad, Pad), new Vector2(-Pad, -60));
         viewport.gameObject.AddComponent<RectMask2D>();
@@ -281,14 +271,10 @@ public static class MarketUISetup
 
         RectTransform content = UIBuilder.Rect("Content", viewport, new Vector2(0, 1), Vector2.one, Vector2.zero, Vector2.zero);
         content.pivot = new Vector2(0.5f, 1f);
-        GridLayoutGroup grid = content.gameObject.AddComponent<GridLayoutGroup>();
         // 칸 위에 위 글자, 아래에 값 줄이 붙으니 그만큼 세로 간격과 위 여백을 둔다
-        grid.cellSize = new Vector2(SlotSize, SlotSize);
-        grid.spacing = new Vector2(Gap * 2f, Gap + SlotNameHeight + SlotCaptionHeight);
-        grid.padding = new RectOffset(0, 0, (int)SlotCaptionHeight + 4, (int)SlotNameHeight + 4);
-        grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
-        grid.childAlignment = TextAnchor.UpperLeft;
-        content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        UIListLayout grid = UIBuilder.ListLayout(content, UIListLayout.EAxis.Grid, new Vector2(SlotSize, SlotSize),
+            new Vector2(Gap * 2f, Gap + SlotNameHeight + SlotCaptionHeight), TextAnchor.UpperLeft,
+            new RectOffset(0, 0, (int)SlotCaptionHeight + 4, (int)SlotNameHeight + 4), isFitContent: true);
 
         ScrollRect scroll = panel.gameObject.AddComponent<ScrollRect>();
         scroll.viewport = viewport;
@@ -296,7 +282,7 @@ public static class MarketUISetup
         scroll.horizontal = false;
         scroll.movementType = ScrollRect.MovementType.Clamped;
 
-        return content;
+        return grid;
     }
 
     // ---

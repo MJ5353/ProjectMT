@@ -5,12 +5,12 @@ using TMPro;
 // ==================================================
 
 // 몬스터 체력바. 잡몹·엘리트는 맞으면 머리 위에 작은 바가 잠깐(Define.MonsterHpBarShowTime) 뜨고,
-// 보스는 어그로가 끌리면 화면 위에 큰 바가 뜬다(분노하면 분노 표시). 매 프레임 UnitService의 유닛을 읽어 그린다
+// 보스는 어그로가 끌리면 화면 위에 큰 바가 뜬다(분노하면 분노 표시). 매 프레임 UnitService의 유닛을 읽어 그린다.
+// 머리 위 바는 UIFactory로 꺼내고 돌려준다(씬이 바뀌면 UIFactory가 남은 바를 회수).
 
 public class HUDBattle_UnitHpBars : MonoBehaviour
 {
     [SerializeField] private RectTransform m_Root = null;      // 머리 위 바를 놓을 캔버스 영역(꽉 찬 RectTransform)
-    [SerializeField] private UIGauge m_BarTemplate = null;     // 머리 위 바 원본(꺼 둔다)
     [SerializeField] private GameObject m_BossRoot = null;     // 보스 바 묶음. 어그로 전엔 꺼 둔다
     [SerializeField] private UIGauge m_BossBar = null;
     [SerializeField] private TMP_Text m_BossName = null;
@@ -18,7 +18,6 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
 
     private readonly Dictionary<int, Bar> m_DicBar = new();
     private readonly List<int> m_ListRemove = new();
-    private readonly Stack<UIGauge> m_PoolGauge = new();
 
     private UnitController m_Boss;
     private int m_BossLastHp = -1;
@@ -35,7 +34,6 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
 
     private void Awake()
     {
-        m_BarTemplate.gameObject.SetActive(false);
         m_BossRoot.SetActive(false);
     }
 
@@ -70,6 +68,7 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
         }
 
         // 사라진 유닛의 바는 돌려놓는다
+        // [mj] todo) 이거 unit 삭제 이벤트랑 연결해 이지랄하지말고
         foreach (var pair in m_DicBar)
         {
             if (pair.Value.IsSeen == false)
@@ -104,11 +103,11 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
             bar.Remain = define.MonsterHpBarShowTime;
             if (bar.Gauge == null)
             {
-                bar.Gauge = Take();
-                bar.Gauge.SetValue(bar.LastHp, unit.HealthF.MaxHp, true); // 줄기 전 값에서 시작해야 잔상이 보인다
+                bar.Gauge = GameManager.Instance?.UIFactory?.Spawn<UIGauge>(EUIComponentType.HUDBattle_UnitHpBar, m_Root);
+                bar.Gauge.E_Alive()?.SetValue(bar.LastHp, unit.HealthF.MaxHp, true); // 줄기 전 값에서 시작해야 잔상이 보인다
             }
 
-            bar.Gauge.SetValue(hp, unit.HealthF.MaxHp);
+            bar.Gauge.E_Alive()?.SetValue(hp, unit.HealthF.MaxHp);
         }
 
         bar.LastHp = hp;
@@ -126,32 +125,30 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
     // 몸(캐릭터 컨트롤러) 맨 위보다 조금 위를 화면 좌표로 옮긴다. 카메라 뒤면 false
     private bool TryPlace(UIGauge gauge, UnitController unit, Camera cam, DefineDef define)
     {
+        RectTransform rt = gauge.RectTransform;
+        if (rt == null)
+            return false;
+
         CharacterController body = unit.HurtBody;
-        float top = body != null ? (body.center.y + body.height * 0.5f) * unit.transform.lossyScale.y : 2f;
-        
+        float top = 2f;
+        if (body != null)
+            top = (body.center.y + body.height * 0.5f) * unit.transform.lossyScale.y;
+
         Vector3 screen = cam.WorldToScreenPoint(unit.transform.position + Vector3.up * (top + define.MonsterHpBarOffset));
         if (screen.z <= 0f)
             return false;
 
         RectTransformUtility.ScreenPointToLocalPointInRectangle(m_Root, screen, null, out Vector2 local);
-        ((RectTransform)gauge.transform).anchoredPosition = local;
+        rt.anchoredPosition = local;
         return true;
     }
 
-    private UIGauge Take()
-    {
-        UIGauge gauge = m_PoolGauge.Count > 0 ? m_PoolGauge.Pop() : Instantiate(m_BarTemplate, m_Root);
-        gauge.gameObject.SetActive(true);
-        return gauge;
-    }
-
-    private void Release(Bar bar)
+    private static void Release(Bar bar)
     {
         if (bar.Gauge == null)
             return;
 
-        bar.Gauge.gameObject.SetActive(false);
-        m_PoolGauge.Push(bar.Gauge);
+        GameManager.Instance?.UIFactory?.Despawn(bar.Gauge);
         bar.Gauge = null;
     }
 
@@ -193,6 +190,6 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
             m_BossLastHp = hp;
         }
 
-        m_EnrageIcon.SetActive(m_Boss.BrainBase is AIBrain ai && ai.IsEnraged);
+        m_EnrageIcon.E_SetActive(m_Boss.BrainBase is AIBrain ai && ai.IsEnraged);
     }
 }

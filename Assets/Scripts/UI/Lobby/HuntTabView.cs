@@ -19,8 +19,7 @@ public class HuntTabView : TabView
     [SerializeField] private TMP_Text m_InfoName = null;
     [SerializeField] private TMP_Text m_InfoState = null;
     [SerializeField] private TMP_Text m_InfoDesc = null;
-    [SerializeField] private RectTransform m_MushroomRoot = null;
-    [SerializeField] private float m_MushroomSlotSize = 96f;     // 칸 크기(목록이 크기를 정하지 않는다)
+    [SerializeField] private UIListLayout m_MushroomRoot = null; // 칸 크기·간격은 여기 값으로 UIListView가 배치
     [SerializeField] private UITooltip m_MushroomTooltip = null; // 칸을 누르면 그 칸 위에 버섯 이름. 목록에 하나
     [SerializeField] private Button m_EnterButton = null;
 
@@ -36,7 +35,6 @@ public class HuntTabView : TabView
     private void Awake()
     {
         m_MushroomPool = new UIListView<UICommonSlot>(EUIComponentType.UICommonSlot, m_MushroomRoot, OnSpawnMushroomSlot);
-        
         m_NodeTemplate.gameObject.SetActive(false);
         m_EnterButton.onClick.AddListener(OnClickEnter);
     }
@@ -132,28 +130,29 @@ public class HuntTabView : TabView
             m_MushroomTooltip.Hide();
 
         m_ListMushroom.Clear();
+        
         if (m_Selected == null)
         {
             m_MushroomPool.HideFrom(0);
-            m_InfoName.text = "지역 없음";
-            m_InfoState.text = string.Empty;
-            m_InfoDesc.text = "MushTaker/데이터 편집기에서 MapDef를 준비하세요.";
+            m_InfoName.E_SetText("지역 없음");
+            m_InfoState.E_SetText(string.Empty);
+            m_InfoDesc.E_SetText("MushTaker/데이터 편집기에서 MapDef를 준비하세요.");
             m_EnterButton.interactable = false;
             return;
         }
 
-        m_InfoName.text = m_Selected.DisplayName;
-        m_InfoDesc.text = m_Selected.Description;
+        m_InfoName.E_SetText(m_Selected.DisplayName);
+        m_InfoDesc.E_SetText(m_Selected.Description);
 
         HuntData hunt = PlayerDataManager.Instance?.Hunt;
         bool isUnlocked = hunt != null && hunt.IsUnlocked(m_Selected);
         
         if (hunt != null && hunt.IsCleared(m_Selected))
-            m_InfoState.text = "토벌 완료";
+            m_InfoState.E_SetText("토벌 완료");
         else if (isUnlocked)
-            m_InfoState.text = "토벌 가능";
+            m_InfoState.E_SetText("토벌 가능");
         else
-            m_InfoState.text = $"잠김 · {m_Selected.RequireMap.DisplayName}을(를) 먼저 토벌";
+            m_InfoState.E_SetText($"잠김 · {m_Selected.RequireMap.DisplayName}을(를) 먼저 토벌");
 
         m_InfoState.color = isUnlocked ? UIStyle.Gold : UIStyle.TextDim;
         m_EnterButton.interactable = isUnlocked;
@@ -175,7 +174,6 @@ public class HuntTabView : TabView
 
     private void OnSpawnMushroomSlot(UICommonSlot slot)
     {
-        slot.RectTransform.sizeDelta = new Vector2(m_MushroomSlotSize, m_MushroomSlotSize);
         slot.SetOnClick(OnClickMushroom);
     }
 

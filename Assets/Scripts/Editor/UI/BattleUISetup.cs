@@ -81,14 +81,9 @@ public static class BattleUISetup
         exit.targetGraphic = exitBack;
 
         // 그 아래 주운 버섯 목록(버섯·신선도별)
-        RectTransform lootList = UIBuilder.Anchored("LootList", safe, new Vector2(1, 1), new Vector2(-40, -200), new Vector2(507, 0));
-        VerticalLayoutGroup layout = lootList.gameObject.AddComponent<VerticalLayoutGroup>();
-        layout.childAlignment = TextAnchor.UpperRight;
-        layout.spacing = 3f;
-        layout.childControlWidth = layout.childControlHeight = true;
-        layout.childForceExpandWidth = true;
-        layout.childForceExpandHeight = false;
-        lootList.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        RectTransform lootRect = UIBuilder.Anchored("LootList", safe, new Vector2(1, 1), new Vector2(-40, -200), new Vector2(507, 0));
+        UIListLayout lootList = UIBuilder.ListLayout(lootRect, UIListLayout.EAxis.Vertical, new Vector2(0, 43), new Vector2(0, 3), TextAnchor.UpperRight,
+            isStretch: true, isFitContent: true);
 
         AddUnitHpBars(safe);
         AddRoarEffect(safe);
@@ -259,7 +254,6 @@ public static class BattleUISetup
     private static HUDBattle_LootRow LootRow()
     {
         RectTransform row = UIBuilder.Rect("HUDBattle_LootRow", null, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-507, -43), Vector2.zero);
-        row.gameObject.AddComponent<LayoutElement>().preferredHeight = 43f;
         UIBuilder.AddImage(row, new Color(0f, 0f, 0f, 0.6f));
 
         RectTransform iconRect = UIBuilder.Anchored("Icon", row, new Vector2(0, 0.5f), new Vector2(5, 0), new Vector2(35, 35));
@@ -294,16 +288,12 @@ public static class BattleUISetup
     private static HUDBattle_SkillChain AddSkillChain(RectTransform attackSlot)
     {
         RectTransform chainRoot = UIBuilder.Rect("Chain", attackSlot, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-200, 16), new Vector2(200, 16 + SkillIconSize));
-        HorizontalLayoutGroup layout = chainRoot.gameObject.AddComponent<HorizontalLayoutGroup>();
-        layout.childAlignment = TextAnchor.LowerCenter;
-        layout.spacing = 10f;
-        layout.childControlWidth = layout.childControlHeight = false;
-        layout.childForceExpandWidth = layout.childForceExpandHeight = false;
+        UIListLayout chainLayout = UIBuilder.ListLayout(chainRoot, UIListLayout.EAxis.Horizontal, new Vector2(SkillIconSize, SkillIconSize), new Vector2(10, 0), TextAnchor.LowerCenter);
 
         // 작은 아이콘은 HUDBattle_SkillIcon 프리팹(CommonPath)을 HUDBattle_SkillChain이 풀로 꺼낸다
         HUDBattle_SkillChain chain = attackSlot.gameObject.AddComponent<HUDBattle_SkillChain>();
         UIBuilder.SetRef(chain, "m_MainIcon", attackSlot.Find("Icon").GetComponent<Image>());
-        UIBuilder.SetRef(chain, "m_ChainRoot", chainRoot);
+        UIBuilder.SetRef(chain, "m_ChainRoot", chainLayout);
 
         return chain;
     }
@@ -369,10 +359,7 @@ public static class BattleUISetup
 
         // 주운 버섯 칸 영역
         RectTransform lootRoot = UIBuilder.Rect("LootRoot", window, Vector2.zero, Vector2.one, new Vector2(60, 200), new Vector2(-60, -290));
-        GridLayoutGroup grid = lootRoot.gameObject.AddComponent<GridLayoutGroup>();
-        grid.cellSize = new Vector2(120, 120);
-        grid.spacing = new Vector2(48, 64);
-        grid.childAlignment = TextAnchor.UpperCenter;
+        UIListLayout lootLayout = UIBuilder.ListLayout(lootRoot, UIListLayout.EAxis.Grid, new Vector2(120, 120), new Vector2(48, 64), TextAnchor.UpperCenter);
 
         // 칸 원본은 UICommonSlot 프리팹(EUIComponentType.UICommonSlot). PopupResult가 UIListView로 꺼낸다
         TMP_Text empty = UIBuilder.Label(lootRoot.parent, "주운 버섯이 없어요", UIStyle.FontNormal, TextAlignmentOptions.Center, "EmptyLabel");
@@ -392,7 +379,7 @@ public static class BattleUISetup
         UIBuilder.SetRef(popup, "m_Window", window);
         UIBuilder.SetRef(popup, "m_Title", title);
         UIBuilder.SetRef(popup, "m_Summary", summary);
-        UIBuilder.SetRef(popup, "m_LootRoot", lootRoot);
+        UIBuilder.SetRef(popup, "m_LootRoot", lootLayout);
         UIBuilder.SetRef(popup, "m_EmptyLabel", empty.gameObject);
         UIBuilder.SetRef(popup, "m_RetryButton", retry);
         UIBuilder.SetRef(popup, "m_LobbyButton", lobby);

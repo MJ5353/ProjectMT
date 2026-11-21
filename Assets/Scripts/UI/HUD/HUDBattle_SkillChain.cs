@@ -5,21 +5,21 @@ using UnityEngine.UI;
 // ==================================================
 
 // 공격 아이콘 칸. 큰 아이콘은 지금 쓰는 공격(쉬고 있으면 콤보 첫 타), 위 작은 아이콘들은 지금 이어 쓸 수 있는 스킬
-// (콤보 다음 타·위로 치기·꾹 누르기). 이을 수 있는 구간(판정 뒤·콤보 리셋 전)엔 진하게, 아니면 흐리게 보인다
+// (콤보 다음 타·위로 치기·꾹 누르기). 이을 수 있는 구간(판정 뒤·콤보 리셋 전)엔 진하게, 아니면 흐리게 보인다.
+// 작은 아이콘은 UIListView로 꺼내 쓴다(씬이 바뀌면 UIFactory가 회수)
 
 public class HUDBattle_SkillChain : MonoBehaviour
 {
-    private const float DimAlpha = 0.4f; // 아직 이을 수 없을 때 작은 아이콘 불투명도
-
     [SerializeField] private Image m_MainIcon = null;
-    [SerializeField] private RectTransform m_ChainRoot = null;    // 작은 아이콘 줄(HorizontalLayoutGroup)
-    [SerializeField] private HUDBattle_SkillIcon m_ChainTemplate = null; // 줄 밖에 꺼 둔 작은 아이콘 원본
+    [SerializeField] private UIListLayout m_ChainRoot = null;     // 작은 아이콘 줄(가로)
+
+    private const float DimAlpha = 0.4f; // 아직 이을 수 없을 때 작은 아이콘 불투명도
 
     private readonly Dictionary<AttackSpec, SkillDef> m_DicSkill = new(); // 공격 수치 → 스킬(아이콘)
     private readonly List<SkillDef> m_ListNext = new();
-    private readonly List<SkillDef> m_ListShown = new();
-    private readonly List<HUDBattle_SkillIcon> m_ListIcon = new();
-
+    private readonly List<SkillDef> m_ListShown = new(); // 지금 줄에 보이는 스킬. m_ChainPool 순서
+    
+    private UIListView<HUDBattle_SkillIcon> m_ChainPool;
     private PlayerDef m_Def;
     private SkillDef m_MainSkill;
     private float m_ShownAlpha = -1f;
@@ -28,7 +28,7 @@ public class HUDBattle_SkillChain : MonoBehaviour
 
     private void Awake()
     {
-        m_ChainTemplate.gameObject.SetActive(false);
+        m_ChainPool = new UIListView<HUDBattle_SkillIcon>(EUIComponentType.HUDBattle_SkillIcon, m_ChainRoot);
     }
 
     private void Update()
@@ -47,13 +47,14 @@ public class HUDBattle_SkillChain : MonoBehaviour
         if (main != m_MainSkill)
         {
             m_MainSkill = main;
-            m_MainIcon.sprite = main != null ? main.Icon : null;
+            m_MainIcon.sprite = main.E_Alive()?.Icon;
             m_MainIcon.enabled = m_MainIcon.sprite != null;
         }
 
         // 공격 중이거나, 공격이 끝나고 콤보 리셋 시간 안이면 이어 쓸 수 있다
         bool isCombo = isAttack || (executor.IsIdle && executor.Attack.Spec != null && executor.TimeInAction <= def.ComboResetTime);
         m_ListNext.Clear();
+        
         if (isCombo)
         {
             AddNext(Find(executor.ComboNext), main);
@@ -72,6 +73,7 @@ public class HUDBattle_SkillChain : MonoBehaviour
     {
         m_Def = def;
         m_DicSkill.Clear();
+        
         foreach (SkillDef skill in def.ListSkill)
         {
             Register(skill);
@@ -106,7 +108,7 @@ public class HUDBattle_SkillChain : MonoBehaviour
     // 목록이나 진하기가 바뀔 때만 다시 그린다
     private void RefreshChain(float alpha)
     {
-        bool isSame = alpha == m_ShownAlpha && m_ListNext.Count == m_ListShown.Count;
+        bool isSame = Mathf.Approximately(alpha, m_ShownAlpha) && m_ListNext.Count == m_ListShown.Count;
         for (int i = 0; isSame && i < m_ListNext.Count; i++)
         {
             isSame = m_ListNext[i] == m_ListShown[i];
@@ -119,18 +121,11 @@ public class HUDBattle_SkillChain : MonoBehaviour
         m_ListShown.Clear();
         m_ListShown.AddRange(m_ListNext);
 
-        for (int i = 0; i < m_ListNext.Count; i++)
-        {
-            if (i >= m_ListIcon.Count)
-                m_ListIcon.Add(Instantiate(m_ChainTemplate, m_ChainRoot));
+        m_ChainPool.Refresh(m_ListShown, SetChainIcon);
+    }
 
-            m_ListIcon[i].gameObject.SetActive(true);
-            m_ListIcon[i].Set(m_ListNext[i].Icon, alpha);
-        }
-
-        for (int i = m_ListNext.Count; i < m_ListIcon.Count; i++)
-        {
-            m_ListIcon[i].gameObject.SetActive(false);
-        }
+    private void SetChainIcon(HUDBattle_SkillIcon icon, SkillDef skill)
+    {
+        icon.Set(skill.Icon, m_ShownAlpha);
     }
 }

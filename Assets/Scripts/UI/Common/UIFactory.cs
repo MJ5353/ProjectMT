@@ -10,11 +10,15 @@ using UnityEngine;
 public sealed class UIFactory : ServiceBase
 {
     private readonly List<PoolableMonoUI> m_ListSpawned = new();
+    private UIComponentDef m_Def;
 
     // ------------------------------------------------
 
+    private void OnSceneUnloading(SceneUnloading evt) => DespawnAll();
+    
     public override void Init()
     {
+        m_Def = GameManager.Instance?.Database.E_Alive()?.Get<UIComponentDef>(UIComponentDef.UIComponentID); // 없으면 DB가 경고
         SEventManager.Subscribe<SceneUnloading>(OnSceneUnloading);
     }
 
@@ -22,15 +26,17 @@ public sealed class UIFactory : ServiceBase
     {
         SEventManager.Unsubscribe<SceneUnloading>(OnSceneUnloading);
         DespawnAll();
+        
+        m_Def = null;
     }
 
-    // 원본(UIComponentTable)을 parent 아래로 꺼낸다. 원본이 없거나 T가 맞지 않으면 null
     public T Spawn<T>(EUIComponentType type, Transform parent) where T : PoolableMonoUI
     {
-        T prefab = UIComponentTable.Load<T>(type);
+        T prefab = m_Def.E_Alive()?.Get<T>(type);
         if (prefab == null)
             return null;
 
+        // 원본(UIComponentDef)을 parent 아래로 꺼낸다. 원본이 없거나 T가 맞지 않으면 null(에러는 UIComponentDef가 한 번)
         T item = ResourceManager.Instance?.Spawn(prefab, parent);
         if (item != null)
             m_ListSpawned.Add(item);
@@ -50,13 +56,11 @@ public sealed class UIFactory : ServiceBase
     // 꺼내 준 요소를 모두 돌려받는다. 씬과 함께 이미 지워진 것은 건너뛴다(ResourceManager.Despawn이 null을 거른다)
     public void DespawnAll()
     {
-        for (int i = m_ListSpawned.Count - 1; i >= 0; --i)
+        foreach (PoolableMonoUI spawned in m_ListSpawned)
         {
-            ResourceManager.S_Despawn(m_ListSpawned[i]);
+            ResourceManager.S_Despawn(spawned);
         }
-
+        
         m_ListSpawned.Clear();
     }
-
-    private void OnSceneUnloading(SceneUnloading evt) => DespawnAll();
 }
