@@ -21,14 +21,14 @@ public class UIMapNode : MonoBehaviour
 
     public void Set(MapDef mapDef)
     {
-        m_NameLabel.text = mapDef.DisplayName;
-        m_Icon.sprite = mapDef.Icon;
+        m_NameLabel.E_SetText(mapDef.DisplayName);
+        m_Icon.E_SetImage(mapDef.Icon);
         m_Icon.enabled = mapDef.Icon != null;
     }
 
     public void SetState(Color color, bool isUnlocked)
     {
-        m_NameLabel.color = color;
-        m_Icon.color = isUnlocked ? Color.white : s_LockedTint;
+        m_NameLabel.E_SetColor(color);
+        m_Icon.E_SetColor(isUnlocked ? Color.white : s_LockedTint);
     }
 }

@@ -28,7 +28,7 @@ public class HUDBattle : MonoBehaviour
     private void Awake()
     {
         m_LootPool.Init(EUIComponentType.HUDBattle_LootRow);
-        m_ExitButton.onClick.AddListener(OnClickExit);
+        m_ExitButton.E_SetOnClick(OnClickExit);
     }
 
     private void OnEnable()
@@ -50,7 +50,7 @@ public class HUDBattle : MonoBehaviour
             return;
 
         m_Clock.SetTime(battleS.RemainTime, battleS.NightTime);
-        m_ExitButton.interactable = battleS.State == EBattleState.Playing && battleS.IsPlayerDown == false;
+        m_ExitButton.E_SetInteractable(battleS.State == EBattleState.Playing && battleS.IsPlayerDown == false);
 
         UpdatePlayer(battleS.Player);
         UpdateLoot(battleS);
@@ -73,8 +73,8 @@ public class HUDBattle : MonoBehaviour
         UnitExecutor executor = player.UnitExecutor;
         bool isAttack = executor.Current == EActionType.Attack;
         
-        m_AttackActive.SetActive(isAttack);
-        m_DashActive.SetActive(executor.Current == EActionType.Dash);
+        m_AttackActive.E_SetActive(isAttack);
+        m_DashActive.E_SetActive(executor.Current == EActionType.Dash);
     }
 
     // 주운 개수가 바뀔 때만 목록을 다시 그린다
@@ -121,16 +121,18 @@ public class HUDBattle : MonoBehaviour
 
     private void SetLootRow(HUDBattle_LootRow row, string itemID)
     {
-        MushroomDef def = null;
-        GameManager.Instance?.Database.E_Alive()?.TryGet(itemID, out def);
+        GameDatabase.S_TryGet(itemID, out MushroomDef def); // 없으면 def는 null
         string displayName = def.E_Alive()?.DisplayName ?? itemID;
 
         int fresh = m_DicFresh[itemID];
         int stale = m_DicStale[itemID];
+        
         string text = fresh > 0 && stale > 0 ? 
             $"{displayName} 신선 x{fresh} / 덜 신선 x{stale}" : 
-            fresh > 0 ? $"{displayName} 신선 x{fresh}" : $"{displayName} 덜 신선 x{stale}";
-
+            fresh > 0 ? 
+                $"{displayName} 신선 x{fresh}" : 
+                $"{displayName} 덜 신선 x{stale}";
+        
         row.Set(def.E_Alive()?.Icon, def.E_Alive()?.Tint ?? UIStyle.PanelLight, text);
     }
 

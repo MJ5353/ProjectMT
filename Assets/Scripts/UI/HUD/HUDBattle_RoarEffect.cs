@@ -11,7 +11,7 @@ public class HUDBattle_RoarEffect : MonoBehaviour
     private const float FadeRatio = 0.2f; // 전체 시간 중 나타나고 사라지는 구간 비율(앞뒤 각각)
 
     [SerializeField] private CanvasGroup m_Vignette = null; // 붉은 가장자리(꽉 찬 이미지)
-    [SerializeField] private CanvasGroup m_Banner = null;   // 이름 띠
+    [SerializeField] private CanvasGroup m_Banner = null; // 이름 띠
     [SerializeField] private TMP_Text m_BannerText = null;
 
     private float m_Elapsed = -1f; // 0보다 작으면 꺼져 있다
@@ -20,8 +20,8 @@ public class HUDBattle_RoarEffect : MonoBehaviour
 
     private void Awake()
     {
-        m_Vignette.alpha = 0f;
-        m_Banner.alpha = 0f;
+        m_Vignette.E_SetVisible(false);
+        m_Banner.E_SetVisible(false);
     }
 
     private void OnEnable()
@@ -41,6 +41,7 @@ public class HUDBattle_RoarEffect : MonoBehaviour
 
         float total = GameManager.Instance.Define.RoarEffectTime;
         m_Elapsed += Time.unscaledDeltaTime;
+
         if (m_Elapsed >= total)
         {
             m_Elapsed = -1f;
@@ -50,7 +51,13 @@ public class HUDBattle_RoarEffect : MonoBehaviour
 
         // 앞 20% 동안 나타나고, 끝 20% 동안 사라진다
         float t = m_Elapsed / total;
-        float alpha = t < FadeRatio ? t / FadeRatio : t > 1f - FadeRatio ? (1f - t) / FadeRatio : 1f;
+        float alpha = 1f;
+
+        if (t < FadeRatio)
+            alpha = t / FadeRatio;
+        else if (t > 1f - FadeRatio)
+            alpha = (1f - t) / FadeRatio;
+        
         SetAlpha(alpha);
     }
 
@@ -61,8 +68,10 @@ public class HUDBattle_RoarEffect : MonoBehaviour
         if (evt.Unit == null)
             return;
 
-        string displayName = evt.Unit.Def.DisplayName;
-        m_BannerText.text = evt.IsEnraged ? $"{displayName} 분노!" : displayName;
+        string strName = evt.Unit.Def.DisplayName;
+        string strDisplayName = evt.IsEnraged ? $"{strName} 분노!" : strName;
+        
+        m_BannerText.E_SetText(strDisplayName);
         m_Elapsed = 0f;
     }
 

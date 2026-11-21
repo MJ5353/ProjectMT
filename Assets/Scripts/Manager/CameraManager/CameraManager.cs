@@ -14,7 +14,7 @@ public class CameraManager : MonoSingleton<CameraManager>
     private float m_ShakeTime;
     private float m_ShakeStart;
     
-    public Transform MainTransform => Main != null ? Main.transform : null;
+    public Transform MainTransform => Main.E_Alive()?.transform;
 
     // 지금 카메라가 다가가 있는 정도(카메라 거리 비율). 실제 시간 기준이라 히트스톱 중에도 움직인다
     public float ShakeAmount

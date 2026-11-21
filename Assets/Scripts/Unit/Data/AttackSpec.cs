@@ -83,7 +83,7 @@ public class AttackSpec
     [field: SerializeField]
     public SkillDef Next { get; private set; } = null; // 이어지는 다음 타. 비면 콤보 끝
 
-    public AttackSpec NextAttack => Next != null ? Next.Attack : null;
+    public AttackSpec NextAttack => Next.E_Alive()?.Attack;
 
     // ------------------------------------------------
 

@@ -214,7 +214,7 @@ public class GameManager : MonoSingleton<GameManager>
         if (Database != null)
             Database.Init();
 
-        Define = Database != null ? Database.Get<DefineDef>(DefineDef.DefineID) : null;
+        Define = Database.E_Alive()?.Get<DefineDef>(DefineDef.DefineID);
         if (Define == null)
         {
             CLogger.Warning("GameManager", "Define 에셋이 DB에 없어 코드 기본값을 씁니다.");

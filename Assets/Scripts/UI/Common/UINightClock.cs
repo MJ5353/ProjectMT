@@ -75,8 +75,7 @@ public class UINightClock : MonoBehaviour
         m_Text.alignment = isMarket ? TextAlignmentOptions.Left : m_BattleAlign;
         m_Text.fontSize = isMarket ? m_MarketFontSize : m_BattleFontSize;
 
-        m_SubText.E_SetActive(isMarket);
-        m_SubText.E_SetText($"행동당 {Define.MarketActionMinutes}분");
+        m_SubText.E_SetTextWithActive($"행동당 {Define.MarketActionMinutes}분", isMarket);
 
         if (isMarket)
             WriteMarketTime();
@@ -110,7 +109,7 @@ public class UINightClock : MonoBehaviour
             return;
 
         m_LastSeconds = seconds;
-        m_Text.text = FormatRealTime(seconds);
+        m_Text.E_SetText(FormatRealTime(seconds));
     }
 
     private void WriteMarketTime()
@@ -121,7 +120,7 @@ public class UINightClock : MonoBehaviour
 
         bool isSpent = m_LastMinutes >= 0 && minutes < m_LastMinutes;
         m_LastMinutes = minutes;
-        m_Text.text = $"시장이 닫기까지, {minutes / 60}h {minutes % 60:00}m";
+        m_Text.E_SetText($"시장이 닫기까지, {minutes / 60}h {minutes % 60:00}m");
 
         if (isSpent == false || gameObject.activeInHierarchy == false)
             return;
@@ -137,7 +136,7 @@ public class UINightClock : MonoBehaviour
 
         m_Routine = null;
         m_Text.rectTransform.localScale = Vector3.one;
-        m_Text.color = m_BaseColor;
+        m_Text.E_SetColor(m_BaseColor);
     }
 
     // 거래·기다리기로 시간이 줄었다
@@ -148,7 +147,7 @@ public class UINightClock : MonoBehaviour
         yield return UITween.CoPlay(SpendTime, t =>
         {
             rt.localScale = Vector3.one * Mathf.Lerp(SpendScale, 1f, t);
-            m_Text.color = Color.Lerp(UIStyle.Accent, m_BaseColor, t);
+            m_Text.E_SetColor(Color.Lerp(UIStyle.Accent, m_BaseColor, t));
         });
 
         m_Routine = null;

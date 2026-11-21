@@ -21,16 +21,15 @@ public class PopupMarket_MerchantRow : PoolableMonoUI
 
     private void Awake()
     {
-        m_Button.onClick.AddListener(() => m_OnClick?.Invoke(this));
+        m_Button.E_SetOnClick(() => m_OnClick?.Invoke(this));
     }
 
     public void Set(MerchantDef merchant, int trust, int trustMax, bool isSelected)
     {
-        m_NameText.text = merchant.DisplayName;
+        m_NameText.E_SetText(merchant.DisplayName);
         m_Trust.SetValue(trust, trustMax, true);
-        if (m_TrustText != null)
-            m_TrustText.text = $"신뢰 {trust}";
-        m_Selected.SetActive(isSelected);
+        m_TrustText.E_SetText($"신뢰 {trust}");
+        m_Selected.E_SetActive(isSelected);
     }
 
     public void SetOnClick(Action<PopupMarket_MerchantRow> onClick)

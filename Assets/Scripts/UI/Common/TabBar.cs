@@ -44,8 +44,8 @@ public class TabBar : MonoBehaviour
             int index = i;
             Entry entry = m_ListTab[i];
 
-            entry.Button.onClick.AddListener(() => Select(index));
-            entry.View.gameObject.SetActive(false);
+            entry.Button.E_SetOnClick(() => Select(index));
+            entry.View.E_SetActive(false);
             SetHighlight(entry, false);
         }
     }

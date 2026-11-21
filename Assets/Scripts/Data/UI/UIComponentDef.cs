@@ -1,3 +1,4 @@
+
 // ==================================================
 
 // 팝업이 아닌 UI 요소(목록 칸·줄·아이콘·머리 위 바) 종류. UIFactory·UIListView가 이 ID로 원본을 찾는다.
@@ -5,8 +6,14 @@
 public enum EUIComponentType
 {
     None,
+
+    // ui component
     UICommonSlot,
+    
+    // popup
     PopupMarket_MerchantRow,
+    
+    // hud
     HUDBattle_LootRow,
     HUDBattle_SkillIcon,
     HUDBattle_UnitHpBar, // UIGauge

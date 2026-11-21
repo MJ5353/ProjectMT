@@ -32,7 +32,7 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
 
     private void Awake()
     {
-        m_BossRoot.SetActive(false);
+        m_BossRoot.E_SetActive(false);
     }
 
     // 서비스는 씬 컨트롤러 Awake에서 등록되므로 Start에서 구독한다. 씬이 닫힐 때 UnitService.Clear가 구독을 비운다
@@ -169,8 +169,8 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
 
         m_Boss = unit;
         m_BossLastHp = -1;
-        m_BossName.text = unit.Def.DisplayName;
-        m_BossRoot.SetActive(true);
+        m_BossName.E_SetText(unit.Def.DisplayName);
+        m_BossRoot.E_SetActive(true);
     }
 
     private void UpdateBoss()
@@ -197,6 +197,6 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
     private void ReleaseBoss()
     {
         m_Boss = null;
-        m_BossRoot.SetActive(false);
+        m_BossRoot.E_SetActive(false);
     }
 }

@@ -59,7 +59,7 @@ public class GameDatabase : ScriptableObject
     {
         result = null;
         
-        var database = GameManager.Instance.Database;
+        GameDatabase database = GameManager.Instance?.Database;
         if (database.E_Alive() == false || 
             database.TryGet(dataID, out result) == false || result == null)
             return false;

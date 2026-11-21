@@ -55,6 +55,31 @@ public static class CommonExtensions
         text.text = value;
     }
 
+    // 글자를 넣고 켜거나 끈다. null이면 넘어간다
+    public static void E_SetTextWithActive(this TMPro.TMP_Text text, string value, bool isActive)
+    {
+        if (text == null)
+            return;
+
+        text.E_SetActive(isActive);
+        text.text = value;
+    }
+
+    // 글자가 있으면 켜고, 비었으면 끈다
+    public static void E_SetTextWithActive(this TMPro.TMP_Text text, string value)
+    {
+        text.E_SetTextWithActive(value, value.E_IsNullOrEmpty() == false);
+    }
+
+    // 버튼 등 누를 수 있는지. null이면 넘어가고, 이미 같으면 건드리지 않는다
+    public static void E_SetInteractable(this UnityEngine.UI.Selectable selectable, bool isInteractable)
+    {
+        if (selectable == null || selectable.interactable == isInteractable)
+            return;
+
+        selectable.interactable = isInteractable;
+    }
+
     // 비어 있어도 되는 그림 칸에 쓴다. null이면 넘어간다
     public static void E_SetImage(this UnityEngine.UI.Image image, UnityEngine.Sprite sprite, UnityEngine.Color color)
     {
@@ -63,6 +88,54 @@ public static class CommonExtensions
 
         image.sprite = sprite;
         image.color = color;
+    }
+
+    // 그림만 바꾸고 색은 그대로
+    public static void E_SetImage(this UnityEngine.UI.Image image, UnityEngine.Sprite sprite)
+    {
+        if (image == null)
+            return;
+
+        image.sprite = sprite;
+    }
+
+    // 글자·그림 색. null이면 넘어간다
+    public static void E_SetColor(this UnityEngine.UI.Graphic graphic, UnityEngine.Color color)
+    {
+        if (graphic == null)
+            return;
+
+        graphic.color = color;
+    }
+
+    // 버튼 누름 연결. 기존 코드 연결은 지우고 하나만 건다(중복 연결 방지). 인스펙터 연결은 남는다
+    public static void E_SetOnClick(this UnityEngine.UI.Button button, UnityEngine.Events.UnityAction onClick)
+    {
+        if (button == null)
+            return;
+
+        button.onClick.RemoveAllListeners();
+        if (onClick != null)
+            button.onClick.AddListener(onClick);
+    }
+
+    // 보이기(alpha 1, 누름 받음) / 숨기기(alpha 0, 누름 통과). null이면 넘어간다
+    public static void E_SetVisible(this UnityEngine.CanvasGroup group, bool isVisible)
+    {
+        if (group == null)
+            return;
+
+        group.alpha = isVisible ? 1f : 0f;
+        group.blocksRaycasts = isVisible;
+    }
+
+    // 누름만 막거나 푼다(alpha는 연출이 맡을 때). null이면 넘어간다
+    public static void E_SetBlocksRaycasts(this UnityEngine.CanvasGroup group, bool isBlock)
+    {
+        if (group == null)
+            return;
+
+        group.blocksRaycasts = isBlock;
     }
 
     // collection ---

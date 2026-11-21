@@ -15,8 +15,7 @@ public class HUDBattle_LootRow : PoolableMonoUI
 
     public void Set(Sprite icon, Color tint, string text)
     {
-        m_Icon.sprite = icon;
-        m_Icon.color = icon != null ? Color.white : tint; // 아이콘이 없으면 버섯 색 칸
-        m_Text.text = text;
+        m_Icon.E_SetImage(icon, icon != null ? Color.white : tint); // 아이콘이 없으면 버섯 색 칸
+        m_Text.E_SetText(text);
     }
 }

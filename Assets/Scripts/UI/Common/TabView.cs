@@ -11,7 +11,7 @@ public class TabView : MonoBehaviour
         if (gameObject.activeSelf == isVisible)
             return;
 
-        gameObject.SetActive(isVisible);
+        gameObject.E_SetActive(isVisible);
 
         if (isVisible)
             OnOpen();

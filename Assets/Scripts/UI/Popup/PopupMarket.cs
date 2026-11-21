@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -32,15 +31,12 @@ public class PopupMarket : Popup
     [SerializeField] private TMP_Text m_IntroMessage = null; // 그 아래 "지금 가면... n시간 n분은 거래할 수 있겠어!"
 
     [Header("상인")]
-    [SerializeField] private RectTransform m_MerchantList = null;     // 세로 목록(VerticalLayoutGroup)
     [SerializeField] private Image m_MerchantIcon = null;
     [SerializeField] private TMP_Text m_MerchantName = null;
     [SerializeField] private TMP_Text m_MerchantDesc = null;
     [SerializeField] private TMP_Text m_MerchantInfo = null;          // 신뢰도·오늘 시세·좋아하는 버섯
 
     [Header("거래")]
-    [SerializeField] private RectTransform m_PickList = null;  // 고른 버섯(HorizontalLayoutGroup)
-    [SerializeField] private RectTransform m_StockList = null; // 남은 버섯(GridLayoutGroup)
     [SerializeField] private TMP_Text m_TotalText = null;
     [SerializeField] private TMP_Text m_MessageText = null;
     [SerializeField] private TMP_Text m_SoldText = null;
@@ -48,47 +44,50 @@ public class PopupMarket : Popup
     [SerializeField] private Button m_WaitButton = null;
     [SerializeField] private TMP_Text m_WaitLabel = null;
     [SerializeField] private Button m_CloseButton = null;
-    [SerializeField] private PopupMarket_Count m_CountPopupPrefab = null; // 담긴 칸을 한 번 더 누르면 뜨는 개수 조절
 
-    private UIListPool<PopupMarket_MerchantRow> m_RowPool;
-    private UIListPool<UICommonSlot> m_StockPool;
-    private UIListPool<UICommonSlot> m_PickPool;
-    private readonly List<LootKey> m_ListStockKey = new();   // m_StockPool 순서
-    private readonly List<LootKey> m_ListPickKey = new();    // 고른 순서. m_PickPool 순서
+    [Header("목록")]
+    [SerializeField] private UIListView<PopupMarket_MerchantRow> m_RowPool = new(); // 상인(세로)
+    [SerializeField] private UIListView<UICommonSlot> m_StockPool = new();          // 남은 버섯(격자, 스크롤 내용 높이도 맞춘다)
+    [SerializeField] private UIListView<UICommonSlot> m_PickPool = new();           // 고른 버섯(가로)
+
+    private readonly List<LootKey> m_ListStockKey = new();  // m_StockPool 순서
+    private readonly List<MarketItem> m_ListItem = new();   // HuntData 요청용
+    private readonly List<LootKey> m_ListPickKey = new();   // 고른 순서. m_PickPool 순서
     private readonly Dictionary<LootKey, int> m_DicPick = new();
-    private readonly List<MarketItem> m_ListItem = new();    // HuntData 요청용
+    private readonly UISequence m_IntroSequence = new();    // 시작 연출. 움직이는 중에 누르면 끝 모습으로, 끝 모습에서 누르면 닫는다
 
     private PopupMarket_Count m_CountPopup; // 떠 있는 개수 조절 팝업
+    private bool m_IsIntroContinue; // 끝 모습에서 눌렀다
     private int m_SelectedIndex;
-    private bool m_IsIntro;     // 시작 연출 중
-    private bool m_IsSkipIntro; // 연출 중 화면을 눌렀다. 움직이는 중이면 끝 모습으로, 끝 모습이면 닫는다
 
+    private bool IsIntro => m_IntroSequence.IsPlaying;
+    public override bool IsCloseOnBack => false; // [시장 닫기]로만 닫는다
     private static HuntData Hunt => PlayerDataManager.Instance?.Hunt;
     private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
-
-    public override bool IsCloseOnBack => false; // [시장 닫기]로만 닫는다
 
     // ------------------------------------------------
 
     private void Awake()
     {
-        // 줄·칸 원본은 Resources 프리팹. 꺼낼 때마다 클릭을 대입으로 다시 연결한다
-        ResourceManager resourceM = ResourceManager.Instance;
-        PopupMarket_MerchantRow rowPrefab = resourceM?.Load<PopupMarket_MerchantRow>(CommonPath.MarketMerchantRow);
-        UICommonSlot slotPrefab = resourceM?.Load<UICommonSlot>(CommonPath.CommonSlot);
-        m_RowPool = new UIListPool<PopupMarket_MerchantRow>(rowPrefab, m_MerchantList, row => row.SetOnClick(OnClickMerchant));
-        m_StockPool = new UIListPool<UICommonSlot>(slotPrefab, m_StockList, slot => slot.SetOnClick(OnClickStock));
-        m_PickPool = new UIListPool<UICommonSlot>(slotPrefab, m_PickList, slot => slot.SetOnClick(OnClickPick));
+        // 줄·칸은 UIFactory로 꺼낸다(UIComponentDef). 꺼낼 때마다 클릭을 대입으로 다시 연결한다
+        m_RowPool.Init(EUIComponentType.PopupMarket_MerchantRow, row => row.SetOnClick(OnClickMerchant));
+        m_StockPool.Init(EUIComponentType.UICommonSlot, slot => slot.SetOnClick(OnClickStock));
+        m_PickPool.Init(EUIComponentType.UICommonSlot, slot => slot.SetOnClick(OnClickPick));
 
-        m_TradeButton.onClick.AddListener(OnClickTrade);
-        m_WaitButton.onClick.AddListener(OnClickWait);
-        m_CloseButton.onClick.AddListener(OnClickClose);
+        m_TradeButton.E_SetOnClick(OnClickTrade);
+        m_WaitButton.E_SetOnClick(OnClickWait);
+        m_CloseButton.E_SetOnClick(OnClickClose);
     }
 
     private void Update()
     {
-        if (m_IsIntro && IsPressed())
-            m_IsSkipIntro = true;
+        if (IsIntro && IsPressed())
+        {
+            if (m_IntroSequence.IsWaiting)
+                m_IsIntroContinue = true;
+            else
+                m_IntroSequence.Skip();
+        }
 
         HuntData hunt = Hunt;
         if (hunt != null)
@@ -102,10 +101,12 @@ public class PopupMarket : Popup
         SEventManager.Subscribe<MarketChanged>(OnMarketChanged);
         SEventManager.Subscribe<MarketClosed>(OnMarketClosed);
 
+        // 다시 여는 팝업이라 지난번 상태를 되돌린다(시계는 남은 시간 표시로)
+        m_Clock.SetMarket(false);
         m_SelectedIndex = 0;
         m_DicPick.Clear();
         m_ListPickKey.Clear();
-        m_WaitLabel.text = $"{Define.MarketActionMinutes}분 기다리기";
+        m_WaitLabel.E_SetText($"{Define.MarketActionMinutes}분 기다리기");
         SetMessage(string.Empty);
 
         HuntData hunt = Hunt;
@@ -113,18 +114,15 @@ public class PopupMarket : Popup
             m_Clock.SetTime(hunt.RemainTime, hunt.NightTime);
 
         Refresh();
-        StartCoroutine(CoIntro());
+        PlayIntro();
     }
 
-    public override void OnClose()
+    protected override void OnClose()
     {
         SEventManager.Unsubscribe<MarketChanged>(OnMarketChanged);
         SEventManager.Unsubscribe<MarketClosed>(OnMarketClosed);
         CloseCountPopup();
-
-        m_RowPool.Clear();
-        m_StockPool.Clear();
-        m_PickPool.Clear();
+        m_IntroSequence.Stop();
     }
 
     // ---
@@ -153,8 +151,8 @@ public class PopupMarket : Popup
         RefreshPick(hunt);
         RefreshTotal(hunt);
 
-        m_SoldText.text = $"판 골드 {hunt.SoldGold:N0}G";
-        m_WaitButton.interactable = hunt.CanAct;
+        m_SoldText.E_SetText($"판 골드 {hunt.SoldGold:N0}G");
+        m_WaitButton.E_SetInteractable(hunt.CanAct);
     }
 
     private void RefreshMerchants(HuntData hunt)
@@ -166,16 +164,16 @@ public class PopupMarket : Popup
         if (merchant == null)
         {
             m_MerchantIcon.enabled = false;
-            m_MerchantName.text = "오늘은 상인이 없다";
-            m_MerchantDesc.text = string.Empty;
-            m_MerchantInfo.text = string.Empty;
+            m_MerchantName.E_SetText("오늘은 상인이 없다");
+            m_MerchantDesc.E_SetText(string.Empty);
+            m_MerchantInfo.E_SetText(string.Empty);
             return;
         }
 
         m_MerchantIcon.enabled = merchant.Icon != null;
-        m_MerchantIcon.sprite = merchant.Icon;
-        m_MerchantName.text = merchant.DisplayName;
-        m_MerchantDesc.text = merchant.Description;
+        m_MerchantIcon.E_SetImage(merchant.Icon);
+        m_MerchantName.E_SetText(merchant.DisplayName);
+        m_MerchantDesc.E_SetText(merchant.Description);
 
         int swing = Mathf.RoundToInt((hunt.GetSwingRate(merchant) - 1f) * 100f);
         string swingText = swing > 0 ? UIStyle.ColorTag(UIStyle.Positive, $"+{swing}%") : swing < 0 ? UIStyle.ColorTag(UIStyle.Negative, $"{swing}%") : "보통";
@@ -183,11 +181,11 @@ public class PopupMarket : Popup
         string gainText = gain > 0 ? " " + UIStyle.ColorTag(UIStyle.Positive, $"(+{gain})") : string.Empty;
         string otherText = merchant.OtherRate > 0f ? $"x{merchant.OtherRate:0.0#}" : UIStyle.ColorTag(UIStyle.Negative, "안 삼");
 
-        m_MerchantInfo.text =
+        m_MerchantInfo.E_SetText(
             $"신뢰도  {market.GetTrust(merchant.ID)}{gainText}\n" +
             $"오늘 시세  {swingText}\n" +
             $"{GetRarityName(merchant.PreferRarity)} 이상  x{merchant.PreferRate:0.0#}\n" +
-            $"그 밖  {otherText}";
+            $"그 밖  {otherText}");
     }
 
     private static string GetRarityName(ERarity rarity)
@@ -227,8 +225,8 @@ public class PopupMarket : Popup
         BuildRequest();
         EMarketResult result = hunt.CheckTrade(SelectedMerchant, m_ListItem, out int gold);
 
-        m_TotalText.text = $"합계 {gold}G  ({m_ListPickKey.Count}/{Define.MarketTradeLimit}묶음)";
-        m_TradeButton.interactable = result == EMarketResult.Success;
+        m_TotalText.E_SetText($"합계 {gold}G  ({m_ListPickKey.Count}/{Define.MarketTradeLimit}묶음)");
+        m_TradeButton.E_SetInteractable(result == EMarketResult.Success);
 
         if (result == EMarketResult.NotBuying)
             SetMessage("이 상인이 사지 않는 버섯이 섞여 있다");
@@ -279,9 +277,8 @@ public class PopupMarket : Popup
     // Def가 없으면 맨 뒤로 보내고 ID로 비교한다
     private static int GetDexNo(string itemID)
     {
-        MushroomDef def = null;
-        GameManager.Instance?.Database?.TryGet(itemID, out def);
-        return def != null ? def.DexNo : int.MaxValue;
+        GameDatabase.S_TryGet(itemID, out MushroomDef def); // 없으면 def는 null
+        return def.E_Alive()?.DexNo ?? int.MaxValue;
     }
 
     // slot ---
@@ -313,26 +310,22 @@ public class PopupMarket : Popup
     private string GetPriceText(HuntData hunt, LootKey key)
     {
         MerchantDef merchant = SelectedMerchant;
-        int price = merchant != null ? hunt.GetPrice(merchant, key) : 0;
+        int price = 0;
+        if (merchant != null)
+            price = hunt.GetPrice(merchant, key);
         return price > 0 ? $"{price}G" : "안 삼";
     }
 
-    // 칸: 아이콘 + 개수, 아래에 값, 바탕 = 희귀도, 곰팡이 얼룩 = 덜 신선. 개수 조절 팝업도 쓴다
-    public static void SetLootSlot(UICommonSlot slot, LootKey key, int count, string priceText)
+    // 칸: 아이콘 + 개수, 아래에 값, 바탕 = 희귀도, 곰팡이 얼룩 = 덜 신선
+    private static void SetLootSlot(UICommonSlot slot, LootKey key, int count, string priceText)
     {
-        MushroomDef def = null;
-        GameManager.Instance?.Database?.TryGet(key.ItemID, out def);
-
-        Sprite icon = def != null ? def.Icon : null;
-        Color tint = def != null ? def.Tint : UIStyle.PanelLight;
-        slot.Set(key.ItemID, icon, priceText, count, tint);
-        slot.SetRarity(key.Rarity);
-        slot.SetFreshness(key.Freshness);
+        GameDatabase.S_TryGet(key.ItemID, out MushroomDef def); // 없으면 def는 null
+        slot.SetLoot(key, def, count, priceText);
     }
 
     private void SetMessage(string text)
     {
-        m_MessageText.text = text;
+        m_MessageText.E_SetText(text);
     }
 
     // click ---
@@ -360,7 +353,7 @@ public class PopupMarket : Popup
         m_DicPick.TryGetValue(key, out int picked);
 
         SetMessage(string.Empty);
-        if (m_IsIntro || hunt == null || hunt.DicHarvest.TryGetValue(key, out int have) == false || have <= 0)
+        if (IsIntro || hunt == null || hunt.DicHarvest.TryGetValue(key, out int have) == false || have <= 0)
             return;
 
         if (picked > 0)
@@ -427,78 +420,68 @@ public class PopupMarket : Popup
 
     // intro ---
 
-    // !!) 시장 중에는 시간이 멈춰 있어(TimeManager) 모두 unscaled 시간으로 돈다
-    private IEnumerator CoIntro()
+    // !!) 시장 중에는 시간이 멈춰 있어(TimeManager) 연출은 unscaled 시간으로 돈다(UISequence)
+    private void PlayIntro()
     {
         HuntData hunt = Hunt;
-        float remain = hunt != null ? hunt.RemainTime : 0f;
+        float remain = hunt?.RemainTime ?? 0f;
         int seconds = Mathf.CeilToInt(remain);
         int minutes = UINightClock.ToGameMinutes(remain);
 
-        m_IsIntro = true;
-        m_IsSkipIntro = false;
-        m_Body.alpha = 0f;
-        m_Body.blocksRaycasts = false;
-        m_Intro.gameObject.SetActive(true);
+        m_IsIntroContinue = false;
+        m_Body.E_SetVisible(false);
+        m_Intro.E_SetActive(true);
         m_Intro.alpha = 1f;
         m_Clock.SetTextVisible(false);
 
-        // 1. 시계 아래 남은 시간이 가운데로 날아오며 커진다
         RectTransform timer = m_IntroTimer.rectTransform;
         Vector3 to = timer.position;
         Vector3 from = m_Clock.TextRect.position;
         float fromScale = m_Clock.TextRect.rect.height / Mathf.Max(1f, timer.rect.height);
-        m_IntroTimer.text = UINightClock.FormatRealTime(seconds);
-        m_IntroMessage.text = FormatIntro(0);
+        m_IntroTimer.E_SetText(UINightClock.FormatRealTime(seconds));
+        m_IntroMessage.E_SetText(FormatIntro(0));
         m_IntroMessage.alpha = 0f;
 
-        for (float t = 0f; t < IntroMoveTime && m_IsSkipIntro == false; t += Time.unscaledDeltaTime)
-        {
-            float k = UITween.EaseOutCubic(t / IntroMoveTime);
-            timer.position = Vector3.Lerp(from, to, k);
-            timer.localScale = Vector3.one * Mathf.Lerp(fromScale, 1f, k);
-            m_IntroMessage.alpha = k;
-            yield return null;
-        }
-
-        timer.position = to;
-        timer.localScale = Vector3.one;
-        m_IntroMessage.alpha = 1f;
-
-        // 2. 남은 시간은 주르륵 줄고, 시장 시간은 후루룩 오른다
-        for (float t = 0f; t < IntroCountTime && m_IsSkipIntro == false; t += Time.unscaledDeltaTime)
-        {
-            float k = UITween.EaseOutCubic(t / IntroCountTime);
-            m_IntroTimer.text = UINightClock.FormatRealTime(Mathf.RoundToInt(seconds * (1f - k)));
-            m_IntroMessage.text = FormatIntro(Mathf.RoundToInt(minutes * k / 10f) * 10); // 10분 단위로 굴러간다
-            yield return null;
-        }
-
-        // 끝 모습에서 멈춰 있다가, 한 번 더 누르면 닫는다
-        m_IntroTimer.text = UINightClock.FormatRealTime(0);
-        m_IntroMessage.text = $"{FormatIntro(minutes)}\n<size={UIStyle.FontSmall}>{UIStyle.ColorTag(UIStyle.TextDim, "눌러서 계속")}</size>";
-        m_IsSkipIntro = false;
-        while (m_IsSkipIntro == false)
-        {
-            yield return null;
-        }
-
-        // 3. 본 화면. 시계 자리에는 시장 시간
-        m_Clock.SetMarket(true);
-        m_Clock.SetTextVisible(true);
-
-        for (float t = 0f; t < FadeTime; t += Time.unscaledDeltaTime)
-        {
-            float k = t / FadeTime;
-            m_Intro.alpha = 1f - k;
-            m_Body.alpha = k;
-            yield return null;
-        }
-
-        m_Intro.gameObject.SetActive(false);
-        m_Body.alpha = 1f;
-        m_Body.blocksRaycasts = true;
-        m_IsIntro = false;
+        m_IntroSequence.Clear()
+            // 1. 시계 아래 남은 시간이 가운데로 날아오며 커진다
+            .Tween(IntroMoveTime, t =>
+            {
+                float k = UITween.EaseOutCubic(t);
+                timer.position = Vector3.Lerp(from, to, k);
+                timer.localScale = Vector3.one * Mathf.Lerp(fromScale, 1f, k);
+                m_IntroMessage.alpha = k;
+            })
+            // 2. 남은 시간은 주르륵 줄고, 시장 시간은 후루룩 오른다
+            .Tween(IntroCountTime, t =>
+            {
+                float k = UITween.EaseOutCubic(t);
+                m_IntroTimer.E_SetText(UINightClock.FormatRealTime(Mathf.RoundToInt(seconds * (1f - k))));
+                m_IntroMessage.E_SetText(FormatIntro(Mathf.RoundToInt(minutes * k / 10f) * 10)); // 10분 단위로 굴러간다
+            })
+            // 끝 모습에서 멈춰 있다가, 한 번 더 누르면 닫는다
+            .Call(() =>
+            {
+                m_IntroTimer.E_SetText(UINightClock.FormatRealTime(0));
+                m_IntroMessage.E_SetText($"{FormatIntro(minutes)}\n<size={UIStyle.FontSmall}>{UIStyle.ColorTag(UIStyle.TextDim, "눌러서 계속")}</size>");
+            })
+            .WaitUntil(() => m_IsIntroContinue)
+            // 3. 본 화면. 시계 자리에는 시장 시간
+            .Call(() =>
+            {
+                m_Clock.SetMarket(true);
+                m_Clock.SetTextVisible(true);
+            })
+            .Tween(FadeTime, t =>
+            {
+                m_Intro.alpha = 1f - t;
+                m_Body.alpha = t;
+            })
+            .Call(() =>
+            {
+                m_Intro.E_SetActive(false);
+                m_Body.E_SetVisible(true);
+            })
+            .Play(this);
     }
 
     // 화면(마우스·터치) 누름. 연출 넘기기용
@@ -538,18 +521,14 @@ public class PopupMarket : Popup
 
     private void OpenCountPopup(HuntData hunt, LootKey key, int have, int picked)
     {
-        if (m_CountPopupPrefab == null)
-        {
-            CLogger.Warning("PopupMarket", "개수 조절 팝업 프리팹이 없습니다. MushTaker/시장/시장 팝업 다시 만들기 + HUD 연결을 실행하세요.");
-            return;
-        }
-
         CloseCountPopup();
         MerchantDef merchant = SelectedMerchant;
-        int price = merchant != null ? hunt.GetPrice(merchant, key) : 0;
+        int price = 0;
+        if (merchant != null)
+            price = hunt.GetPrice(merchant, key);
 
-        m_CountPopup = GameManager.Instance?.PopupS?.Open(m_CountPopupPrefab);
-        m_CountPopup?.Setup(key, have, picked, price, count => OnCountConfirm(key, count));
+        m_CountPopup = GameManager.Instance?.PopupS?.Open<PopupMarket_Count>(EPopupType.PopupMarket_Count);
+        m_CountPopup.E_Alive()?.Setup(key, have, picked, price, count => OnCountConfirm(key, count));
     }
 
     // 0개면 팔 목록에서 뺀다

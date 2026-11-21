@@ -18,8 +18,8 @@ public class PopupDeath : Popup
 
     private void Awake()
     {
-        m_ReviveButton.onClick.AddListener(OnClickRevive);
-        m_HomeButton.onClick.AddListener(OnClickHome);
+        m_ReviveButton.E_SetOnClick(OnClickRevive);
+        m_HomeButton.E_SetOnClick(OnClickHome);
     }
 
     // virtual ---
@@ -30,8 +30,8 @@ public class PopupDeath : Popup
         if (battleS == null)
             return;
 
-        m_ReviveLabel.text = $"부활 ({battleS.ReviveGold} 골드)";
-        m_ReviveButton.interactable = battleS.CanRevive; // 골드가 모자라면 못 누른다
+        m_ReviveLabel.E_SetText($"부활 ({battleS.ReviveGold} 골드)");
+        m_ReviveButton.E_SetInteractable(battleS.CanRevive); // 골드가 모자라면 못 누른다
     }
 
     // ---

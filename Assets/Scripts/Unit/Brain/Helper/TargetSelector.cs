@@ -12,7 +12,7 @@ public class TargetSelector
 
     // 노리는 적. 죽었거나 같은 팀이 되면 null
     public UnitController Target => IsValid(m_Target) ? m_Target : null;
-    public Transform TargetTransform => Target != null ? m_Target.transform : null;
+    public Transform TargetTransform => Target.E_Alive()?.transform;
     public bool HasTarget => Target != null;
 
     // ------------------------------------------------
@@ -81,7 +81,8 @@ public class TargetSelector
 
         Vector3 diff = target.position - m_Owner.transform.position;
         diff.y = 0f;
-        float bodyRadius = m_Owner.HurtBody != null ? m_Owner.HurtBody.radius : 0f;
+        
+        float bodyRadius = m_Owner.HurtBody.E_Alive()?.radius ?? 0f;
         return Mathf.Max(0f, diff.magnitude - bodyRadius);
     }
 

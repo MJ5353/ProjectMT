@@ -48,8 +48,8 @@ public class UITooltip : MonoBehaviour
             return;
 
         m_Target = target;
-        m_Label.text = text;
-        gameObject.SetActive(true);
+        m_Label.E_SetText(text);
+        gameObject.E_SetActive(true);
 
         if (m_Routine != null)
             StopCoroutine(m_Routine);
@@ -61,7 +61,7 @@ public class UITooltip : MonoBehaviour
     {
         m_Target = null;
         m_Routine = null; // 꺼지면 코루틴도 멈춘다
-        gameObject.SetActive(false);
+        gameObject.E_SetActive(false);
     }
 
     // ==================================================

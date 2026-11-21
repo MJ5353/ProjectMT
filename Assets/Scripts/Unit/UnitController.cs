@@ -200,7 +200,7 @@ public class UnitController : PoolableMono
             return;
         }
 
-        Destroy(gameObject);
+        ResourceManager.S_Delete(gameObject);
     }
 
     // 몬스터가 노리거나 버섯이 빨려 들 수 있는 상태인지. 판단 기준은 여기서만 정한다

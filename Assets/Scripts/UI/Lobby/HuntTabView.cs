@@ -34,8 +34,8 @@ public class HuntTabView : TabView
     private void Awake()
     {
         m_MushroomPool.Init(EUIComponentType.UICommonSlot, OnSpawnMushroomSlot);
-        m_NodeTemplate.gameObject.SetActive(false);
-        m_EnterButton.onClick.AddListener(OnClickEnter);
+        m_NodeTemplate.E_SetActive(false);
+        m_EnterButton.E_SetOnClick(OnClickEnter);
     }
 
     // virtual ---
@@ -73,9 +73,12 @@ public class HuntTabView : TabView
 
         foreach (MapDef mapDef in m_ListMap)
         {
-            UIMapNode node = Instantiate(m_NodeTemplate, m_MapRoot);
+            UIMapNode node = ResourceManager.S_Create(m_NodeTemplate, m_MapRoot);
+            if (node == null)
+                continue;
+
             node.name = $"Node_{mapDef.ID}";
-            node.gameObject.SetActive(true);
+            node.E_SetActive(true);
 
             RectTransform rt = node.transform as RectTransform;
             if (rt != null)
@@ -87,7 +90,7 @@ public class HuntTabView : TabView
 
             node.Set(mapDef);
             MapDef captured = mapDef;
-            node.Button.onClick.AddListener(() => Select(captured));
+            node.Button.E_SetOnClick(() => Select(captured));
             
             m_ListNode.Add(node);
         }
@@ -136,7 +139,7 @@ public class HuntTabView : TabView
             m_InfoName.E_SetText("지역 없음");
             m_InfoState.E_SetText(string.Empty);
             m_InfoDesc.E_SetText("MushTaker/데이터 편집기에서 MapDef를 준비하세요.");
-            m_EnterButton.interactable = false;
+            m_EnterButton.E_SetInteractable(false);
             return;
         }
 
@@ -153,8 +156,8 @@ public class HuntTabView : TabView
         else
             m_InfoState.E_SetText($"잠김 · {m_Selected.RequireMap.DisplayName}을(를) 먼저 토벌");
 
-        m_InfoState.color = isUnlocked ? UIStyle.Gold : UIStyle.TextDim;
-        m_EnterButton.interactable = isUnlocked;
+        m_InfoState.E_SetColor(isUnlocked ? UIStyle.Gold : UIStyle.TextDim);
+        m_EnterButton.E_SetInteractable(isUnlocked);
 
         foreach (MushroomDef mushroom in m_Selected.ListMushroom)
         {

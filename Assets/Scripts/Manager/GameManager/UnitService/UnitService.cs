@@ -196,7 +196,7 @@ public readonly struct UnitHitCandidate
     public readonly float Radius;
 
     // 몸 판정 표가 있으면 캡슐 대신 그것만 쓴다(버섯이 걸린 몸 부위도 몸 판정 표다)
-    private bool HasBodyShape() => Unit?.HitF?.HasShape ?? false;
+    private bool HasBodyShape() => Unit.E_Alive()?.HitF?.HasShape ?? false;
     
     // ------------------------------------------------
     

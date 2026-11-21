@@ -46,7 +46,7 @@ public class HUDBattle_SkillChain : MonoBehaviour
         if (main != m_MainSkill)
         {
             m_MainSkill = main;
-            m_MainIcon.sprite = main.E_Alive()?.Icon;
+            m_MainIcon.E_SetImage(main.E_Alive()?.Icon);
             m_MainIcon.enabled = m_MainIcon.sprite != null;
         }
 

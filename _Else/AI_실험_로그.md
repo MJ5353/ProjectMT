@@ -321,6 +321,8 @@
 - 직접 Popup 닫기 이름을 `BeginClose`·`EndClose`로 바꾸고(AI 제안), 팝업 파괴를 ResourceManager 삭제 요청으로 모으라고 지시. AI가 `ResourceManager.Delete`·`S_Delete`를 추가해 팝업 파괴와 풀 밖 인스턴스 삭제를 그쪽으로 옮김.
 - 직접 목록 배치를 LayoutGroup 없이 직접 좌표 계산으로 하라고 지시. AI가 처음엔 배치 값 컴포넌트 `UIListLayout`을 따로 만들었으나, 직접 "UIListView가 알아서" 하도록 지적해 배치 옵션을 `UIListView` 직렬화 필드(화면이 `[SerializeField]`로 들고 `Init`으로 칸 종류 지정)로 옮김. `UIListView.Arrange`가 세로·가로·격자 좌표와 내용 크기를 계산하게 바꿈. 화면 7곳·UI 생성기의 LayoutGroup·ContentSizeFitter·LayoutElement를 지움. 스킬 연계 알파 비교는 `Mathf.Approximately`로. 컴파일·플레이 확인 안 함.
 - 직접 머리 위 체력바를 매 프레임 "안 보인 유닛" 검사로 회수하던 것을 유닛 삭제 이벤트로 바꾸라고 지시. AI가 `UnitService.UnitRemoved`를 구독해 바를 돌려주고 잡고 있던 보스도 놓게 함. 컴파일·플레이 확인 안 함.
+- 직접 남은 UI 정리 항목을 골라 지시. AI가 연출 공용 `UISequence`(Tween·Join·Wait·Call·WaitUntil, 다음 대기 지점까지 건너뛰기)를 만들어 팝업 여닫기·결과 칸 순차 등장·시장 인트로를 옮기고, 생성·삭제를 `ResourceManager.Create/Delete`로 모음. 전투·매니저의 Unity 객체 `?.`·널 삼항을 `E_Alive`로, DB 조회를 `GameDatabase.S_TryGet`으로 통일. UIListView는 바뀔 때만 다시 배치하고 인스펙터 배치 미리보기를 붙임. 직접 만든 `E_SetText`로 `.text` 대입을 통일하고 `E_SetTextWithActive`·`E_SetInteractable`을 추가. 컴파일·플레이 확인 안 함.
+- UI 접근 통일 2차. 직접 고른 4가지를 AI가 UI 코드 전체에 적용: `SetActive`→`E_SetActive`, CanvasGroup 보이기/숨기기→`E_SetVisible`(누름만은 `E_SetBlocksRaycasts`), 버튼 연결→`E_SetOnClick`(중복 연결 방지), 색·그림 대입→`E_SetColor`·`E_SetImage`. 컴파일·플레이 확인 안 함.
 
 
 ## 게임 흐름 Flow 구조 설계

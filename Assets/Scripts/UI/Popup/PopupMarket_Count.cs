@@ -35,13 +35,13 @@ public class PopupMarket_Count : Popup
 
     private void Awake()
     {
-        m_Minus10Button.onClick.AddListener(() => AddCount(-StepLarge));
-        m_Minus1Button.onClick.AddListener(() => AddCount(-StepSmall));
-        m_Plus1Button.onClick.AddListener(() => AddCount(StepSmall));
-        m_Plus10Button.onClick.AddListener(() => AddCount(StepLarge));
-        m_AllButton.onClick.AddListener(() => SetCount(m_Have));
-        m_CancelButton.onClick.AddListener(Close);
-        m_ConfirmButton.onClick.AddListener(OnClickConfirm);
+        m_Minus10Button.E_SetOnClick(() => AddCount(-StepLarge));
+        m_Minus1Button.E_SetOnClick(() => AddCount(-StepSmall));
+        m_Plus1Button.E_SetOnClick(() => AddCount(StepSmall));
+        m_Plus10Button.E_SetOnClick(() => AddCount(StepLarge));
+        m_AllButton.E_SetOnClick(() => SetCount(m_Have));
+        m_CancelButton.E_SetOnClick(Close);
+        m_ConfirmButton.E_SetOnClick(OnClickConfirm);
     }
 
     // price가 0 이하면 이 상인이 사지 않는 버섯이다
@@ -51,10 +51,9 @@ public class PopupMarket_Count : Popup
         m_Price = price;
         m_OnConfirm = onConfirm;
 
-        MushroomDef def = null;
-        GameManager.Instance?.Database?.TryGet(key.ItemID, out def);
-        m_NameText.text = def != null ? def.DisplayName : key.ItemID;
-        PopupMarket.SetLootSlot(m_Slot, key, m_Have, string.Empty);
+        GameDatabase.S_TryGet(key.ItemID, out MushroomDef def); // 없으면 def는 null
+        m_NameText.E_SetText(def.E_Alive()?.DisplayName ?? key.ItemID);
+        m_Slot.SetLoot(key, def, m_Have, string.Empty);
 
         SetCount(count);
     }
@@ -70,12 +69,17 @@ public class PopupMarket_Count : Popup
     {
         m_Count = Mathf.Clamp(count, 0, m_Have);
 
-        m_CountText.text = $"판매 {m_Count} / {m_Have}";
-        m_ChangeText.text = $"{m_Have}→{m_Have - m_Count}";
-        m_PriceText.text = m_Price > 0 ? $"한 개 {m_Price}G  ·  합계 {m_Price * m_Count:N0}G" : UIStyle.ColorTag(UIStyle.Negative, "이 상인은 사지 않는다");
+        m_CountText.E_SetText($"판매 {m_Count} / {m_Have}");
+        m_ChangeText.E_SetText($"{m_Have}→{m_Have - m_Count}");
+        m_PriceText.E_SetText(m_Price > 0 ? $"한 개 {m_Price}G  ·  합계 {m_Price * m_Count:N0}G" : UIStyle.ColorTag(UIStyle.Negative, "이 상인은 사지 않는다"));
 
-        m_Minus10Button.interactable = m_Minus1Button.interactable = m_Count > 0;
-        m_Plus1Button.interactable = m_Plus10Button.interactable = m_AllButton.interactable = m_Count < m_Have;
+        bool canMinus = m_Count > 0;
+        bool canPlus = m_Count < m_Have;
+        m_Minus10Button.E_SetInteractable(canMinus);
+        m_Minus1Button.E_SetInteractable(canMinus);
+        m_Plus1Button.E_SetInteractable(canPlus);
+        m_Plus10Button.E_SetInteractable(canPlus);
+        m_AllButton.E_SetInteractable(canPlus);
     }
 
     private void OnClickConfirm()

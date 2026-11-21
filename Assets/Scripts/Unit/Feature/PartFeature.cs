@@ -290,8 +290,8 @@ public class PartFeature : UnitFeature
         Part part = new Part(index, entry);
         for (int i = 0; i < entry.CountMax; i++)
         {
-            Renderer normal = Object.Instantiate(entry.Model, owner.transform);
-            Renderer broken = entry.BrokenModel != null ? Object.Instantiate(entry.BrokenModel, owner.transform) : null;
+            Renderer normal = ResourceManager.S_Create(entry.Model, owner.transform);
+            Renderer broken = ResourceManager.S_Create(entry.BrokenModel, owner.transform); // 깨진 모델이 없으면 null
 
             owner.HitF.AddFlashRenderer(normal, index);
             owner.HitF.AddFlashRenderer(broken, index);

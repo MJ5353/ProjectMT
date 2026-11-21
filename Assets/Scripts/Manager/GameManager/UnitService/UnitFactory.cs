@@ -47,10 +47,6 @@ public sealed class UnitFactory
 
         unit.OnDespawn();
 
-        ResourceManager resourceM = ResourceManager.Instance;
-        if (resourceM != null)
-            resourceM.Despawn(unit);
-        else
-            Object.Destroy(unit.gameObject);
+        ResourceManager.S_Despawn(unit); // 풀로 돌려준다(ResourceManager가 만든 것이 아니면 지운다)
     }
 }

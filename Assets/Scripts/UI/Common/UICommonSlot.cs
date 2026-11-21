@@ -34,7 +34,7 @@ public class UICommonSlot : PoolableMonoUI
     private void Awake()
     {
         if (m_Button != null)
-            m_Button.onClick.AddListener(OnClickSlot);
+            m_Button.E_SetOnClick(OnClickSlot);
     }
 
     public void Clear()
@@ -91,9 +91,9 @@ public class UICommonSlot : PoolableMonoUI
     {
         ItemID = itemID;
         Count = count;
+        
         m_Icon.enabled = true;
-        m_Icon.sprite = icon;
-        m_Icon.color = icon != null ? Color.white : tint;
+        m_Icon.E_SetImage(icon, icon != null ? Color.white : tint);
 
         SetRarity(ERarity.Common);
         SetFreshness(EFreshness.High);
@@ -124,11 +124,7 @@ public class UICommonSlot : PoolableMonoUI
 
     public void SetCaption(string text)
     {
-        bool isShow = text.E_IsNullOrEmpty() == false;
-        m_Caption.E_SetActive(isShow);
-        
-        if (isShow)
-            m_Caption.E_SetText(text);
+        m_Caption.E_SetTextWithActive(text); // 비었으면 끈다
     }
 
     public void SetRarity(ERarity rarity)

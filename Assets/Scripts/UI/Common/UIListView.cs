@@ -16,10 +16,11 @@ public enum EUIListAxis
     Grid,       // 왼쪽에서 오른쪽, 넘치면 다음 줄
 }
 
+// 배치 옵션과 좌표 계산. 칸 종류를 모르는 부분이라 따로 둔다(에디터 미리보기도 이걸 쓴다)
 [Serializable]
-public class UIListView<T> where T : PoolableMonoUI
+public abstract class UIListViewBase
 {
-    [SerializeField] private RectTransform m_Root = null;                 // 칸을 놓을 영역
+    [SerializeField] protected RectTransform m_Root = null;                 // 칸을 놓을 영역
     [SerializeField] private EUIListAxis m_Axis = EUIListAxis.Vertical;
     [SerializeField] private Vector2 m_CellSize = Vector2.zero;           // 칸 크기. 0인 축은 칸 원래 크기(격자는 둘 다 필요)
     [SerializeField] private Vector2 m_Spacing = Vector2.zero;            // 칸 사이(가로, 세로)
@@ -28,82 +29,31 @@ public class UIListView<T> where T : PoolableMonoUI
     [SerializeField] private bool m_IsStretch = false;                    // 세로 목록은 폭, 가로 목록은 높이를 영역에 맞춘다
     [SerializeField] private bool m_IsFitContent = false;                 // 영역 크기를 칸 묶음에 맞춘다(세로·격자는 높이, 가로는 폭)
 
-    private EUIComponentType m_Type;
-    private Action<T> m_OnSpawn; // 처음 꺼낼 때 한 번(클릭 연결 등. 대입으로 연결해 쌓이지 않게)
+    protected readonly List<RectTransform> m_ListRect = new(); // 칸 RectTransform. 자식 클래스가 칸 순서대로 채운다
+    private readonly List<Vector2> m_ListCell = new();         // Arrange 계산용 칸 크기
 
-    private readonly List<T> m_List = new();
-    private readonly List<Vector2> m_ListCell = new(); // Arrange 계산용 칸 크기
-
-    public int Count => m_List.Count;
-    public IReadOnlyList<T> List => m_List;
+    // 마지막 배치 상태. 같으면 다시 계산하지 않는다
+    private bool m_IsDirty = true;
+    private int m_ArrangedCount = -1;
+    private Vector2 m_ArrangedArea;
 
     // ------------------------------------------------
 
-    // 클릭된 칸의 순서. 없으면 -1
-    public int IndexOf(T item) => m_List.IndexOf(item);
-    
-    // 화면 Awake에서 한 번 부른다
-    public void Init(EUIComponentType type, Action<T> onSpawn = null)
-    {
-        m_Type = type;
-        m_OnSpawn = onSpawn;
-    }
+    // 칸 크기가 onSet 등에서 바뀌었으면 불러서 다음 Arrange가 다시 계산하게 한다
+    public void SetDirty() => m_IsDirty = true;
 
-    // list 수만큼 칸을 켜서 onSet으로 채우고, 남는 칸은 끈다. 채운 뒤 자리를 잡는다(칸 크기가 onSet에서 바뀌어도 맞게)
-    public void Refresh<TData>(IReadOnlyList<TData> list, Action<T, TData> onSet)
-    {
-        int count = list?.Count ?? 0;
-        for (int i = 0; i < count; ++i)
-        {
-            T item = Get(i);
-            if (item != null)
-                onSet?.Invoke(item, list.E_GetOrDefault(i));
-        }
-
-        HideFrom(count);
-        Arrange(count);
-    }
-
-    // index번 칸을 돌려준다. 모자라면 UIFactory로 꺼내 채우고, isActive대로 켜거나 끈다.
-    // Refresh가 쓰고, 꺼 둔 채 준비할 때는 직접 부른다(그때는 다 채운 뒤 Arrange를 부른다)
-    public T Get(int index, bool isActive = true)
-    {
-        while (index >= m_List.Count)
-        {
-            if (m_Root == null)
-                return null;
-
-            T item = GameManager.Instance?.UIFactory?.Spawn<T>(m_Type, m_Root);
-            if (item == null)
-                return null;
-
-            m_OnSpawn?.Invoke(item);
-            m_List.Add(item);
-        }
-
-        T result = m_List[index];
-        result.gameObject.E_SetActive(isActive);
-        
-        return result;
-    }
-
-    // index부터 끝까지 끈다
-    public void HideFrom(int index)
-    {
-        for (int i = Mathf.Max(0, index); i < m_List.Count; ++i)
-        {
-            m_List[i].gameObject.SetActive(false);
-        }
-    }
-
-    // 앞에서 count개 칸의 크기·좌표를 정한다. 칸 앵커는 영역 왼쪽 위로 두고, 피벗은 칸 원래 값을 지킨다(튕김 연출 기준점 유지)
-    public void Arrange(int count)
+    // 앞에서 count개 칸의 크기·좌표를 정한다. 칸 앵커는 영역 왼쪽 위로 두고, 피벗은 칸 원래 값을 지킨다(튕김 연출 기준점 유지).
+    // 칸 수·영역 크기가 그대로이고 새 칸도 없으면 건너뛴다(isForce면 항상)
+    public void Arrange(int count, bool isForce = false)
     {
         RectTransform area = m_Root;
         if (area == null)
             return;
 
-        count = Mathf.Min(count, m_List.Count);
+        count = Mathf.Min(count, m_ListRect.Count);
+        if (isForce == false && m_IsDirty == false && count == m_ArrangedCount && area.rect.size == m_ArrangedArea)
+            return;
+
         m_ListCell.Clear();
 
         RectOffset padding = m_Padding;
@@ -115,7 +65,7 @@ public class UIListView<T> where T : PoolableMonoUI
         // 1. 칸 크기
         for (int i = 0; i < count; ++i)
         {
-            m_ListCell.Add(GetCellSize(m_List[i].RectTransform, axis, innerWidth, innerHeight));
+            m_ListCell.Add(GetCellSize(m_ListRect[i], axis, innerWidth, innerHeight));
         }
 
         // 2. 칸 묶음 크기(격자는 한 줄에 들어가는 칸 수부터)
@@ -180,23 +130,12 @@ public class UIListView<T> where T : PoolableMonoUI
                 }
             }
 
-            Place(m_List[i].RectTransform, cellX, cellY, cell);
-        }
-    }
-
-    // 씬 전환 전에 일부러 돌려줄 때만 쓴다(보통은 UIFactory가 씬 전환 때 회수한다)
-    public void Clear()
-    {
-        UIFactory factory = GameManager.Instance?.UIFactory;
-        foreach (T item in m_List)
-        {
-            if (factory != null)
-                factory.Despawn(item);
-            else
-                ResourceManager.S_Despawn(item);
+            Place(m_ListRect[i], cellX, cellY, cell);
         }
 
-        m_List.Clear();
+        m_IsDirty = false;
+        m_ArrangedCount = count;
+        m_ArrangedArea = area.rect.size;
     }
 
     // arrange ---
@@ -269,5 +208,145 @@ public class UIListView<T> where T : PoolableMonoUI
         rt.anchorMax = topLeft;
         rt.sizeDelta = cell;
         rt.anchoredPosition = new Vector2(x + cell.x * rt.pivot.x, -y - cell.y * (1f - rt.pivot.y));
+    }
+
+#if UNITY_EDITOR
+    private const string PreviewName = "__ListPreview";
+    private const float PreviewDefaultSize = 100f; // 칸 크기가 0인 축의 미리보기 크기
+
+    // 에디터 전용 배치 미리보기. 영역 아래에 저장되지 않는 가짜 칸 count개를 놓고 같은 계산으로 배치한다(인스펙터 버튼이 부른다)
+    public void EditorPreview(int count)
+    {
+        EditorClearPreview();
+        if (m_Root == null)
+            return;
+
+        Vector2 size = new Vector2(m_CellSize.x > 0f ? m_CellSize.x : PreviewDefaultSize, m_CellSize.y > 0f ? m_CellSize.y : PreviewDefaultSize);
+        for (int i = 0; i < count; ++i)
+        {
+            GameObject go = new GameObject(PreviewName, typeof(RectTransform));
+            go.hideFlags = HideFlags.DontSave; // 씬·프리팹에 저장되지 않는다
+            go.transform.SetParent(m_Root, false);
+
+            UnityEngine.UI.Image image = go.AddComponent<UnityEngine.UI.Image>();
+            image.color = new Color(1f, 0.5f, 0f, 0.5f);
+            image.raycastTarget = false;
+
+            RectTransform rt = go.transform as RectTransform;
+            if (rt == null)
+                continue;
+
+            rt.sizeDelta = size;
+            m_ListRect.Add(rt);
+        }
+
+        Arrange(count, true);
+        m_ListRect.Clear();
+    }
+
+    // 미리보기 칸을 지운다
+    public void EditorClearPreview()
+    {
+        if (m_Root == null)
+            return;
+
+        for (int i = m_Root.childCount - 1; i >= 0; --i)
+        {
+            Transform child = m_Root.GetChild(i);
+            if (child.name == PreviewName)
+                UnityEngine.Object.DestroyImmediate(child.gameObject);
+        }
+    }
+#endif
+}
+
+// 칸 종류(T)를 아는 쪽. 꺼내기·끄기·돌려주기를 맡는다
+[Serializable]
+public class UIListView<T> : UIListViewBase where T : PoolableMonoUI
+{
+    private EUIComponentType m_Type;
+    private Action<T> m_OnSpawn; // 처음 꺼낼 때 한 번(클릭 연결 등. 대입으로 연결해 쌓이지 않게)
+
+    private readonly List<T> m_List = new();
+
+    public int Count => m_List.Count;
+    public IReadOnlyList<T> List => m_List;
+
+    // ------------------------------------------------
+
+    // 클릭된 칸의 순서. 없으면 -1
+    public int IndexOf(T item) => m_List.IndexOf(item);
+    
+    // 화면 Awake에서 한 번 부른다
+    public void Init(EUIComponentType type, Action<T> onSpawn = null)
+    {
+        m_Type = type;
+        m_OnSpawn = onSpawn;
+    }
+
+    // list 수만큼 칸을 켜서 onSet으로 채우고, 남는 칸은 끈다. 채운 뒤 자리를 잡는다
+    public void Refresh<TData>(IReadOnlyList<TData> list, Action<T, TData> onSet)
+    {
+        int count = list?.Count ?? 0;
+        for (int i = 0; i < count; ++i)
+        {
+            T item = Get(i);
+            if (item != null)
+                onSet?.Invoke(item, list.E_GetOrDefault(i));
+        }
+
+        HideFrom(count);
+        Arrange(count);
+    }
+
+    // index번 칸을 돌려준다. 모자라면 UIFactory로 꺼내 채우고, isActive대로 켜거나 끈다.
+    // Refresh가 쓰고, 꺼 둔 채 준비할 때는 직접 부른다(그때는 다 채운 뒤 Arrange를 부른다)
+    public T Get(int index, bool isActive = true)
+    {
+        while (index >= m_List.Count)
+        {
+            if (m_Root == null)
+                return null;
+
+            T item = GameManager.Instance?.UIFactory?.Spawn<T>(m_Type, m_Root);
+            if (item == null)
+                return null;
+
+            m_OnSpawn?.Invoke(item);
+            m_List.Add(item);
+            m_ListRect.Add(item.RectTransform);
+            SetDirty(); // 새 칸은 아직 자리가 없다
+        }
+
+        T result = m_List[index];
+        result.gameObject.E_SetActive(isActive);
+        
+        return result;
+    }
+
+    // index부터 끝까지 끈다
+    public void HideFrom(int index)
+    {
+        for (int i = Mathf.Max(0, index); i < m_List.Count; ++i)
+        {
+            m_List[i].E_SetActive(false);
+        }
+    }
+
+    // 씬 전환 전에 일부러 돌려줄 때만 쓴다(보통은 UIFactory가 씬 전환 때 회수한다)
+    public void Clear()
+    {
+        UIFactory factory = GameManager.Instance?.UIFactory;
+        foreach (T item in m_List)
+        {
+            if (factory != null)
+                factory.Despawn(item);
+            else
+                ResourceManager.S_Despawn(item);
+        }
+
+        m_List.Clear();
+        m_ListRect.Clear();
+        SetDirty();
     }
 }

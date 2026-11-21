@@ -271,8 +271,7 @@ public class HuntData : PlayerDataBase
     // 이 상인이 이 버섯 한 개에 쳐주는 값. 0이면 사지 않는다
     public int GetPrice(MerchantDef merchant, LootKey key)
     {
-        GameDatabase database = GameManager.Instance.Database;
-        if (database == null || database.TryGet(key.ItemID, out MushroomDef mushroom) == false)
+        if (GameDatabase.S_TryGet(key.ItemID, out MushroomDef mushroom) == false)
             return 0;
 
         return m_Market.GetPrice(merchant, mushroom, key.Rarity, key.Freshness, GetSwingRate(merchant));

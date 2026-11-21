@@ -80,7 +80,10 @@ public sealed class PopupService : ServiceBase
             if (prefab == null)
                 return null;
 
-            cached = Object.Instantiate(prefab, m_Root);
+            cached = ResourceManager.S_Create(prefab, m_Root);
+            if (cached == null)
+                return null;
+
             m_DicInstance[type] = cached;
         }
 
@@ -95,7 +98,7 @@ public sealed class PopupService : ServiceBase
         m_ListPopup.Add(popup);
         
         popup.transform.SetAsLastSibling();
-        popup.gameObject.SetActive(true);
+        popup.E_SetActive(true);
         popup.Open();
         
         return popup;

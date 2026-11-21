@@ -57,7 +57,7 @@ public sealed class BattleService : ServiceBase
     public IReadOnlyDictionary<LootKey, int> DicLoot => m_DicLoot;
     public IReadOnlyDictionary<string, int> DicReward => m_DicReward;
     
-    public float NightTime => Map != null ? Map.NightTime : 0f;
+    public float NightTime => Map.E_Alive()?.NightTime ?? 0f;
     public float RemainTime => Mathf.Max(0f, NightTime - ElapsedTime);
     public bool IsPlayerDown => m_Player != null && m_Player.IsDead;
     public int ReviveGold => Define.ReviveGold;
@@ -114,7 +114,7 @@ public sealed class BattleService : ServiceBase
             // 프리팹이 없으면 UnitFactory가 오류 로그(경로는 MonsterDef.PrefabPath)
             if (point == null || entry.Monster == null)
             {
-                string monsterName = entry.Monster == null ? "없음" : entry.Monster.name;
+                string monsterName = entry.Monster.E_Alive()?.name ?? "없음";
                 CLogger.Warning("BattleService", $"스폰 불가: {MapDef.GetSlotName(entry.Slot)} 지점 {(point == null ? "없음" : "있음")}, 몬스터 {monsterName}");
                 continue;
             }
@@ -135,7 +135,7 @@ public sealed class BattleService : ServiceBase
         if (State == EBattleState.Market)
             TimeManager.Instance?.SetPause(false);
 
-        HealthFeature health = m_Player?.HealthF;
+        HealthFeature health = m_Player.E_Alive()?.HealthF;
         if (health != null)
             health.Died -= OnPlayerDied;
 
@@ -153,7 +153,7 @@ public sealed class BattleService : ServiceBase
     public static ERarity RollRarity()
     {
         MapDef map = GameManager.Instance?.BattleS?.Map;
-        return map != null ? map.RollRarity() : ERarity.Common;
+        return map.E_Alive()?.RollRarity() ?? ERarity.Common;
     }
 
     // 토벌 종료 버튼. isMarket이면 시장을 열고(팝업은 HUDBattle가 띄운다), 아니면 주운 버섯을 그대로 받고 끝낸다
@@ -211,27 +211,35 @@ public sealed class BattleService : ServiceBase
         if (prefab == null)
             return;
 
-        MapRoot map = UnityEngine.Object.Instantiate(prefab);
+        MapRoot map = ResourceManager.S_Create(prefab);
+        if (map == null)
+            return;
+
         m_SpawnSlots = map.SpawnSlots;
     }
 
     private void SpawnPlayer()
     {
-        PlayerDef playerDef = GameManager.Instance.Database?.Get<PlayerDef>(DefaultPlayerID);
-        if (playerDef == null)
+        if (GameDatabase.S_TryGet<PlayerDef>(DefaultPlayerID, out PlayerDef playerDef) == false)
         {
             CLogger.Warning("BattleService", $"PlayerDef({DefaultPlayerID})가 DB에 없습니다.");
             return;
         }
 
-        int playerSlot = Map != null ? Map.PlayerSlot : MapDef.DefaultPlayerSlot;
+        int playerSlot = Map.E_Alive()?.PlayerSlot ?? MapDef.DefaultPlayerSlot;
         Transform spawn = GetSlot(playerSlot);
+        Vector3 position = Vector3.zero;
+        Quaternion rotation = Quaternion.identity;
 
-        if (spawn == null)
+        if (spawn != null)
+        {
+            position = spawn.position + Vector3.up * SpawnLift;
+            rotation = GetSpawnRotation(spawn);
+        }
+        else
+        {
             CLogger.Warning("BattleService", $"플레이어 슬롯 {MapDef.GetSlotName(playerSlot)}이 맵에 없어 원점에서 시작합니다.");
-
-        Vector3 position = spawn != null ? spawn.position + Vector3.up * SpawnLift : Vector3.zero;
-        Quaternion rotation = spawn != null ? GetSpawnRotation(spawn) : Quaternion.identity;
+        }
 
         m_Player = GameManager.Instance.UnitS.Spawn(playerDef, position, rotation);
     }
@@ -252,6 +260,7 @@ public sealed class BattleService : ServiceBase
     public static Quaternion GetSpawnRotation(Transform slot)
     {
         Vector3 forward = Vector3.ProjectOnPlane(slot.forward, Vector3.up);
+        
         if (forward.sqrMagnitude < 0.01f)
             forward = Vector3.ProjectOnPlane(slot.up, Vector3.up); // 앞이 수직이면(누운 지점) 위 축이 수평 방향
 
@@ -333,24 +342,24 @@ public sealed class BattleService : ServiceBase
     // 주운 버섯을 진짜 픽업으로 흩뿌린다. 부활하면 다시 주울 수 있고, 귀가하면 그대로 잃는다
     private void DropLoot()
     {
-        GameDatabase database = GameManager.Instance?.Database;
-        ResourceManager resourceM = ResourceManager.Instance;
-        if (m_Player == null || database == null || resourceM == null)
+        if (m_Player == null)
             return;
 
         Vector3 origin = m_Player.transform.position + Vector3.up * Define.DownDropHeight;
         foreach (var pair in m_DicLoot)
         {
-            MushroomDef def = database.Get<MushroomDef>(pair.Key.ItemID);
-            MushroomPickup prefab = def != null ? resourceM.Load<MushroomPickup>(def.PickupPath) : null;
+            if (GameDatabase.S_TryGet(pair.Key.ItemID, out MushroomDef def) == false)
+                continue;
+
+            MushroomPickup prefab = ResourceManager.Instance.Load<MushroomPickup>(def.PickupPath);
             if (prefab == null)
                 continue;
 
             // shortcut: 픽업 하나를 1개로 본다(MushroomPickup.m_Amount 기본값), 묶음 픽업이 생기면 개수를 나눈다
             for (int i = 0; i < pair.Value; i++)
             {
-                MushroomPickup pickup = resourceM.Spawn(prefab, origin, Quaternion.identity);
-                Vector2 spread = UnityEngine.Random.insideUnitCircle * Define.DownDropSpread;
+                MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, origin, Quaternion.identity);
+                Vector2 spread = Random.insideUnitCircle * Define.DownDropSpread;
                 pickup.Launch(new Vector3(spread.x, Define.DownDropUpSpeed, spread.y), pair.Key.Freshness, pair.Key.Rarity);
             }
         }
@@ -365,8 +374,10 @@ public sealed class BattleService : ServiceBase
         TimeManager.Instance?.SetPause(false);
 
         m_DicReward.Clear();
+        
         if (evt.Gold > 0)
             m_DicReward[GoldID] = evt.Gold;
+        
         if (evt.RottenCount > 0)
             m_DicReward[RottenItemID] = evt.RottenCount;
 
@@ -404,10 +415,9 @@ public sealed class BattleService : ServiceBase
             playerDataM.RunSave();
         }
 
-        GameManager gameM = GameManager.Instance;
-        if (gameM != null && gameM.Current == EGameState.Battle)
-            gameM.ChangeState(EGameState.Result);
-
+        if (GameManager.Instance.Current == EGameState.Battle)
+            GameManager.Instance.ChangeState(EGameState.Result);
+        
         SEventManager.Publish(new BattleEnded(result == EBattleState.Exited));
     }
 
@@ -415,10 +425,12 @@ public sealed class BattleService : ServiceBase
     private void FillReward(EBattleState result)
     {
         m_DicReward.Clear();
+
         int total = 0;
         foreach (var pair in m_DicLoot)
         {
             total += pair.Value;
+            
             // [mj] todo) 인벤토리는 아직 신선도를 모른다. 시장이 들어오면 신선도별로 넘긴다
             if (result == EBattleState.Exited)
             {

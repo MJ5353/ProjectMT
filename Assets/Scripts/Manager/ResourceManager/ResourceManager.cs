@@ -111,6 +111,15 @@ public class ResourceManager : MonoSingleton<ResourceManager>
         pool.Push(instance);
     }
 
+    // 풀 없이 새로 만든다(팝업·맵·부위 모델 등 다시 쓰지 않거나 따로 들고 있는 것). 오브젝트 생성은 여기로 모은다. 원본이 없으면 null
+    public T Create<T>(T prefab, Transform parent = null) where T : Object
+    {
+        if (prefab == null)
+            return null;
+
+        return Instantiate(prefab, parent);
+    }
+
     // 풀에 넣지 않고 지운다(팝업 인스턴스 등). 오브젝트 삭제는 여기로 모은다
     public void Delete(GameObject target)
     {
@@ -167,6 +176,11 @@ public class ResourceManager : MonoSingleton<ResourceManager>
     public static void S_Despawn(PoolableMono instance)
     {
         Instance?.Despawn(instance);
+    }
+
+    public static T S_Create<T>(T prefab, Transform parent = null) where T : Object
+    {
+        return Instance?.Create(prefab, parent);
     }
 
     public static void S_Delete(GameObject target)
