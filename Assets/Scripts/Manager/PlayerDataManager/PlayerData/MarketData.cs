@@ -40,7 +40,7 @@ public class MarketData : PlayerDataBase
 
     public void AddTrust(string merchantID, int amount)
     {
-        if (merchantID.E_IsNullOrEmpty() || amount == 0)
+        if (amount == 0)
             return;
 
         int trust = Mathf.Clamp(GetTrust(merchantID) + amount, 0, Define.TrustMax);
@@ -58,27 +58,18 @@ public class MarketData : PlayerDataBase
 
     public int GetTrust(string merchantID)
     {
-        if (merchantID.E_IsNullOrEmpty())
-            return 0;
-
         return m_DicTrustByID.TryGetValue(merchantID, out int trust) ? trust : 0;
     }
 
     // 밤마다 상인을 뽑을 때 쓰는 가중치
     public float GetVisitWeight(MerchantDef merchant)
     {
-        if (merchant == null)
-            return 0f;
-
         return Mathf.Max(0f, merchant.VisitWeight) * (1f + GetTrust(merchant.ID) * Define.TrustVisitRate);
     }
 
     // 버섯 하나 값 = 기본가 × 상인 배율(희귀도 기준) × 신선도 배율 × 신뢰도 보정 × 오늘 시세(swingRate). 0이면 이 상인은 사지 않는다
     public int GetPrice(MerchantDef merchant, MushroomDef mushroom, ERarity rarity, EFreshness freshness, float swingRate = 1f)
     {
-        if (merchant == null || mushroom == null)
-            return 0;
-
         float rate = merchant.GetRate(rarity);
         if (rate <= 0f || mushroom.Price <= 0)
             return 0;

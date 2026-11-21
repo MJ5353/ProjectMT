@@ -137,13 +137,10 @@ public class HuntData : PlayerDataBase
     {
         ClearMarket();
 
-        if (dicLoot != null)
+        foreach (var pair in dicLoot)
         {
-            foreach (var pair in dicLoot)
-            {
-                if (pair.Value > 0)
-                    m_DicHarvest[pair.Key] = pair.Value;
-            }
+            if (pair.Value > 0)
+                m_DicHarvest[pair.Key] = pair.Value;
         }
 
         RemainTime = Mathf.Max(0f, remainTime);
@@ -196,17 +193,14 @@ public class HuntData : PlayerDataBase
 
         m_DicTradeBuffer.Clear();
         int total = 0;
-        if (listItem != null)
+        foreach (MarketItem item in listItem)
         {
-            foreach (MarketItem item in listItem)
-            {
-                if (item.Count <= 0)
-                    continue;
+            if (item.Count <= 0)
+                continue;
 
-                m_DicTradeBuffer.TryGetValue(item.Key, out int count);
-                m_DicTradeBuffer[item.Key] = count + item.Count;
-                total += item.Count;
-            }
+            m_DicTradeBuffer.TryGetValue(item.Key, out int count);
+            m_DicTradeBuffer[item.Key] = count + item.Count;
+            total += item.Count;
         }
 
         if (total == 0)
@@ -286,15 +280,12 @@ public class HuntData : PlayerDataBase
     // 이번 시장에서 이 상인에게 오른 신뢰도(닫힐 때 반영)
     public int GetTrustGain(string merchantID)
     {
-        return merchantID != null && m_DicTrustGain.TryGetValue(merchantID, out int gain) ? gain : 0;
+        return m_DicTrustGain.TryGetValue(merchantID, out int gain) ? gain : 0;
     }
 
     // 상인의 오늘 시세 배율. 시장을 연 직후는 1
     public float GetSwingRate(MerchantDef merchant)
     {
-        if (merchant == null)
-            return 1f;
-
         return m_DicSwingRate.TryGetValue(merchant.ID, out float rate) ? rate : 1f;
     }
 
@@ -313,11 +304,7 @@ public class HuntData : PlayerDataBase
         m_ListMerchant.Clear();
         m_ListCandidate.Clear();
 
-        GameDatabase database = GameManager.Instance.Database;
-        if (database == null)
-            return;
-
-        foreach (MerchantDef merchant in database.GetAll<MerchantDef>())
+        foreach (MerchantDef merchant in GameManager.Instance.Database.GetAll<MerchantDef>())
         {
             m_ListCandidate.Add(merchant);
         }

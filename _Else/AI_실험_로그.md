@@ -412,3 +412,8 @@
 
 - HuntData: 판정을 private Validate 하나로 모으고 CheckTrade·Trade가 그것을 부르게 함. Trade가 out gold로 받은 골드를 돌려줘 UI가 판정을 따로 부르지 않음. 숨은 공용 버퍼 m_DicPick은 m_DicTradeBuffer로 이름을 바꿈.
 - PopupMarket: 고른 상태를 m_DicPick 하나로 줄이고 표시 목록·요청 목록은 Refresh·BuildRequest 때 다시 만듦. 거래는 고른 목록을 비운 뒤 요청하고, 갱신은 Trade가 보내는 MarketChanged 한 번만 받음(실패하면 되돌리고 갱신). 거래 한 번 판정 3번→2번(미리보기 1·거래 1), Refresh 2번→1번, 닫힌 팝업 갱신 없앰. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## 시장 안내 글귀·규칙 정리(5번, 6~10번)
+
+- 직접 5번과 B(6~10번) 진행을 지시함. 안내 글귀는 EMarketResult→글귀 함수 하나로 모으고, Refresh가 지금 상태 글귀를 쓴 뒤 거래·기다리기 결과만 덮어쓰게 해 여기저기 있던 글귀 지우기를 없앰.
+- PopupMarket·HuntData·MarketData의 의미 없는 null 검사·?.(Hunt, PopupS, 상인·버섯 인자, DB, 목록)를 지움. 시계는 매 프레임 대신 Refresh(열 때·MarketChanged)에서만 갱신, 연출 넘기기는 입력 폴링 대신 시작 연출을 덮는 투명 버튼(m_IntroButton, MarketUISetup에 추가). 아이콘·켜기는 E_SetImage·E_SetActive로. UI 다시 만들기 전에는 버튼이 비어 연출이 안 넘어감. 컴파일·플레이 확인 안 함. 커밋하지 않음.

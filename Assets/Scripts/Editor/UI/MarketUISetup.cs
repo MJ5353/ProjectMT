@@ -111,7 +111,9 @@ public static class MarketUISetup
         // 시작 연출(맨 위). 가운데 큰 남은 시간 + 아래 시장 시간 ---
         RectTransform intro = UIBuilder.Stretch("Intro", root);
         CanvasGroup introGroup = intro.gameObject.AddComponent<CanvasGroup>();
-        introGroup.blocksRaycasts = false;
+        UIBuilder.AddImage(intro, Color.clear, true); // 연출 중 화면 어디를 눌러도 넘기기(m_IntroButton)
+        Button introButton = intro.gameObject.AddComponent<Button>();
+        introButton.transition = Selectable.Transition.None;
         RectTransform timerRect = UIBuilder.Anchored("Timer", intro, new Vector2(0.5f, 0.5f), new Vector2(0, 90), new Vector2(600, 140));
         timerRect.pivot = new Vector2(0.5f, 0.5f);
         TMP_Text introTimer = UIBuilder.Label(timerRect, "05:00", UIStyle.FontHuge);
@@ -125,6 +127,7 @@ public static class MarketUISetup
         UIBuilder.SetRef(popup, "m_Clock", clock);
         UIBuilder.SetRef(popup, "m_Body", bodyGroup);
         UIBuilder.SetRef(popup, "m_Intro", introGroup);
+        UIBuilder.SetRef(popup, "m_IntroButton", introButton);
         UIBuilder.SetRef(popup, "m_IntroTimer", introTimer);
         UIBuilder.SetRef(popup, "m_IntroMessage", introMessage);
         UIBuilder.SetListView(popup, "m_RowPool", merchantList);

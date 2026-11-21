@@ -3,10 +3,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-#if ENABLE_INPUT_SYSTEM
-using UnityEngine.InputSystem;
-#endif
-
 // ==================================================
 
 // 토벌 종료 뒤 현장 시장 팝업. 왼쪽 오늘 온 상인, 가운데 고른 상인, 오른쪽 위 고른 버섯·합계·[거래], 오른쪽 아래 남은 버섯.
@@ -27,6 +23,7 @@ public class PopupMarket : PopupBase
 
     [Header("시작 연출")]
     [SerializeField] private CanvasGroup m_Intro = null;
+    [SerializeField] private Button m_IntroButton = null;    // 연출 전체를 덮는 투명 버튼. 누르면 끝 모습으로 넘기거나 닫는다
     [SerializeField] private TMP_Text m_IntroTimer = null;   // 가운데 큰 mm:ss
     [SerializeField] private TMP_Text m_IntroMessage = null; // 그 아래 "지금 가면... n시간 n분은 거래할 수 있겠어!"
 
@@ -77,21 +74,7 @@ public class PopupMarket : PopupBase
         m_TradeButton.E_SetOnClick(OnClickTrade);
         m_WaitButton.E_SetOnClick(OnClickWait);
         m_CloseButton.E_SetOnClick(OnClickClose);
-    }
-
-    private void Update()
-    {
-        if (IsIntro && IsPressed())
-        {
-            if (m_IntroSequence.IsWaiting)
-                m_IsIntroContinue = true;
-            else
-                m_IntroSequence.Skip();
-        }
-
-        HuntData hunt = Hunt;
-        if (hunt != null)
-            m_Clock.SetTime(hunt.RemainTime, hunt.NightTime);
+        m_IntroButton.E_SetOnClick(OnClickIntro);
     }
 
     // virtual ---
@@ -106,11 +89,6 @@ public class PopupMarket : PopupBase
         m_SelectedIndex = 0;
         m_DicPick.Clear();
         m_WaitLabel.E_SetText($"{Define.MarketActionMinutes}분 기다리기");
-        SetMessage(string.Empty);
-
-        HuntData hunt = Hunt;
-        if (hunt != null)
-            m_Clock.SetTime(hunt.RemainTime, hunt.NightTime);
 
         Refresh();
         PlayIntro();
@@ -131,18 +109,18 @@ public class PopupMarket : PopupBase
         get
         {
             HuntData hunt = Hunt;
-            if (hunt == null || m_SelectedIndex < 0 || m_SelectedIndex >= hunt.ListMerchant.Count)
+            if (m_SelectedIndex < 0 || m_SelectedIndex >= hunt.ListMerchant.Count)
                 return null;
 
             return hunt.ListMerchant[m_SelectedIndex];
         }
     }
 
+    // 시장 중에는 시간이 멈춰 있어 시계도 여기서만 바뀐다(열 때, MarketChanged)
     private void Refresh()
     {
         HuntData hunt = Hunt;
-        if (hunt == null)
-            return;
+        m_Clock.SetTime(hunt.RemainTime, hunt.NightTime);
 
         SyncPick(hunt);
         RefreshMerchants(hunt);
@@ -162,15 +140,14 @@ public class PopupMarket : PopupBase
         MerchantDef merchant = SelectedMerchant;
         if (merchant == null)
         {
-            m_MerchantIcon.enabled = false;
+            m_MerchantIcon.E_SetImage(null);
             m_MerchantName.E_SetText("오늘은 상인이 없다");
             m_MerchantDesc.E_SetText(string.Empty);
             m_MerchantInfo.E_SetText(string.Empty);
             return;
         }
 
-        m_MerchantIcon.enabled = merchant.Icon != null;
-        m_MerchantIcon.sprite = merchant.Icon;
+        m_MerchantIcon.E_SetImage(merchant.Icon);
         m_MerchantName.E_SetText(merchant.DisplayName);
         m_MerchantDesc.E_SetText(merchant.Description);
 
@@ -217,7 +194,7 @@ public class PopupMarket : PopupBase
         m_PickPool.Refresh(m_ListPickKey, SetPickSlot);
     }
 
-    // 합계와 [거래] 버튼. 판정은 HuntData.CheckTrade에 맡긴다
+    // 합계와 [거래] 버튼, 지금 고른 상태의 안내 글귀. 판정은 HuntData.CheckTrade에 맡긴다
     private void RefreshTotal(HuntData hunt)
     {
         BuildRequest();
@@ -225,9 +202,7 @@ public class PopupMarket : PopupBase
 
         m_TotalText.E_SetText($"합계 {gold}G  ({m_DicPick.Count}/{Define.MarketTradeLimit}묶음)");
         m_TradeButton.E_SetInteractable(result == EMarketResult.Success);
-
-        if (result == EMarketResult.NotBuying)
-            SetMessage("이 상인이 사지 않는 버섯이 섞여 있다");
+        SetMessage(GetResultText(result));
     }
 
     // 고른 개수를 남은 버섯에 맞추고(거래·기다리기 뒤 사라지거나 줄어든 버섯은 빼거나 줄인다) 표시 순서 목록을 다시 만든다
@@ -332,9 +307,24 @@ public class PopupMarket : PopupBase
         slot.SetLoot(key, def, count, priceText);
     }
 
+    // 안내 글귀. Refresh가 지금 상태의 글귀를 쓰고, 거래·기다리기 결과는 그 뒤에 덮어쓴다(다음 Refresh까지 남는다)
     private void SetMessage(string text)
     {
         m_MessageText.E_SetText(text);
+    }
+
+    // 요청 결과 → 안내 글귀. 성공과 아직 안 고름(Empty)은 빈 글
+    private static string GetResultText(EMarketResult result)
+    {
+        return result switch
+        {
+            EMarketResult.Closed => "시장이 닫혔다",
+            EMarketResult.NoMerchant => "상인을 먼저 골라야 한다",
+            EMarketResult.OverLimit => $"한 번에 {Define.MarketTradeLimit}묶음까지 팔 수 있다",
+            EMarketResult.NotEnough => "가진 것보다 많이 골랐다",
+            EMarketResult.NotBuying => "이 상인이 사지 않는 버섯이 섞여 있다",
+            _ => string.Empty,
+        };
     }
 
     // click ---
@@ -346,7 +336,6 @@ public class PopupMarket : PopupBase
             return;
 
         m_SelectedIndex = index;
-        SetMessage(string.Empty);
         Refresh();
     }
 
@@ -361,8 +350,7 @@ public class PopupMarket : PopupBase
         LootKey key = m_ListStockKey[index];
         m_DicPick.TryGetValue(key, out int picked);
 
-        SetMessage(string.Empty);
-        if (IsIntro || hunt == null || hunt.DicHarvest.TryGetValue(key, out int have) == false || have <= 0)
+        if (IsIntro || hunt.DicHarvest.TryGetValue(key, out int have) == false || have <= 0)
             return;
 
         if (picked > 0)
@@ -373,7 +361,7 @@ public class PopupMarket : PopupBase
 
         if (m_DicPick.Count >= Define.MarketTradeLimit)
         {
-            SetMessage($"한 번에 {Define.MarketTradeLimit}묶음까지 팔 수 있다");
+            SetMessage(GetResultText(EMarketResult.OverLimit));
             return;
         }
 
@@ -389,22 +377,16 @@ public class PopupMarket : PopupBase
 
         // 누르면 그 묶음을 통째로 뺀다(남은 버섯 칸의 딤·위 글자도 풀린다)
         RemovePick(m_ListPickKey[index]);
-
-        SetMessage(string.Empty);
         Refresh();
     }
 
     private void OnClickTrade()
     {
-        HuntData hunt = Hunt;
-        if (hunt == null)
-            return;
-
         // 고른 목록은 요청으로 옮기고 먼저 비운다. 성공하면 Trade가 보내는 MarketChanged로 한 번만 갱신된다(밤이 다 가면 MarketClosed로 닫힌다)
         BuildRequest();
         m_DicPick.Clear();
 
-        EMarketResult result = hunt.Trade(SelectedMerchant, m_ListItem, out int gold);
+        EMarketResult result = Hunt.Trade(SelectedMerchant, m_ListItem, out int gold);
         if (result == EMarketResult.Success)
         {
             SetMessage($"+{gold}G");
@@ -417,19 +399,32 @@ public class PopupMarket : PopupBase
             m_DicPick[item.Key] = item.Count;
         }
 
-        SetMessage("거래할 수 없다");
         Refresh();
+        SetMessage(GetResultText(result));
     }
 
+    // 성공하면 MarketChanged로 갱신된 뒤 결과 글귀를 덮어쓴다
     private void OnClickWait()
     {
-        if (Hunt?.Wait() == EMarketResult.Success)
-            SetMessage("상인들이 값을 다시 매겼다");
+        EMarketResult result = Hunt.Wait();
+        SetMessage(result == EMarketResult.Success ? "상인들이 값을 다시 매겼다" : GetResultText(result));
     }
 
     private void OnClickClose()
     {
-        Hunt?.EndMarket();
+        Hunt.EndMarket();
+    }
+
+    // 연출 중: 움직이는 중이면 끝 모습으로 건너뛰고, 끝 모습에서 기다리는 중이면 닫는다
+    private void OnClickIntro()
+    {
+        if (IsIntro == false)
+            return;
+
+        if (m_IntroSequence.IsWaiting)
+            m_IsIntroContinue = true;
+        else
+            m_IntroSequence.Skip();
     }
 
     // intro ---
@@ -437,14 +432,13 @@ public class PopupMarket : PopupBase
     // !!) 시장 중에는 시간이 멈춰 있어(TimeManager) 연출은 unscaled 시간으로 돈다(UISequence)
     private void PlayIntro()
     {
-        HuntData hunt = Hunt;
-        float remain = hunt?.RemainTime ?? 0f;
+        float remain = Hunt.RemainTime;
         int seconds = Mathf.CeilToInt(remain);
         int minutes = UINightClock.ToGameMinutes(remain);
 
         m_IsIntroContinue = false;
         m_Body.E_SetVisible(false);
-        m_Intro.gameObject.SetActive(true);
+        m_Intro.E_SetActive(true);
         m_Intro.alpha = 1f;
         m_Clock.SetTextVisible(false);
 
@@ -492,20 +486,10 @@ public class PopupMarket : PopupBase
             })
             .Call(() =>
             {
-                m_Intro.gameObject.SetActive(false);
+                m_Intro.E_SetActive(false);
                 m_Body.E_SetVisible(true);
             })
             .Play(this);
-    }
-
-    // 화면(마우스·터치) 누름. 연출 넘기기용
-    private static bool IsPressed()
-    {
-#if ENABLE_INPUT_SYSTEM
-        return Pointer.current != null && Pointer.current.press.wasPressedThisFrame;
-#else
-        return Input.GetMouseButtonDown(0);
-#endif
     }
 
     // "지금 가면... 4시간 30분은 거래할 수 있겠어!" (시간은 크게, 금색)
@@ -541,8 +525,8 @@ public class PopupMarket : PopupBase
         if (merchant != null)
             price = hunt.GetPrice(merchant, key);
 
-        _counterPopup = GameManager.Instance.PopupS?.Open<PopupMarketCounter>(EPopupType.PopupMarketCounter);
-        _counterPopup.E_Alive()?.Setup(key, have, picked, price, count => OnCountConfirm(key, count));
+        _counterPopup = GameManager.Instance.PopupS.Open<PopupMarketCounter>(EPopupType.PopupMarketCounter);
+        _counterPopup.Setup(key, have, picked, price, count => OnCountConfirm(key, count));
     }
 
     // 0개면 팔 목록에서 뺀다
@@ -554,7 +538,6 @@ public class PopupMarket : PopupBase
         else
             m_DicPick[key] = count;
 
-        SetMessage(string.Empty);
         Refresh();
     }
 
