@@ -1,13 +1,20 @@
 using TMPro;
 using UnityEngine;
 
+// ==================================================
+
 // 가로 게이지(체력, 재배 진행 등). 채움은 앵커 비율로 늘려서 스프라이트 없이 동작한다.
-// 잔상(m_Trail)이 있으면 줄어든 만큼 잠깐 남았다가 따라 내려오고, 줄어드는 순간 안쪽(채움·잔상)이 잠깐 흔들린다
-public class UIGauge : MonoBehaviour
+// 잔상(m_Trail)이 있으면 줄어든 만큼 잠깐 남았다가 따라 내려오고, 줄어드는 순간 안쪽(채움·잔상)이 잠깐 흔들린다.
+// 몬스터 머리 위 바처럼 풀로 돌려 쓸 수도 있어 PoolableMonoUI를 상속한다(씬에 둔 게이지는 그냥 쓴다)
+
+public class UIGauge : PoolableMonoUI
 {
+    [Header("Caching")]
     [SerializeField] private RectTransform m_Fill = null;
     [SerializeField] private RectTransform m_Trail = null;
     [SerializeField] private TMP_Text m_Text = null;
+    
+    [Header("Setting")]
     [SerializeField] private float m_TrailDelay = 0.4f;
     [SerializeField] private float m_TrailSpeed = 1.5f;
     [SerializeField] private float m_HitShake = 6f;        // 줄어들 때 흔들리는 폭(px). 0이면 안 흔들림
@@ -22,7 +29,7 @@ public class UIGauge : MonoBehaviour
 
     public float Ratio => m_Ratio;
 
-    // ==================================================
+    // ------------------------------------------------
 
     private void Update()
     {
@@ -35,11 +42,8 @@ public class UIGauge : MonoBehaviour
     {
         float ratio = max > 0f ? current / max : 0f;
         SetRatio(ratio, isImmediate);
-
-        if (m_Text == null)
-            return;
-
-        m_Text.text = $"{Mathf.CeilToInt(current)} / {Mathf.CeilToInt(max)}";
+        
+        m_Text.E_SetText($"{Mathf.CeilToInt(current)} / {Mathf.CeilToInt(max)}");
     }
 
     public void SetRatio(float ratio, bool isImmediate = false)
@@ -64,10 +68,7 @@ public class UIGauge : MonoBehaviour
 
     public void SetText(string text)
     {
-        if (m_Text == null)
-            return;
-
-        m_Text.text = text;
+        m_Text.E_SetText(text);
     }
 
     private void UpdateTrail(float deltaTime)
@@ -104,12 +105,33 @@ public class UIGauge : MonoBehaviour
         inner.localPosition = m_InnerBase + (Vector3)(Random.insideUnitCircle * (m_HitShake * power));
     }
 
+    // 흔들리던 중에 풀로 돌아갔을 수 있어 안쪽 위치를 되돌린다
+    private void StopShake()
+    {
+        m_ShakeRemain = 0f;
+
+        if (m_HasInnerBase == false || m_Fill.E_Alive() == false)
+            return;
+        
+        m_Fill.parent.localPosition = m_InnerBase;
+    }
+
     private static void Apply(RectTransform rt, float ratio)
     {
         if (rt == null)
             return;
 
         rt.anchorMax = new Vector2(ratio, rt.anchorMax.y);
+    }
+
+    // virtual ---
+
+    public override void OnPoolSpawn()
+    {
+        base.OnPoolSpawn();
+        
+        StopShake();
+        m_TrailWait = 0f;
     }
 
 #if UNITY_EDITOR

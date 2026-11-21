@@ -31,10 +31,10 @@ public static class EditorPath
     public const string PickupPrefabDir = ResourcesRoot + CommonPath.PickupDir;
     public const string MapPrefabDir = ResourcesRoot + CommonPath.MapDir;
     public const string PrefabExtension = ".prefab";             // Resources 경로 → 에셋 경로: ResourcesRoot + 경로 + 확장자
-    public const string PopupUIPrefabDir = ResourcesRoot + CommonPath.PopupUIDir;
-    public const string HUDUIPrefabDir = ResourcesRoot + CommonPath.HUDUIDir;
-    public const string CommonUIPrefabDir = ResourcesRoot + CommonPath.CommonUIDir;
-    public const string UIPrefabDir = ResourcesRoot + CommonPath.UIDir; // PopupDef·UIComponentDef 등록 때 하위 폴더까지 enum 이름으로 찾는다
+    public const string UIPrefabDir = PrefabDir + "UI/";        // UI 프리팹 저장 위치. 런타임은 경로를 쓰지 않고 PopupDef·UIComponentDef가 프리팹을 직접 참조한다(등록 때 하위 폴더까지 enum 이름으로 찾는다)
+    public const string PopupUIPrefabDir = UIPrefabDir + "Popup/";
+    public const string HUDUIPrefabDir = UIPrefabDir + "HUD/";
+    public const string CommonUIPrefabDir = UIPrefabDir + "Common/";
     public const string MaterialAssetDir = ResourcesRoot + CommonPath.MaterialDir;
 
     // 에셋 파일 (에디터) ---
@@ -51,6 +51,7 @@ public static class EditorPath
     public const string PopupDeathPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupDeath) + PrefabExtension;
     public const string PopupMarketPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupMarket) + PrefabExtension;
     public const string PopupMarketCountPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupMarket_Count) + PrefabExtension;
+    
     // UI 요소 프리팹. 파일 이름은 EUIComponentType 이름과 같아야 UIComponentDef에 등록된다
     public const string MarketMerchantRowPrefab = PopupUIPrefabDir + nameof(EUIComponentType.PopupMarket_MerchantRow) + PrefabExtension;
     public const string BattleLootRowPrefab = HUDUIPrefabDir + nameof(EUIComponentType.HUDBattle_LootRow) + PrefabExtension;

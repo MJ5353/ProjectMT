@@ -9,18 +9,26 @@ using UnityEngine;
 
 public class UITooltip : MonoBehaviour
 {
+    [SerializeField] private CanvasGroup m_Group = null;
+    [SerializeField] private TMP_Text m_Label = null;
+
+    #region const
     private const float Gap = 8f;           // 대상 윗변과의 간격
     private const float ShowTime = 0.18f;
     private const float ShowStartScale = 0.6f;
     private const float ShowRise = 12f;     // 아래에서 떠오르는 거리
+    #endregion
 
-    [SerializeField] private CanvasGroup m_Group = null;
-    [SerializeField] private TMP_Text m_Label = null;
-
+    private RectTransform m_Rect;
     private RectTransform m_Target;
     private Coroutine m_Routine;
 
     // ------------------------------------------------
+
+    private void Awake()
+    {
+        m_Rect = transform as RectTransform;
+    }
 
     // 같은 대상이 이미 떠 있으면 닫는다
     public void Toggle(RectTransform target, string text)
@@ -36,12 +44,16 @@ public class UITooltip : MonoBehaviour
 
     public void Show(RectTransform target, string text)
     {
+        if (m_Rect == null || target == null)
+            return;
+
         m_Target = target;
         m_Label.text = text;
         gameObject.SetActive(true);
 
         if (m_Routine != null)
             StopCoroutine(m_Routine);
+        
         m_Routine = StartCoroutine(CoShow(GetAnchorPosition(target)));
     }
 
@@ -61,25 +73,14 @@ public class UITooltip : MonoBehaviour
         target.GetWorldCorners(corners);
         Vector3 topCenter = (corners[1] + corners[2]) * 0.5f;
 
-        RectTransform rt = (RectTransform)transform;
-        rt.position = topCenter;
-
-        return rt.anchoredPosition + new Vector2(0f, Gap);
+        m_Rect.position = topCenter;
+        return m_Rect.anchoredPosition + new Vector2(0f, Gap);
     }
 
     // 페이드 + 0.6 → 1 튕김 + 살짝 떠오름. 팝업과 같이 unscaled 시간으로 돈다
     private IEnumerator CoShow(Vector2 position)
     {
-        RectTransform rt = (RectTransform)transform;
-
-        for (float time = 0f; time < ShowTime; time += Time.unscaledDeltaTime)
-        {
-            float t = Mathf.Clamp01(time / ShowTime);
-            SetShow(rt, position, t, UITween.EaseOutBack(t), UITween.EaseOutCubic(t));
-            yield return null;
-        }
-
-        SetShow(rt, position, 1f, 1f, 1f);
+        yield return UITween.CoPlay(ShowTime, t => SetShow(m_Rect, position, t, UITween.EaseOutBack(t), UITween.EaseOutCubic(t)));
         m_Routine = null;
     }
 

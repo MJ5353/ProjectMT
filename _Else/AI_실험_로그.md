@@ -318,6 +318,7 @@
 - 직접 팝업은 씬이 바뀔 때만 지우자고 정함. AI가 닫으면 끄기만 하고 종류마다 인스턴스 하나를 다시 쓰게 하고, 다시 열 때 닫기 상태·시장 시계를 되돌림. 컴파일·플레이 확인 안 함.
 - 직접 경로를 손으로 적는 표(PopupTable·UIComponentTable)는 런타임에 있을 이유가 없다고 지적, 에디터 자동 등록을 고름. AI가 `PopupDef`·`UIComponentDef`(enum → 프리팹 참조 SO, 공용 기반 `UIPrefabDef`)로 바꾸고, "모든 UI 다시 만들기"·"UI 프리팹 표 갱신" 메뉴가 enum 이름과 같은 프리팹을 찾아 채우게 함. 런타임 경로 문자열이 사라짐. 컴파일·플레이 확인 안 함.
 - 직접 `(RectTransform)` 강제 변환과 Unity 객체에 바로 쓴 `?.`·널 검사 삼항을 싫다고 지적. AI가 UI·UI 생성기에서 형변환을 `as`(또는 `RectTransform` 속성) + null이면 건너뛰기로, 널 검사 삼항과 `?.`를 `E_Alive()?.` + `??`로 바꿈. 컴파일·플레이 확인 안 함.
+- 직접 Popup 닫기 이름을 `BeginClose`·`EndClose`로 바꾸고(AI 제안), 팝업 파괴를 ResourceManager 삭제 요청으로 모으라고 지시. AI가 `ResourceManager.Delete`·`S_Delete`를 추가해 팝업 파괴와 풀 밖 인스턴스 삭제를 그쪽으로 옮김.
 
 
 ## 게임 흐름 Flow 구조 설계

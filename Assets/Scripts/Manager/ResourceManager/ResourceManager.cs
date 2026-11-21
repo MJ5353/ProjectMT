@@ -94,7 +94,7 @@ public class ResourceManager : MonoSingleton<ResourceManager>
 
         if (instance.PoolKey == 0)
         {
-            Destroy(instance.gameObject);
+            Delete(instance.gameObject);
             return;
         }
 
@@ -109,6 +109,15 @@ public class ResourceManager : MonoSingleton<ResourceManager>
         }
 
         pool.Push(instance);
+    }
+
+    // 풀에 넣지 않고 지운다(팝업 인스턴스 등). 오브젝트 삭제는 여기로 모은다
+    public void Delete(GameObject target)
+    {
+        if (target == null)
+            return;
+
+        Destroy(target);
     }
 
     // 씬과 함께 지워진 인스턴스는 건너뛴다
@@ -158,5 +167,10 @@ public class ResourceManager : MonoSingleton<ResourceManager>
     public static void S_Despawn(PoolableMono instance)
     {
         Instance?.Despawn(instance);
+    }
+
+    public static void S_Delete(GameObject target)
+    {
+        Instance?.Delete(target);
     }
 }

@@ -1,6 +1,9 @@
 using UnityEngine;
 
+// ==================================================
+
 // 노치·펀치홀을 피해 자식 UI를 안전 영역 안에 맞춘다. 캔버스 바로 아래 전체 화면 RectTransform에 붙인다
+
 [RequireComponent(typeof(RectTransform))]
 public class UISafeArea : MonoBehaviour
 {
@@ -8,11 +11,11 @@ public class UISafeArea : MonoBehaviour
     private Rect m_LastSafeArea;
     private Vector2Int m_LastScreen;
 
-    // ==================================================
+    // ------------------------------------------------
 
     private void Awake()
     {
-        m_Rect = (RectTransform)transform;
+        m_Rect = transform as RectTransform;
         Apply();
     }
 
@@ -31,11 +34,12 @@ public class UISafeArea : MonoBehaviour
         m_LastSafeArea = safeArea;
         m_LastScreen = new Vector2Int(Screen.width, Screen.height);
 
-        if (Screen.width <= 0 || Screen.height <= 0)
+        if (m_Rect == null || Screen.width <= 0 || Screen.height <= 0)
             return;
 
         Vector2 min = safeArea.position;
         Vector2 max = safeArea.position + safeArea.size;
+        
         min.x /= Screen.width;
         min.y /= Screen.height;
         max.x /= Screen.width;

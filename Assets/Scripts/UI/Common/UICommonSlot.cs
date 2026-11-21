@@ -41,16 +41,15 @@ public class UICommonSlot : PoolableMonoUI
     {
         ItemID = null;
         Count = 0;
-
         m_Icon.enabled = false;
+
         SetCount(0);
         SetRarity(ERarity.Common);
         SetFreshness(EFreshness.High);
         SetDim(false);
         SetCaption(null);
 
-        if (m_NameText != null)
-            m_NameText.text = string.Empty;
+        m_NameText.E_SetText(string.Empty);
     }
     
     public void Set(DataDef def, int count)
@@ -61,27 +60,48 @@ public class UICommonSlot : PoolableMonoUI
             return;
         }
 
-        Color tint = def is MushroomDef mushroom ? mushroom.Tint : Color.clear;
-        Set(def.ID, def.Icon, def.DisplayName, count, tint);
+        Set(def.ID, def, count);
+    }
+
+    // def가 없어도 ID로 칸을 채운다(아이콘 없이 회색 칸, 이름 자리엔 ID). displayName이 null이면 def 이름
+    public void Set(string itemID, DataDef def, int count, string displayName = null)
+    {
+        DataDef alive = def.E_Alive();
+        Color tint = UIStyle.PanelLight;
+        
+        // 버섯은 버섯 색, 다른 데이터는 투명, 데이터가 없으면 회색 칸
+        if (alive is MushroomDef mushroom)
+            tint = mushroom.Tint;
+        else if (alive != null)
+            tint = Color.clear;
+
+        displayName = displayName ?? alive?.DisplayName ?? itemID;
+        Set(itemID, alive?.Icon, displayName, count, tint);
+    }
+
+    // 주운 버섯 칸: 아이콘·개수 + 희귀도 바탕 + 덜 신선하면 곰팡이. bottomText는 칸 아래 글자(값 등)
+    public void SetLoot(LootKey key, MushroomDef def, int count, string bottomText)
+    {
+        Set(key.ItemID, def, count, bottomText);
+        SetRarity(key.Rarity);
+        SetFreshness(key.Freshness);
     }
 
     public void Set(string itemID, Sprite icon, string displayName, int count, Color tint)
     {
         ItemID = itemID;
         Count = count;
-
         m_Icon.enabled = true;
         m_Icon.sprite = icon;
         m_Icon.color = icon != null ? Color.white : tint;
+
         SetRarity(ERarity.Common);
         SetFreshness(EFreshness.High);
         SetDim(false);
         SetCaption(null);
-
         SetCount(count);
-
-        if (m_NameText != null)
-            m_NameText.text = displayName;
+        
+        m_NameText.E_SetText(displayName);
     }
 
     // set ---
@@ -89,48 +109,33 @@ public class UICommonSlot : PoolableMonoUI
     public void SetCount(int count)
     {
         Count = count;
-
-        if (m_Count == null)
-            return;
-
-        m_Count.text = count > 0 ? $"x{count:N0}" : string.Empty;
+        m_Count.E_SetText(count > 0 ? $"x{count:N0}" : string.Empty);
     }
 
     public void SetFreshness(EFreshness freshness)
     {
-        // [mj] todo) common extension 추가해서 통일 - null check + activate 
-        m_Mold.SetActive(freshness == EFreshness.Low);
+        m_Mold.E_SetActive(freshness == EFreshness.Low);
     }
 
     public void SetDim(bool isDim)
     {
-        // [mj] todo) common extension 추가해서 통일 - null check + activate 
-        m_Dim.SetActive(isDim);
+        m_Dim.E_SetActive(isDim);
     }
 
     public void SetCaption(string text)
     {
-        if (m_Caption == null)
-            return;
-
         bool isShow = text.E_IsNullOrEmpty() == false;
-        m_Caption.gameObject.SetActive(isShow);
+        m_Caption.E_SetActive(isShow);
         
         if (isShow)
-            m_Caption.text = text;
+            m_Caption.E_SetText(text);
     }
 
     public void SetRarity(ERarity rarity)
     {
-        if (m_Background == null)
-            return;
-
-        int index = (int)rarity;
-        bool hasSprite = m_RaritySprites != null && index < m_RaritySprites.Length && m_RaritySprites[index] != null;
-
-        // [mj] todo) 이런거 null check + 할당용 common extension 만들어서 일괄 통일
-        m_Background.sprite = hasSprite ? m_RaritySprites[index] : null;
-        m_Background.color = hasSprite ? Color.white : UIStyle.GetRarityColor(rarity);
+        Sprite sprite = m_RaritySprites.E_GetOrDefault((int)rarity);
+        Color color = sprite.E_Alive() ? Color.white : UIStyle.GetRarityColor(rarity);
+        m_Background.E_SetImage(sprite, color);
     }
 
     public void SetOnClick(Action<UICommonSlot> onClick)

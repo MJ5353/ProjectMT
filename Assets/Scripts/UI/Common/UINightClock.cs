@@ -12,21 +12,24 @@ using UnityEngine;
 
 public class UINightClock : MonoBehaviour
 {
-    private const int SkyPixelWidth = 48;   // HUD_NightClock_Sky 도트 폭
-    private const int SkyScrollPixel = 192; // 하늘 띠 높이(240) - 보이는 창(48). 밤이 끝나면 이만큼 내려가 있다
-    private const float SpendTime = 0.35f;  // 시간이 줄 때 붉게 튀는 시간
-    private const float SpendScale = 1.15f;
-
     [SerializeField] private RectTransform m_Sky = null; // 마스크(HUD_NightClock_Fill) 아래, 앵커·피벗 아래 가운데
     [SerializeField] private TMP_Text m_Text = null;
     [SerializeField] private TMP_Text m_SubText = null;  // 시장에서만 쓰는 작은 글자("행동당 30분"). 없어도 된다
     [SerializeField] private int m_MarketFontSize = UIStyle.FontNormal; // 시장 글자는 길어서 조금 작게 쓴다
+
+    #region const
+    private const int SkyPixelWidth = 48;   // HUD_NightClock_Sky 도트 폭
+    private const int SkyScrollPixel = 192; // 하늘 띠 높이(240) - 보이는 창(48). 밤이 끝나면 이만큼 내려가 있다
+    private const float SpendTime = 0.35f;  // 시간이 줄 때 붉게 튀는 시간
+    private const float SpendScale = 1.15f;
+    #endregion
 
     private int m_LastSeconds = -1;
     private int m_LastMinutes = -1;
     private bool m_IsMarket;
     private float m_Remain;
     private float m_BattleFontSize;
+    
     private TextAlignmentOptions m_BattleAlign;
     private Color m_BaseColor;
     private Coroutine m_Routine;
@@ -35,15 +38,15 @@ public class UINightClock : MonoBehaviour
     private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
 
     // ------------------------------------------------
+    
+    public static string FormatRealTime(int seconds) => $"{seconds / 60:00}:{seconds % 60:00}";
 
     private void Awake()
     {
         m_BattleAlign = m_Text.alignment;
         m_BattleFontSize = m_Text.fontSize;
         m_BaseColor = m_Text.color;
-
-        if (m_SubText != null)
-            m_SubText.gameObject.SetActive(false);
+        m_SubText.E_SetActive(false);
     }
 
     public void SetTime(float remain, float total)
@@ -72,11 +75,8 @@ public class UINightClock : MonoBehaviour
         m_Text.alignment = isMarket ? TextAlignmentOptions.Left : m_BattleAlign;
         m_Text.fontSize = isMarket ? m_MarketFontSize : m_BattleFontSize;
 
-        if (m_SubText != null)
-        {
-            m_SubText.gameObject.SetActive(isMarket);
-            m_SubText.text = $"행동당 {Define.MarketActionMinutes}분";
-        }
+        m_SubText.E_SetActive(isMarket);
+        m_SubText.E_SetText($"행동당 {Define.MarketActionMinutes}분");
 
         if (isMarket)
             WriteMarketTime();
@@ -88,6 +88,7 @@ public class UINightClock : MonoBehaviour
     public void SetTextVisible(bool isVisible)
     {
         m_Text.enabled = isVisible;
+        
         if (m_SubText != null)
             m_SubText.enabled = isVisible;
     }
@@ -98,8 +99,6 @@ public class UINightClock : MonoBehaviour
         float actionTime = Mathf.Max(0.01f, Define.MarketActionTime);
         return Mathf.FloorToInt(seconds / actionTime * Define.MarketActionMinutes + 0.001f);
     }
-
-    public static string FormatRealTime(int seconds) => $"{seconds / 60:00}:{seconds % 60:00}";
 
     // ---
 
@@ -145,16 +144,13 @@ public class UINightClock : MonoBehaviour
     private IEnumerator CoSpend()
     {
         RectTransform rt = m_Text.rectTransform;
-        for (float t = 0f; t < SpendTime; t += Time.unscaledDeltaTime)
+        
+        yield return UITween.CoPlay(SpendTime, t =>
         {
-            float k = t / SpendTime;
-            rt.localScale = Vector3.one * Mathf.Lerp(SpendScale, 1f, k);
-            m_Text.color = Color.Lerp(UIStyle.Accent, m_BaseColor, k);
-            yield return null;
-        }
+            rt.localScale = Vector3.one * Mathf.Lerp(SpendScale, 1f, t);
+            m_Text.color = Color.Lerp(UIStyle.Accent, m_BaseColor, t);
+        });
 
-        rt.localScale = Vector3.one;
-        m_Text.color = m_BaseColor;
         m_Routine = null;
     }
 }
