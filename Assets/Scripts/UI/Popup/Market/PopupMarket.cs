@@ -515,19 +515,24 @@ public class PopupMarket : PopupBase
             price = hunt.GetPrice(merchant, key);
 
         m_CounterPopup = GameManager.Instance.PopupS.Open<PopupMarketCounter>(EPopupType.PopupMarketCounter);
-        m_CounterPopup.Setup(key, have, picked, price, count => OnCountConfirm(key, count));
+        m_CounterPopup.Setup(key, have, picked, price, count => OnCountConfirm(key, count), OnCountClosed);
     }
 
     // 0개면 팔 목록에서 뺀다
     private void OnCountConfirm(LootKey key, int count)
     {
-        m_CounterPopup = null;
         if (count <= 0)
             RemovePick(key);
         else
             m_DicPick[key] = count;
 
         Refresh();
+    }
+
+    // 확인·취소·뒤로 가기 어느 쪽으로 닫혀도 팝업이 알려준다. 닫힌 팝업(다시 쓰는 인스턴스)을 붙잡고 있지 않게 비운다
+    private void OnCountClosed()
+    {
+        m_CounterPopup = null;
     }
 
     private void CloseCountPopup()

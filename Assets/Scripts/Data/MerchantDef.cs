@@ -26,9 +26,6 @@ public class MerchantDef : DataDef
 
     public float GetRate(ERarity rarity) => rarity >= PreferRarity ? PreferRate : OtherRate;
 
-    // 기다린 뒤 새 시세 배율
-    public float RollSwingRate() => 1f + Random.Range(-PriceSwing, PriceSwing);
-
 #if UNITY_EDITOR
     public void EditorSetup(ERarity preferRarity, float preferRate, float otherRate, float visitWeight, float priceSwing)
     {

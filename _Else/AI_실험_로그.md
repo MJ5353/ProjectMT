@@ -422,3 +422,13 @@
 
 - 직접 15~19번 진행을 지시함. 시장 화면 글귀(상인 정보·합계·안내·시작 연출·개수 팝업·상인 줄, 생성기의 고정 글자)를 EStringKey Market_ 키 31개와 Common_Cancel·Common_Confirm으로 옮기고 UIDataSetup 초기값과 String.asset 값을 함께 넣음.
 - 희귀도 이름은 PopupMarket 자체 함수 대신 RarityDef 표 이름, BattleService의 골드·썩은 버섯 ID 상수는 CurrencyDef.GoldID·ItemDef.RottenID로 통일, _counterPopup은 m_CounterPopup으로, PopupResult 신뢰도 줄의 의미 없는 hunt null 검사 삭제. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## 시장 데이터 위치·파일 분리(11~14번)
+
+- 직접 11~14번 진행을 지시함. 판매가·방문 가중치 계산을 MarketData에서 HuntData로 옮겨 MarketData는 신뢰도 저장·증감·조회만 남김. 시세 굴림은 MerchantDef.RollSwingRate를 없애고 HuntData.Wait에서 CRandom.Range(새로 추가)로 함.
+- HuntData를 partial로 나눠 시장 부분(EMarketResult·LootKey·MarketItem 포함)을 HuntData.Market.cs로 옮김. 개수 팝업은 닫힐 때 onClosed 콜백으로 PopupMarket이 참조를 비우게 함. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## 정비 최소판 사전 정리
+
+- 직접 정비 탭 작업 전 정리를 요청함. AI가 기획서와 PlayerDef·InventoryData·SaveData·ScreenLobby·LobbyUISetup·플레이어 수치(체력 5, 공격 피해 1)를 읽고 최소판 범위·데이터·UI·정할 사안을 제시함.
+- 추천안: 장비 장착은 빼고 골드로 능력치(공격력·체력·회피) 올리기만. UpgradeDef + UpgradeData(PlayerDataBase) + 세이브 v5, 전투 반영은 플레이어 스폰 때 한 번, 정비 탭 화면은 LobbyUISetup이 만듦. 논의 단계라 코드는 고치지 않음.

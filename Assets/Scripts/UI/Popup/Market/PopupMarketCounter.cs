@@ -30,6 +30,7 @@ public class PopupMarketCounter : PopupBase
     private int m_Count;
     private int m_Price;
     private Action<int> m_OnConfirm;
+    private Action m_OnClosed; // 확인·취소·뒤로 가기 어느 쪽으로 닫혀도 부른다(여는 쪽이 참조를 비우게)
 
     // ------------------------------------------------
 
@@ -44,18 +45,29 @@ public class PopupMarketCounter : PopupBase
         m_ConfirmButton.E_SetOnClick(OnClickConfirm);
     }
 
-    // price가 0 이하면 이 상인이 사지 않는 버섯이다
-    public void Setup(LootKey key, int have, int count, int price, Action<int> onConfirm)
+    // price가 0 이하면 이 상인이 사지 않는 버섯이다. onClosed는 어떻게 닫히든 닫힌 뒤 한 번 부른다
+    public void Setup(LootKey key, int have, int count, int price, Action<int> onConfirm, Action onClosed)
     {
         m_Have = Mathf.Max(0, have);
         m_Price = price;
         m_OnConfirm = onConfirm;
+        m_OnClosed = onClosed;
 
         GameDatabase.S_TryGet(key.ItemID, out MushroomDef def); // 없으면 def는 null
         m_NameText.E_SetText(def.E_Alive()?.DisplayName ?? key.ItemID);
         m_Slot.SetLoot(key, def, m_Have, string.Empty);
 
         SetCount(count);
+    }
+
+    // virtual ---
+
+    protected override void OnClose()
+    {
+        Action onClosed = m_OnClosed;
+        m_OnConfirm = null;
+        m_OnClosed = null;
+        onClosed?.Invoke();
     }
 
     // ---
