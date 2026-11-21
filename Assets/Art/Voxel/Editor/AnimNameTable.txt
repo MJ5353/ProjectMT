@@ -1,4 +1,4 @@
-# 모델|원래 클립|표준 이름(Attack_NN·Skill_NN). MushTaker/애니 이름 일괄 정리가 줄을 더한다. 지우면 다시 가져올 때 원래 이름으로 돌아간다
+# 모델|원래 클립|표준 이름(Attack_NN·Skill_NN). 줄을 직접 더한 뒤 해당 모델 FBX를 Reimport하고 완료되면 MushTaker/에셋/애니메이터 다시 만들기를 실행한다. 지우면 다시 가져올 때 원래 이름으로 돌아간다
 Mon_001_Rabbit|Attack|Attack_01
 Mon_002_Mole|Attack|Attack_01
 Mon_003_Bear|Attack|Attack_01

@@ -91,7 +91,8 @@ public class StringDef : DataDef
     private readonly Dictionary<string, string> m_DicValue = new(); // 런타임 조회용. 처음 찾을 때 채운다
 
     private static readonly Dictionary<EStringKey, string> s_DicKeyName = new(); // enum → 이름. ToString 할당을 한 번만
-    private static readonly HashSet<string> s_SetWarned = new();                 // 같은 경고를 반복하지 않는다
+    private static readonly HashSet<string> s_SetWarned = new(); // 같은 경고를 반복하지 않는다
+    private static StringDef s_EditorDef; // EditorGet이 찾은 표. 지워졌으면 다시 찾는다
 
     // ------------------------------------------------
 
@@ -123,7 +124,20 @@ public class StringDef : DataDef
         return key;
     }
 
-    public static string S_Format(EStringKey key, params object[] args) => string.Format(S_Get(key), args);
+    // 문구의 {n} 자리가 args와 맞지 않으면 예외 대신 경고하고 문구를 그대로 보여 준다
+    public static string S_Format(EStringKey key, params object[] args)
+    {
+        string format = S_Get(key);
+        try
+        {
+            return string.Format(format, args);
+        }
+        catch (FormatException)
+        {
+            CLogger.Warning("StringDef", $"{S_GetName(key)} 문구의 {{n}} 자리가 인자 {args.Length}개와 맞지 않습니다: {format}");
+            return format;
+        }
+    }
 
     public bool TryGet(string key, out string value)
     {
@@ -155,15 +169,20 @@ public class StringDef : DataDef
         m_DicValue.Clear();
     }
 
-    // 에디터 미리보기용(UILabel·UI 생성기). 런타임 DB 없이 에셋을 직접 찾는다. 없으면 키 이름
+    // 에디터 미리보기용(UILabel·UI 생성기). 런타임 DB 없이 에셋을 직접 찾는다(한 번 찾으면 기억). 없으면 키 이름
     public static string EditorGet(string key)
     {
         if (key.E_IsNullOrEmpty())
             return string.Empty;
 
-        string guid = UnityEditor.AssetDatabase.FindAssets("t:StringDef").E_GetOrDefault(0);
-        StringDef def = guid == null ? null : UnityEditor.AssetDatabase.LoadAssetAtPath<StringDef>(UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
-        return def != null && def.TryGet(key, out string value) ? value : key;
+        if (s_EditorDef == null)
+        {
+            string guid = UnityEditor.AssetDatabase.FindAssets("t:StringDef").E_GetOrDefault(0);
+            if (guid != null)
+                s_EditorDef = UnityEditor.AssetDatabase.LoadAssetAtPath<StringDef>(UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
+        }
+
+        return s_EditorDef != null && s_EditorDef.TryGet(key, out string value) ? value : key;
     }
 #endif
 }

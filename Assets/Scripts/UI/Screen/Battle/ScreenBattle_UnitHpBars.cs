@@ -35,19 +35,12 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
         m_BossRoot.E_SetActive(false);
     }
 
-    // 서비스는 씬 컨트롤러 Awake에서 등록되므로 Start에서 구독한다. 씬이 닫힐 때 UnitService.Clear가 구독을 비운다
+    // 서비스는 씬 컨트롤러 Start(-1100)에서 등록되므로 Start에서 구독한다. 해제는 따로 하지 않는다(씬이 닫힐 때 UnitService.Clear가 구독을 비운다)
     private void Start()
     {
         UnitService units = GameManager.Instance.UnitS;
         if (units != null)
             units.UnitRemoved += OnUnitRemoved;
-    }
-
-    private void OnDestroy()
-    {
-        UnitService units = GameManager.Instance.UnitS;
-        if (units != null)
-            units.UnitRemoved -= OnUnitRemoved;
     }
 
     private void LateUpdate()

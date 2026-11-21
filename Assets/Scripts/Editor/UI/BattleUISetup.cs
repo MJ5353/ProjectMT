@@ -113,8 +113,7 @@ public static class BattleUISetup
             rt.pivot = new Vector2(0.5f, 0f);
         }
 
-        bar.transform.Find("Inner/Fill").GetComponent<Image>().color = UIStyle.HpBoss;
-        bar.GetComponentInChildren<TMP_Text>(true).gameObject.SetActive(false);
+        bar.EditorSetStyle(UIStyle.HpBoss, false);
 
         return bar;
     }
@@ -293,7 +292,7 @@ public static class BattleUISetup
         RectTransform chainRoot = UIBuilder.Rect("Chain", attackSlot, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-200, 16), new Vector2(200, 16 + SkillIconSize));
         UIBuilder.ListOption chainLayout = new(chainRoot, EUIListAxis.Horizontal, new Vector2(SkillIconSize, SkillIconSize), new Vector2(10, 0), TextAnchor.LowerCenter);
 
-        // 작은 아이콘은 ScreenBattle_SkillIcon 프리팹(CommonPath)을 ScreenBattle_SkillChain이 풀로 꺼낸다
+        // 작은 아이콘은 ScreenBattle_SkillIcon 프리팹(EUIComponentType.ScreenBattle_SkillIcon)을 ScreenBattle_SkillChain이 UIListView로 꺼낸다
         ScreenBattle_SkillChain chain = attackSlot.gameObject.AddComponent<ScreenBattle_SkillChain>();
         UIBuilder.SetRef(chain, "m_MainIcon", attackSlot.Find("Icon").GetComponent<Image>());
         UIBuilder.SetListView(chain, "m_ChainPool", chainLayout);

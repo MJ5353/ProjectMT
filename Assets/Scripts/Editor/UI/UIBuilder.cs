@@ -219,8 +219,7 @@ public static class UIBuilder
         if (gaugeRt != null)
             gaugeRt.sizeDelta = size;
 
-        gauge.transform.Find("Inner/Fill").GetComponent<Image>().color = fillColor;
-        gauge.GetComponentInChildren<TMP_Text>(true).gameObject.SetActive(isShowText);
+        gauge.EditorSetStyle(fillColor, isShowText);
 
         return gauge;
     }

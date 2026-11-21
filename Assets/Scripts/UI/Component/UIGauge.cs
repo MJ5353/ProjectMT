@@ -141,5 +141,12 @@ public class UIGauge : PoolableMonoUI
         m_Trail = trail;
         m_Text = text;
     }
+
+    // 생성기용: 채움 색과 숫자 글자 표시
+    public void EditorSetStyle(Color fillColor, bool isShowText)
+    {
+        m_Fill.GetComponent<UnityEngine.UI.Image>().color = fillColor;
+        m_Text.gameObject.SetActive(isShowText);
+    }
 #endif
 }

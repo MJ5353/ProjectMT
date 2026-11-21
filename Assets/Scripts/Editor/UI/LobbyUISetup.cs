@@ -16,10 +16,15 @@ public static class LobbyUISetup
     private const float TopBarHeight = 110f;
     private const float TabBarHeight = 150f;
 
-    // 하단 탭 순서(26.11.17 대장 확정: 정비·토벌·개량·파견, 야시장 탭 폐지). 토벌이 기본 탭
-    private static readonly string[] s_TabNames = { "정비", "토벌", "개량", "파견" };
-    private static readonly string[] s_TabIcons = { "Tab_Gear", "Tab_Hunt", "Tab_Breed", "Tab_Dispatch" }; // s_TabNames 순서
-    private static readonly EStringKey[] s_TabKeys = { EStringKey.Lobby_Tab_Gear, EStringKey.Lobby_Tab_Hunt, EStringKey.Lobby_Tab_Breed, EStringKey.Lobby_Tab_Dispatch }; // 탭 글자(StringDef). s_TabNames는 오브젝트 이름
+    // 하단 탭 순서(26.11.17 대장 확정: 정비·토벌·개량·파견, 야시장 탭 폐지). 토벌이 기본 탭.
+    // Name은 오브젝트 이름, Icon은 스프라이트 이름, Key는 탭 글자(StringDef)
+    private static readonly (string Name, string Icon, EStringKey Key)[] s_Tabs =
+    {
+        ("Gear", "Tab_Gear", EStringKey.Lobby_Tab_Gear),
+        ("Hunt", "Tab_Hunt", EStringKey.Lobby_Tab_Hunt),
+        ("Breed", "Tab_Breed", EStringKey.Lobby_Tab_Breed),
+        ("Dispatch", "Tab_Dispatch", EStringKey.Lobby_Tab_Dispatch),
+    };
     private const string GoldIconSprite = "Icon_Gold"; // 실행 중에는 UICountLabel이 재화 Def 아이콘으로 다시 채운다
     private const int HuntTabIndex = 1;
 
@@ -102,7 +107,7 @@ public static class LobbyUISetup
 
         List<UITabView> listView = new List<UITabView>();
         ScreenLobby_HuntView huntView = null;
-        for (int i = 0; i < s_TabNames.Length; i++)
+        for (int i = 0; i < s_Tabs.Length; i++)
         {
             if (i == HuntTabIndex)
             {
@@ -111,7 +116,7 @@ public static class LobbyUISetup
             }
             else
             {
-                listView.Add(BuildComingSoonTab(content, s_TabNames[i], s_TabKeys[i]));
+                listView.Add(BuildComingSoonTab(content, s_Tabs[i].Name, s_Tabs[i].Key));
             }
         }
 
@@ -160,9 +165,9 @@ public static class LobbyUISetup
         layout.padding = new RectOffset(6, 6, 6, 0);
 
         List<UITabBar.Entry> listEntry = new List<UITabBar.Entry>();
-        for (int i = 0; i < s_TabNames.Length; i++)
+        for (int i = 0; i < s_Tabs.Length; i++)
         {
-            RectTransform btnRt = UIBuilder.Rect($"Tab_{s_TabNames[i]}", bar, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            RectTransform btnRt = UIBuilder.Rect($"Tab_{s_Tabs[i].Name}", bar, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             Image image = UIBuilder.AddImage(btnRt, UIStyle.PanelLight, true);
 
             Button button = btnRt.gameObject.AddComponent<Button>();
@@ -171,10 +176,10 @@ public static class LobbyUISetup
             // [mj] todo) 탭 아이콘 자리. 지금은 색 칸
             RectTransform iconRt = UIBuilder.Anchored("Icon", btnRt, new Vector2(0.5f, 1), new Vector2(0, -16), new Vector2(64, 64));
             Image icon = UIBuilder.AddImage(iconRt, Color.white);
-            icon.sprite = UIBuilder.LoadSprite(s_TabIcons[i]);
+            icon.sprite = UIBuilder.LoadSprite(s_Tabs[i].Icon);
             icon.preserveAspect = true;
 
-            TMP_Text label = UIBuilder.Label(btnRt, s_TabKeys[i], UIStyle.FontNormal, TextAlignmentOptions.Bottom);
+            TMP_Text label = UIBuilder.Label(btnRt, s_Tabs[i].Key, UIStyle.FontNormal, TextAlignmentOptions.Bottom);
             label.rectTransform.offsetMin = new Vector2(0, 14);
 
             RectTransform highlight = UIBuilder.Rect("Highlight", btnRt, new Vector2(0, 1), Vector2.one, new Vector2(0, -8), Vector2.zero);
@@ -208,8 +213,8 @@ public static class LobbyUISetup
         return view.gameObject.AddComponent<UITabView>();
     }
 
-    // 지도 그림(256x144). 노드 자리(MapDef.MapPosition)에 맞춰 그려져 있어 노드 영역에 꽉 채운다. 이미 만든 로비 씬에도 쓴다
-    public static void SetMapBackground(RectTransform nodeRoot)
+    // 지도 그림(256x144). 노드 자리(MapDef.MapPosition)에 맞춰 그려져 있어 노드 영역에 꽉 채운다
+    private static void SetMapBackground(RectTransform nodeRoot)
     {
         if (nodeRoot.TryGetComponent(out Image image) == false)
             image = nodeRoot.gameObject.AddComponent<Image>();
@@ -219,8 +224,8 @@ public static class LobbyUISetup
         image.raycastTarget = false;
     }
 
-    // 노드 버튼에 지역 아이콘 칸과 ScreenLobby_HuntView_MapNode를 붙인다. 이미 만든 로비 씬에도 쓴다
-    public static ScreenLobby_HuntView_MapNode AddMapNode(Button node, TMP_Text nodeName)
+    // 노드 버튼에 지역 아이콘 칸과 ScreenLobby_HuntView_MapNode를 붙인다
+    private static ScreenLobby_HuntView_MapNode AddMapNode(Button node, TMP_Text nodeName)
     {
         RectTransform iconRt = UIBuilder.Stretch("Icon", node.transform);
         iconRt.SetSiblingIndex(0);
@@ -236,7 +241,7 @@ public static class LobbyUISetup
 
     private static ScreenLobby_HuntView BuildHuntTab(RectTransform parent)
     {
-        RectTransform view = UIBuilder.Stretch("View_토벌", parent);
+        RectTransform view = UIBuilder.Stretch($"View_{s_Tabs[HuntTabIndex].Name}", parent);
 
         // 왼쪽: 지도
         RectTransform map = UIBuilder.Rect("Map", view, Vector2.zero, new Vector2(0.62f, 1f), new Vector2(30, 30), new Vector2(-15, -30));
