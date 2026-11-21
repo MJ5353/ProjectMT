@@ -375,6 +375,19 @@ public static class UIBuilder
         return slot;
     }
 
+    // 그림 한 장짜리 공용 요소(클릭 버섯 조각 등). 누름은 받지 않는다
+    public static UICommonImage BuildCommonImage(Transform parent)
+    {
+        RectTransform rt = Anchored(nameof(EUIComponentType.UICommonImage), parent, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(40, 40));
+        Image image = AddImage(rt, Color.white);
+        image.preserveAspect = true;
+
+        UICommonImage commonImage = rt.gameObject.AddComponent<UICommonImage>();
+        SetRef(commonImage, "m_Image", image);
+
+        return commonImage;
+    }
+
     // UIListView 배치 옵션. 생성기에서 영역을 만들 때 값을 모아 두었다가 SetListView로 화면 필드에 넣는다
     public class ListOption
     {

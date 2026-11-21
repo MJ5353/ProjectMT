@@ -20,10 +20,12 @@ MonoBehaviour:
   - <Type>k__BackingField: 1
     <Prefab>k__BackingField: {fileID: 8221868531429842555, guid: 5f784768b71cceb4a9a6ddf294acc1ff, type: 3}
   - <Type>k__BackingField: 2
-    <Prefab>k__BackingField: {fileID: 5297365645217995129, guid: 14a4c88258a14b74388a8aada7a70851, type: 3}
+    <Prefab>k__BackingField: {fileID: 4147720052164173635, guid: b61c2c07c1512bc44a16fd641987f1da, type: 3}
   - <Type>k__BackingField: 3
-    <Prefab>k__BackingField: {fileID: 1718240890821972552, guid: 24288ad0f263488408e1618b43690ba3, type: 3}
+    <Prefab>k__BackingField: {fileID: 5297365645217995129, guid: 14a4c88258a14b74388a8aada7a70851, type: 3}
   - <Type>k__BackingField: 4
-    <Prefab>k__BackingField: {fileID: 3376556567454196932, guid: ed14647a7a6550d459ff9b573763fdcb, type: 3}
+    <Prefab>k__BackingField: {fileID: 1718240890821972552, guid: 24288ad0f263488408e1618b43690ba3, type: 3}
   - <Type>k__BackingField: 5
+    <Prefab>k__BackingField: {fileID: 3376556567454196932, guid: ed14647a7a6550d459ff9b573763fdcb, type: 3}
+  - <Type>k__BackingField: 6
     <Prefab>k__BackingField: {fileID: 53861111677531222, guid: f433266c5fbd1d04f98b3f6a561c083d, type: 3}

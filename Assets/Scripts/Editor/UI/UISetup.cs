@@ -70,6 +70,7 @@ public static class UISetup
             (EditorPath.ButtonPrefab, () => UIBuilder.BuildButton(null).gameObject),
             (EditorPath.GaugePrefab, () => UIBuilder.BuildGauge(null).gameObject),
             (EditorPath.CommonSlotPrefab, () => UIBuilder.BuildCommonSlot(null).gameObject),
+            (EditorPath.CommonImagePrefab, () => UIBuilder.BuildCommonImage(null).gameObject),
         };
         listPrefab.AddRange(LobbyUISetup.Prefabs);
         listPrefab.AddRange(MarketUISetup.Prefabs);

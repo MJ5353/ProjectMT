@@ -66,6 +66,7 @@ public static class EditorPath
     public const string BattleUnitHpBarPrefab = BattleScreenUIPrefabDir + nameof(EUIComponentType.ScreenBattle_UnitHpBar) + PrefabExtension; // UIGauge
     public const string GaugePrefab = ComponentUIPrefabDir + "UIGauge.prefab";
     public const string CommonSlotPrefab = ComponentUIPrefabDir + nameof(EUIComponentType.UICommonSlot) + PrefabExtension;
+    public const string CommonImagePrefab = ComponentUIPrefabDir + nameof(EUIComponentType.UICommonImage) + PrefabExtension;
     public const string ButtonPrefab = ComponentUIPrefabDir + "UIButton.prefab";
     public const string Font = FontDir + "Galmuri11.ttf";
     public const string FontAsset = FontDir + "Galmuri11 SDF.asset";

@@ -9,6 +9,7 @@ public enum EUIComponentType
 
     // ui component
     UICommonSlot,
+    UICommonImage,  // 그림 한 장(클릭 버섯 조각)
     
     // popup
     PopupMarket_MerchantRow,

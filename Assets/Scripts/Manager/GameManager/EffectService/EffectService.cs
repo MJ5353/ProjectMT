@@ -3,9 +3,11 @@ using UnityEngine;
 
 // ==================================================
 
-// 전투 이펙트 입구. 파티클 이펙트(EffectController)는 풀에서 꺼내 살아 있는 동안 들고 있다가 끝나면 돌려놓고,
+// 이펙트 입구. 모든 씬의 공용 Service(GameManager가 넣는다).
+// 파티클 이펙트(EffectController)는 풀에서 꺼내 살아 있는 동안 들고 있다가 끝나면 돌려놓고,
 // 피격 복셀 조각·타격 마크는 ChunkRenderer로 오브젝트 없이 그린다.
 // 공격 이펙트는 데이터(AttackSpec.Effect), 부위 파괴·사망·줍기처럼 정해진 연출은 ECommonEffectType으로 부른다(프리팹 FX_{타입 이름})
+// 화면을 누르면 버섯이 튀는 UI 연출(UIClickBurst)은 씬 컨트롤러가 켠 씬(UseClickBurst)에서만 돈다
 
 public sealed class EffectService : ServiceBase
 {
@@ -13,15 +15,25 @@ public sealed class EffectService : ServiceBase
     private readonly List<TelegraphController> m_ListTelegraph = new(); // 켜져 있는 공격 예고. 끄는 건 부른 쪽(AttackAction)
     private readonly List<EffectController> m_ListShown = new();         // 켜 둔 고정 연출(빛기둥 등). 끄는 건 부른 쪽(Hide)
     private readonly Dictionary<ECommonEffectType, EffectController> m_DicCommon = new();
+    
     private readonly ChunkRenderer m_Chunk = new();
+    private readonly UIClickBurst m_ClickBurst; // 끈 씬에서는 null
 
     private TelegraphController m_TelegraphCircle;
     private TelegraphController m_TelegraphLine;
 
     // ------------------------------------------------
 
+    public EffectService(bool useClickBurst)
+    {
+        if (useClickBurst)
+            m_ClickBurst = new UIClickBurst();
+    }
+
     public override void Init()
     {
+        m_ClickBurst?.Init();
+
         m_DicCommon.Clear();
         foreach (ECommonEffectType type in System.Enum.GetValues(typeof(ECommonEffectType)))
         {
@@ -45,6 +57,7 @@ public sealed class EffectService : ServiceBase
         }
 
         m_Chunk.Tick(deltaTime);
+        m_ClickBurst?.Tick();
     }
 
     public override void Clear()
@@ -68,8 +81,8 @@ public sealed class EffectService : ServiceBase
         {
             ResourceManager.Instance.Despawn(telegraph);
         }
-
         m_ListTelegraph.Clear();
+        m_ClickBurst?.Clear();
     }
 
     // ---

@@ -2,7 +2,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 전투 씬. 지역(MapDef)을 골라 전투 Service(Unit·Effect·HitStop·Battle)를 등록한다
+// 전투 씬. 지역(MapDef)을 골라 전투 Service(Unit·HitStop·Battle)를 등록한다. 이펙트는 공용(GameManager)
 
 [DefaultExecutionOrder(-1100)]
 public sealed class BattleSceneController : SceneControllerBase

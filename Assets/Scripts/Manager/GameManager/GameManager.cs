@@ -44,7 +44,8 @@ public class GameManager : MonoSingleton<GameManager>
 
     // ------------------------------------------------
 
-    // 씬 전용 Service는 씬 컨트롤러가 정하고(RegisterServices), 공용(UI 요소·팝업)은 여기서 넣는다.
+    // 씬 전용 Service는 씬 컨트롤러가 정하고(RegisterServices), 공용(이펙트·UI 요소·팝업)은 여기서 넣는다.
+    // !!) EffectService는 맨 먼저 넣는다. 전투 Service가 Init에서 이펙트를 부를 수 있다
     // !!) UIReuseService를 PopupService보다 먼저 넣는다. 씬 전환 때 팝업 안 칸을 먼저 회수해야 팝업과 함께 지워지지 않는다
     internal void InitSceneServices(Scene scene, SceneControllerBase sceneController)
     {
@@ -54,10 +55,11 @@ public class GameManager : MonoSingleton<GameManager>
         ClearSceneServices(m_ServiceScene);
         m_ServiceScene = scene;
 
+        EffectS = Register(new EffectService(sceneController.UseClickBurst));
         sceneController.RegisterServices(this);
         UIReuseS = Register(new UIReuseService());
         PopupS = Register(new PopupService());
-        
+
         foreach (ServiceBase service in m_ListService)
         {
             service.Init();
@@ -71,7 +73,6 @@ public class GameManager : MonoSingleton<GameManager>
     public void RegisterBattleServices(MapDef mapDef)
     {
         UnitS = Register(new UnitService());
-        EffectS = Register(new EffectService());
         HitStopS = Register(new HitStopService());
         BattleS = Register(new BattleService(mapDef));
     }
@@ -110,7 +111,7 @@ public class GameManager : MonoSingleton<GameManager>
         HitStopS = null;
         UIReuseS = null;
         PopupS = null;
-        
+
         m_ServiceScene = default;
     }
 

@@ -9,6 +9,7 @@ public class InputManager : MonoSingleton<InputManager>
     private InputSystem_Actions m_Actions;
 
     public InputSystem_Actions.PlayerActions Player => m_Actions.Player;
+    public InputSystem_Actions.UIActions UI => m_Actions.UI; // 화면 누름(Click·Point). 클릭 버섯 연출이 읽는다
 
     // ------------------------------------------------
 
@@ -26,6 +27,7 @@ public class InputManager : MonoSingleton<InputManager>
     {
         m_Actions = new InputSystem_Actions();
         m_Actions.Player.Enable();
+        m_Actions.UI.Enable();
     }
 
     protected override void OnClear() => Dispose();
