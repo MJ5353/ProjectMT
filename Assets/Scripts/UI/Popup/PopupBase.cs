@@ -33,11 +33,16 @@ public class PopupBase : MonoBehaviour
     // 여는 연출(이어지는 팝업별 연출 포함)을 끝 모습으로 넘긴다
     public void SkipOpen() => m_OpenSequence.Skip();
 
-    // PopupService.Open만 부른다(켠 뒤). 다시 쓰는 경우 닫기 상태를 풀고, 자식 내용 채우기(OnOpen) 뒤 공용 여는 연출을 돌린다
+    // PopupService.Open만 부른다(켠 뒤). 다시 쓰는 경우 닫기 상태를 풀고, 자식 내용 채우기(OnOpen) 뒤 공용 여는 연출을 돌린다.
+    // !!) 닫는 연출 중에 다시 열리면 앞의 OnClose(구독 해제)를 먼저 불러 OnOpen과 짝을 맞춘다
     public void Open()
     {
         m_OpenSequence.Stop();
         m_CloseSequence.Stop();
+
+        if (m_IsClosing && m_IsFinished == false)
+            OnClose();
+
         m_IsClosing = false;
         m_IsFinished = false;
         m_Group.E_SetBlocksRaycasts(true);

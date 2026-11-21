@@ -105,6 +105,7 @@ public class PopupResult : PopupBase
             
             GameDatabase.S_TryGet(itemID, out DataDef def); // 없으면 회색 칸 + ID
             slot.Set(itemID, def, count);
+            slot.transform.localScale = Vector3.zero; // 다시 쓰는 칸이 지난번 크기로 먼저 보이지 않게 한다(튀어나오기 연출이 0부터 키운다)
         }
 
         m_SlotPool.HideFrom(m_ListLoot.Count);
@@ -146,13 +147,13 @@ public class PopupResult : PopupBase
         
         foreach (var pair in hunt.DicTrustGain)
         {
-            if (GameDatabase.S_TryGet(pair.Key, out MerchantDef merchant) == false)
-                continue;
-            
+            // 상인 Def가 없으면 ID로 대신 쓴다
+            string merchantName = GameDatabase.S_TryGet(pair.Key, out MerchantDef merchant) ? merchant.DisplayName : pair.Key;
+
             if (isFirst == false)
                 builder.Append(", ");
-            
-            builder.Append(StringDef.S_Format(EStringKey.Result_TrustEntryFormat, merchant.E_Alive()?.DisplayName ?? pair.Key, pair.Value));
+
+            builder.Append(StringDef.S_Format(EStringKey.Result_TrustEntryFormat, merchantName, pair.Value));
             isFirst = false;
         }
 
