@@ -18,6 +18,13 @@ public static class UISetup
 
     // ==================================================
 
+    [MenuItem("MushTaker/초기 설정/UI 기반 준비", false, 100)]
+    public static void PrepareUI()
+    {
+        SetupBase();
+        BuildAllPrefabs(false);
+    }
+
     public static void SetupBase()
     {
         SetLandscape();
@@ -34,7 +41,7 @@ public static class UISetup
 
     // 지금 쓰는 UI 프리팹을 모두 새로 만든다. 같은 경로에 덮어써 GUID가 유지되므로 씬의 프리팹 인스턴스·참조는 따라온다.
     // 씬(Battle·Lobby)은 열거나 저장하지 않는다. 로비 씬 자체(캔버스·PopupRoot)는 "초기 설정/로비 씬 재생성"으로 다시 만든다
-    [MenuItem("MushTaker/UI/모든 UI 다시 만들기", false, 40)]
+    [MenuItem("MushTaker/UI/모든 UI 다시 만들기", false, 60)]
     public static void RebuildAll()
     {
         if (UIBuilder.Font == null)
@@ -74,7 +81,7 @@ public static class UISetup
 
     // PopupDef·UIComponentDef를 enum 이름과 같은 프리팹으로 채운다. 프리팹을 손으로 만들었거나 옮겼을 때도 이 메뉴만 돌리면 된다.
     // 문구 표(StringDef: 새 키 추가·빈 값/없는 키 경고)와 희귀도 표(RarityDef: 없으면 만들기)도 함께 맞춘다
-    [MenuItem("MushTaker/UI/UI 프리팹 표 갱신", false, 41)]
+    [MenuItem("MushTaker/UI/UI 프리팹 표 갱신", false, 61)]
     public static void RefreshPrefabDefs()
     {
         FillPrefabDef<PopupDef, EPopupType, PopupBase>(EditorPath.PopupDefAsset, PopupDef.PopupID);

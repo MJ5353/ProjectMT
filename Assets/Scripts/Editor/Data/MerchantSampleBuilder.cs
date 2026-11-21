@@ -6,9 +6,8 @@ using UnityEngine;
 
 // 시장 샘플 상인 생성. 이미 있는 상인 에셋은 건드리지 않고 없는 것만 만든 뒤 DB를 갱신한다.
 // 수치는 가안이며 만든 뒤 데이터 편집기나 인스펙터에서 고친다
-public static class MarketSetup
+public static class MerchantSampleBuilder
 {
-    private const string MerchantDir = "Assets/Resources/Data/Merchants/";
 
     private readonly struct Sample
     {
@@ -44,15 +43,15 @@ public static class MarketSetup
 
     // ------------------------------------------------
 
-    [MenuItem("MushTaker/시장/샘플 상인 만들기")]
+    [MenuItem("MushTaker/데이터/샘플 상인 만들기", false, 21)]
     public static void CreateSamples()
     {
-        Directory.CreateDirectory(MerchantDir);
+        Directory.CreateDirectory(EditorPath.MerchantDataDir);
 
         int created = 0;
         foreach (Sample sample in s_Samples)
         {
-            string path = $"{MerchantDir}{sample.ID}.asset";
+            string path = $"{EditorPath.MerchantDataDir}{sample.ID}.asset";
             if (AssetDatabase.LoadAssetAtPath<MerchantDef>(path) != null)
                 continue;
 
@@ -65,6 +64,6 @@ public static class MarketSetup
 
         AssetDatabase.SaveAssets();
         DataTools.RefreshDatabase(true);
-        CLogger.Log("MarketSetup", $"샘플 상인 {created}개 생성");
+        CLogger.Log("MerchantSampleBuilder", $"샘플 상인 {created}개 생성");
     }
 }

@@ -7,12 +7,39 @@ using UnityEngine;
 
 public static class DataEditorUtility
 {
+    // 좌측 목록 순서이자 표시 이름. 여기 없는 타입은 뒤에 영문 이름순으로 붙는다
+    private static readonly (Type Type, string Label)[] s_TypeOrder =
+    {
+        (typeof(DefineDef), "기본 설정"),
+        (typeof(PlayerDef), "플레이어"),
+        (typeof(MonsterDef), "몬스터"),
+        (typeof(SkillDef), "스킬"),
+        (typeof(AIDef), "AI"),
+        (typeof(HitDef), "피격"),
+        (typeof(MapDef), "지역"),
+        (typeof(MushroomDef), "버섯"),
+        (typeof(ItemDef), "아이템"),
+        (typeof(RarityDef), "희귀도"),
+        (typeof(CurrencyDef), "재화"),
+        (typeof(PopupDef), "팝업"),
+        (typeof(UIComponentDef), "UI 요소"),
+        (typeof(MerchantDef), "상인"),
+        (typeof(StringDef), "문구"),
+    };
+
     public static List<Type> CollectTypes()
     {
         return TypeCache.GetTypesDerivedFrom<DataDef>()
             .Where(type => type.IsAbstract == false && type.ContainsGenericParameters == false)
-            .OrderBy(type => type.Name, StringComparer.Ordinal)
+            .OrderBy(GetTypeOrder)
+            .ThenBy(type => type.Name, StringComparer.Ordinal)
             .ToList();
+    }
+
+    private static int GetTypeOrder(Type type)
+    {
+        int index = Array.FindIndex(s_TypeOrder, entry => entry.Type == type);
+        return index < 0 ? s_TypeOrder.Length : index;
     }
 
     public static bool MatchesSearch(DataDef def, string search)
@@ -25,18 +52,8 @@ public static class DataEditorUtility
 
     public static string GetTypeLabel(Type type)
     {
-        if (type == typeof(MonsterDef))
-            return "몬스터";
-        if (type == typeof(PlayerDef))
-            return "플레이어";
-        if (type == typeof(MushroomDef))
-            return "버섯";
-        if (type == typeof(MapDef))
-            return "지역";
-        if (type == typeof(CurrencyDef))
-            return "재화";
-
-        return type.Name;
+        int index = Array.FindIndex(s_TypeOrder, entry => entry.Type == type);
+        return index < 0 ? type.Name : s_TypeOrder[index].Label;
     }
 
     public static SerializedProperty FindProperty(SerializedObject serializedDef, string name)

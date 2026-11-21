@@ -6,7 +6,7 @@ using UnityEngine;
 // Assets/Art/Voxel 아래 복셀 에셋 가져오기 설정 (tools/voxel 스크립트가 만든 FBX·PNG 전용)
 // - 텍스처: 점 필터, 밉맵·압축 끔 (도트 색이 번지지 않게)
 // - 모델: 맵 지형·소품 충돌체, 축 변환 굽기, Generic 애니, 클립 이름 "Buggi|Walk" -> "Walk", Idle/Walk/Run/Underground 반복
-// - 클립 이름 표준화: AnimNameTable.txt(모델|원래 이름|표준 이름)대로 바꾼다(Attack_NN·Skill_NN). 표는 애니 이름 일괄 정리 메뉴가 채운다
+// - 클립 이름 표준화: AnimNameTable.txt(모델|원래 이름|표준 이름)대로 바꾼다(Attack_NN·Skill_NN). 표에 줄을 직접 더한 뒤 애니메이터 다시 만들기 메뉴를 돌린다
 // - 머티리얼: FBX 안의 M_Voxel/M_Terrain을 Materials/ 폴더의 실제 .mat으로 바꿔 끼운다 (텍스처 연결이 FBX 위치와 무관하게 유지)
 // !!) 다시 가져올 때마다 클립 설정을 덮어쓴다. 클립을 손으로 고칠 거면 이 파일에서 해당 부분을 빼야 한다.
 public class VoxelImportSettings : AssetPostprocessor
@@ -147,7 +147,7 @@ public class VoxelImportSettings : AssetPostprocessor
         };
     }
 
-    [MenuItem("MushTaker/Voxel/머티리얼 다시 연결")]
+    [MenuItem("MushTaker/에셋/복셀 머티리얼 다시 연결", false, 41)]
     private static void SetupMaterials()
     {
         if (AssetDatabase.IsValidFolder(MaterialFolder) == false)

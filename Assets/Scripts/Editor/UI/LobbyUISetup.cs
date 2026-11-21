@@ -25,7 +25,7 @@ public static class LobbyUISetup
 
     // ------------------------------------------------
 
-    [MenuItem("MushTaker/초기 설정/로비 씬 재생성", false, 101)]
+    [MenuItem("MushTaker/초기 설정/로비 씬 재생성", false, 121)]
     public static void CreateLobbyScene()
     {
         if (UIBuilder.Font == null)

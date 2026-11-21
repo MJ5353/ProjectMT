@@ -17,7 +17,7 @@ public static class BattleSetup
 
     // ------------------------------------------------
 
-    [MenuItem("MushTaker/초기 설정/전투 씬 재생성", false, 100)]
+    [MenuItem("MushTaker/초기 설정/전투 씬 재생성", false, 120)]
     public static void CreateBattleScene()
     {
         if (File.Exists(EditorPath.BattleScene) && EditorUtility.DisplayDialog("전투 씬", $"{EditorPath.BattleScene}가 이미 있습니다. 새로 만들까요?", "새로 만들기", "취소") == false)
@@ -32,7 +32,7 @@ public static class BattleSetup
         BuildScene();
     }
 
-    [MenuItem("MushTaker/초기 설정/누락 전투 에셋 복구", false, 20)]
+    [MenuItem("MushTaker/초기 설정/누락 전투 에셋 복구", false, 101)]
     public static void RepairAssets()
     {
         PrepareAssets();
