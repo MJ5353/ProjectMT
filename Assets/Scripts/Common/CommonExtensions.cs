@@ -46,6 +46,15 @@ public static class CommonExtensions
         component.gameObject.E_SetActive(isActive);
     }
 
+    // 컴포넌트만 켜고 끈다(오브젝트는 그대로). null이면 넘어간다
+    public static void E_SetEnabled(this UnityEngine.Behaviour behaviour, bool isEnabled)
+    {
+        if (behaviour == null)
+            return;
+
+        behaviour.enabled = isEnabled;
+    }
+
     // 비어 있어도 되는 글자 칸에 쓴다. null이면 넘어간다
     public static void E_SetText(this TMPro.TMP_Text text, string value)
     {
@@ -69,6 +78,34 @@ public static class CommonExtensions
     public static void E_SetTextWithActive(this TMPro.TMP_Text text, string value)
     {
         text.E_SetTextWithActive(value, value.E_IsNullOrEmpty() == false);
+    }
+    
+    // StringDef 문구를 넣는다. null이면 넘어간다
+    public static void E_SetString(this TMPro.TMP_Text text, EStringKey key)
+    {
+        if (text == null)
+            return;
+
+        text.text = StringDef.S_Get(key);
+    }
+
+    // StringDef 포맷 문구({0}…)에 args를 채워 넣는다. null이면 넘어간다
+    public static void E_SetString(this TMPro.TMP_Text text, EStringKey key, params object[] args)
+    {
+        if (text == null)
+            return;
+
+        text.text = StringDef.S_Format(key, args);
+    }
+
+    // StringDef 포맷 문구를 넣고 켜거나 끈다. null이면 넘어간다
+    public static void E_SetStringWithActive(this TMPro.TMP_Text text, EStringKey key, bool isActive, params object[] args)
+    {
+        if (text == null)
+            return;
+
+        text.E_SetActive(isActive);
+        text.text = StringDef.S_Format(key, args);
     }
 
     // 버튼 등 누를 수 있는지. null이면 넘어가고, 이미 같으면 건드리지 않는다

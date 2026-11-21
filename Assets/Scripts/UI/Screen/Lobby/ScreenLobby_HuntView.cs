@@ -57,6 +57,12 @@ public class ScreenLobby_HuntView : UITabView
         Select(target);
     }
 
+    // 탭을 떠나면 툴팁을 닫는다(돌아왔을 때 사라진 칸 위에 남지 않게)
+    protected override void OnClose()
+    {
+        m_MushroomTooltip.E_Alive()?.Hide();
+    }
+
     // ---
 
     private void BuildNodes()
@@ -132,9 +138,9 @@ public class ScreenLobby_HuntView : UITabView
         if (m_Selected == null)
         {
             m_MushroomPool.HideFrom(0);
-            m_InfoName.E_SetText("지역 없음");
+            m_InfoName.E_SetString(EStringKey.Lobby_Hunt_NoMap);
             m_InfoState.E_SetText(string.Empty);
-            m_InfoDesc.E_SetText("MushTaker/데이터 편집기에서 MapDef를 준비하세요.");
+            m_InfoDesc.E_SetString(EStringKey.Lobby_Hunt_NoMapDesc);
             m_EnterButton.E_SetInteractable(false);
             return;
         }
@@ -146,11 +152,11 @@ public class ScreenLobby_HuntView : UITabView
         bool isUnlocked = hunt != null && hunt.IsUnlocked(m_Selected);
         
         if (hunt != null && hunt.IsCleared(m_Selected))
-            m_InfoState.E_SetText("토벌 완료");
+            m_InfoState.E_SetString(EStringKey.Lobby_Hunt_Cleared);
         else if (isUnlocked)
-            m_InfoState.E_SetText("토벌 가능");
+            m_InfoState.E_SetString(EStringKey.Lobby_Hunt_Unlocked);
         else
-            m_InfoState.E_SetText($"잠김 · {m_Selected.RequireMap.DisplayName}을(를) 먼저 토벌");
+            m_InfoState.E_SetString(EStringKey.Lobby_Hunt_LockedFormat, m_Selected.RequireMap.DisplayName);
 
         m_InfoState.E_SetColor(isUnlocked ? UIStyle.Gold : UIStyle.TextDim);
         m_EnterButton.E_SetInteractable(isUnlocked);

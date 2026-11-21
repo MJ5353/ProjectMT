@@ -30,7 +30,7 @@ public class PopupDeath : PopupBase
         if (battleS == null)
             return;
 
-        m_ReviveLabel.E_SetText($"부활 ({battleS.ReviveGold} 골드)");
+        m_ReviveLabel.E_SetString(EStringKey.Death_ReviveFormat, battleS.ReviveGold);
         m_ReviveButton.E_SetInteractable(battleS.CanRevive); // 골드가 모자라면 못 누른다
     }
 

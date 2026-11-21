@@ -63,12 +63,12 @@ public class UITabBar : MonoBehaviour
         int from = CurrentIndex;
         if (from >= 0)
         {
-            m_ListTab[from].View.SetVisible(false);
+            m_ListTab[from].View.E_Alive()?.SetVisible(false);
             SetHighlight(m_ListTab[from], false);
         }
 
         CurrentIndex = index;
-        m_ListTab[index].View.SetVisible(true);
+        m_ListTab[index].View.E_Alive()?.SetVisible(true); // 화면이 빈 탭도 버튼·표시는 바뀐다
         SetHighlight(m_ListTab[index], true);
 
         SEventManager.Publish(new TabChanged(from, index));

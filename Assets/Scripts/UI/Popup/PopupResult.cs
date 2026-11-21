@@ -41,15 +41,15 @@ public class PopupResult : PopupBase
         if (battleS == null)
             return;
 
-        string title = battleS.State switch
+        EStringKey title = battleS.State switch
         {
-            EBattleState.Exited => "토벌 종료",
-            EBattleState.TimedOut => "날이 밝았다",
-            _ => "빈손으로 귀가",
+            EBattleState.Exited => EStringKey.Result_TitleExited,
+            EBattleState.TimedOut => EStringKey.Result_TitleTimedOut,
+            _ => EStringKey.Result_TitleEmpty,
         };
-        m_Title.E_SetText(title);
+        m_Title.E_SetString(title);
         m_Title.E_SetColor(battleS.State == EBattleState.Exited ? UIStyle.Gold : UIStyle.Accent);
-        m_Summary.E_SetText($"시간 {UINightClock.FormatRealTime(Mathf.FloorToInt(battleS.ElapsedTime))}{FormatTrust(battleS.State)}");
+        m_Summary.E_SetString(EStringKey.Result_SummaryFormat, UINightClock.FormatRealTime(Mathf.FloorToInt(battleS.ElapsedTime)), FormatTrust(battleS.State));
 
         FillLoot(battleS.DicReward);
         m_LobbyButton.E_SetActive(Application.CanStreamedLevelBeLoaded(SceneNames.Lobby));
@@ -141,7 +141,7 @@ public class PopupResult : PopupBase
         if (state != EBattleState.Exited || hunt == null || hunt.DicTrustGain.Count == 0)
             return string.Empty;
 
-        System.Text.StringBuilder builder = new("  ·  신뢰도 ");
+        System.Text.StringBuilder builder = new(StringDef.S_Get(EStringKey.Result_TrustPrefix));
         bool isFirst = true;
         
         foreach (var pair in hunt.DicTrustGain)
@@ -152,7 +152,7 @@ public class PopupResult : PopupBase
             if (isFirst == false)
                 builder.Append(", ");
             
-            builder.Append($"{merchant.E_Alive()?.DisplayName ?? pair.Key} +{pair.Value}");
+            builder.Append(StringDef.S_Format(EStringKey.Result_TrustEntryFormat, merchant.E_Alive()?.DisplayName ?? pair.Key, pair.Value));
             isFirst = false;
         }
 

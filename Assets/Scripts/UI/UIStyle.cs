@@ -39,7 +39,7 @@ public static class UIStyle
     public static readonly Color Positive = Hex(0x7BC950);
     public static readonly Color Negative = Accent;
 
-    // rarity ---
+    // rarity --- RarityDef를 처음 만들 때의 색(UIDataSetup). 실행 중에는 RarityDef 값을 쓴다
 
     public static readonly Color RarityCommon = Hex(0x6B6F68); // 회색. 크림 글자가 읽히게 어둡게
     public static readonly Color RarityRare = Hex(0x4FA3E0);
@@ -54,16 +54,6 @@ public static class UIStyle
         float b = (rgb & 0xFF) / 255f;
 
         return new Color(r, g, b, alpha);
-    }
-
-    public static Color GetRarityColor(ERarity rarity)
-    {
-        return rarity switch
-        {
-            ERarity.Epic => RarityEpic,
-            ERarity.Rare => RarityRare,
-            _ => RarityCommon,
-        };
     }
 
     // 리치 텍스트 색 태그

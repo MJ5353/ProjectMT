@@ -70,9 +70,9 @@ public class UIListView<T> : UIListViewBase where T : PoolableMonoUI
     // index부터 끝까지 끈다
     public void HideFrom(int index)
     {
-        foreach (T item in m_List)
+        for (int i = index; i < m_List.Count; ++i)
         {
-            item.E_SetActive(false);
+            m_List[i].E_SetActive(false);
         }
     }
 

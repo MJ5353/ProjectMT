@@ -75,7 +75,7 @@ public class UINightClock : MonoBehaviour
         m_Text.alignment = isMarket ? TextAlignmentOptions.Left : m_BattleAlign;
         m_Text.fontSize = isMarket ? m_MarketFontSize : m_BattleFontSize;
 
-        m_SubText.E_SetTextWithActive($"행동당 {Define.MarketActionMinutes}분", isMarket);
+        m_SubText.E_SetStringWithActive(EStringKey.Clock_ActionTimeFormat, isMarket, Define.MarketActionMinutes);
 
         if (isMarket)
             WriteMarketTime();
@@ -87,9 +87,7 @@ public class UINightClock : MonoBehaviour
     public void SetTextVisible(bool isVisible)
     {
         m_Text.enabled = isVisible;
-        
-        if (m_SubText != null)
-            m_SubText.enabled = isVisible;
+        m_SubText.E_SetEnabled(isVisible); // 없어도 된다
     }
 
     // 실제 초 → 인게임 분. 기본값이면 15초 = 30분(300초 = 10시간)
@@ -120,7 +118,7 @@ public class UINightClock : MonoBehaviour
 
         bool isSpent = m_LastMinutes >= 0 && minutes < m_LastMinutes;
         m_LastMinutes = minutes;
-        m_Text.E_SetText($"시장이 닫기까지, {minutes / 60}h {minutes % 60:00}m");
+        m_Text.E_SetString(EStringKey.Clock_MarketCloseFormat, minutes / 60, minutes % 60);
 
         if (isSpent == false || gameObject.activeInHierarchy == false)
             return;

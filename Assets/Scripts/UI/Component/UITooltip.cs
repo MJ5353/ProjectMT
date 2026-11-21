@@ -5,7 +5,8 @@ using UnityEngine;
 // ==================================================
 
 // 대상 칸 위에 뜨는 이름 말풍선. 목록 하나에 하나만 두고 돌려 쓴다(다른 칸을 누르면 그 칸으로 옮겨 다시 뜬다).
-// 같은 칸을 다시 누르면 닫힌다. 피벗은 아래 가운데로 두고 대상 윗변 가운데에 붙인다
+// 같은 칸을 다시 누르면 닫힌다. 피벗은 아래 가운데로 두고 대상 윗변 가운데에 붙인다.
+// !!) 대상 칸이 사라질 수 있으니 쓰는 화면이 목록을 다시 채우거나 닫힐 때 Hide를 부른다
 
 public class UITooltip : MonoBehaviour
 {
@@ -18,6 +19,8 @@ public class UITooltip : MonoBehaviour
     private const float ShowStartScale = 0.6f;
     private const float ShowRise = 12f;     // 아래에서 떠오르는 거리
     #endregion
+
+    private static readonly Vector3[] s_Corners = new Vector3[4]; // GetWorldCorners 결과. 매번 만들지 않는다
 
     private RectTransform m_Rect;
     private RectTransform m_Target;
@@ -67,9 +70,8 @@ public class UITooltip : MonoBehaviour
     // 대상 윗변 가운데를 이 말풍선 부모 좌표로
     private Vector2 GetAnchorPosition(RectTransform target)
     {
-        Vector3[] corners = new Vector3[4];
-        target.GetWorldCorners(corners);
-        Vector3 topCenter = (corners[1] + corners[2]) * 0.5f;
+        target.GetWorldCorners(s_Corners);
+        Vector3 topCenter = (s_Corners[1] + s_Corners[2]) * 0.5f;
 
         m_Rect.position = topCenter;
         return m_Rect.anchoredPosition + new Vector2(0f, Gap);

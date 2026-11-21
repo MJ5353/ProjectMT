@@ -165,7 +165,31 @@ public static class UIBuilder
         return t;
     }
 
+    // 고정 문구 라벨. UILabel을 붙여 켜질 때 StringDef 문구로 채운다(에디터에서는 지금 표 값을 미리 넣어 둔다)
+    public static TMP_Text Label(Transform parent, EStringKey key, int size, TextAlignmentOptions align = TextAlignmentOptions.Center, string name = "Label")
+    {
+        TMP_Text t = Label(parent, string.Empty, size, align, name);
+        AddStringKey(t, key);
+        return t;
+    }
+
+    public static UILabel AddStringKey(TMP_Text text, EStringKey key)
+    {
+        UILabel label = text.gameObject.AddComponent<UILabel>();
+        label.EditorSetup(text, key);
+        text.text = StringDef.EditorGet(StringDef.S_GetName(key));
+        return label;
+    }
+
     // parts ---
+
+    // 고정 문구 버튼. 버튼 글자에 UILabel을 붙인다
+    public static Button Button(Transform parent, string name, EStringKey key, Vector2 size, Color? color = null)
+    {
+        Button button = Button(parent, name, string.Empty, size, color);
+        AddStringKey(button.GetComponentInChildren<TMP_Text>(), key);
+        return button;
+    }
 
     public static Button Button(Transform parent, string name, string text, Vector2 size, Color? color = null)
     {
@@ -317,8 +341,7 @@ public static class UIBuilder
         TMP_Text caption = BuildSlotCaption(rt);
 
         UICommonSlot slot = rt.gameObject.AddComponent<UICommonSlot>();
-        slot.EditorSetup(bg, icon, mold, dim, caption, count, displayName, button,
-            new[] { LoadSprite("UI_Slot_Common"), LoadSprite("UI_Slot_Rare"), LoadSprite("UI_Slot_Epic") }); // ERarity 순서
+        slot.EditorSetup(bg, icon, mold, dim, caption, count, displayName, button); // 희귀도 바탕 그림은 RarityDef
 
         return slot;
     }

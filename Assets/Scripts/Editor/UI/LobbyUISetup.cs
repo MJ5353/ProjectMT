@@ -19,6 +19,7 @@ public static class LobbyUISetup
     // 하단 탭 순서(26.11.17 대장 확정: 정비·토벌·개량·파견, 야시장 탭 폐지). 토벌이 기본 탭
     private static readonly string[] s_TabNames = { "정비", "토벌", "개량", "파견" };
     private static readonly string[] s_TabIcons = { "Tab_Gear", "Tab_Hunt", "Tab_Breed", "Tab_Dispatch" }; // s_TabNames 순서
+    private static readonly EStringKey[] s_TabKeys = { EStringKey.Lobby_Tab_Gear, EStringKey.Lobby_Tab_Hunt, EStringKey.Lobby_Tab_Breed, EStringKey.Lobby_Tab_Dispatch }; // 탭 글자(StringDef). s_TabNames는 오브젝트 이름
     private const string GoldIconSprite = "Icon_Gold"; // 실행 중에는 UICountLabel이 재화 Def 아이콘으로 다시 채운다
     private const int HuntTabIndex = 1;
 
@@ -110,7 +111,7 @@ public static class LobbyUISetup
             }
             else
             {
-                listView.Add(BuildComingSoonTab(content, s_TabNames[i]));
+                listView.Add(BuildComingSoonTab(content, s_TabNames[i], s_TabKeys[i]));
             }
         }
 
@@ -173,7 +174,7 @@ public static class LobbyUISetup
             icon.sprite = UIBuilder.LoadSprite(s_TabIcons[i]);
             icon.preserveAspect = true;
 
-            TMP_Text label = UIBuilder.Label(btnRt, s_TabNames[i], UIStyle.FontNormal, TextAlignmentOptions.Bottom);
+            TMP_Text label = UIBuilder.Label(btnRt, s_TabKeys[i], UIStyle.FontNormal, TextAlignmentOptions.Bottom);
             label.rectTransform.offsetMin = new Vector2(0, 14);
 
             RectTransform highlight = UIBuilder.Rect("Highlight", btnRt, new Vector2(0, 1), Vector2.one, new Vector2(0, -8), Vector2.zero);
@@ -191,11 +192,18 @@ public static class LobbyUISetup
         return uiTabBar;
     }
 
-    private static UITabView BuildComingSoonTab(RectTransform parent, string tabName)
+    // 탭 이름(큰 글자) 아래 "준비 중"(작은 글자). 두 줄 모두 StringDef 문구
+    private static UITabView BuildComingSoonTab(RectTransform parent, string tabName, EStringKey tabKey)
     {
         RectTransform view = UIBuilder.Stretch($"View_{tabName}", parent);
-        TMP_Text label = UIBuilder.Label(view, $"{tabName}\n<size={UIStyle.FontNormal}>준비 중</size>", UIStyle.FontTitle);
-        label.color = UIStyle.TextDim;
+
+        TMP_Text title = UIBuilder.Label(view, tabKey, UIStyle.FontTitle, TextAlignmentOptions.Center, "Title");
+        title.rectTransform.offsetMin = new Vector2(0, 50);
+        title.color = UIStyle.TextDim;
+
+        TMP_Text sub = UIBuilder.Label(view, EStringKey.Lobby_ComingSoon, UIStyle.FontNormal, TextAlignmentOptions.Center, "Sub");
+        sub.rectTransform.offsetMax = new Vector2(0, -70);
+        sub.color = UIStyle.TextDim;
 
         return view.gameObject.AddComponent<UITabView>();
     }
@@ -234,7 +242,7 @@ public static class LobbyUISetup
         RectTransform map = UIBuilder.Rect("Map", view, Vector2.zero, new Vector2(0.62f, 1f), new Vector2(30, 30), new Vector2(-15, -30));
         UIBuilder.AddImage(map, UIStyle.Panel);
 
-        TMP_Text mapTitle = UIBuilder.Label(map, "토벌 지도", UIStyle.FontNormal, TextAlignmentOptions.TopLeft, "Title");
+        TMP_Text mapTitle = UIBuilder.Label(map, EStringKey.Lobby_Hunt_MapTitle, UIStyle.FontNormal, TextAlignmentOptions.TopLeft, "Title");
         mapTitle.rectTransform.offsetMin = new Vector2(24, 0);
         mapTitle.rectTransform.offsetMax = new Vector2(0, -18);
         mapTitle.color = UIStyle.TextDim;
@@ -264,7 +272,8 @@ public static class LobbyUISetup
         infoDesc.alignment = TextAlignmentOptions.TopLeft;
         infoDesc.color = UIStyle.TextDim;
 
-        TMP_Text mushHeader = InfoLabel(info, "MushroomHeader", "나오는 버섯", UIStyle.FontSmall, -300, 34);
+        TMP_Text mushHeader = InfoLabel(info, "MushroomHeader", string.Empty, UIStyle.FontSmall, -300, 34);
+        UIBuilder.AddStringKey(mushHeader, EStringKey.Lobby_Hunt_MushroomHeader);
         mushHeader.color = UIStyle.TextDim;
 
         RectTransform mushRoot = UIBuilder.Rect("Mushrooms", info, new Vector2(0, 1), Vector2.one, new Vector2(30, -480), new Vector2(-30, -345));
@@ -273,7 +282,7 @@ public static class LobbyUISetup
         // 칸은 UICommonSlot 프리팹(EUIComponentType.UICommonSlot)을 ScreenLobby_HuntView가 UIListView로 꺼낸다
         UITooltip mushTooltip = UIBuilder.Tooltip(info, "MushroomTooltip"); // 목록 뒤에 만들어 칸 위에 그린다
 
-        Button enter = UIBuilder.Button(info, "EnterButton", "입장", new Vector2(360, 120));
+        Button enter = UIBuilder.Button(info, "EnterButton", EStringKey.Lobby_Hunt_Enter, new Vector2(360, 120));
         RectTransform enterRt = enter.transform as RectTransform;
         if (enterRt != null)
         {

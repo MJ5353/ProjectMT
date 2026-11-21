@@ -34,7 +34,7 @@ public class UISafeArea : MonoBehaviour
         m_LastSafeArea = safeArea;
         m_LastScreen = new Vector2Int(Screen.width, Screen.height);
 
-        if (m_Rect == null || Screen.width <= 0 || Screen.height <= 0)
+        if (Screen.width <= 0 || Screen.height <= 0)
             return;
 
         Vector2 min = safeArea.position;

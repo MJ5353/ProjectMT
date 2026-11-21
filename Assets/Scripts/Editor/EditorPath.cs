@@ -49,6 +49,8 @@ public static class EditorPath
     public const string MonsterBalance = BalanceDataDir + "MonsterBalance.asset";
     public const string PopupDefAsset = UIDataDir + PopupDef.PopupID + ".asset";
     public const string UIComponentDefAsset = UIDataDir + UIComponentDef.UIComponentID + ".asset";
+    public const string StringDefAsset = UIDataDir + StringDef.StringID + ".asset";
+    public const string RarityDefAsset = UIDataDir + RarityDef.RarityID + ".asset";
     public const string PopupResultPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupResult) + PrefabExtension;
     public const string ScreenLobbyPrefab = LobbyScreenUIPrefabDir + nameof(ScreenLobby) + PrefabExtension;
     public const string ScreenBattlePrefab = BattleScreenUIPrefabDir + nameof(ScreenBattle) + PrefabExtension;

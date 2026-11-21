@@ -5,7 +5,8 @@ using UnityEngine.UI;
 
 // ==================================================
 
-// 아이콘 + 개수 칸. DataDef면 무엇이든(버섯·아이템·재화) 담는다. 바탕은 희귀도별 스프라이트(기본 Common 회색).
+// 아이콘 + 개수 칸. DataDef면 무엇이든(버섯·아이템·재화) 담는다. 바탕은 희귀도별 그림(RarityDef, 기본 Common).
+// 표시만 한다. 어떤 데이터인지는 칸을 꺼낸 UI가 들고 있다(클릭은 UIListView.IndexOf로 찾는다).
 // 덜 신선하면 칸 모서리에 곰팡이 얼룩(m_Mold)을 띄운다. 아이콘이 없으면 버섯은 버섯 색(Tint)으로 칠하고, 그 밖은 바탕색만 보인다
 public class UICommonSlot : PoolableMonoUI
 {
@@ -22,12 +23,9 @@ public class UICommonSlot : PoolableMonoUI
     [SerializeField] private GameObject m_Mold = null; // 곰팡이 얼룩. 덜 신선할 때만 켠다
 
     // [mj] todo) rarity table로 연결해서 path로 가져오게...
-    [SerializeField] private Sprite[] m_RaritySprites = null; // ERarity 순서. 없으면 희귀도 색만 칠한다
+    // → RarityDef로 옮김(희귀도 → 바탕 그림·색·이름). 경로 대신 Def가 그림을 직접 참조한다
 
     private Action<UICommonSlot> m_OnClick;
-
-    public string ItemID { get; private set; }
-    public int Count { get; private set; }
 
     // ------------------------------------------------
     
@@ -38,8 +36,6 @@ public class UICommonSlot : PoolableMonoUI
 
     public void Clear()
     {
-        ItemID = null;
-        Count = 0;
         m_Icon.enabled = false;
 
         SetCount(0);
@@ -88,9 +84,6 @@ public class UICommonSlot : PoolableMonoUI
 
     public void Set(string itemID, Sprite icon, string displayName, int count, Color tint)
     {
-        ItemID = itemID;
-        Count = count;
-        
         m_Icon.enabled = true;
         m_Icon.sprite = icon;
         m_Icon.color = icon != null ? Color.white : tint;
@@ -108,7 +101,6 @@ public class UICommonSlot : PoolableMonoUI
     
     public void SetCount(int count)
     {
-        Count = count;
         m_Count.E_SetText(count > 0 ? $"x{count:N0}" : string.Empty);
     }
 
@@ -127,10 +119,13 @@ public class UICommonSlot : PoolableMonoUI
         m_Caption.E_SetTextWithActive(text); // 비었으면 끈다
     }
 
+    // 그림이 있으면 그림 그대로, 없으면 희귀도 색만 칠한다
     public void SetRarity(ERarity rarity)
     {
-        Sprite sprite = m_RaritySprites.E_GetOrDefault((int)rarity);
-        Color color = sprite.E_Alive() ? Color.white : UIStyle.GetRarityColor(rarity);
+        RarityDef.Entry entry = RarityDef.S_Get(rarity);
+        Sprite sprite = entry?.SlotSprite;
+        Color color = sprite.E_Alive() ? Color.white : entry?.Color ?? Color.white;
+        
         m_Background.E_SetImage(sprite, color);
     }
 
@@ -139,7 +134,17 @@ public class UICommonSlot : PoolableMonoUI
         m_OnClick = onClick;
     }
     
-    // on action --- 
+    // virtual ---
+
+    // 다른 화면이 쓰던 칸일 수 있다. 클릭은 꺼낸 쪽이 다시 연결한다(안 하면 눌러도 아무 일 없음)
+    public override void OnPoolSpawn()
+    {
+        base.OnPoolSpawn();
+
+        m_OnClick = null;
+    }
+
+    // on action ---
     
     private void OnClickSlot()
     {
@@ -147,9 +152,8 @@ public class UICommonSlot : PoolableMonoUI
     }
 
 #if UNITY_EDITOR
-    public void EditorSetup(Image background, Image icon, GameObject mold, GameObject dim, TMP_Text caption, TMP_Text count, TMP_Text displayName, Button button, Sprite[] raritySprites)
+    public void EditorSetup(Image background, Image icon, GameObject mold, GameObject dim, TMP_Text caption, TMP_Text count, TMP_Text displayName, Button button)
     {
-        m_RaritySprites = raritySprites;
         m_Background = background;
         m_Icon = icon;
         m_Mold = mold;

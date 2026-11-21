@@ -135,11 +135,11 @@ public class ScreenBattle : ScreenBase
         int fresh = m_DicFresh[itemID];
         int stale = m_DicStale[itemID];
         
-        string text = fresh > 0 && stale > 0 ? 
-            $"{displayName} 신선 x{fresh} / 덜 신선 x{stale}" : 
-            fresh > 0 ? 
-                $"{displayName} 신선 x{fresh}" : 
-                $"{displayName} 덜 신선 x{stale}";
+        string text = fresh > 0 && stale > 0 ?
+            StringDef.S_Format(EStringKey.Battle_LootBothFormat, displayName, fresh, stale) :
+            fresh > 0 ?
+                StringDef.S_Format(EStringKey.Battle_LootFreshFormat, displayName, fresh) :
+                StringDef.S_Format(EStringKey.Battle_LootStaleFormat, displayName, stale);
         
         row.Set(icon, tint, text);
     }

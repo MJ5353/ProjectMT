@@ -69,7 +69,7 @@ public class ScreenBattle_RoarEffect : MonoBehaviour
             return;
 
         string strName = evt.Unit.Def.DisplayName;
-        string strDisplayName = evt.IsEnraged ? $"{strName} 분노!" : strName;
+        string strDisplayName = evt.IsEnraged ? StringDef.S_Format(EStringKey.Battle_RoarEnragedFormat, strName) : strName;
         
         m_BannerText.E_SetText(strDisplayName);
         m_Elapsed = 0f;

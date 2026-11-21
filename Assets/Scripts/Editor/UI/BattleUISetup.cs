@@ -77,7 +77,7 @@ public static class BattleUISetup
         exitBack.raycastTarget = true;
         SpriteImage("Icon", exitRect, "HUD_EndHunt", 24f);
         RectTransform exitText = UIBuilder.Rect("Text", exitRect, new Vector2(-0.5f, 0), new Vector2(1.5f, 0), new Vector2(0, -40), Vector2.zero);
-        UIBuilder.SetOutline(UIBuilder.Label(exitText, "토벌 종료", 30));
+        UIBuilder.SetOutline(UIBuilder.Label(exitText, EStringKey.Battle_Exit, 30));
         Button exit = exitRect.gameObject.AddComponent<Button>();
         exit.targetGraphic = exitBack;
 
@@ -132,7 +132,7 @@ public static class BattleUISetup
         UIBuilder.SetOutline(bossName);
 
         RectTransform enrageRect = UIBuilder.Rect("Enrage", boss, new Vector2(1, 1), Vector2.one, new Vector2(-140, -44), Vector2.zero);
-        TMP_Text enrage = UIBuilder.Label(enrageRect, "분노!", UIStyle.FontNormal, TextAlignmentOptions.Right);
+        TMP_Text enrage = UIBuilder.Label(enrageRect, EStringKey.Battle_Enrage, UIStyle.FontNormal, TextAlignmentOptions.Right);
         UIBuilder.SetOutline(enrage);
         enrage.gameObject.SetActive(false);
 
@@ -229,16 +229,18 @@ public static class BattleUISetup
         RectTransform window = UIBuilder.Anchored("Window", root, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760, 440));
         UIBuilder.AddImage(window, UIStyle.Panel, true);
 
-        TMP_Text title = TopLabel(window, "Title", "쓰러졌다", UIStyle.FontTitle, -40, 100);
+        TMP_Text title = TopLabel(window, "Title", string.Empty, UIStyle.FontTitle, -40, 100);
+        UIBuilder.AddStringKey(title, EStringKey.Death_Title);
         title.color = UIStyle.Accent;
         title.fontStyle = FontStyles.Bold;
 
-        TMP_Text desc = TopLabel(window, "Desc", "귀가하면 주운 버섯을 모두 잃어요", UIStyle.FontNormal, -150, 50);
+        TMP_Text desc = TopLabel(window, "Desc", string.Empty, UIStyle.FontNormal, -150, 50);
+        UIBuilder.AddStringKey(desc, EStringKey.Death_Desc);
         desc.color = UIStyle.TextDim;
 
         Button revive = UIBuilder.Button(window, "ReviveButton", "부활 (100 골드)", new Vector2(320, 110), UIStyle.Accent);
         PlaceBottom(revive, -170);
-        Button home = UIBuilder.Button(window, "HomeButton", "귀가", new Vector2(260, 110), UIStyle.PanelLight);
+        Button home = UIBuilder.Button(window, "HomeButton", EStringKey.Death_Home, new Vector2(260, 110), UIStyle.PanelLight);
         PlaceBottom(home, 190);
 
         PopupDeath popup = root.gameObject.AddComponent<PopupDeath>();
@@ -356,23 +358,24 @@ public static class BattleUISetup
         TMP_Text summary = TopLabel(window, "Summary", "시간 00:00  ·  처치 0", UIStyle.FontNormal, -145, 50);
         summary.color = UIStyle.TextDim;
 
-        TMP_Text lootHeader = TopLabel(window, "LootHeader", "주운 버섯", UIStyle.FontNormal, -225, 50);
+        TMP_Text lootHeader = TopLabel(window, "LootHeader", string.Empty, UIStyle.FontNormal, -225, 50);
+        UIBuilder.AddStringKey(lootHeader, EStringKey.Result_LootHeader);
 
         // 주운 버섯 칸 영역
         RectTransform lootRoot = UIBuilder.Rect("LootRoot", window, Vector2.zero, Vector2.one, new Vector2(60, 200), new Vector2(-60, -290));
         UIBuilder.ListOption lootLayout = new(lootRoot, EUIListAxis.Grid, new Vector2(120, 120), new Vector2(48, 64), TextAnchor.UpperCenter);
 
         // 칸 원본은 UICommonSlot 프리팹(EUIComponentType.UICommonSlot). PopupResult가 UIListView로 꺼낸다
-        TMP_Text empty = UIBuilder.Label(lootRoot.parent, "주운 버섯이 없어요", UIStyle.FontNormal, TextAlignmentOptions.Center, "EmptyLabel");
+        TMP_Text empty = UIBuilder.Label(lootRoot.parent, EStringKey.Result_LootEmpty, UIStyle.FontNormal, TextAlignmentOptions.Center, "EmptyLabel");
         empty.rectTransform.offsetMin = new Vector2(60, 200);
         empty.rectTransform.offsetMax = new Vector2(-60, -290);
         empty.color = UIStyle.TextDim;
 
         // 아래 버튼
-        Button retry = UIBuilder.Button(window, "RetryButton", "다시 하기", new Vector2(320, 110), UIStyle.PanelLight);
+        Button retry = UIBuilder.Button(window, "RetryButton", EStringKey.Result_Retry, new Vector2(320, 110), UIStyle.PanelLight);
         PlaceBottom(retry, -190);
 
-        Button lobby = UIBuilder.Button(window, "LobbyButton", "로비로", new Vector2(320, 110));
+        Button lobby = UIBuilder.Button(window, "LobbyButton", EStringKey.Result_Lobby, new Vector2(320, 110));
         PlaceBottom(lobby, 190);
 
         PopupResult popup = root.gameObject.AddComponent<PopupResult>();

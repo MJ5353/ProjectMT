@@ -72,12 +72,15 @@ public static class UISetup
 
     // 프리팹 표 ---
 
-    // PopupDef·UIComponentDef를 enum 이름과 같은 프리팹으로 채운다. 프리팹을 손으로 만들었거나 옮겼을 때도 이 메뉴만 돌리면 된다
+    // PopupDef·UIComponentDef를 enum 이름과 같은 프리팹으로 채운다. 프리팹을 손으로 만들었거나 옮겼을 때도 이 메뉴만 돌리면 된다.
+    // 문구 표(StringDef: 새 키 추가·빈 값/없는 키 경고)와 희귀도 표(RarityDef: 없으면 만들기)도 함께 맞춘다
     [MenuItem("MushTaker/UI/UI 프리팹 표 갱신", false, 41)]
     public static void RefreshPrefabDefs()
     {
         FillPrefabDef<PopupDef, EPopupType, PopupBase>(EditorPath.PopupDefAsset, PopupDef.PopupID);
         FillPrefabDef<UIComponentDef, EUIComponentType, PoolableMonoUI>(EditorPath.UIComponentDefAsset, UIComponentDef.UIComponentID);
+        UIDataSetup.SyncStringDef();
+        UIDataSetup.EnsureRarityDef();
 
         AssetDatabase.SaveAssets();
         DataTools.RefreshDatabase(false); // 새로 만든 표도 DB에 잡히게 한다

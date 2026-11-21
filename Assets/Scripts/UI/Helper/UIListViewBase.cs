@@ -83,8 +83,7 @@ public abstract class UIListViewBase
             float totalWidth = innerWidth + spacing.x;
             float columnSize = Mathf.Max(1f, cell.x + spacing.x);
 
-            rectCnt = Mathf.FloorToInt(totalWidth / columnSize);
-            columnCnt = Mathf.Max(1, rectCnt);
+            columnCnt = Mathf.Max(1, Mathf.FloorToInt(totalWidth / columnSize)); // !!) rectCnt(칸 수)는 그대로 둔다
         }
 
         Vector2 content = GetContentSize(rectCnt, axis, columnCnt, spacing);
