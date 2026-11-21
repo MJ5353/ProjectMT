@@ -11,17 +11,20 @@ public static class BattleUISetup
 
     private const int HudSortingOrder = 10;
     private const int LootFontSize = 27; // 주운 버섯 목록 글자 크기
+    private const float SkillIconSize = 64f; // 이어 쓸 수 있는 스킬 줄의 작은 아이콘
     private const string CircleSprite = "UI_Circle"; // 반투명 원 바탕(스킬 아이콘·토벌 종료). 없으면 사각형으로 보인다
 
     // ==================================================
 
-    // 사망·결과 팝업 → 주운 버섯 줄 → 전투 HUD 순서로 만든다(HUD가 팝업을 참조). isOverwrite면 있어도 다시 만든다(GUID 유지).
-    // 시장 팝업은 HUD보다 먼저 MarketUISetup.BuildPrefabs로 만들어 둔다
+    // 사망·결과 팝업 → 주운 버섯 줄 → 전투 HUD 순서로 만든다. isOverwrite면 있어도 다시 만든다(GUID 유지).
+    // 팝업은 HUD가 참조하지 않고 PopupService.Open<T>(EPopupType)가 PopupDef에서 꺼낸다
     public static void BuildPrefabs(bool isOverwrite)
     {
         UIBuilder.SaveAsPrefab(BuildDeathPopup().gameObject, EditorPath.PopupDeathPrefab, isOverwrite);
         UIBuilder.SaveAsPrefab(BuildResultPopup().gameObject, EditorPath.PopupResultPrefab, isOverwrite);
         UIBuilder.SaveAsPrefab(LootRow().gameObject, EditorPath.BattleLootRowPrefab, isOverwrite);
+        UIBuilder.SaveAsPrefab(SkillIcon().gameObject, EditorPath.BattleSkillIconPrefab, isOverwrite);
+        UIBuilder.SaveAsPrefab(UnitHpBar().gameObject, EditorPath.BattleUnitHpBarPrefab, isOverwrite);
         UIBuilder.SaveAsPrefab(BuildBattleHud().gameObject, EditorPath.HUDBattlePrefab, isOverwrite);
     }
 
@@ -54,9 +57,12 @@ public static class BattleUISetup
 
         // 중앙 하단 체력
         UIGauge hp = UIBuilder.Gauge(safe, "Hp", new Vector2(720, 44), UIStyle.HpPlayer, true);
-        RectTransform hpRect = (RectTransform)hp.transform;
-        hpRect.anchorMin = hpRect.anchorMax = hpRect.pivot = new Vector2(0.5f, 0f);
-        hpRect.anchoredPosition = new Vector2(0, 50);
+        RectTransform hpRect = hp.RectTransform;
+        if (hpRect != null)
+        {
+            hpRect.anchorMin = hpRect.anchorMax = hpRect.pivot = new Vector2(0.5f, 0f);
+            hpRect.anchoredPosition = new Vector2(0, 50);
+        }
 
         // 우하단 스킬 아이콘(표시만)
         RectTransform attackSlot = SkillSlot(safe, "Attack", "HUD_Attack", new Vector2(-50, 50), 150f, out GameObject attackActive);
@@ -94,23 +100,34 @@ public static class BattleUISetup
         UIBuilder.SetRef(hud, "m_DashActive", dashActive);
         UIBuilder.SetRef(hud, "m_LootList", lootList);
         UIBuilder.SetRef(hud, "m_ExitButton", exit);
-        UIBuilder.SetRef(hud, "m_DeathPopupPrefab", AssetDatabase.LoadAssetAtPath<PopupDeath>(EditorPath.PopupDeathPrefab));
-        UIBuilder.SetRef(hud, "m_MarketPopupPrefab", AssetDatabase.LoadAssetAtPath<PopupMarket>(EditorPath.PopupMarketPrefab));
-        UIBuilder.SetRef(hud, "m_ResultPopupPrefab", AssetDatabase.LoadAssetAtPath<PopupResult>(EditorPath.PopupResultPrefab));
 
         return hud;
     }
 
-    // 몬스터 머리 위 체력바(원본) + 화면 위 보스 체력바. HUD 맨 뒤에 깔아 다른 HUD를 가리지 않는다
+    // 몬스터 머리 위 체력바 원본(독립 프리팹, UIGauge). 피벗은 아래 가운데라 머리 위 점에 바닥을 붙인다
+    private static UIGauge UnitHpBar()
+    {
+        UIGauge bar = UIBuilder.BuildGauge(null);
+        bar.name = "HUDBattle_UnitHpBar";
+
+        RectTransform rt = bar.RectTransform;
+        if (rt != null)
+        {
+            rt.sizeDelta = new Vector2(120, 14);
+            rt.pivot = new Vector2(0.5f, 0f);
+        }
+
+        bar.transform.Find("Inner/Fill").GetComponent<Image>().color = UIStyle.HpBoss;
+        bar.GetComponentInChildren<TMP_Text>(true).gameObject.SetActive(false);
+
+        return bar;
+    }
+
+    // 화면 위 보스 체력바 + 머리 위 바 자리. HUD 맨 뒤에 깔아 다른 HUD를 가리지 않는다
     private static HUDBattle_UnitHpBars AddUnitHpBars(RectTransform safe)
     {
         RectTransform root = UIBuilder.Stretch("UnitHpBars", safe);
         root.SetAsFirstSibling();
-
-        UIGauge template = UIBuilder.Gauge(root, "BarTemplate", new Vector2(120, 14), UIStyle.HpBoss, false);
-        RectTransform templateRect = (RectTransform)template.transform;
-        templateRect.anchorMin = templateRect.anchorMax = new Vector2(0.5f, 0.5f);
-        templateRect.pivot = new Vector2(0.5f, 0f);
 
         RectTransform boss = UIBuilder.Anchored("Boss", root, new Vector2(0.5f, 1f), new Vector2(0, -36), new Vector2(900, 90));
         boss.pivot = new Vector2(0.5f, 1f);
@@ -124,18 +141,19 @@ public static class BattleUISetup
         enrage.gameObject.SetActive(false);
 
         UIGauge bossBar = UIBuilder.Gauge(boss, "Bar", new Vector2(900, 32), UIStyle.HpBoss, false);
-        RectTransform barRect = (RectTransform)bossBar.transform;
-        barRect.anchorMin = barRect.anchorMax = barRect.pivot = new Vector2(0.5f, 0f);
-        barRect.anchoredPosition = new Vector2(0, 8);
+        RectTransform barRect = bossBar.RectTransform;
+        if (barRect != null)
+        {
+            barRect.anchorMin = barRect.anchorMax = barRect.pivot = new Vector2(0.5f, 0f);
+            barRect.anchoredPosition = new Vector2(0, 8);
+        }
 
         HUDBattle_UnitHpBars bars = root.gameObject.AddComponent<HUDBattle_UnitHpBars>();
         UIBuilder.SetRef(bars, "m_Root", root);
-        UIBuilder.SetRef(bars, "m_BarTemplate", template);
         UIBuilder.SetRef(bars, "m_BossRoot", boss.gameObject);
         UIBuilder.SetRef(bars, "m_BossBar", bossBar);
         UIBuilder.SetRef(bars, "m_BossName", bossName);
         UIBuilder.SetRef(bars, "m_EnrageIcon", enrage.gameObject);
-        template.gameObject.SetActive(false);
         boss.gameObject.SetActive(false);
 
         return bars;
@@ -275,32 +293,35 @@ public static class BattleUISetup
     // 공격 칸 위에 이어 쓸 수 있는 스킬 줄(작은 원 아이콘). 큰 아이콘은 칸의 Icon을 지금 공격으로 바꿔 쓴다
     private static HUDBattle_SkillChain AddSkillChain(RectTransform attackSlot)
     {
-        const float iconSize = 64f;
-
-        RectTransform chainRoot = UIBuilder.Rect("Chain", attackSlot, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-200, 16), new Vector2(200, 16 + iconSize));
+        RectTransform chainRoot = UIBuilder.Rect("Chain", attackSlot, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-200, 16), new Vector2(200, 16 + SkillIconSize));
         HorizontalLayoutGroup layout = chainRoot.gameObject.AddComponent<HorizontalLayoutGroup>();
         layout.childAlignment = TextAnchor.LowerCenter;
         layout.spacing = 10f;
         layout.childControlWidth = layout.childControlHeight = false;
         layout.childForceExpandWidth = layout.childForceExpandHeight = false;
 
-        // 원본은 줄 밖에 꺼 둔다(줄 자식이면 레이아웃이 원본까지 세운다)
-        RectTransform template = UIBuilder.Anchored("ChainIconTemplate", attackSlot, new Vector2(0.5f, 1f), new Vector2(0, 16), new Vector2(iconSize, iconSize));
-        SpriteImage("Back", template, CircleSprite, 0f).color = new Color(0f, 0f, 0f, 0.6f);
-        Image icon = SpriteImage("Icon", template, "HUD_Attack", iconSize * 0.2f);
-        CanvasGroup group = template.gameObject.AddComponent<CanvasGroup>();
-        group.blocksRaycasts = false;
-        HUDBattle_SkillIcon skillIcon = template.gameObject.AddComponent<HUDBattle_SkillIcon>();
-        UIBuilder.SetRef(skillIcon, "m_Group", group);
-        UIBuilder.SetRef(skillIcon, "m_Icon", icon);
-        template.gameObject.SetActive(false);
-
+        // 작은 아이콘은 HUDBattle_SkillIcon 프리팹(CommonPath)을 HUDBattle_SkillChain이 풀로 꺼낸다
         HUDBattle_SkillChain chain = attackSlot.gameObject.AddComponent<HUDBattle_SkillChain>();
         UIBuilder.SetRef(chain, "m_MainIcon", attackSlot.Find("Icon").GetComponent<Image>());
         UIBuilder.SetRef(chain, "m_ChainRoot", chainRoot);
-        UIBuilder.SetRef(chain, "m_ChainTemplate", skillIcon);
 
         return chain;
+    }
+
+    // 이어 쓸 수 있는 스킬 줄의 작은 아이콘 원본(독립 프리팹): 반투명 원 바탕 + 아이콘
+    private static HUDBattle_SkillIcon SkillIcon()
+    {
+        RectTransform rt = UIBuilder.Anchored("HUDBattle_SkillIcon", null, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(SkillIconSize, SkillIconSize));
+        SpriteImage("Back", rt, CircleSprite, 0f).color = new Color(0f, 0f, 0f, 0.6f);
+        Image icon = SpriteImage("Icon", rt, "HUD_Attack", SkillIconSize * 0.2f);
+        CanvasGroup group = rt.gameObject.AddComponent<CanvasGroup>();
+        group.blocksRaycasts = false;
+
+        HUDBattle_SkillIcon skillIcon = rt.gameObject.AddComponent<HUDBattle_SkillIcon>();
+        UIBuilder.SetRef(skillIcon, "m_Group", group);
+        UIBuilder.SetRef(skillIcon, "m_Icon", icon);
+
+        return skillIcon;
     }
 
     private static Image SpriteImage(string name, Transform parent, string sprite, float inset)
@@ -353,7 +374,7 @@ public static class BattleUISetup
         grid.spacing = new Vector2(48, 64);
         grid.childAlignment = TextAnchor.UpperCenter;
 
-        // 칸 원본은 UICommonSlot 프리팹(CommonPath.CommonSlot). PopupResult가 풀로 꺼낸다
+        // 칸 원본은 UICommonSlot 프리팹(EUIComponentType.UICommonSlot). PopupResult가 UIListView로 꺼낸다
         TMP_Text empty = UIBuilder.Label(lootRoot.parent, "주운 버섯이 없어요", UIStyle.FontNormal, TextAlignmentOptions.Center, "EmptyLabel");
         empty.rectTransform.offsetMin = new Vector2(60, 200);
         empty.rectTransform.offsetMax = new Vector2(-60, -290);
@@ -388,7 +409,10 @@ public static class BattleUISetup
 
     private static void PlaceBottom(Button button, float x)
     {
-        RectTransform rt = (RectTransform)button.transform;
+        RectTransform rt = button.transform as RectTransform;
+        if (rt == null)
+            return;
+
         rt.anchorMin = new Vector2(0.5f, 0f);
         rt.anchorMax = new Vector2(0.5f, 0f);
         rt.pivot = new Vector2(0.5f, 0f);

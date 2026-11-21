@@ -173,7 +173,10 @@ public static class UIBuilder
         Button button = prefab != null ? Spawn<Button>(prefab, parent) : BuildButton(parent);
 
         button.name = name;
-        ((RectTransform)button.transform).sizeDelta = size;
+        RectTransform buttonRt = button.transform as RectTransform;
+        if (buttonRt != null)
+            buttonRt.sizeDelta = size;
+
         button.GetComponentInChildren<TMP_Text>().text = text;
 
         if (color.HasValue)
@@ -188,7 +191,10 @@ public static class UIBuilder
         UIGauge gauge = prefab != null ? Spawn<UIGauge>(prefab, parent) : BuildGauge(parent);
 
         gauge.name = name;
-        ((RectTransform)gauge.transform).sizeDelta = size;
+        RectTransform gaugeRt = gauge.RectTransform;
+        if (gaugeRt != null)
+            gaugeRt.sizeDelta = size;
+
         gauge.transform.Find("Inner/Fill").GetComponent<Image>().color = fillColor;
         gauge.GetComponentInChildren<TMP_Text>(true).gameObject.SetActive(isShowText);
 
@@ -201,7 +207,9 @@ public static class UIBuilder
         UICommonSlot slot = prefab != null ? Spawn<UICommonSlot>(prefab, parent) : BuildCommonSlot(parent);
 
         slot.name = name;
-        ((RectTransform)slot.transform).sizeDelta = new Vector2(size, size);
+        RectTransform slotRt = slot.RectTransform;
+        if (slotRt != null)
+            slotRt.sizeDelta = new Vector2(size, size);
 
         return slot;
     }

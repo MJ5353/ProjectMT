@@ -40,10 +40,14 @@ public class GameManager : MonoSingleton<GameManager>
     public EffectService EffectS { get; private set; }
     public HitStopService HitStopS { get; private set; }
     public PopupService PopupS { get; private set; }
+    
+    // factory
+    public UIFactory UIFactory { get; private set; }
 
     // ------------------------------------------------
 
-    // 씬 전용 Service는 씬 컨트롤러가 정하고(RegisterServices), 공용(팝업)은 여기서 넣는다
+    // 씬 전용 Service는 씬 컨트롤러가 정하고(RegisterServices), 공용(UI 요소·팝업)은 여기서 넣는다.
+    // !!) UIFactory를 PopupService보다 먼저 넣는다. 씬 전환 때 팝업 안 칸을 먼저 회수해야 팝업과 함께 지워지지 않는다
     internal void InitSceneServices(Scene scene, SceneControllerBase sceneController)
     {
         if (m_ServiceScene == scene)
@@ -53,7 +57,9 @@ public class GameManager : MonoSingleton<GameManager>
         m_ServiceScene = scene;
 
         sceneController.RegisterServices(this);
+        UIFactory = Register(new UIFactory());
         PopupS = Register(new PopupService());
+        
         foreach (ServiceBase service in m_ListService)
         {
             service.Init();
@@ -104,6 +110,9 @@ public class GameManager : MonoSingleton<GameManager>
         UnitS = null;
         EffectS = null;
         HitStopS = null;
+
+        // 순서 유의
+        UIFactory = null;
         PopupS = null;
         
         m_ServiceScene = default;

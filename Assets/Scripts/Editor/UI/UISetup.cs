@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -61,7 +65,67 @@ public static class UISetup
         BattleUISetup.BuildPrefabs(isOverwrite);
 
         AssetDatabase.SaveAssets();
+        RefreshPrefabDefs();
         CLogger.Log("UISetup", "UI 프리팹 생성 완료. 열린 씬은 저장하지 않았습니다.");
+    }
+
+    // 프리팹 표 ---
+
+    // PopupDef·UIComponentDef를 enum 이름과 같은 프리팹으로 채운다. 프리팹을 손으로 만들었거나 옮겼을 때도 이 메뉴만 돌리면 된다
+    [MenuItem("MushTaker/UI/UI 프리팹 표 갱신", false, 41)]
+    public static void RefreshPrefabDefs()
+    {
+        FillPrefabDef<PopupDef, EPopupType, Popup>(EditorPath.PopupDefAsset, PopupDef.PopupID);
+        FillPrefabDef<UIComponentDef, EUIComponentType, PoolableMonoUI>(EditorPath.UIComponentDefAsset, UIComponentDef.UIComponentID);
+
+        AssetDatabase.SaveAssets();
+        DataTools.RefreshDatabase(false); // 새로 만든 표도 DB에 잡히게 한다
+    }
+
+    // enum 값마다 UI 프리팹 폴더(하위 포함)에서 같은 이름의 프리팹을 찾아 목록을 통째로 바꾼다. None(0)은 건너뛴다
+    private static void FillPrefabDef<TDef, TType, TPrefab>(string assetPath, string dataID)
+        where TDef : UIPrefabDef<TType, TPrefab>
+        where TType : struct, Enum
+        where TPrefab : Component
+    {
+        TDef def = AssetDatabase.LoadAssetAtPath<TDef>(assetPath);
+        if (def == null)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(assetPath)!);
+
+            def = ScriptableObject.CreateInstance<TDef>();
+            def.EditorSetIdentity(dataID, dataID);
+            AssetDatabase.CreateAsset(def, assetPath);
+        }
+
+        List<UIPrefabDef<TType, TPrefab>.Entry> listEntry = new();
+        foreach (TType type in Enum.GetValues(typeof(TType)))
+        {
+            if (Convert.ToInt32(type) == 0)
+                continue;
+
+            TPrefab prefab = FindUIPrefab<TPrefab>(type.ToString());
+            if (prefab == null)
+            {
+                CLogger.Warning("UISetup", $"{typeof(TDef).Name}: {type} 이름의 {typeof(TPrefab).Name} 프리팹이 {EditorPath.UIPrefabDir}에 없습니다.");
+                continue;
+            }
+
+            listEntry.Add(new UIPrefabDef<TType, TPrefab>.Entry(type, prefab));
+        }
+
+        def.EditorSetList(listEntry);
+        EditorUtility.SetDirty(def);
+    }
+
+    // 이름이 정확히 같은 프리팹의 루트 컴포넌트. 없으면 null
+    private static T FindUIPrefab<T>(string prefabName) where T : Component
+    {
+        return AssetDatabase.FindAssets($"{prefabName} t:Prefab", new[] { EditorPath.UIPrefabDir.TrimEnd('/') })
+            .Select(guid => AssetDatabase.GUIDToAssetPath(guid))
+            .Where(path => Path.GetFileNameWithoutExtension(path) == prefabName)
+            .Select(path => AssetDatabase.LoadAssetAtPath<T>(path))
+            .FirstOrDefault(prefab => prefab != null);
     }
 
     // 가로 두 방향(좌우 뒤집힘)만 허용한다

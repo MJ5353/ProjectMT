@@ -3,19 +3,25 @@ using UnityEngine;
 
 // ==================================================
 
-// 팝업 기반. 프리팹으로 만들고 PopupService.Open으로 띄운다.
-// 가운데 창 팝업은 m_Group(전체 페이드)·m_Window(창 튕김)를 연결하면 열 때 공용 연출이 돈다. 비워 두면 연출 없이 바로 보인다
+// 팝업 기반. 팝업 ID(EPopupType)와 경로를 PopupTable에 등록하고 PopupService.Open<T>(EPopupType)로 띄운다.
+// 가운데 창 팝업은 m_Group(전체 페이드)·m_Window(창 튕김)를 연결하면 열고 닫을 때 공용 연출이 돈다. 비워 두면 연출 없이 바로 보이고 사라진다.
+// 진입은 PopupService만 부른다: Open(열기) / Dismiss(닫기). 팝업별 처리는 OnOpen·OnClose를 override한다.
+// 닫으면 끄기만 하고 PopupService가 들고 있다가 같은 팝업을 다시 열 때 다시 쓴다(씬이 바뀔 때만 지운다). 그래서 OnOpen이 상태를 처음으로 되돌린다
 
 public class Popup : MonoBehaviour
 {
-    private const float OpenStartScale = 0.9f;
-
     [SerializeField] private CanvasGroup m_Group = null;      // 비어도 된다
     [SerializeField] private RectTransform m_Window = null;   // 비어도 된다
-    [SerializeField] private float m_FadeTime = 0.25f;
 
-    // 뒤로 가기(Esc, 안드로이드 뒤로)로 닫을 수 있는지
-    public virtual bool IsCloseOnBack => true;
+    private const float OpenStartScale = 0.9f;
+    private const float OpenTime = 0.25f;
+    private const float CloseTime = 0.15f;
+
+    private bool m_IsClosing;  // 닫는 연출 중
+    private bool m_IsFinished; // OnClose까지 끝나 꺼져 있다
+
+    public virtual bool IsCloseOnBack => true;  // 뒤로 가기(Esc, 안드로이드 뒤로)로 닫을 수 있는지
+    private bool HasTween => m_Group != null || m_Window != null;
 
     // ------------------------------------------------
 

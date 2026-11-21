@@ -28,7 +28,7 @@ public static class MarketUISetup
     // ------------------------------------------------
 
     // 상인 줄 → 개수 조절 팝업 → 시장 팝업 순서로 만든다. isOverwrite면 있어도 다시 만든다(GUID 유지).
-    // 상인 줄 원본은 따로 프리팹(Resources)으로 둔다. PopupMarket이 CommonPath.MarketMerchantRow로 불러 풀로 꺼낸다
+    // 상인 줄 원본은 따로 프리팹(Resources)으로 둔다. PopupMarket이 EUIComponentType.PopupMarket_MerchantRow로 UIListView에서 꺼낸다
     public static void BuildPrefabs(bool isOverwrite)
     {
         UIBuilder.SaveAsPrefab(MerchantRow().gameObject, EditorPath.MarketMerchantRowPrefab, isOverwrite);
@@ -150,7 +150,6 @@ public static class MarketUISetup
         UIBuilder.SetRef(popup, "m_WaitButton", wait);
         UIBuilder.SetRef(popup, "m_WaitLabel", wait.GetComponentInChildren<TMP_Text>());
         UIBuilder.SetRef(popup, "m_CloseButton", close);
-        UIBuilder.SetRef(popup, "m_CountPopupPrefab", AssetDatabase.LoadAssetAtPath<PopupMarket_Count>(EditorPath.PopupMarketCountPrefab));
 
         return popup;
     }
@@ -162,8 +161,8 @@ public static class MarketUISetup
         row.gameObject.AddComponent<LayoutElement>().preferredHeight = RowHeight;
 
         Image selected = UIBuilder.Panel("Selected", row, UIStyle.Gold);
-        ((RectTransform)selected.transform).offsetMin = new Vector2(-4, -4);
-        ((RectTransform)selected.transform).offsetMax = new Vector2(4, 4);
+        selected.rectTransform.offsetMin = new Vector2(-4, -4);
+        selected.rectTransform.offsetMax = new Vector2(4, 4);
 
         Image back = UIBuilder.Panel("Back", row, UIStyle.Panel, true);
         Button button = row.gameObject.AddComponent<Button>();
@@ -176,12 +175,15 @@ public static class MarketUISetup
         trustText.color = UIStyle.TextDim;
 
         UIGauge trust = UIBuilder.Gauge(row, "TrustGauge", new Vector2(LeftWidth - Pad * 2f, 18), UIStyle.Gold, false);
-        RectTransform trustRect = (RectTransform)trust.transform;
-        trustRect.anchorMin = new Vector2(0, 0);
-        trustRect.anchorMax = new Vector2(1, 0);
-        trustRect.pivot = new Vector2(0.5f, 0f);
-        trustRect.offsetMin = new Vector2(Pad, 10);
-        trustRect.offsetMax = new Vector2(-Pad, 24);
+        RectTransform trustRect = trust.RectTransform;
+        if (trustRect != null)
+        {
+            trustRect.anchorMin = new Vector2(0, 0);
+            trustRect.anchorMax = new Vector2(1, 0);
+            trustRect.pivot = new Vector2(0.5f, 0f);
+            trustRect.offsetMin = new Vector2(Pad, 10);
+            trustRect.offsetMax = new Vector2(-Pad, 24);
+        }
 
         PopupMarket_MerchantRow merchantRow = row.gameObject.AddComponent<PopupMarket_MerchantRow>();
         UIBuilder.SetRef(merchantRow, "m_Button", button);
@@ -207,9 +209,12 @@ public static class MarketUISetup
         UIBuilder.AddImage(window, UIStyle.Panel, true);
 
         UICommonSlot slot = UIBuilder.CommonSlot(window, "Slot", SlotSize);
-        RectTransform slotRect = (RectTransform)slot.transform;
-        slotRect.anchorMin = slotRect.anchorMax = slotRect.pivot = new Vector2(0, 1);
-        slotRect.anchoredPosition = new Vector2(Pad * 2f, -Pad * 2f);
+        RectTransform slotRect = slot.RectTransform;
+        if (slotRect != null)
+        {
+            slotRect.anchorMin = slotRect.anchorMax = slotRect.pivot = new Vector2(0, 1);
+            slotRect.anchoredPosition = new Vector2(Pad * 2f, -Pad * 2f);
+        }
 
         float textLeft = Pad * 3f + SlotSize;
         TMP_Text nameText = WindowLabel(window, "Name", "버섯", UIStyle.FontLarge, textLeft, -Pad * 2f, 56);
@@ -314,7 +319,10 @@ public static class MarketUISetup
 
     private static void PlaceCorner(Button button, Vector2 anchor, Vector2 position)
     {
-        RectTransform rt = (RectTransform)button.transform;
+        RectTransform rt = button.transform as RectTransform;
+        if (rt == null)
+            return;
+
         rt.anchorMin = rt.anchorMax = rt.pivot = anchor;
         rt.anchoredPosition = position;
     }

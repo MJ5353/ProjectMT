@@ -1,7 +1,10 @@
 using UnityEngine;
 
+// ==================================================
+
 // UI 공용 색과 글자 크기. 복셀 숲 톤(이끼 초록 바탕, 크림 글자, 버섯 빨강 강조)
 // !!) 갈무리11은 11의 배수 크기에서 가장 또렷하다. 글자 크기는 아래 상수만 쓴다
+
 public static class UIStyle
 {
     // 기준 해상도(가로 고정)
@@ -42,7 +45,7 @@ public static class UIStyle
     public static readonly Color RarityRare = Hex(0x4FA3E0);
     public static readonly Color RarityEpic = Hex(0xB45EE0);
 
-    // ==================================================
+    // ------------------------------------------------
 
     public static Color Hex(int rgb, float alpha = 1f)
     {

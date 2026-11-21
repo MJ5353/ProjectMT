@@ -93,7 +93,7 @@ public static class LobbyUISetup
 
         TMP_Text goldText = UIBuilder.Label(gold, "0", UIStyle.FontNormal, TextAlignmentOptions.Right, "Count");
         goldText.rectTransform.offsetMax = new Vector2(-20, 0);
-        goldText.gameObject.AddComponent<UICountLabel>().EditorSetup("Currency_Gold", "{0}");
+        goldText.gameObject.AddComponent<UICountLabel>().EditorSetup(goldText, CurrencyDef.GoldID, "{0}");
     }
 
     private static void BuildTabBar(RectTransform parent, List<TabView> listView)
@@ -224,15 +224,18 @@ public static class LobbyUISetup
         mushLayout.spacing = 30;
         mushLayout.childAlignment = TextAnchor.UpperLeft;
 
-        UICommonSlot mushTemplate = UIBuilder.CommonSlot(mushRoot, "MushroomTemplate", 96f);
+        // 칸은 UICommonSlot 프리팹(EUIComponentType.UICommonSlot)을 HuntTabView가 UIListView로 꺼낸다
         UITooltip mushTooltip = UIBuilder.Tooltip(info, "MushroomTooltip"); // 목록 뒤에 만들어 칸 위에 그린다
 
         Button enter = UIBuilder.Button(info, "EnterButton", "입장", new Vector2(360, 120));
-        RectTransform enterRt = (RectTransform)enter.transform;
-        enterRt.anchorMin = new Vector2(0.5f, 0f);
-        enterRt.anchorMax = new Vector2(0.5f, 0f);
-        enterRt.pivot = new Vector2(0.5f, 0f);
-        enterRt.anchoredPosition = new Vector2(0, 40);
+        RectTransform enterRt = enter.transform as RectTransform;
+        if (enterRt != null)
+        {
+            enterRt.anchorMin = new Vector2(0.5f, 0f);
+            enterRt.anchorMax = new Vector2(0.5f, 0f);
+            enterRt.pivot = new Vector2(0.5f, 0f);
+            enterRt.anchoredPosition = new Vector2(0, 40);
+        }
 
         HuntTabView hunt = view.gameObject.AddComponent<HuntTabView>();
         UIBuilder.SetRef(hunt, "m_MapRoot", nodeRoot);
@@ -241,7 +244,6 @@ public static class LobbyUISetup
         UIBuilder.SetRef(hunt, "m_InfoState", infoState);
         UIBuilder.SetRef(hunt, "m_InfoDesc", infoDesc);
         UIBuilder.SetRef(hunt, "m_MushroomRoot", mushRoot);
-        UIBuilder.SetRef(hunt, "m_MushroomTemplate", mushTemplate);
         UIBuilder.SetRef(hunt, "m_MushroomTooltip", mushTooltip);
         UIBuilder.SetRef(hunt, "m_EnterButton", enter);
 

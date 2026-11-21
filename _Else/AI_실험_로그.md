@@ -296,3 +296,31 @@
 - 직접 UI 스프라이트 폴더 정리를 요청. AI가 48장을 Common·HUD·Icon·BG로(대장 지시로 Icon 하위 폴더·Lobby 폴더는 없앰) .meta와 함께 옮기고(GUID 유지), 생성기가 폴더 대신 이름으로 찾게(`UIBuilder.LoadSprite`) 바꿈. 곰팡이 그림이 Cube 텍스처로 들어와 칸이 흰색이 된 문제는 2D로 고침.
 - 직접 결과 팝업의 창·페이드 필드가 공용이어야 하지 않냐고 지적. AI가 여는 연출(페이드 + 창 튕김)을 Popup 기반으로 올리고(비우면 연출 없음, 이어지는 연출은 CoAfterOpen), 사망·결과·개수 조절 팝업 생성기에 연결함. 수치는 기존 결과 팝업 값 유지.
 - 직접 자식이 base.OnOpen()을 부르는 방식을 거절. AI가 PopupService가 부르는 `Popup.Open()`(내용 훅 OnOpen → 공용 여는 연출)과 자식용 `protected virtual OnOpen()`을 나누고, 자식의 base 호출을 없앰.
+
+## 팝업 경로 표·Popup 기반 정리
+
+- 직접 팝업 프리팹을 HUD·시장 필드에 꽂지 말고 경로로 불러오되 경로는 UI Table로 정리하라고 정함. AI가 `UITable`(타입 → Resources 경로 표, `UITable.Load<T>()`)을 만들고 CommonPath의 UI 경로를 옮김. `PopupService.Open<T>()`가 표로 원본을 불러오게 하고 HUDBattle·PopupMarket의 팝업 프리팹 필드와 생성기 연결을 지움.
+- 직접 타입 키 표를 거절하고 팝업별 enum을 ID로, 경로는 따로 기입하며 팝업과 일반 UI를 섞지 말라고 정함. AI가 `EPopupType`·`PopupTable`(ID → 경로)로 바꾸고 `PopupService.Open<T>(EPopupType)`로 열게 함. 칸·줄 경로는 CommonPath로 되돌리고, 키 충돌로 생겼던 체력바 프리팹 필드도 경로 로드로 바꿈. UITable.cs 삭제는 대장 몫.
+- 직접 Popup 정리 3건 반영을 지시. AI가 OnOpen·OnClose를 둘 다 protected로 두고 서비스 진입은 `Open()`·`Dismiss(isInstant)`로 나눔. 여는 연출의 반대인 닫는 연출(페이드 아웃 + 창 축소)을 공용으로 붙이고 OnClose는 연출 뒤에 부름(씬 정리 땐 바로). 페이드 시간은 const. 컴파일·플레이 확인 안 함.
+
+## UI 공용 요소 정리·목록 풀 이전
+
+- 직접 UI 코드 정리·개편 후보 제시를 요청. AI가 UI 스크립트와 생성기를 읽고 정리(동작 그대로) 5건, UIListPool 이전 3건, 기능 개편 2건(슬롯 레이어 표·희귀도 표)을 제안함. 직접 정리·이전 8건만 진행하게 함.
+- AI가 대장 메모 3건을 `E_SetActive`·`E_SetText`·`E_SetImage`(null이면 넘어감) 확장으로 처리하고 UI 전반에 적용. UICountLabel의 GetComponent를 직렬화 필드로 바꾸고 골드 ID는 `CurrencyDef.GoldID`를 씀.
+- 비슷한 unscaled 연출 루프(팝업 열기·닫기, 툴팁, 결과 칸 튕김, 밤 시계)를 `UITween.CoPlay(duration, onUpdate)` 하나로, 결과 팝업 시간 표기를 `UINightClock.FormatRealTime`으로 합침. 버섯 칸 채우기는 `UICommonSlot.Set(itemID, def, count)`·`SetLoot(key, def, count, text)`로 모음. 시장 개장 연출 루프는 건너뛰기 조건이 있어 그대로 둠.
+- 로비 버섯 칸(Instantiate/Destroy 반복), 전투 스킬 줄 아이콘(꺼 둔 템플릿)을 UIListPool로, 몬스터 머리 위 바(자체 Stack 풀)를 ResourceManager 풀로 옮김. 아이콘·머리 위 바는 독립 Resources 프리팹으로 빼고, 머리 위 바는 UIGauge라 UITable 키가 공용 게이지와 겹쳐 직렬화 필드로 둠.
+- 팝업 정리 스레드와 같은 파일을 만져서, 겹치지 않는 파일을 먼저 쓰고 그쪽이 끝난 뒤 최신본 위에 얹음. 컴파일·플레이 확인 안 함.
+
+## UI 요소 재활용 구조(UIFactory·UIListView)·팝업 재사용
+
+- 직접 팝업 표처럼 팝업이 아닌 UI 요소에도 표와 재활용 구조가 필요하다고 지적하고 이름은 UIComponentTable·EUIComponentType으로 정함. AI가 enum 키 표를 만들어 같은 클래스(UIGauge)가 다른 프리팹을 쓰는 충돌도 풀고, CommonPath의 칸·줄 경로를 옮김.
+- AI가 재활용을 `UIFactory`(ResourceManager를 감싸 꺼낸 요소를 기억, 씬 전환 때 일괄 회수)와 목록형 `UIListView`(옛 UIListPool)로 나누자고 제안, 직접 채택. 화면마다 있던 씬 전환 회수 코드를 지우고, UIFactory를 PopupService보다 먼저 등록해 팝업 안 칸을 먼저 회수하게 함.
+- 직접 팝업은 씬이 바뀔 때만 지우자고 정함. AI가 닫으면 끄기만 하고 종류마다 인스턴스 하나를 다시 쓰게 하고, 다시 열 때 닫기 상태·시장 시계를 되돌림. 컴파일·플레이 확인 안 함.
+- 직접 경로를 손으로 적는 표(PopupTable·UIComponentTable)는 런타임에 있을 이유가 없다고 지적, 에디터 자동 등록을 고름. AI가 `PopupDef`·`UIComponentDef`(enum → 프리팹 참조 SO, 공용 기반 `UIPrefabDef`)로 바꾸고, "모든 UI 다시 만들기"·"UI 프리팹 표 갱신" 메뉴가 enum 이름과 같은 프리팹을 찾아 채우게 함. 런타임 경로 문자열이 사라짐. 컴파일·플레이 확인 안 함.
+- 직접 `(RectTransform)` 강제 변환과 Unity 객체에 바로 쓴 `?.`·널 검사 삼항을 싫다고 지적. AI가 UI·UI 생성기에서 형변환을 `as`(또는 `RectTransform` 속성) + null이면 건너뛰기로, 널 검사 삼항과 `?.`를 `E_Alive()?.` + `??`로 바꿈. 컴파일·플레이 확인 안 함.
+
+
+## 게임 흐름 Flow 구조 설계
+
+- 직접 `EGameState`로 흐름을 묶는 방식을 거절하고 GameManager=씬 전환, FlowManager=씬 안 상태 관리(공용 Service), Flow별 전용 Service로 나누자고 제안함. AI가 현재 코드의 상태 머신 두 갈래(`EGameState`·`EBattleState`)와 정리 입구 중복을 짚고 Flow 기반 클래스·BattleFlow 상태(Start·Play·Down·Market·Result)를 제안함.
+- 직접 접근자는 호출부 변경, Retry는 씬 재로드 대신 BattleFlow 재시작으로 정함. AI의 일시정지 이유 플래그 분리안은 확인 전. 코드는 다른 스레드 편집 중이라 설계 문서(`_Else/DevDocs/Flow_구조설계.md`)만 작성함.
