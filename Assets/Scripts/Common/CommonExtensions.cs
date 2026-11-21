@@ -27,6 +27,44 @@ public static class CommonExtensions
         return null;
     }
 
+    // ui ---
+
+    // null이면 넘어가고, 이미 같은 상태면 건드리지 않는다
+    public static void E_SetActive(this UnityEngine.GameObject go, bool isActive)
+    {
+        if (go == null || go.activeSelf == isActive)
+            return;
+
+        go.SetActive(isActive);
+    }
+
+    public static void E_SetActive(this UnityEngine.Component component, bool isActive)
+    {
+        if (component == null)
+            return;
+
+        component.gameObject.E_SetActive(isActive);
+    }
+
+    // 비어 있어도 되는 글자 칸에 쓴다. null이면 넘어간다
+    public static void E_SetText(this TMPro.TMP_Text text, string value)
+    {
+        if (text == null)
+            return;
+
+        text.text = value;
+    }
+
+    // 비어 있어도 되는 그림 칸에 쓴다. null이면 넘어간다
+    public static void E_SetImage(this UnityEngine.UI.Image image, UnityEngine.Sprite sprite, UnityEngine.Color color)
+    {
+        if (image == null)
+            return;
+
+        image.sprite = sprite;
+        image.color = color;
+    }
+
     // collection ---
 
     public static bool E_IsNullOrEmpty(this string str) => string.IsNullOrEmpty(str);
