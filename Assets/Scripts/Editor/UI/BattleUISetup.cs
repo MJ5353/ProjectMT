@@ -9,7 +9,6 @@ using UnityEngine.UI;
 public static class BattleUISetup
 {
 
-    private const int HudSortingOrder = 10;
     private const int LootFontSize = 27; // 주운 버섯 목록 글자 크기
     private const float SkillIconSize = 64f; // 이어 쓸 수 있는 스킬 줄의 작은 아이콘
     private const string CircleSprite = "UI_Circle"; // 반투명 원 바탕(스킬 아이콘·토벌 종료). 없으면 사각형으로 보인다
@@ -28,30 +27,22 @@ public static class BattleUISetup
         (EditorPath.ScreenBattlePrefab, () => BuildBattleScreen().gameObject),
     };
 
-    // 전투 씬을 만들 때(BattleSetup) 부른다. 없는 UI 프리팹을 만들고 전투 화면을 씬에 넣는다. 이미 있으면 그것을 돌려준다
-    public static ScreenBattle AddBattleScreen()
+    // 전투 씬을 만들 때(BattleSetup) 부른다. 없는 UI 프리팹을 만들고 전투 화면을 캔버스 아래에 넣는다. 프리팹이 없으면 null
+    public static ScreenBattle AddBattleScreen(Transform canvas)
     {
-        ScreenBattle exist = Object.FindAnyObjectByType<ScreenBattle>(FindObjectsInactive.Include);
-        if (exist != null)
-        {
-            CLogger.Log("BattleUISetup", "전투 화면이 이미 씬에 있습니다.");
-            return exist;
-        }
-
         UISetup.BuildAllPrefabs(false);
-        GameObject go = PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.ScreenBattlePrefab)) as GameObject;
+        ScreenBattle screen = UIBuilder.PlaceScreen<ScreenBattle>(EditorPath.ScreenBattlePrefab, canvas);
         UIBuilder.CreateEventSystemIfNeeded();
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 
-        return go != null ? go.GetComponent<ScreenBattle>() : null;
+        return screen;
     }
 
     // ==================================================
 
     private static ScreenBattle BuildBattleScreen()
     {
-        RectTransform safe = UIBuilder.CreateCanvas("ScreenBattle", HudSortingOrder);
-        Transform root = safe.parent;
+        RectTransform root = UIBuilder.CreateScreenRoot(nameof(ScreenBattle), out RectTransform safe);
 
         // 좌상단 밤 시계
         UINightClock clock = BuildNightClock(safe);

@@ -55,7 +55,7 @@ public static class LobbyUISetup
 
     // ==================================================
 
-    // 카메라·EventSystem·캔버스(SafeArea·바탕) → SafeArea 아래 ScreenLobby 프리팹 → 그 위에 그려질 PopupRoot(나중 형제)
+    // 카메라·EventSystem·캔버스 → ScreenLobby 프리팹 → 그 위에 그려질 PopupRoot(나중 형제). 구성은 UIBuilder.CreateCanvas 주석
     private static void BuildScene()
     {
         UISetup.BuildAllPrefabs(false); // 없는 프리팹만 만든다
@@ -71,11 +71,8 @@ public static class LobbyUISetup
 
         UIBuilder.CreateEventSystemIfNeeded();
 
-        RectTransform safe = UIBuilder.CreateCanvas("LobbyCanvas");
-        UIBuilder.Panel("Background", safe.parent, UIStyle.Background).transform.SetAsFirstSibling();
-
-        GameObject screenGo = PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.ScreenLobbyPrefab), safe) as GameObject;
-        ScreenLobby screen = screenGo != null ? screenGo.GetComponent<ScreenLobby>() : null;
+        RectTransform canvas = UIBuilder.CreateCanvas("UICanvas");
+        ScreenLobby screen = UIBuilder.PlaceScreen<ScreenLobby>(EditorPath.ScreenLobbyPrefab, canvas);
         if (screen == null)
         {
             // 화면 없는 씬을 저장하지 않는다(새 씬은 저장 전이라 버려진다)
@@ -83,27 +80,22 @@ public static class LobbyUISetup
             return;
         }
 
-        RectTransform screenRt = screen.RectTransform;
-        screenRt.anchorMin = Vector2.zero;
-        screenRt.anchorMax = Vector2.one;
-        screenRt.offsetMin = Vector2.zero;
-        screenRt.offsetMax = Vector2.zero;
-
-        RectTransform popupRoot = UIBuilder.Stretch("PopupRoot", safe);
+        RectTransform popupRoot = UIBuilder.CreateSafeArea(canvas, "PopupRoot");
         sceneController.EditorSetup(popupRoot, cam, screen);
 
         EditorSceneManager.SaveScene(scene, EditorPath.LobbyScene);
         AddToBuildSettings();
     }
 
-    // 루트(Stretch, ScreenLobby) 아래 TopBar·Content(탭 뷰들)·TabBar. 팝업 루트는 넣지 않는다(씬에서 형제로 둔다)
+    // 루트(꽉 참, 바탕색) 아래 SafeArea → TopBar·Content(탭 뷰들)·TabBar. 팝업 루트는 넣지 않는다(씬에서 형제로 둔다)
     private static ScreenLobby BuildScreen()
     {
-        RectTransform root = UIBuilder.Stretch(nameof(ScreenLobby), null);
+        RectTransform root = UIBuilder.CreateScreenRoot(nameof(ScreenLobby), out RectTransform safe);
+        UIBuilder.AddImage(root, UIStyle.Background); // 노치까지 덮는 바탕
 
-        UICountLabel goldLabel = BuildTopBar(root);
+        UICountLabel goldLabel = BuildTopBar(safe);
 
-        RectTransform content = UIBuilder.Rect("Content", root, Vector2.zero, Vector2.one, new Vector2(0, TabBarHeight), new Vector2(0, -TopBarHeight));
+        RectTransform content = UIBuilder.Rect("Content", safe, Vector2.zero, Vector2.one, new Vector2(0, TabBarHeight), new Vector2(0, -TopBarHeight));
 
         List<UITabView> listView = new List<UITabView>();
         ScreenLobby_HuntView huntView = null;
@@ -120,7 +112,7 @@ public static class LobbyUISetup
             }
         }
 
-        UITabBar tabBar = BuildTabBar(root, listView);
+        UITabBar tabBar = BuildTabBar(safe, listView);
 
         ScreenLobby screen = root.gameObject.AddComponent<ScreenLobby>();
         screen.EditorSetup(tabBar, huntView, goldLabel);
