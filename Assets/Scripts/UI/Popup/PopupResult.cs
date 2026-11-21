@@ -37,7 +37,7 @@ public class PopupResult : Popup
 
     protected override void OnOpen()
     {
-        BattleService battleS = GameManager.Instance?.BattleS;
+        BattleService battleS = GameManager.Instance.BattleS;
         if (battleS == null)
             return;
 
@@ -60,7 +60,7 @@ public class PopupResult : Popup
     
     private void OnClickRetry()
     {
-        BattleService battleS = GameManager.Instance?.BattleS;
+        BattleService battleS = GameManager.Instance.BattleS;
         if (battleS == null)
             return;
 
@@ -71,7 +71,7 @@ public class PopupResult : Popup
 
     private void OnClickLobby()
     {
-        BattleService battleS = GameManager.Instance?.BattleS;
+        BattleService battleS = GameManager.Instance.BattleS;
         if (battleS == null)
             return;
 
@@ -103,8 +103,8 @@ public class PopupResult : Popup
             string itemID = m_ListLoot[i].Key;
             int count = m_ListLoot[i].Value;
             
-            if (GameDatabase.S_TryGet(itemID, out DataDef def))
-                slot.Set(itemID, def, count);
+            GameDatabase.S_TryGet(itemID, out DataDef def); // 없으면 회색 칸 + ID
+            slot.Set(itemID, def, count);
         }
 
         m_SlotPool.HideFrom(m_ListLoot.Count);
@@ -120,7 +120,7 @@ public class PopupResult : Popup
             UICommonSlot slot = m_SlotPool.List[i];
             Transform target = slot.transform;
 
-            sequence.Call(() => slot.E_SetActive(true))
+            sequence.Call(() => slot.gameObject.SetActive(true))
                 .Join(SlotPopTime, t => target.localScale = Vector3.one * UITween.EaseOutBack(t))
                 .Wait(m_SlotInterval);
         }
@@ -137,7 +137,7 @@ public class PopupResult : Popup
     // 시장에서 오른 상인 신뢰도. "  ·  신뢰도 약재상 +10, 요리사 +5"
     private static string FormatTrust(EBattleState state)
     {
-        HuntData hunt = PlayerDataManager.Instance?.Hunt;
+        HuntData hunt = PlayerDataManager.Instance.Hunt;
         if (state != EBattleState.Exited || hunt == null || hunt.DicTrustGain.Count == 0)
             return string.Empty;
 

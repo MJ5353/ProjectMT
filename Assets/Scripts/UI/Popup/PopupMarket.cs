@@ -62,7 +62,7 @@ public class PopupMarket : Popup
 
     private bool IsIntro => m_IntroSequence.IsPlaying;
     public override bool IsCloseOnBack => false; // [시장 닫기]로만 닫는다
-    private static HuntData Hunt => PlayerDataManager.Instance?.Hunt;
+    private static HuntData Hunt => PlayerDataManager.Instance.Hunt;
     private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
 
     // ------------------------------------------------
@@ -171,7 +171,7 @@ public class PopupMarket : Popup
         }
 
         m_MerchantIcon.enabled = merchant.Icon != null;
-        m_MerchantIcon.E_SetImage(merchant.Icon);
+        m_MerchantIcon.sprite = merchant.Icon;
         m_MerchantName.E_SetText(merchant.DisplayName);
         m_MerchantDesc.E_SetText(merchant.Description);
 
@@ -430,7 +430,7 @@ public class PopupMarket : Popup
 
         m_IsIntroContinue = false;
         m_Body.E_SetVisible(false);
-        m_Intro.E_SetActive(true);
+        m_Intro.gameObject.SetActive(true);
         m_Intro.alpha = 1f;
         m_Clock.SetTextVisible(false);
 
@@ -478,7 +478,7 @@ public class PopupMarket : Popup
             })
             .Call(() =>
             {
-                m_Intro.E_SetActive(false);
+                m_Intro.gameObject.SetActive(false);
                 m_Body.E_SetVisible(true);
             })
             .Play(this);
@@ -527,7 +527,7 @@ public class PopupMarket : Popup
         if (merchant != null)
             price = hunt.GetPrice(merchant, key);
 
-        m_CountPopup = GameManager.Instance?.PopupS?.Open<PopupMarket_Count>(EPopupType.PopupMarket_Count);
+        m_CountPopup = GameManager.Instance.PopupS?.Open<PopupMarket_Count>(EPopupType.PopupMarket_Count);
         m_CountPopup.E_Alive()?.Setup(key, have, picked, price, count => OnCountConfirm(key, count));
     }
 

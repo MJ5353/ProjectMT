@@ -26,7 +26,7 @@ public class PopupDeath : Popup
 
     protected override void OnOpen()
     {
-        BattleService battleS = GameManager.Instance?.BattleS;
+        BattleService battleS = GameManager.Instance.BattleS;
         if (battleS == null)
             return;
 
@@ -38,14 +38,14 @@ public class PopupDeath : Popup
 
     private void OnClickRevive()
     {
-        BattleService battleS = GameManager.Instance?.BattleS;
+        BattleService battleS = GameManager.Instance.BattleS;
         if (battleS != null && battleS.TryRevive())
             Close();
     }
 
     private void OnClickHome()
     {
-        BattleService battleS = GameManager.Instance?.BattleS;
+        BattleService battleS = GameManager.Instance.BattleS;
         Close();
         battleS?.GiveUp();
     }

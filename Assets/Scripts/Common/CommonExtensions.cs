@@ -90,15 +90,6 @@ public static class CommonExtensions
         image.color = color;
     }
 
-    // 그림만 바꾸고 색은 그대로
-    public static void E_SetImage(this UnityEngine.UI.Image image, UnityEngine.Sprite sprite)
-    {
-        if (image == null)
-            return;
-
-        image.sprite = sprite;
-    }
-
     // 글자·그림 색. null이면 넘어간다
     public static void E_SetColor(this UnityEngine.UI.Graphic graphic, UnityEngine.Color color)
     {

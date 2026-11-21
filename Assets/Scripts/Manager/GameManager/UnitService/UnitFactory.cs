@@ -13,11 +13,6 @@ public sealed class UnitFactory
         }
 
         ResourceManager resourceM = ResourceManager.Instance;
-        if (resourceM == null)
-        {
-            CLogger.Error("UnitFactory", "ResourceManager가 없습니다. 씬에 SceneController가 있는지 확인하세요.");
-            return null;
-        }
 
         // 없으면 Load가 경로마다 한 번 오류 로그
         UnitController prefab = resourceM.Load<UnitController>(def.PrefabPath, $"{def.name}: 프리팹 이름이 Def ID와 같은지, 프리팹 빌드를 했는지 확인하세요.");

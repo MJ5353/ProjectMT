@@ -136,7 +136,7 @@ public class UINightClock : MonoBehaviour
 
         m_Routine = null;
         m_Text.rectTransform.localScale = Vector3.one;
-        m_Text.E_SetColor(m_BaseColor);
+        m_Text.color = m_BaseColor;
     }
 
     // 거래·기다리기로 시간이 줄었다
@@ -147,7 +147,7 @@ public class UINightClock : MonoBehaviour
         yield return UITween.CoPlay(SpendTime, t =>
         {
             rt.localScale = Vector3.one * Mathf.Lerp(SpendScale, 1f, t);
-            m_Text.E_SetColor(Color.Lerp(UIStyle.Accent, m_BaseColor, t));
+            m_Text.color = Color.Lerp(UIStyle.Accent, m_BaseColor, t);
         });
 
         m_Routine = null;

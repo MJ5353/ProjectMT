@@ -22,7 +22,7 @@ public class UIMapNode : MonoBehaviour
     public void Set(MapDef mapDef)
     {
         m_NameLabel.E_SetText(mapDef.DisplayName);
-        m_Icon.E_SetImage(mapDef.Icon);
+        m_Icon.sprite = mapDef.Icon;
         m_Icon.enabled = mapDef.Icon != null;
     }
 

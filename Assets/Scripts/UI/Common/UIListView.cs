@@ -16,6 +16,8 @@ public enum EUIListAxis
     Grid,       // 왼쪽에서 오른쪽, 넘치면 다음 줄
 }
 
+// ==================================================
+
 // 배치 옵션과 좌표 계산. 칸 종류를 모르는 부분이라 따로 둔다(에디터 미리보기도 이걸 쓴다)
 [Serializable]
 public abstract class UIListViewBase
@@ -59,6 +61,7 @@ public abstract class UIListViewBase
         RectOffset padding = m_Padding;
         Vector2 spacing = m_Spacing;
         EUIListAxis axis = m_Axis;
+        
         float innerWidth = area.rect.width - padding.horizontal;
         float innerHeight = area.rect.height - padding.vertical;
 
@@ -81,6 +84,7 @@ public abstract class UIListViewBase
         // 3. 영역을 묶음에 맞추거나, 남는 공간에서 정렬 위치를 고른다
         float alignX = (int)m_Alignment % 3 * 0.5f; // 왼쪽 0, 가운데 0.5, 오른쪽 1
         float alignY = (int)m_Alignment / 3 * 0.5f; // 위 0, 가운데 0.5, 아래 1
+        
         if (m_IsFitContent)
         {
             if (axis == EUIListAxis.Horizontal)
@@ -260,6 +264,8 @@ public abstract class UIListViewBase
 #endif
 }
 
+// ==================================================
+
 // 칸 종류(T)를 아는 쪽. 꺼내기·끄기·돌려주기를 맡는다
 [Serializable]
 public class UIListView<T> : UIListViewBase where T : PoolableMonoUI
@@ -308,7 +314,7 @@ public class UIListView<T> : UIListViewBase where T : PoolableMonoUI
             if (m_Root == null)
                 return null;
 
-            T item = GameManager.Instance?.UIFactory?.Spawn<T>(m_Type, m_Root);
+            T item = GameManager.Instance.UIFactory?.Spawn<T>(m_Type, m_Root);
             if (item == null)
                 return null;
 
@@ -336,7 +342,7 @@ public class UIListView<T> : UIListViewBase where T : PoolableMonoUI
     // 씬 전환 전에 일부러 돌려줄 때만 쓴다(보통은 UIFactory가 씬 전환 때 회수한다)
     public void Clear()
     {
-        UIFactory factory = GameManager.Instance?.UIFactory;
+        UIFactory factory = GameManager.Instance.UIFactory;
         foreach (T item in m_List)
         {
             if (factory != null)

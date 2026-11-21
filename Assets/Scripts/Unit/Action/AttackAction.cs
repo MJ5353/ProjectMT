@@ -104,7 +104,7 @@ public class AttackAction : UnitAction
         Owner.AnimF.Play(AnimKey.Idle);
         
         m_BaseScale = VisualRoot.localScale;
-        m_Telegraph = GameManager.Instance?.EffectS?.ShowTelegraph(Spec.ActiveMoveSpeed > 0f);
+        m_Telegraph = GameManager.Instance.EffectS?.ShowTelegraph(Spec.ActiveMoveSpeed > 0f);
         UpdateTelegraph();
     }
 
@@ -178,7 +178,7 @@ public class AttackAction : UnitAction
 
     private void HideTelegraph()
     {
-        GameManager.Instance?.EffectS?.HideTelegraph(m_Telegraph);
+        GameManager.Instance.EffectS?.HideTelegraph(m_Telegraph);
         m_Telegraph = null;
     }
 
@@ -248,7 +248,7 @@ public class AttackAction : UnitAction
     // 판정 자리(땅 이펙트는 발밑)에 주인 방향으로 터뜨리고 판정 반지름만큼 키운다
     private void PlayEffect()
     {
-        EffectService effectS = GameManager.Instance?.EffectS;
+        EffectService effectS = GameManager.Instance.EffectS;
         if (Spec.Effect == null || effectS == null)
             return;
 
@@ -264,7 +264,7 @@ public class AttackAction : UnitAction
     // 판정 구와 겹친 적에게 타격을 넣는다. 무적 등으로 막히면 구간 안에서 다시 노린다
     private void PerformHit()
     {
-        UnitService units = GameManager.Instance?.UnitS;
+        UnitService units = GameManager.Instance.UnitS;
         if (units == null)
             return;
 

@@ -14,7 +14,7 @@ public class HUDBattle_SkillIcon : PoolableMonoUI
 
     public void Set(Sprite icon, float alpha)
     {
-        m_Icon.E_SetImage(icon);
+        m_Icon.sprite = icon;
         m_Icon.enabled = icon != null;
         m_Group.alpha = alpha;
     }

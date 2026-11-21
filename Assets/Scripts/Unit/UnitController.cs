@@ -192,7 +192,7 @@ public class UnitController : PoolableMono
 
     public void Despawn()
     {
-        UnitService units = GameManager.Instance?.UnitS;
+        UnitService units = GameManager.Instance.UnitS;
         if (units != null && UnitID != 0)
         {
             // 등록돼 있으면 UnitService가 지운다

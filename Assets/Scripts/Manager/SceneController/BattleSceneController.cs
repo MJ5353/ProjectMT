@@ -21,7 +21,7 @@ public sealed class BattleSceneController : SceneControllerBase
     // 로비에서 고른 지역 → 씬 기본 지역 → (개발용) 기본 지역 순
     private MapDef GetMap(GameManager gameM)
     {
-        MapDef mapDef = PlayerDataManager.Instance?.Hunt.SelectedMap;
+        MapDef mapDef = PlayerDataManager.Instance.Hunt.SelectedMap;
         if (mapDef == null)
             mapDef = m_DefaultMap;
 

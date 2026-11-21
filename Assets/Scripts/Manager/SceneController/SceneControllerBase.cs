@@ -13,6 +13,8 @@ public abstract class SceneControllerBase : MonoBehaviour
     // 이 씬을 바로 실행했을 때 시작할 게임 상태
     public abstract EGameState State { get; }
 
+    private static bool s_IsQuitting; // 앱 종료 중. 매니저가 먼저 파괴될 수 있어 씬 정리를 건너뛴다
+
     // ------------------------------------------------
 
     private void Awake()
@@ -31,22 +33,18 @@ public abstract class SceneControllerBase : MonoBehaviour
 
     private void Start() => GameManager.Instance.InitSceneServices(gameObject.scene, this);
 
-    private void Update() => GameManager.Instance?.TickSceneServices(gameObject.scene, Time.deltaTime);
+    private void Update() => GameManager.Instance.TickSceneServices(gameObject.scene, Time.deltaTime);
 
+    // 씬이 바뀔 때만 정리한다. 앱이 꺼질 때는 정리할 필요가 없다
     private void OnDestroy()
     {
-        GameManager.Instance?.ClearSceneServices(gameObject.scene);
-        RootManager.Instance?.ClearUIRoot(gameObject.scene);
-        CameraManager.Instance?.ClearMain(m_MainCamera);
-    }
+        if (s_IsQuitting)
+            return;
 
-    private void OnApplicationPause(bool isPaused)
-    {
-        if (isPaused)
-            PlayerDataManager.Instance?.RunSave();
+        GameManager.Instance.ClearSceneServices(gameObject.scene);
+        RootManager.Instance.ClearUIRoot(gameObject.scene);
+        CameraManager.Instance.ClearMain(m_MainCamera);
     }
-
-    private void OnApplicationQuit() => PlayerDataManager.Instance?.RunSave();
 
     // 이 씬 전용 Service를 GameManager에 등록한다. 공용(팝업)은 GameManager가 넣는다
     public virtual void RegisterServices(GameManager gameM) { }
@@ -54,6 +52,10 @@ public abstract class SceneControllerBase : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetSingletons()
     {
+        s_IsQuitting = false;
+        Application.quitting -= OnQuitting;
+        Application.quitting += OnQuitting;
+
         RootManager.ResetSingleton();
         ResourceManager.ResetSingleton();
         GameManager.ResetSingleton();
@@ -62,6 +64,8 @@ public abstract class SceneControllerBase : MonoBehaviour
         CameraManager.ResetSingleton();
         PlayerDataManager.ResetSingleton();
     }
+
+    private static void OnQuitting() => s_IsQuitting = true;
 
 #if UNITY_EDITOR
     public void EditorSetup(RectTransform uiRoot, Camera mainCamera)

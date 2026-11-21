@@ -323,6 +323,9 @@
 - 직접 머리 위 체력바를 매 프레임 "안 보인 유닛" 검사로 회수하던 것을 유닛 삭제 이벤트로 바꾸라고 지시. AI가 `UnitService.UnitRemoved`를 구독해 바를 돌려주고 잡고 있던 보스도 놓게 함. 컴파일·플레이 확인 안 함.
 - 직접 남은 UI 정리 항목을 골라 지시. AI가 연출 공용 `UISequence`(Tween·Join·Wait·Call·WaitUntil, 다음 대기 지점까지 건너뛰기)를 만들어 팝업 여닫기·결과 칸 순차 등장·시장 인트로를 옮기고, 생성·삭제를 `ResourceManager.Create/Delete`로 모음. 전투·매니저의 Unity 객체 `?.`·널 삼항을 `E_Alive`로, DB 조회를 `GameDatabase.S_TryGet`으로 통일. UIListView는 바뀔 때만 다시 배치하고 인스펙터 배치 미리보기를 붙임. 직접 만든 `E_SetText`로 `.text` 대입을 통일하고 `E_SetTextWithActive`·`E_SetInteractable`을 추가. 컴파일·플레이 확인 안 함.
 - UI 접근 통일 2차. 직접 고른 4가지를 AI가 UI 코드 전체에 적용: `SetActive`→`E_SetActive`, CanvasGroup 보이기/숨기기→`E_SetVisible`(누름만은 `E_SetBlocksRaycasts`), 버튼 연결→`E_SetOnClick`(중복 연결 방지), 색·그림 대입→`E_SetColor`·`E_SetImage`. 컴파일·플레이 확인 안 함.
+- 직접 지적: 이미 null 검사했거나 바로 아래에서 직접 쓰는 대상에 확장을 억지로 부른 곳, 매니저 Instance null 검사. AI가 전체 런타임 코드에서 매니저 Instance의 `?.`·null 검사를 걷어 내고, 해당 UI 확장 호출을 직접 대입으로 되돌림. 컴파일·플레이 확인 안 함.
+- 이어서 뒤로 가기 팝업 닫기 조건 오류, 결과 칸 DB 누락 표시를 고치고, 앱 종료 때 매니저 순서 문제를 null 검사 대신 종료 중 플래그(씬 정리 건너뛰기)와 PlayerDataManager 자체 저장으로 정리(방향은 직접 결정).
+- GameDatabase.Get을 없애고 조회를 TryGet으로 통일(직접 제안). 설정 Def가 없으면 호출한 쪽이 에러 로그.
 
 
 ## 게임 흐름 Flow 구조 설계

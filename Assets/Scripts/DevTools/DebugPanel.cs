@@ -22,8 +22,6 @@ public class DebugPanel : MonoBehaviour
     private void OnGUI()
     {
         GameManager gameM = GameManager.Instance;
-        if (gameM == null)
-            return;
 
         // 해상도와 상관없이 비슷한 크기로 보이게 높이 기준으로 확대한다
         float scale = Screen.height / RefHeight;
@@ -41,12 +39,16 @@ public class DebugPanel : MonoBehaviour
 
         DrawFlow(gameM);
         GUILayout.Space(8);
+
         DrawSpawn(gameM);
         GUILayout.Space(8);
+        
         DrawMarket(gameM);
         GUILayout.Space(8);
+        
         DrawItems(gameM);
         GUILayout.Space(8);
+        
         DrawSave();
 
         GUILayout.EndScrollView();
@@ -90,12 +92,14 @@ public class DebugPanel : MonoBehaviour
     {
         Transform player = units.Player.transform;
         float distance = SpawnGap + units.Player.HurtBody.radius;
-        UnitController prefab = ResourceManager.Instance?.Load<UnitController>(def.PrefabPath);
+        
+        UnitController prefab = ResourceManager.Instance.Load<UnitController>(def.PrefabPath);
         if (prefab != null && prefab.TryGetComponent(out CharacterController controller))
             distance += controller.radius;
 
         Vector3 forward = Vector3.ProjectOnPlane(player.forward, Vector3.up).normalized;
         Vector3 position = player.position + forward * distance + Vector3.up * BattleService.SpawnLift;
+        
         units.Spawn(def, position, Quaternion.LookRotation(-forward, Vector3.up));
     }
 
@@ -103,7 +107,7 @@ public class DebugPanel : MonoBehaviour
     private void DrawMarket(GameManager gameM)
     {
         PlayerDataManager playerDataM = PlayerDataManager.Instance;
-        if (playerDataM == null || gameM.Database == null)
+        if (gameM.Database == null)
             return;
 
         GUILayout.Label("시장");
@@ -116,6 +120,7 @@ public class DebugPanel : MonoBehaviour
         if (hunt.IsMarketOpen)
         {
             float actionTime = gameM.Define.MarketActionTime;
+            
             GUILayout.Label($"남은 밤 {hunt.RemainTime:0.0}초");
             GUILayout.BeginHorizontal();
 
@@ -164,6 +169,7 @@ public class DebugPanel : MonoBehaviour
         {
             MushroomDef def = listMushroom[Random.Range(0, listMushroom.Count)];
             EFreshness freshness = CRandom.Chance(0.5f) ? EFreshness.High : EFreshness.Low;
+            
             SEventManager.Publish(new LootPicked(def.ID, 1, freshness, BattleService.RollRarity()));
         }
     }
@@ -181,7 +187,8 @@ public class DebugPanel : MonoBehaviour
     {
         GUILayout.Label("아이템 지급");
         PlayerDataManager playerDataM = PlayerDataManager.Instance;
-        if (gameM.Database == null || playerDataM == null)
+        
+        if (gameM.Database == null)
             return;
 
         InventoryData inventory = playerDataM.Inventory;
@@ -206,9 +213,6 @@ public class DebugPanel : MonoBehaviour
     private void DrawSave()
     {
         PlayerDataManager playerDataM = PlayerDataManager.Instance;
-        if (playerDataM == null)
-            return;
-
         GUILayout.BeginHorizontal();
 
         if (GUILayout.Button("저장"))

@@ -35,7 +35,7 @@ public class UICountLabel : MonoBehaviour
     private void Refresh()
     {
         PlayerDataManager playerDataM = PlayerDataManager.Instance;
-        int count = playerDataM.E_Alive()?.Inventory.GetCount(m_ItemID) ?? 0;
+        int count = playerDataM.Inventory.GetCount(m_ItemID);
         string strCount = string.Format(m_Format, count.ToString("N0"));
         
         m_Text.E_SetText(strCount);

@@ -48,7 +48,11 @@ public class TargetSelector
     // range 안에서 가장 가까운 적(기억하지 않음)
     public UnitController FindNearest(float range)
     {
-        return GameManager.Instance?.UnitS?.FindNearestEnemy(m_Owner.transform.position, range, m_Owner.Team);
+        UnitService UnitS = GameManager.Instance.UnitS;
+        if (UnitS == null)
+            return null;
+
+        return UnitS.FindNearestEnemy(m_Owner.transform.position, range, m_Owner.Team);
     }
 
     // get ---

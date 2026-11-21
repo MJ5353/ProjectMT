@@ -77,6 +77,7 @@ public class MushroomPickup : PoolableMono
         m_IsLanded = false;
         m_IsMagnet = false;
         m_Age = 0f;
+        
         HideBeam();
     }
 
@@ -116,13 +117,14 @@ public class MushroomPickup : PoolableMono
     {
         Vector3 position = transform.position;
         position.y = m_GroundY + (Mathf.Sin(m_Age * 3f) + 1f) * 0.08f;
+        
         transform.position = position;
         transform.Rotate(0f, SpinSpeed * deltaTime, 0f, Space.World);
     }
 
     private void UpdateMagnet(float deltaTime)
     {
-        UnitController player = GameManager.Instance?.UnitS?.Player;
+        UnitController player = GameManager.Instance.UnitS?.Player;
         if (player == null)
         {
             m_IsMagnet = false;
@@ -140,7 +142,7 @@ public class MushroomPickup : PoolableMono
 
     private bool IsPlayerNear()
     {
-        UnitController player = GameManager.Instance?.UnitS?.Player;
+        UnitController player = GameManager.Instance.UnitS?.Player;
         if (player == null || player.IsValid() == false)
             return false;
 
@@ -157,7 +159,7 @@ public class MushroomPickup : PoolableMono
             _ => null,
         };
 
-        if (path == null || ResourceManager.Instance == null)
+        if (path == null)
             return;
 
         EffectController prefab = ResourceManager.Instance.Load<EffectController>(path);
@@ -175,7 +177,7 @@ public class MushroomPickup : PoolableMono
     private void Collect()
     {
         SEventManager.Publish(new LootPicked(m_ItemID, m_Amount, Freshness, Rarity));
-        EffectService effectS = GameManager.Instance?.EffectS;
+        EffectService effectS = GameManager.Instance.EffectS;
         effectS?.Play(effectS.Pickup, transform.position, Quaternion.identity);
         
         ResourceManager.S_Despawn(this);

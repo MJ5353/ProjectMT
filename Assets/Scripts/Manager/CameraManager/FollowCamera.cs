@@ -17,7 +17,7 @@ public class FollowCamera : MonoBehaviour
 
     private void Start()
     {
-        UnitController player = GameManager.Instance?.UnitS?.Player;
+        UnitController player = GameManager.Instance.UnitS?.Player;
         if (player != null)
             SetTarget(player.transform);
     }
@@ -29,7 +29,7 @@ public class FollowCamera : MonoBehaviour
 
         m_BasePosition = Vector3.SmoothDamp(m_BasePosition, GetDesiredPosition(), ref m_Velocity, Define.CameraSmoothTime);
         
-        float shake = CameraManager.Instance?.ShakeAmount ?? 0f;
+        float shake = CameraManager.Instance.ShakeAmount;
         Quaternion rotation = GetRotation();
         transform.SetPositionAndRotation(m_BasePosition + rotation * Vector3.forward * (Define.CameraDistance * shake), rotation);
     }

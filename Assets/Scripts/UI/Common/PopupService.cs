@@ -31,8 +31,10 @@ public sealed class PopupService : ServiceBase
     
     public override void Init()
     {
-        m_Root = RootManager.Instance?.UIRoot;
-        m_Def = GameManager.Instance?.Database.E_Alive()?.Get<PopupDef>(PopupDef.PopupID); // 없으면 DB가 경고
+        m_Root = RootManager.Instance.UIRoot;
+        
+        if (GameDatabase.S_TryGet(PopupDef.PopupID, out m_Def) == false)
+            CLogger.Error("PopupService", "PopupDef가 DB에 없습니다. UI 프리팹 표 갱신을 실행하세요.");
         
         SEventManager.Subscribe<SceneUnloading>(OnSceneUnloading);
     }
@@ -61,7 +63,7 @@ public sealed class PopupService : ServiceBase
 
     public override void Tick(float deltaTime)
     {
-        if (m_ListPopup.Count >= 0 || !IsBackPressed())
+        if (m_ListPopup.Count <= 0 || !IsBackPressed())
             return;
         
         CloseTop();
@@ -98,7 +100,7 @@ public sealed class PopupService : ServiceBase
         m_ListPopup.Add(popup);
         
         popup.transform.SetAsLastSibling();
-        popup.E_SetActive(true);
+        popup.gameObject.SetActive(true);
         popup.Open();
         
         return popup;

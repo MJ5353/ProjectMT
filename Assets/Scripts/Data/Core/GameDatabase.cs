@@ -30,15 +30,6 @@ public class GameDatabase : ScriptableObject
         }
     }
 
-    public T Get<T>(string dataID) where T : DataDef
-    {
-        if (TryGet(dataID, out T def))
-            return def;
-
-        CLogger.Warning("GameDatabase", $"{typeof(T).Name} '{dataID}'를 찾지 못했습니다.");
-        return null;
-    }
-
     public IEnumerable<T> GetAll<T>() where T : DataDef => m_ListDef.OfType<T>();
 
     public bool TryGet<T>(string dataID, out T result) where T : DataDef
@@ -57,14 +48,7 @@ public class GameDatabase : ScriptableObject
 
     public static bool S_TryGet<T>(string dataID, out T result) where T : DataDef
     {
-        result = null;
-        
-        GameDatabase database = GameManager.Instance?.Database;
-        if (database.E_Alive() == false || 
-            database.TryGet(dataID, out result) == false || result == null)
-            return false;
-        
-        return true;
+        return GameManager.Instance.Database.TryGet(dataID, out result);
     }
     
 #if UNITY_EDITOR

@@ -210,16 +210,17 @@ public class GameManager : MonoSingleton<GameManager>
 
     protected override void OnInit()
     {
-        Database = ResourceManager.Instance?.Load<GameDatabase>(CommonPath.GameDatabase, "MushTaker/데이터 편집기에서 DB 갱신을 실행하세요.");
-        if (Database != null)
-            Database.Init();
+        Database = ResourceManager.Instance.Load<GameDatabase>(CommonPath.GameDatabase, "MushTaker/데이터 편집기에서 DB 갱신을 실행하세요.");
+        Database.Init();
 
-        Define = Database.E_Alive()?.Get<DefineDef>(DefineDef.DefineID);
-        if (Define == null)
+        // !!) 아직 Instance 등록 전이라 GameDatabase.S_TryGet이 아닌 Database.TryGet
+        if (Database.TryGet(DefineDef.DefineID, out DefineDef define) == false)
         {
             CLogger.Warning("GameManager", "Define 에셋이 DB에 없어 코드 기본값을 씁니다.");
-            Define = ScriptableObject.CreateInstance<DefineDef>();
+            define = ScriptableObject.CreateInstance<DefineDef>();
         }
+
+        Define = define;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (TryGetComponent<DebugPanel>(out _) == false)

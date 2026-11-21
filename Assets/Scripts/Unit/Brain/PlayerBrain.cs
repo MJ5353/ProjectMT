@@ -35,7 +35,7 @@ public class PlayerBrain : BrainBase
     // 히트스톱 중(deltaTime 0)에는 입력을 받지 않는다
     protected override void Think(float deltaTime)
     {
-        if (deltaTime <= 0f || InputManager.Instance == null)
+        if (deltaTime <= 0f)
             return;
 
         AttackSpec pressedAttack = GetPressedAttack(deltaTime);
@@ -111,7 +111,8 @@ public class PlayerBrain : BrainBase
     private Vector3 GetMoveInput()
     {
         Vector2 raw = Actions.Move.ReadValue<Vector2>();
-        Transform cameraTransform = CameraManager.Instance?.MainTransform;
+        Transform cameraTransform = CameraManager.Instance.MainTransform;
+        
         if (cameraTransform == null)
             return new Vector3(raw.x, 0f, raw.y);
 
@@ -122,6 +123,7 @@ public class PlayerBrain : BrainBase
         Vector3 right = cameraTransform.right;
         right.y = 0f;
         right.Normalize();
+        
         return forward * raw.y + right * raw.x;
     }
 

@@ -61,7 +61,7 @@ public sealed class BattleService : ServiceBase
     public float RemainTime => Mathf.Max(0f, NightTime - ElapsedTime);
     public bool IsPlayerDown => m_Player != null && m_Player.IsDead;
     public int ReviveGold => Define.ReviveGold;
-    public bool CanRevive => IsPlayerDown && (PlayerDataManager.Instance?.Inventory.Has(GoldID, ReviveGold) ?? false);
+    public bool CanRevive => IsPlayerDown && PlayerDataManager.Instance.Inventory.Has(GoldID, ReviveGold);
     
     // ------------------------------------------------
 
@@ -133,7 +133,7 @@ public sealed class BattleService : ServiceBase
 
         // 시장 도중 씬이 바뀌어도 멈춘 시간이 남지 않게 한다
         if (State == EBattleState.Market)
-            TimeManager.Instance?.SetPause(false);
+            TimeManager.Instance.SetPause(false);
 
         HealthFeature health = m_Player.E_Alive()?.HealthF;
         if (health != null)
@@ -147,12 +147,12 @@ public sealed class BattleService : ServiceBase
         m_SpawnSlots = null; // 맵 오브젝트는 씬과 함께 사라진다
     }
 
-    public void Retry() => GameManager.Instance?.RetryBattle();
+    public void Retry() => GameManager.Instance.RetryBattle();
 
     // 떨어지는 버섯 하나의 희귀도. 지금 지역(MapDef)의 가중치로 굴린다. 전투 밖이면 Common
     public static ERarity RollRarity()
     {
-        MapDef map = GameManager.Instance?.BattleS?.Map;
+        MapDef map = GameManager.Instance.BattleS?.Map;
         return map.E_Alive()?.RollRarity() ?? ERarity.Common;
     }
 
@@ -162,7 +162,7 @@ public sealed class BattleService : ServiceBase
         if (State != EBattleState.Playing || IsPlayerDown)
             return;
 
-        HuntData hunt = PlayerDataManager.Instance?.Hunt;
+        HuntData hunt = PlayerDataManager.Instance.Hunt;
         if (isMarket == false || hunt == null)
         {
             End(EBattleState.Exited);
@@ -170,7 +170,7 @@ public sealed class BattleService : ServiceBase
         }
 
         State = EBattleState.Market;
-        TimeManager.Instance?.SetPause(true);
+        TimeManager.Instance.SetPause(true);
         SEventManager.Subscribe<MarketClosed>(OnMarketClosed);
         hunt.BeginMarket(m_DicLoot, RemainTime, NightTime);
     }
@@ -183,7 +183,7 @@ public sealed class BattleService : ServiceBase
             return false;
 
         PlayerDataManager playerDataM = PlayerDataManager.Instance;
-        if (playerDataM == null || playerDataM.Inventory.TryRemove(GoldID, ReviveGold) == false)
+        if (playerDataM.Inventory.TryRemove(GoldID, ReviveGold) == false)
             return false;
 
         m_Player.Revive(Define.ReviveInvincibleTime);
@@ -193,7 +193,7 @@ public sealed class BattleService : ServiceBase
     public bool TryGoLobby()
     {
         GameManager gameM = GameManager.Instance;
-        if (gameM == null || Application.CanStreamedLevelBeLoaded(SceneNames.Lobby) == false)
+        if (Application.CanStreamedLevelBeLoaded(SceneNames.Lobby) == false)
             return false;
 
         return gameM.ChangeState(EGameState.Lobby);
@@ -207,7 +207,7 @@ public sealed class BattleService : ServiceBase
         if (Map == null)
             return;
 
-        MapRoot prefab = ResourceManager.Instance?.Load<MapRoot>(Map.PrefabPath, "프리팹 이름이 MapDef ID와 같은지, 누락 전투 에셋 복구를 했는지 확인하세요.");
+        MapRoot prefab = ResourceManager.Instance.Load<MapRoot>(Map.PrefabPath, "프리팹 이름이 MapDef ID와 같은지, 누락 전투 에셋 복구를 했는지 확인하세요.");
         if (prefab == null)
             return;
 
@@ -371,7 +371,7 @@ public sealed class BattleService : ServiceBase
     private void OnMarketClosed(MarketClosed evt)
     {
         SEventManager.Unsubscribe<MarketClosed>(OnMarketClosed);
-        TimeManager.Instance?.SetPause(false);
+        TimeManager.Instance.SetPause(false);
 
         m_DicReward.Clear();
         
@@ -398,22 +398,19 @@ public sealed class BattleService : ServiceBase
         if (isFromMarket == false)
             FillReward(result);
 
-        if (playerDataM != null)
+        if (isFromMarket == false)
         {
-            if (isFromMarket == false)
+            foreach (var pair in m_DicReward)
             {
-                foreach (var pair in m_DicReward)
-                {
-                    playerDataM.Inventory.Add(pair.Key, pair.Value);
-                }
+                playerDataM.Inventory.Add(pair.Key, pair.Value);
             }
-
-            // 스스로 나오면 지역을 깬 것으로 표시해 다음 지역을 연다(토벌 탭)
-            if (result == EBattleState.Exited)
-                playerDataM.Hunt.MarkCleared(Map);
-
-            playerDataM.RunSave();
         }
+
+        // 스스로 나오면 지역을 깬 것으로 표시해 다음 지역을 연다(토벌 탭)
+        if (result == EBattleState.Exited)
+            playerDataM.Hunt.MarkCleared(Map);
+
+        playerDataM.RunSave();
 
         if (GameManager.Instance.Current == EGameState.Battle)
             GameManager.Instance.ChangeState(EGameState.Result);

@@ -12,6 +12,6 @@ public static class HitMaterials
 {
     private const string MissingHint = "MushTaker/초기 설정/누락 전투 에셋 복구를 실행하세요.";
 
-    public static Material Flash => ResourceManager.Instance?.Load<Material>(CommonPath.HitFlashMaterial, MissingHint);
-    public static Material Chunk => ResourceManager.Instance?.Load<Material>(CommonPath.HitChunkMaterial, MissingHint);
+    public static Material Flash => ResourceManager.Instance.Load<Material>(CommonPath.HitFlashMaterial, MissingHint);
+    public static Material Chunk => ResourceManager.Instance.Load<Material>(CommonPath.HitChunkMaterial, MissingHint);
 }

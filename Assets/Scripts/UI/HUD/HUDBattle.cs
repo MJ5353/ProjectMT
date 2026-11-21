@@ -45,7 +45,7 @@ public class HUDBattle : MonoBehaviour
 
     private void Update()
     {
-        BattleService battleS = GameManager.Instance?.BattleS;
+        BattleService battleS = GameManager.Instance.BattleS;
         if (battleS == null)
             return;
 
@@ -121,8 +121,16 @@ public class HUDBattle : MonoBehaviour
 
     private void SetLootRow(HUDBattle_LootRow row, string itemID)
     {
-        GameDatabase.S_TryGet(itemID, out MushroomDef def); // 없으면 def는 null
-        string displayName = def.E_Alive()?.DisplayName ?? itemID;
+        string displayName = itemID;
+        Sprite icon = null;
+        Color tint = UIStyle.PanelLight;
+
+        if (GameDatabase.S_TryGet(itemID, out MushroomDef def))
+        {
+            displayName = def.DisplayName;
+            icon = def.Icon;
+            tint = def.Tint;
+        }
 
         int fresh = m_DicFresh[itemID];
         int stale = m_DicStale[itemID];
@@ -133,14 +141,16 @@ public class HUDBattle : MonoBehaviour
                 $"{displayName} 신선 x{fresh}" : 
                 $"{displayName} 덜 신선 x{stale}";
         
-        row.Set(def.E_Alive()?.Icon, def.E_Alive()?.Tint ?? UIStyle.PanelLight, text);
+        row.Set(icon, tint, text);
     }
 
+    // on action ---
+    
     // 시장을 열고 팝업(PopupMarket)을 띄운다. 시장 프리팹이 없으면 시장 없이 끝낸다
     private void OnClickExit()
     {
         GameManager gameM = GameManager.Instance;
-        BattleService battleS = gameM.E_Alive()?.BattleS;
+        BattleService battleS = gameM.BattleS;
         
         if (battleS == null)
             return;
@@ -154,12 +164,12 @@ public class HUDBattle : MonoBehaviour
 
     private void OnPlayerDowned(PlayerDowned evt)
     {
-        GameManager.Instance?.PopupS?.Open<PopupDeath>(EPopupType.PopupDeath);
+        GameManager.Instance.PopupS?.Open<PopupDeath>(EPopupType.PopupDeath);
     }
 
     // 시장 팝업은 MarketClosed로, 사망 팝업은 귀가(GiveUp) 전에 스스로 닫힌다
     private void OnBattleEnded(BattleEnded evt)
     {
-        GameManager.Instance?.PopupS?.Open<PopupResult>(EPopupType.PopupResult);
+        GameManager.Instance.PopupS?.Open<PopupResult>(EPopupType.PopupResult);
     }
 }

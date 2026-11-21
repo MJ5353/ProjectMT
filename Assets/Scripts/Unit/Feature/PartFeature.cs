@@ -251,7 +251,7 @@ public class PartFeature : UnitFeature
     // 꽂힌 버섯 자리마다 깨짐 이펙트
     private static void PlayBreakEffect(Part part)
     {
-        EffectService effectS = GameManager.Instance?.EffectS;
+        EffectService effectS = GameManager.Instance.EffectS;
         if (effectS == null)
             return;
 

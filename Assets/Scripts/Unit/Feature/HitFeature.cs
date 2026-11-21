@@ -105,7 +105,7 @@ public class HitFeature : UnitFeature
                 continue;
             }
 
-            int partIndex = Owner.PartF != null ? Owner.PartF.FindIndex(shapeDef.Part) : -1;
+            int partIndex = Owner.PartF?.FindIndex(shapeDef.Part) ?? -1;
             HitShape shape = new HitShape(bone, shapeDef, partIndex);
             m_ListShape.Add(shape);
 
@@ -257,18 +257,18 @@ public class HitFeature : UnitFeature
 
     private void ApplyHitStop(in HitParams hit)
     {
-        GameManager.Instance?.HitStopS?.Request(hit.HitStop);
+        GameManager.Instance.HitStopS?.Request(hit.HitStop);
     }
 
     private void ApplyCameraShake(in HitParams hit)
     {
-        CameraManager.Instance?.Shake(hit.Shake, m_HitDef.ShakeTime);
+        CameraManager.Instance.Shake(hit.Shake, m_HitDef.ShakeTime);
     }
 
     // 전투 씬이 아니면 조각을 튀기지 않는다. 타격 마크는 실제 맞은 자리(부위 표면)에 띄운다
     private void ApplyChunkBurst(in HitParams hit, int partIndex)
     {
-        EffectService effectS = GameManager.Instance?.EffectS;
+        EffectService effectS = GameManager.Instance.EffectS;
         if (effectS == null)
             return;
 

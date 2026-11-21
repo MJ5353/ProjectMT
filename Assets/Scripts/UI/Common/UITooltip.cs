@@ -49,7 +49,7 @@ public class UITooltip : MonoBehaviour
 
         m_Target = target;
         m_Label.E_SetText(text);
-        gameObject.E_SetActive(true);
+        gameObject.SetActive(true);
 
         if (m_Routine != null)
             StopCoroutine(m_Routine);
@@ -61,10 +61,8 @@ public class UITooltip : MonoBehaviour
     {
         m_Target = null;
         m_Routine = null; // 꺼지면 코루틴도 멈춘다
-        gameObject.E_SetActive(false);
+        gameObject.SetActive(false);
     }
-
-    // ==================================================
 
     // 대상 윗변 가운데를 이 말풍선 부모 좌표로
     private Vector2 GetAnchorPosition(RectTransform target)

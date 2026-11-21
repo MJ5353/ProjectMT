@@ -28,7 +28,7 @@ public class Popup : MonoBehaviour
 
     // ------------------------------------------------
 
-    public void Close() => GameManager.Instance?.PopupS?.Close(this);
+    public void Close() => GameManager.Instance.PopupS?.Close(this);
 
     // 여는 연출(이어지는 팝업별 연출 포함)을 끝 모습으로 넘긴다
     public void SkipOpen() => m_OpenSequence.Skip();
@@ -99,7 +99,7 @@ public class Popup : MonoBehaviour
         m_IsFinished = true;
         OnClose();
 
-        gameObject.E_SetActive(false);
+        gameObject.SetActive(false);
     }
 
     private void SetTween(float alpha, float scale)

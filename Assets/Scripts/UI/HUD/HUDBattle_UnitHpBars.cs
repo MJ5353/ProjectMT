@@ -38,22 +38,22 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
     // 서비스는 씬 컨트롤러 Awake에서 등록되므로 Start에서 구독한다. 씬이 닫힐 때 UnitService.Clear가 구독을 비운다
     private void Start()
     {
-        UnitService units = GameManager.Instance?.UnitS;
+        UnitService units = GameManager.Instance.UnitS;
         if (units != null)
             units.UnitRemoved += OnUnitRemoved;
     }
 
     private void OnDestroy()
     {
-        UnitService units = GameManager.Instance?.UnitS;
+        UnitService units = GameManager.Instance.UnitS;
         if (units != null)
             units.UnitRemoved -= OnUnitRemoved;
     }
 
     private void LateUpdate()
     {
-        UnitService units = GameManager.Instance?.UnitS;
-        Camera cam = CameraManager.Instance?.Main;
+        UnitService units = GameManager.Instance.UnitS;
+        Camera cam = CameraManager.Instance.Main;
         
         if (units == null || cam == null)
             return;
@@ -95,7 +95,7 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
             bar.Remain = define.MonsterHpBarShowTime;
             if (bar.Gauge == null)
             {
-                bar.Gauge = GameManager.Instance?.UIFactory?.Spawn<UIGauge>(EUIComponentType.HUDBattle_UnitHpBar, m_Root);
+                bar.Gauge = GameManager.Instance.UIFactory?.Spawn<UIGauge>(EUIComponentType.HUDBattle_UnitHpBar, m_Root);
                 bar.Gauge.E_Alive()?.SetValue(bar.LastHp, unit.HealthF.MaxHp, true); // 줄기 전 값에서 시작해야 잔상이 보인다
             }
 
@@ -150,7 +150,7 @@ public class HUDBattle_UnitHpBars : MonoBehaviour
         if (bar.Gauge == null)
             return;
 
-        GameManager.Instance?.UIFactory?.Despawn(bar.Gauge);
+        GameManager.Instance.UIFactory?.Despawn(bar.Gauge);
         bar.Gauge = null;
     }
 

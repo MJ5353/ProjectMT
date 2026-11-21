@@ -274,6 +274,6 @@ public class AIBrain : BrainBase
         if (m_Leader != null && m_Leader.IsDead == false)
             return m_Leader;
 
-        return GameManager.Instance?.UnitS?.Player;
+        return GameManager.Instance.UnitS?.Player;
     }
 }

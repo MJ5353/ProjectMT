@@ -45,7 +45,7 @@ public class HuntTabView : TabView
         if (m_ListNode.Count == 0)
             BuildNodes();
 
-        HuntData hunt = PlayerDataManager.Instance?.Hunt;
+        HuntData hunt = PlayerDataManager.Instance.Hunt;
         if (hunt == null)
             return;
 
@@ -61,11 +61,7 @@ public class HuntTabView : TabView
 
     private void BuildNodes()
     {
-        GameManager gameM = GameManager.Instance;
-        if (gameM == null || gameM.Database == null)
-            return;
-
-        m_ListMap.AddRange(gameM.Database.GetAll<MapDef>().OrderBy(r => r.Order));
+        m_ListMap.AddRange(GameManager.Instance.Database.GetAll<MapDef>().OrderBy(r => r.Order));
 
         RectTransform templateRt = m_NodeTemplate.transform as RectTransform;
         if (templateRt == null)
@@ -78,7 +74,7 @@ public class HuntTabView : TabView
                 continue;
 
             node.name = $"Node_{mapDef.ID}";
-            node.E_SetActive(true);
+            node.gameObject.SetActive(true);
 
             RectTransform rt = node.transform as RectTransform;
             if (rt != null)
@@ -106,7 +102,7 @@ public class HuntTabView : TabView
 
     private void RefreshNodes()
     {
-        HuntData hunt = PlayerDataManager.Instance?.Hunt;
+        HuntData hunt = PlayerDataManager.Instance.Hunt;
         if (hunt == null)
             return;
 
@@ -146,7 +142,7 @@ public class HuntTabView : TabView
         m_InfoName.E_SetText(m_Selected.DisplayName);
         m_InfoDesc.E_SetText(m_Selected.Description);
 
-        HuntData hunt = PlayerDataManager.Instance?.Hunt;
+        HuntData hunt = PlayerDataManager.Instance.Hunt;
         bool isUnlocked = hunt != null && hunt.IsUnlocked(m_Selected);
         
         if (hunt != null && hunt.IsCleared(m_Selected))
@@ -190,13 +186,14 @@ public class HuntTabView : TabView
 
     private void OnClickEnter()
     {
-        GameManager gameM = GameManager.Instance;
-        HuntData hunt = PlayerDataManager.Instance?.Hunt;
+        if (m_Selected == null)
+            return;
         
-        if (gameM == null || hunt == null || m_Selected == null || hunt.IsUnlocked(m_Selected) == false)
+        HuntData hunt = PlayerDataManager.Instance.Hunt;
+        if (hunt == null || hunt.IsUnlocked(m_Selected) == false)
             return;
 
         hunt.Select(m_Selected);
-        gameM.ChangeState(EGameState.Battle);
+        GameManager.Instance.ChangeState(EGameState.Battle);
     }
 }

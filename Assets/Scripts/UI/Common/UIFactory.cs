@@ -18,7 +18,9 @@ public sealed class UIFactory : ServiceBase
     
     public override void Init()
     {
-        m_Def = GameManager.Instance?.Database.E_Alive()?.Get<UIComponentDef>(UIComponentDef.UIComponentID); // 없으면 DB가 경고
+        if (GameDatabase.S_TryGet(UIComponentDef.UIComponentID, out m_Def) == false)
+            CLogger.Error("UIFactory", "UIComponentDef가 DB에 없습니다. UI 프리팹 표 갱신을 실행하세요.");
+        
         SEventManager.Subscribe<SceneUnloading>(OnSceneUnloading);
     }
 
@@ -37,7 +39,7 @@ public sealed class UIFactory : ServiceBase
             return null;
 
         // 원본(UIComponentDef)을 parent 아래로 꺼낸다. 원본이 없거나 T가 맞지 않으면 null(에러는 UIComponentDef가 한 번)
-        T item = ResourceManager.Instance?.Spawn(prefab, parent);
+        T item = ResourceManager.Instance.Spawn(prefab, parent);
         if (item != null)
             m_ListSpawned.Add(item);
 

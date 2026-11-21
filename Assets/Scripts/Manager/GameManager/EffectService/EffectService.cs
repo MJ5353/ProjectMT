@@ -28,8 +28,8 @@ public sealed class EffectService : ServiceBase
         Death = Load(CommonPath.DeathEffect);
         Pickup = Load(CommonPath.PickupEffect);
         
-        m_TelegraphCircle = ResourceManager.Instance?.Load<TelegraphController>(CommonPath.TelegraphCircle);
-        m_TelegraphLine = ResourceManager.Instance?.Load<TelegraphController>(CommonPath.TelegraphLine);
+        m_TelegraphCircle = ResourceManager.Instance.Load<TelegraphController>(CommonPath.TelegraphCircle);
+        m_TelegraphLine = ResourceManager.Instance.Load<TelegraphController>(CommonPath.TelegraphLine);
     }
 
     public override void Tick(float deltaTime)
@@ -41,7 +41,7 @@ public sealed class EffectService : ServiceBase
                 continue;
 
             m_ListActive.RemoveAt(i);
-            ResourceManager.Instance?.Despawn(effect);
+            ResourceManager.Instance.Despawn(effect);
         }
 
         m_Chunk.Tick(deltaTime);
@@ -51,7 +51,7 @@ public sealed class EffectService : ServiceBase
     {
         foreach (EffectController effect in m_ListActive)
         {
-            ResourceManager.Instance?.Despawn(effect);
+            ResourceManager.Instance.Despawn(effect);
         }
 
         m_ListActive.Clear();
@@ -59,7 +59,7 @@ public sealed class EffectService : ServiceBase
 
         foreach (TelegraphController telegraph in m_ListTelegraph)
         {
-            ResourceManager.Instance?.Despawn(telegraph);
+            ResourceManager.Instance.Despawn(telegraph);
         }
 
         m_ListTelegraph.Clear();
@@ -70,7 +70,7 @@ public sealed class EffectService : ServiceBase
     // 풀에서 꺼내 재생한다. 크기는 프리팹 기준 배율
     public EffectController Play(EffectController prefab, Vector3 position, Quaternion rotation, float scale = 1f)
     {
-        if (prefab == null || ResourceManager.Instance == null)
+        if (prefab == null)
             return null;
 
         EffectController effect = ResourceManager.Instance.Spawn(prefab, position, rotation);
@@ -84,7 +84,7 @@ public sealed class EffectService : ServiceBase
     public TelegraphController ShowTelegraph(bool isLine)
     {
         TelegraphController prefab = isLine ? m_TelegraphLine : m_TelegraphCircle;
-        if (prefab == null || ResourceManager.Instance == null)
+        if (prefab == null)
             return null;
 
         TelegraphController telegraph = ResourceManager.Instance.Spawn(prefab, Vector3.zero, Quaternion.identity);
@@ -98,7 +98,7 @@ public sealed class EffectService : ServiceBase
         if (telegraph == null || m_ListTelegraph.Remove(telegraph) == false)
             return;
 
-        ResourceManager.Instance?.Despawn(telegraph);
+        ResourceManager.Instance.Despawn(telegraph);
     }
 
     // origin에서 direction 쪽으로 복셀 조각을 흩뿌린다
@@ -115,6 +115,6 @@ public sealed class EffectService : ServiceBase
 
     private static EffectController Load(string resourcePath)
     {
-        return ResourceManager.Instance?.Load<EffectController>(resourcePath);
+        return ResourceManager.Instance.Load<EffectController>(resourcePath);
     }
 }

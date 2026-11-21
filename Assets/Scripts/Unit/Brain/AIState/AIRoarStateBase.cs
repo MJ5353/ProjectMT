@@ -8,7 +8,6 @@ using UnityEngine;
 public class AIRoarStateBase : AIStateBase
 {
     private const string RoarClip = "Roar";
-
     private float m_Length;
 
     // ------------------------------------------------
@@ -22,7 +21,7 @@ public class AIRoarStateBase : AIStateBase
         m_Controller.AnimF.Play(RoarClip, true);
 
         DefineDef define = GameManager.Instance.Define;
-        CameraManager.Instance?.Shake(define.RoarShake, define.RoarShakeTime);
+        CameraManager.Instance.Shake(define.RoarShake, define.RoarShakeTime);
         SEventManager.Publish(new BossRoared(m_Controller, m_AI.IsEnraged));
     }
 

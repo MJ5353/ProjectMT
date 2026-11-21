@@ -16,7 +16,7 @@ public sealed class HitStopService : ServiceBase
             return;
 
         m_Remain = Mathf.Max(m_Remain, duration);
-        TimeManager.Instance?.SetHitStop(true);
+        TimeManager.Instance.SetHitStop(true);
     }
 
     public override void Tick(float deltaTime)
@@ -26,7 +26,7 @@ public sealed class HitStopService : ServiceBase
 
         m_Remain -= Time.unscaledDeltaTime;
         if (m_Remain <= 0f)
-            TimeManager.Instance?.SetHitStop(false);
+            TimeManager.Instance.SetHitStop(false);
     }
 
     // virtual ---
@@ -34,6 +34,6 @@ public sealed class HitStopService : ServiceBase
     public override void Clear()
     {
         m_Remain = 0f;
-        TimeManager.Instance?.SetHitStop(false);
+        TimeManager.Instance.SetHitStop(false);
     }
 }

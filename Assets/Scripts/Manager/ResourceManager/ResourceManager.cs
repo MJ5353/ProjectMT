@@ -175,16 +175,16 @@ public class ResourceManager : MonoSingleton<ResourceManager>
 
     public static void S_Despawn(PoolableMono instance)
     {
-        Instance?.Despawn(instance);
+        Instance.Despawn(instance);
     }
 
     public static T S_Create<T>(T prefab, Transform parent = null) where T : Object
     {
-        return Instance?.Create(prefab, parent);
+        return Instance.Create(prefab, parent);
     }
 
     public static void S_Delete(GameObject target)
     {
-        Instance?.Delete(target);
+        Instance.Delete(target);
     }
 }

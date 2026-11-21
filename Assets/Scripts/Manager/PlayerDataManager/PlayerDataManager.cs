@@ -30,6 +30,15 @@ public class PlayerDataManager : MonoSingleton<PlayerDataManager>
         ClearData();
     }
 
+    // 백그라운드로 가거나 꺼질 때 저장한다
+    private void OnApplicationPause(bool isPaused)
+    {
+        if (isPaused)
+            RunSave();
+    }
+
+    private void OnApplicationQuit() => RunSave();
+
     // save ---
 
     private void Load(SaveData data)

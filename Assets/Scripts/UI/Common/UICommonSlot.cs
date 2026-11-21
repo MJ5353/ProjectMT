@@ -33,8 +33,7 @@ public class UICommonSlot : PoolableMonoUI
     
     private void Awake()
     {
-        if (m_Button != null)
-            m_Button.E_SetOnClick(OnClickSlot);
+        m_Button.E_SetOnClick(OnClickSlot); // 버튼이 없는 칸이면 넘어간다
     }
 
     public void Clear()
@@ -93,7 +92,8 @@ public class UICommonSlot : PoolableMonoUI
         Count = count;
         
         m_Icon.enabled = true;
-        m_Icon.E_SetImage(icon, icon != null ? Color.white : tint);
+        m_Icon.sprite = icon;
+        m_Icon.color = icon != null ? Color.white : tint;
 
         SetRarity(ERarity.Common);
         SetFreshness(EFreshness.High);
