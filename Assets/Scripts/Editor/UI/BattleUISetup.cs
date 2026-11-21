@@ -5,63 +5,37 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// 전투 씬 UI(결과 화면 등)를 만들어 붙이는 메뉴. 프리팹이 이미 있으면 다시 만들지 않고 씬에만 넣는다
+// 전투 씬 UI(HUDBattle과 그 팝업) 프리팹을 만든다. 메뉴는 UISetup의 "모든 UI 다시 만들기" 하나다
 public static class BattleUISetup
 {
 
-    private const int ResultSortingOrder = 100;
     private const int HudSortingOrder = 10;
-    private const string SpriteExtension = ".png";
     private const int LootFontSize = 27; // 주운 버섯 목록 글자 크기
     private const string CircleSprite = "UI_Circle"; // 반투명 원 바탕(스킬 아이콘·토벌 종료). 없으면 사각형으로 보인다
 
     // ==================================================
 
-    // 전투 HUD. 사망 팝업 프리팹도 같이 만들어 HUD에 연결한다. 씬에 새로 넣었으면 true
+    // 사망·결과 팝업 → 주운 버섯 줄 → 전투 HUD 순서로 만든다(HUD가 팝업을 참조). isOverwrite면 있어도 다시 만든다(GUID 유지).
+    // 시장 팝업은 HUD보다 먼저 MarketUISetup.BuildPrefabs로 만들어 둔다
+    public static void BuildPrefabs(bool isOverwrite)
+    {
+        UIBuilder.SaveAsPrefab(BuildDeathPopup().gameObject, EditorPath.PopupDeathPrefab, isOverwrite);
+        UIBuilder.SaveAsPrefab(BuildResultPopup().gameObject, EditorPath.PopupResultPrefab, isOverwrite);
+        UIBuilder.SaveAsPrefab(LootRow().gameObject, EditorPath.BattleLootRowPrefab, isOverwrite);
+        UIBuilder.SaveAsPrefab(BuildBattleHud().gameObject, EditorPath.HUDBattlePrefab, isOverwrite);
+    }
+
+    // 전투 씬을 만들 때(BattleSetup) 부른다. 없는 UI 프리팹을 만들고 HUD를 씬에 넣는다. 씬에 새로 넣었으면 true
     public static bool AddBattleHud()
     {
-        if (Object.FindAnyObjectByType<BattleHud>(FindObjectsInactive.Include) != null)
+        if (Object.FindAnyObjectByType<HUDBattle>(FindObjectsInactive.Include) != null)
         {
             CLogger.Log("BattleUISetup", "전투 HUD가 이미 씬에 있습니다.");
             return false;
         }
 
-        if (AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.DeathPopupPrefab) == null)
-            UIBuilder.SaveAsPrefab(BuildDeathPopup().gameObject, EditorPath.DeathPopupPrefab);
-
-        MarketUISetup.CreateIfMissing();
-
-        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.BattleHudPrefab);
-        if (prefab == null)
-        {
-            UIBuilder.SaveAsPrefab(BuildBattleHud().gameObject, EditorPath.BattleHudPrefab);
-            prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.BattleHudPrefab);
-        }
-
-        PrefabUtility.InstantiatePrefab(prefab);
-        UIBuilder.CreateEventSystemIfNeeded();
-        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-
-        return true;
-    }
-
-    // 전투 씬 생성 도구(BattleSetup)에서도 부를 수 있게 열어 둔다. 씬에 새로 넣었으면 true
-    public static bool AddResultScreen()
-    {
-        if (Object.FindAnyObjectByType<ResultScreen>(FindObjectsInactive.Include) != null)
-        {
-            CLogger.Log("BattleUISetup", "결과 화면이 이미 씬에 있습니다.");
-            return false;
-        }
-
-        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.ResultScreenPrefab);
-        if (prefab == null)
-        {
-            UIBuilder.SaveAsPrefab(BuildResultScreen().gameObject, EditorPath.ResultScreenPrefab);
-            prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.ResultScreenPrefab);
-        }
-
-        PrefabUtility.InstantiatePrefab(prefab);
+        UISetup.BuildAllPrefabs(false);
+        PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.HUDBattlePrefab));
         UIBuilder.CreateEventSystemIfNeeded();
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 
@@ -70,9 +44,9 @@ public static class BattleUISetup
 
     // ==================================================
 
-    private static BattleHud BuildBattleHud()
+    private static HUDBattle BuildBattleHud()
     {
-        RectTransform safe = UIBuilder.CreateCanvas("BattleHud", HudSortingOrder);
+        RectTransform safe = UIBuilder.CreateCanvas("HUDBattle", HudSortingOrder);
         Transform root = safe.parent;
 
         // 좌상단 밤 시계
@@ -109,28 +83,26 @@ public static class BattleUISetup
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = false;
         lootList.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-        UILootRow rowTemplate = LootRow(safe);
 
         AddUnitHpBars(safe);
         AddRoarEffect(safe);
 
-        BattleHud hud = root.gameObject.AddComponent<BattleHud>();
+        HUDBattle hud = root.gameObject.AddComponent<HUDBattle>();
         UIBuilder.SetRef(hud, "m_Clock", clock);
         UIBuilder.SetRef(hud, "m_Hp", hp);
         UIBuilder.SetRef(hud, "m_AttackActive", attackActive);
         UIBuilder.SetRef(hud, "m_DashActive", dashActive);
         UIBuilder.SetRef(hud, "m_LootList", lootList);
-        UIBuilder.SetRef(hud, "m_LootRowTemplate", rowTemplate);
         UIBuilder.SetRef(hud, "m_ExitButton", exit);
-        UIBuilder.SetRef(hud, "m_DeathPopupPrefab", AssetDatabase.LoadAssetAtPath<DeathPopup>(EditorPath.DeathPopupPrefab));
-        UIBuilder.SetRef(hud, "m_MarketPopupPrefab", AssetDatabase.LoadAssetAtPath<MarketPopup>(EditorPath.MarketPopupPrefab));
+        UIBuilder.SetRef(hud, "m_DeathPopupPrefab", AssetDatabase.LoadAssetAtPath<PopupDeath>(EditorPath.PopupDeathPrefab));
+        UIBuilder.SetRef(hud, "m_MarketPopupPrefab", AssetDatabase.LoadAssetAtPath<PopupMarket>(EditorPath.PopupMarketPrefab));
+        UIBuilder.SetRef(hud, "m_ResultPopupPrefab", AssetDatabase.LoadAssetAtPath<PopupResult>(EditorPath.PopupResultPrefab));
 
         return hud;
     }
 
-    // 몬스터 머리 위 체력바(원본) + 화면 위 보스 체력바. HUD 맨 뒤에 깔아 다른 HUD를 가리지 않는다.
-    // 이미 만든 HUD 프리팹에 붙일 때도 쓴다
-    public static UIUnitHpBars AddUnitHpBars(RectTransform safe)
+    // 몬스터 머리 위 체력바(원본) + 화면 위 보스 체력바. HUD 맨 뒤에 깔아 다른 HUD를 가리지 않는다
+    private static HUDBattle_UnitHpBars AddUnitHpBars(RectTransform safe)
     {
         RectTransform root = UIBuilder.Stretch("UnitHpBars", safe);
         root.SetAsFirstSibling();
@@ -156,7 +128,7 @@ public static class BattleUISetup
         barRect.anchorMin = barRect.anchorMax = barRect.pivot = new Vector2(0.5f, 0f);
         barRect.anchoredPosition = new Vector2(0, 8);
 
-        UIUnitHpBars bars = root.gameObject.AddComponent<UIUnitHpBars>();
+        HUDBattle_UnitHpBars bars = root.gameObject.AddComponent<HUDBattle_UnitHpBars>();
         UIBuilder.SetRef(bars, "m_Root", root);
         UIBuilder.SetRef(bars, "m_BarTemplate", template);
         UIBuilder.SetRef(bars, "m_BossRoot", boss.gameObject);
@@ -169,8 +141,8 @@ public static class BattleUISetup
         return bars;
     }
 
-    // 보스 포효 연출: 노치까지 덮는 붉은 가장자리(맨 뒤) + 가운데 위 이름 띠(맨 앞). 이미 만든 HUD 프리팹에 붙일 때도 쓴다
-    public static UIRoarEffect AddRoarEffect(RectTransform safe)
+    // 보스 포효 연출: 노치까지 덮는 붉은 가장자리(맨 뒤) + 가운데 위 이름 띠(맨 앞)
+    private static HUDBattle_RoarEffect AddRoarEffect(RectTransform safe)
     {
         RectTransform vignette = UIBuilder.Stretch("RoarVignette", safe.parent);
         vignette.SetAsFirstSibling();
@@ -189,7 +161,7 @@ public static class BattleUISetup
         bannerGroup.blocksRaycasts = false;
         bannerGroup.interactable = false;
 
-        UIRoarEffect effect = banner.gameObject.AddComponent<UIRoarEffect>();
+        HUDBattle_RoarEffect effect = banner.gameObject.AddComponent<HUDBattle_RoarEffect>();
         UIBuilder.SetRef(effect, "m_Vignette", vignetteGroup);
         UIBuilder.SetRef(effect, "m_Banner", bannerGroup);
         UIBuilder.SetRef(effect, "m_BannerText", text);
@@ -232,9 +204,9 @@ public static class BattleUISetup
     }
 
     // 사망 팝업: 뒤가 비치는 어두운 배경 + 가운데 창(부활/귀가). 팝업 루트(PopupService) 아래에 꽉 차게 뜬다
-    private static DeathPopup BuildDeathPopup()
+    private static PopupDeath BuildDeathPopup()
     {
-        RectTransform root = new GameObject("DeathPopup", typeof(RectTransform)).GetComponent<RectTransform>();
+        RectTransform root = new GameObject("PopupDeath", typeof(RectTransform)).GetComponent<RectTransform>();
         root.anchorMin = Vector2.zero;
         root.anchorMax = Vector2.one;
         root.offsetMin = root.offsetMax = Vector2.zero;
@@ -255,7 +227,7 @@ public static class BattleUISetup
         Button home = UIBuilder.Button(window, "HomeButton", "귀가", new Vector2(260, 110), UIStyle.PanelLight);
         PlaceBottom(home, 190);
 
-        DeathPopup popup = root.gameObject.AddComponent<DeathPopup>();
+        PopupDeath popup = root.gameObject.AddComponent<PopupDeath>();
         UIBuilder.SetRef(popup, "m_ReviveButton", revive);
         UIBuilder.SetRef(popup, "m_ReviveLabel", revive.GetComponentInChildren<TMP_Text>());
         UIBuilder.SetRef(popup, "m_HomeButton", home);
@@ -263,10 +235,10 @@ public static class BattleUISetup
         return popup;
     }
 
-    // 주운 버섯 목록 한 줄 원본. 목록 밖에 꺼 둔다(목록 자식이면 레이아웃이 원본까지 줄 세운다)
-    private static UILootRow LootRow(Transform parent)
+    // 주운 버섯 목록 한 줄 원본(독립 프리팹)
+    private static HUDBattle_LootRow LootRow()
     {
-        RectTransform row = UIBuilder.Rect("LootRowTemplate", parent, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-507, -43), Vector2.zero);
+        RectTransform row = UIBuilder.Rect("HUDBattle_LootRow", null, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-507, -43), Vector2.zero);
         row.gameObject.AddComponent<LayoutElement>().preferredHeight = 43f;
         UIBuilder.AddImage(row, new Color(0f, 0f, 0f, 0.6f));
 
@@ -275,10 +247,9 @@ public static class BattleUISetup
         RectTransform textRect = UIBuilder.Rect("Text", row, Vector2.zero, Vector2.one, new Vector2(47, 0), new Vector2(-5, 0));
         TMP_Text text = UIBuilder.Label(textRect, "송이 신선 x1", LootFontSize, TextAlignmentOptions.Left);
 
-        UILootRow lootRow = row.gameObject.AddComponent<UILootRow>();
+        HUDBattle_LootRow lootRow = row.gameObject.AddComponent<HUDBattle_LootRow>();
         UIBuilder.SetRef(lootRow, "m_Icon", icon);
         UIBuilder.SetRef(lootRow, "m_Text", text);
-        row.gameObject.SetActive(false);
 
         return lootRow;
     }
@@ -299,9 +270,8 @@ public static class BattleUISetup
         return slot;
     }
 
-    // 공격 칸 위에 이어 쓸 수 있는 스킬 줄(작은 원 아이콘). 큰 아이콘은 칸의 Icon을 지금 공격으로 바꿔 쓴다.
-    // 이미 만든 HUD 프리팹에 붙일 때도 쓴다
-    public static UISkillChain AddSkillChain(RectTransform attackSlot)
+    // 공격 칸 위에 이어 쓸 수 있는 스킬 줄(작은 원 아이콘). 큰 아이콘은 칸의 Icon을 지금 공격으로 바꿔 쓴다
+    private static HUDBattle_SkillChain AddSkillChain(RectTransform attackSlot)
     {
         const float iconSize = 64f;
 
@@ -318,12 +288,12 @@ public static class BattleUISetup
         Image icon = SpriteImage("Icon", template, "HUD_Attack", iconSize * 0.2f);
         CanvasGroup group = template.gameObject.AddComponent<CanvasGroup>();
         group.blocksRaycasts = false;
-        UISkillIcon skillIcon = template.gameObject.AddComponent<UISkillIcon>();
+        HUDBattle_SkillIcon skillIcon = template.gameObject.AddComponent<HUDBattle_SkillIcon>();
         UIBuilder.SetRef(skillIcon, "m_Group", group);
         UIBuilder.SetRef(skillIcon, "m_Icon", icon);
         template.gameObject.SetActive(false);
 
-        UISkillChain chain = attackSlot.gameObject.AddComponent<UISkillChain>();
+        HUDBattle_SkillChain chain = attackSlot.gameObject.AddComponent<HUDBattle_SkillChain>();
         UIBuilder.SetRef(chain, "m_MainIcon", attackSlot.Find("Icon").GetComponent<Image>());
         UIBuilder.SetRef(chain, "m_ChainRoot", chainRoot);
         UIBuilder.SetRef(chain, "m_ChainTemplate", skillIcon);
@@ -336,31 +306,29 @@ public static class BattleUISetup
         return SpriteImage(UIBuilder.Stretch(name, parent, inset), sprite);
     }
 
-    // 도트 스프라이트는 Art/UI/Sprites의 이름(확장자 없이)으로 찾는다
+    // 도트 스프라이트는 Art/UI/Sprites 아래에서 이름(확장자 없이)으로 찾는다
     private static Image SpriteImage(RectTransform rt, string sprite)
     {
         Image image = UIBuilder.AddImage(rt, Color.white);
-        image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(EditorPath.UISpriteDir + sprite + SpriteExtension);
+        image.sprite = UIBuilder.LoadSprite(sprite);
         image.preserveAspect = true;
-        if (image.sprite == null)
-            CLogger.Warning("BattleUISetup", $"스프라이트가 없습니다: {sprite}");
 
         return image;
     }
 
-    private static ResultScreen BuildResultScreen()
+    // 팝업 형태(꽉 찬 루트 + 어두운 바탕 + 가운데 창). PopupService가 팝업 캔버스 아래에 띄운다
+    private static PopupResult BuildResultPopup()
     {
-        RectTransform safe = UIBuilder.CreateCanvas("ResultScreen", ResultSortingOrder);
-        Transform root = safe.parent;
-
-        // 어둡게 깔기는 노치까지 덮도록 SafeArea 밖에 둔다
-        Image dim = UIBuilder.Panel("Dim", root, UIStyle.Dim, true);
-        dim.transform.SetAsFirstSibling();
+        RectTransform root = new GameObject("PopupResult", typeof(RectTransform)).GetComponent<RectTransform>();
+        root.anchorMin = Vector2.zero;
+        root.anchorMax = Vector2.one;
+        root.offsetMin = root.offsetMax = Vector2.zero;
+        UIBuilder.AddImage(root, UIStyle.Dim, true); // 뒤 화면 터치를 막는다
 
         CanvasGroup group = root.gameObject.AddComponent<CanvasGroup>();
 
         // 창
-        RectTransform window = UIBuilder.Anchored("Window", safe, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1100, 800));
+        RectTransform window = UIBuilder.Anchored("Window", root, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1100, 800));
         window.pivot = new Vector2(0.5f, 0.5f);
         UIBuilder.AddImage(window, UIStyle.Panel, true);
 
@@ -383,10 +351,7 @@ public static class BattleUISetup
         grid.spacing = new Vector2(48, 64);
         grid.childAlignment = TextAnchor.UpperCenter;
 
-        // !!) 템플릿은 그리드 밖에 둔다. 그리드 자식이면 에디터에서 레이아웃이 RectTransform을 고쳐 씬에 오버라이드가 생긴다
-        UIItemSlot template = UIBuilder.ItemSlot(window, "SlotTemplate");
-        template.gameObject.SetActive(false);
-
+        // 칸 원본은 UICommonSlot 프리팹(CommonPath.CommonSlot). PopupResult가 풀로 꺼낸다
         TMP_Text empty = UIBuilder.Label(lootRoot.parent, "주운 버섯이 없어요", UIStyle.FontNormal, TextAlignmentOptions.Center, "EmptyLabel");
         empty.rectTransform.offsetMin = new Vector2(60, 200);
         empty.rectTransform.offsetMax = new Vector2(-60, -290);
@@ -399,18 +364,17 @@ public static class BattleUISetup
         Button lobby = UIBuilder.Button(window, "LobbyButton", "로비로", new Vector2(320, 110));
         PlaceBottom(lobby, 190);
 
-        ResultScreen screen = root.gameObject.AddComponent<ResultScreen>();
-        UIBuilder.SetRef(screen, "m_Group", group);
-        UIBuilder.SetRef(screen, "m_Window", window);
-        UIBuilder.SetRef(screen, "m_Title", title);
-        UIBuilder.SetRef(screen, "m_Summary", summary);
-        UIBuilder.SetRef(screen, "m_LootRoot", lootRoot);
-        UIBuilder.SetRef(screen, "m_SlotTemplate", template);
-        UIBuilder.SetRef(screen, "m_EmptyLabel", empty.gameObject);
-        UIBuilder.SetRef(screen, "m_RetryButton", retry);
-        UIBuilder.SetRef(screen, "m_LobbyButton", lobby);
+        PopupResult popup = root.gameObject.AddComponent<PopupResult>();
+        UIBuilder.SetRef(popup, "m_Group", group);
+        UIBuilder.SetRef(popup, "m_Window", window);
+        UIBuilder.SetRef(popup, "m_Title", title);
+        UIBuilder.SetRef(popup, "m_Summary", summary);
+        UIBuilder.SetRef(popup, "m_LootRoot", lootRoot);
+        UIBuilder.SetRef(popup, "m_EmptyLabel", empty.gameObject);
+        UIBuilder.SetRef(popup, "m_RetryButton", retry);
+        UIBuilder.SetRef(popup, "m_LobbyButton", lobby);
 
-        return screen;
+        return popup;
     }
 
     // 창 위쪽에서 y만큼 내려온 가로 한 줄 라벨

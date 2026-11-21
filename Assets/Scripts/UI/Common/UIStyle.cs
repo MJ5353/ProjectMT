@@ -38,7 +38,7 @@ public static class UIStyle
 
     // rarity ---
 
-    public static readonly Color RarityCommon = Hex(0xA9B39C);
+    public static readonly Color RarityCommon = Hex(0x6B6F68); // 회색. 크림 글자가 읽히게 어둡게
     public static readonly Color RarityRare = Hex(0x4FA3E0);
     public static readonly Color RarityEpic = Hex(0xB45EE0);
 

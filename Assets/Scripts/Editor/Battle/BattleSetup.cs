@@ -204,9 +204,8 @@ public static class BattleSetup
         MapDef mapDef = AssetDatabase.LoadAssetAtPath<MapDef>(EditorPath.DefaultMapDef);
         sceneController.EditorSetup(popupRoot, cam, mapDef);
 
-        // 전투 HUD·결과 화면(UI 스레드 담당)
+        // 전투 HUD(결과·사망·시장 팝업은 HUD가 PopupService로 띄운다)
         BattleUISetup.AddBattleHud();
-        BattleUISetup.AddResultScreen();
 
         EditorSceneManager.SaveScene(scene, EditorPath.BattleScene);
         AddToBuildSettings();

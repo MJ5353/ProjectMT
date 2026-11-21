@@ -179,6 +179,7 @@ public class GameManager : MonoSingleton<GameManager>
             if (sceneName != null)
             {
                 Scene previousScene = SceneManager.GetActiveScene();
+                SEventManager.Publish(new SceneUnloading()); // 씬 오브젝트가 살아 있을 때 UI 칸을 풀로 돌려보낸다
                 yield return SceneLoader.Load(sceneName);
 
                 Scene loadedScene = SceneManager.GetActiveScene();

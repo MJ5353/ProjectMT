@@ -17,19 +17,36 @@ public sealed class PopupService : ServiceBase
 
     // ------------------------------------------------
 
-    public override void Init() => m_Root = RootManager.Instance?.UIRoot;
+    public override void Init()
+    {
+        m_Root = RootManager.Instance?.UIRoot;
+        SEventManager.Subscribe<SceneUnloading>(OnSceneUnloading);
+    }
 
+    // 닫는 팝업마다 OnClose를 불러 목록 칸(UIListPool)이 풀로 돌아가게 한다
     public override void Clear()
     {
-        foreach (Popup popup in m_ListPopup)
+        SEventManager.Unsubscribe<SceneUnloading>(OnSceneUnloading);
+
+        // 먼저 비워 둔다. OnClose 안에서 다른 팝업을 Close해도 두 번 닫히지 않는다
+        Popup[] listClose = m_ListPopup.ToArray();
+        m_ListPopup.Clear();
+
+        for (int i = listClose.Length - 1; i >= 0; --i)
         {
-            if (popup != null)
-                Object.Destroy(popup.gameObject);
+            Popup popup = listClose[i];
+            if (popup == null)
+                continue;
+
+            popup.OnClose();
+            Object.Destroy(popup.gameObject);
         }
 
-        m_ListPopup.Clear();
         m_Root = null;
     }
+
+    // 씬이 내려가기 전에 정리한다(OnDestroy 때는 칸이 팝업과 함께 지워질 수 있다)
+    private void OnSceneUnloading(SceneUnloading evt) => Clear();
 
     public override void Tick(float deltaTime)
     {

@@ -67,3 +67,8 @@ public readonly struct MarketClosed
         RottenCount = rottenCount;
     }
 }
+
+// 씬을 바꾸기 직전(아직 지금 씬 오브젝트가 살아 있다). 씬에 붙은 UI가 목록 칸을 풀로 돌려보낸다
+public readonly struct SceneUnloading
+{
+}

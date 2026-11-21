@@ -156,7 +156,7 @@ public sealed class BattleService : ServiceBase
         return map != null ? map.RollRarity() : ERarity.Common;
     }
 
-    // 토벌 종료 버튼. isMarket이면 시장을 열고(팝업은 BattleHud가 띄운다), 아니면 주운 버섯을 그대로 받고 끝낸다
+    // 토벌 종료 버튼. isMarket이면 시장을 열고(팝업은 HUDBattle가 띄운다), 아니면 주운 버섯을 그대로 받고 끝낸다
     public void ExitHunt(bool isMarket = true)
     {
         if (State != EBattleState.Playing || IsPlayerDown)
@@ -309,8 +309,8 @@ public sealed class BattleService : ServiceBase
         m_DicLoot[key] = count + evt.Amount;
     }
 
-    // 바로 끝내지 않고 부활/귀가를 고르게 한다(BattleHud가 팝업을 띄운다)
-    // 바로 끝내지 않는다. 주운 버섯을 땅에 떨구고, 잠깐 뒤 부활/귀가를 고르게 한다(BattleHud가 팝업을 띄운다)
+    // 바로 끝내지 않고 부활/귀가를 고르게 한다(HUDBattle가 팝업을 띄운다)
+    // 바로 끝내지 않는다. 주운 버섯을 땅에 떨구고, 잠깐 뒤 부활/귀가를 고르게 한다(HUDBattle가 팝업을 띄운다)
     private void OnPlayerDied()
     {
         if (State != EBattleState.Playing)

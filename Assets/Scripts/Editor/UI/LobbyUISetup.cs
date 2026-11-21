@@ -153,7 +153,7 @@ public static class LobbyUISetup
     {
         if (nodeRoot.TryGetComponent(out Image image) == false)
             image = nodeRoot.gameObject.AddComponent<Image>();
-        image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(EditorPath.UISpriteDir + "UI_Map_Background.png");
+        image.sprite = UIBuilder.LoadSprite("UI_Map_Background");
         image.color = Color.white;
         image.preserveAspect = false;
         image.raycastTarget = false;
@@ -224,7 +224,7 @@ public static class LobbyUISetup
         mushLayout.spacing = 30;
         mushLayout.childAlignment = TextAnchor.UpperLeft;
 
-        UIItemSlot mushTemplate = UIBuilder.ItemSlot(mushRoot, "MushroomTemplate", 96f);
+        UICommonSlot mushTemplate = UIBuilder.CommonSlot(mushRoot, "MushroomTemplate", 96f);
 
         Button enter = UIBuilder.Button(info, "EnterButton", "입장", new Vector2(360, 120));
         RectTransform enterRt = (RectTransform)enter.transform;

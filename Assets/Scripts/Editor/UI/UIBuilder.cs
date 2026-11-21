@@ -10,6 +10,8 @@ using UnityEngine.UI;
 public static class UIBuilder
 {
 
+    private const string SlotMoldSprite = "UI_Slot_Mold"; // 덜 신선한 칸의 곰팡이 얼룩
+
     private static TMP_FontAsset s_Font;
 
     // ==================================================
@@ -79,6 +81,23 @@ public static class UIBuilder
 #else
         go.AddComponent<StandaloneInputModule>();
 #endif
+    }
+
+    // sprite ---
+
+    // Art/UI/Sprites 아래(하위 폴더 포함)에서 파일 이름(확장자 없이)이 같은 스프라이트를 찾는다. 없으면 경고 후 null
+    public static Sprite LoadSprite(string spriteName)
+    {
+        string[] listGUID = AssetDatabase.FindAssets($"{spriteName} t:Sprite", new[] { EditorPath.UISpriteDir.TrimEnd('/') });
+        foreach (string guid in listGUID)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            if (Path.GetFileNameWithoutExtension(path) == spriteName)
+                return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+
+        CLogger.Warning("UIBuilder", $"스프라이트가 없습니다: {spriteName}");
+        return null;
     }
 
     // rect ---
@@ -176,10 +195,10 @@ public static class UIBuilder
         return gauge;
     }
 
-    public static UIItemSlot ItemSlot(Transform parent, string name, float size = 120f)
+    public static UICommonSlot CommonSlot(Transform parent, string name, float size = 120f)
     {
-        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.ItemSlotPrefab);
-        UIItemSlot slot = prefab != null ? Spawn<UIItemSlot>(prefab, parent) : BuildItemSlot(parent);
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.CommonSlotPrefab);
+        UICommonSlot slot = prefab != null ? Spawn<UICommonSlot>(prefab, parent) : BuildCommonSlot(parent);
 
         slot.name = name;
         ((RectTransform)slot.transform).sizeDelta = new Vector2(size, size);
@@ -234,10 +253,10 @@ public static class UIBuilder
         return gauge;
     }
 
-    public static UIItemSlot BuildItemSlot(Transform parent)
+    public static UICommonSlot BuildCommonSlot(Transform parent)
     {
-        RectTransform rt = Anchored("UIItemSlot", parent, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(120, 120));
-        Image bg = AddImage(rt, UIStyle.PanelLight, true);
+        RectTransform rt = Anchored("UICommonSlot", parent, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(120, 120));
+        Image bg = AddImage(rt, UIStyle.RarityCommon, true);
         Button button = rt.gameObject.AddComponent<Button>();
         button.targetGraphic = bg;
 
@@ -245,9 +264,15 @@ public static class UIBuilder
         Image icon = AddImage(iconRt, Color.white);
         icon.preserveAspect = true;
 
+        // 곰팡이 얼룩(덜 신선). 아이콘 위·개수 글자 아래에 칸 전체를 덮는다
+        GameObject mold = BuildSlotMold(rt).gameObject;
+
         TMP_Text count = Label(rt, "x0", UIStyle.FontSmall, TextAlignmentOptions.BottomRight, "Count");
         count.rectTransform.offsetMin = new Vector2(6, 4);
         count.rectTransform.offsetMax = new Vector2(-8, -4);
+        count.enableAutoSizing = true; // 큰 골드도 칸 안에 들어가게 줄인다
+        count.fontSizeMin = UIStyle.FontSmall / 2;
+        count.fontSizeMax = UIStyle.FontSmall;
 
         // 이름은 칸 아래에 붙는다. 목록마다 필요 없으면 꺼 둔다
         RectTransform nameRt = Rect("Name", rt, Vector2.zero, new Vector2(1, 0), new Vector2(-20, -40), new Vector2(20, -4));
@@ -259,8 +284,11 @@ public static class UIBuilder
         TMP_Text badgeText = Label(badge, "S", UIStyle.FontSmall);
         badgeText.color = UIStyle.Background;
 
-        UIItemSlot slot = rt.gameObject.AddComponent<UIItemSlot>();
-        slot.EditorSetup(icon, count, displayName, badge.gameObject, badgeImage, badgeText, button);
+        GameObject dim = BuildSlotDim(rt).gameObject;
+        TMP_Text caption = BuildSlotCaption(rt);
+
+        UICommonSlot slot = rt.gameObject.AddComponent<UICommonSlot>();
+        slot.EditorSetup(bg, icon, mold, dim, caption, count, displayName, badge.gameObject, badgeImage, badgeText, button);
 
         return slot;
     }
@@ -290,12 +318,47 @@ public static class UIBuilder
         return go.GetComponent<T>();
     }
 
-    // 이미 있으면 덮어쓰지 않는다(대장이 손본 프리팹 보호). 만들었으면 true
-    public static bool SaveAsPrefab(GameObject go, string path)
+    // 슬롯의 곰팡이 얼룩 칸. 꺼 둔 채 만든다
+    private static Image BuildSlotMold(RectTransform slot)
     {
-        if (File.Exists(path))
+        RectTransform moldRt = Stretch("Mold", slot);
+        Image mold = AddImage(moldRt, Color.white);
+        mold.sprite = LoadSprite(SlotMoldSprite);
+        mold.preserveAspect = true;
+        moldRt.gameObject.SetActive(false);
+
+        return mold;
+    }
+
+    // 슬롯을 덮는 반투명 검정. 꺼 둔 채 만든다
+    private static Image BuildSlotDim(RectTransform slot)
+    {
+        Image dim = Panel("Dim", slot, UIStyle.Dim);
+        dim.gameObject.SetActive(false);
+
+        return dim;
+    }
+
+    // 슬롯 바로 위 작은 글자("일괄판매(x17)"). 칸보다 조금 넓고, 길면 줄어든다. 꺼 둔 채 만든다
+    private static TMP_Text BuildSlotCaption(RectTransform slot)
+    {
+        RectTransform rt = Rect("Caption", slot, new Vector2(0, 1), Vector2.one, new Vector2(-20, 4), new Vector2(20, 34));
+        TMP_Text caption = Label(rt, string.Empty, UIStyle.FontSmall, TextAlignmentOptions.Bottom);
+        caption.color = UIStyle.Gold;
+        caption.enableAutoSizing = true;
+        caption.fontSizeMin = UIStyle.FontSmall / 2;
+        caption.fontSizeMax = UIStyle.FontSmall;
+        rt.gameObject.SetActive(false);
+
+        return caption;
+    }
+
+    // 이미 있으면 덮어쓰지 않는다(isOverwrite면 같은 경로에 덮어써 GUID·참조를 유지). 만들었으면 true. go는 지운다
+    public static bool SaveAsPrefab(GameObject go, string path, bool isOverwrite = false)
+    {
+        if (isOverwrite == false && File.Exists(path))
         {
-            CLogger.Warning("UIBuilder", $"{path}가 이미 있어 건너뜁니다.");
+            CLogger.Log("UIBuilder", $"{path}가 이미 있어 건너뜁니다.");
             Object.DestroyImmediate(go);
             return false;
         }

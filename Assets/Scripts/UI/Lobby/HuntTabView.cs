@@ -16,12 +16,12 @@ public class HuntTabView : TabView
     [SerializeField] private TMP_Text m_InfoState = null;
     [SerializeField] private TMP_Text m_InfoDesc = null;
     [SerializeField] private RectTransform m_MushroomRoot = null;
-    [SerializeField] private UIItemSlot m_MushroomTemplate = null;
+    [SerializeField] private UICommonSlot m_MushroomTemplate = null;
     [SerializeField] private Button m_EnterButton = null;
 
     private readonly List<MapDef> m_ListMap = new();
     private readonly List<UIMapNode> m_ListNode = new();
-    private readonly List<UIItemSlot> m_ListMushroomSlot = new();
+    private readonly List<UICommonSlot> m_ListMushroomSlot = new();
 
     private MapDef m_Selected;
 
@@ -113,7 +113,7 @@ public class HuntTabView : TabView
 
     private void RefreshInfo()
     {
-        foreach (UIItemSlot slot in m_ListMushroomSlot)
+        foreach (UICommonSlot slot in m_ListMushroomSlot)
         {
             Destroy(slot.gameObject);
         }
@@ -149,7 +149,7 @@ public class HuntTabView : TabView
             if (mushroom == null)
                 continue;
 
-            UIItemSlot slot = Instantiate(m_MushroomTemplate, m_MushroomRoot);
+            UICommonSlot slot = Instantiate(m_MushroomTemplate, m_MushroomRoot);
             slot.gameObject.SetActive(true);
             slot.Set(mushroom, 0);
             slot.SetBadge(null, Color.clear);

@@ -62,6 +62,30 @@ public class ResourceManager : MonoSingleton<ResourceManager>
         return instance;
     }
 
+    // UI용. parent 아래로 꺼낸다(씬 이동 없이 부모만 바꾼다). 위치는 PoolableMonoUI.OnPoolSpawn이 원복한다
+    public T Spawn<T>(T prefab, Transform parent) where T : PoolableMono
+    {
+        if (prefab == null)
+            return null;
+
+        int poolKey = prefab.GetInstanceID();
+        T instance = Pop(poolKey) as T;
+
+        if (instance == null)
+        {
+            instance = Instantiate(prefab, parent, false);
+            instance.SetPoolKey(poolKey);
+        }
+        else
+        {
+            instance.transform.SetParent(parent, false);
+        }
+
+        instance.gameObject.SetActive(true); // 원본 프리팹이 꺼져 있어도 켠다
+        instance.OnPoolSpawn();
+        return instance;
+    }
+
     // 꺼서 풀에 넣는다. ResourceManager가 만든 것이 아니면 지운다
     public void Despawn(PoolableMono instance)
     {

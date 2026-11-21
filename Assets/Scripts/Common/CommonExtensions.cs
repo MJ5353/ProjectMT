@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 // ==================================================
 
@@ -50,6 +51,14 @@ public static class CommonExtensions
         return list[index];
     }
 
+    public static T E_GetOrDefault<T>(this IEnumerable<T> list, int index, T defaultValue = default)
+    {
+        if (list == null || index < 0)
+            return defaultValue;
+
+        return list.Skip(index).DefaultIfEmpty(defaultValue).First();
+    }
+    
     public static TValue E_GetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dic, TKey key, TValue defaultValue = default)
     {
         if (dic == null || key == null)

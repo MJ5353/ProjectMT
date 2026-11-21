@@ -10,7 +10,7 @@ public enum EMarketResult
     Closed,     // 시장이 열려 있지 않거나 밤이 다 갔다
     NoMerchant, // 오늘 온 상인이 아니다
     Empty,      // 고른 버섯이 없다
-    OverLimit,  // 거래 한 번 상한(Define.MarketTradeLimit)을 넘었다
+    OverLimit,  // 거래 한 번 묶음 상한(Define.MarketTradeLimit)을 넘었다
     NotEnough,  // 가진 것보다 많이 골랐다
     NotBuying,  // 이 상인이 사지 않는 버섯이 섞였다
 }
@@ -205,7 +205,7 @@ public class HuntData : PlayerDataBase
 
         if (total == 0)
             return EMarketResult.Empty;
-        if (total > Define.MarketTradeLimit)
+        if (m_DicPick.Count > Define.MarketTradeLimit) // 묶음(LootKey) 수로 센다. 묶음마다 개수 제한은 없다
             return EMarketResult.OverLimit;
 
         int sum = 0;

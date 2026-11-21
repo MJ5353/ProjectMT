@@ -116,8 +116,8 @@ public class DefineDef : DataDef
     [field: SerializeField]
     public int MarketMerchantCount { get; private set; } = 3;       // 밤마다 오는 상인 수
 
-    [field: SerializeField]
-    public int MarketTradeLimit { get; private set; } = 5;          // 거래 한 번에 팔 수 있는 버섯 수
+    [field: SerializeField, Tooltip("거래 한 번에 고를 수 있는 묶음 수(같은 버섯·등급·신선도 = 한 묶음). 묶음마다 개수 제한은 없다")]
+    public int MarketTradeLimit { get; private set; } = 5;          // 거래 한 번에 고를 수 있는 묶음 수
 
     [field: SerializeField]
     public float MarketLowFreshRate { get; private set; } = 0.6f;   // [mj] todo) 가안. 덜 신선한 버섯 가격 배율

@@ -25,6 +25,14 @@ public static class CommonPath
     public const string PickupDir = ActorDir + "Pickup/";      // 버섯 픽업 프리팹(Pickup_NNN_Key)
     public const string MapDir = "Prefabs/Map/";               // 맵 프리팹(Map_NNN_Key)
     public const string PickupPrefix = "Pickup_";              // 버섯 ID Mushroom_NNN_Key → 픽업 Pickup_NNN_Key
+    // UI 목록 칸 원본(UIListPool이 ResourceManager 풀로 꺼내 쓴다)
+    public const string UIDir = "Prefabs/UI/";
+    public const string PopupUIDir = UIDir + "Popup/";
+    public const string HUDUIDir = UIDir + "HUD/";
+    public const string CommonUIDir = UIDir + "Common/";
+    public const string CommonSlot = CommonUIDir + "UICommonSlot";
+    public const string MarketMerchantRow = PopupUIDir + "PopupMarket_MerchantRow";
+    public const string BattleLootRow = HUDUIDir + "HUDBattle_LootRow";
     public const string TMPSettings = "TMP Settings";
     public const string BuiltinCube = "Cube.fbx"; // Resources.GetBuiltinResource
 

@@ -18,6 +18,7 @@ public class UISpriteImporter : AssetPostprocessor
 
         TextureImporter importer = (TextureImporter)assetImporter;
         importer.textureType = TextureImporterType.Sprite;
+        importer.textureShape = TextureImporterShape.Texture2D; // !!) Cube로 들어오면 스프라이트가 없어 칸이 흰 사각형이 된다
         importer.spriteImportMode = SpriteImportMode.Single;
         importer.spritePixelsPerUnit = PixelsPerUnit;
         importer.filterMode = FilterMode.Point;

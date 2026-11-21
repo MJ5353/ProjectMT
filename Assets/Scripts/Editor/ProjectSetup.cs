@@ -7,7 +7,6 @@ public static class ProjectSetup
     public static void PrepareUI()
     {
         UISetup.SetupBase();
-        if (UIBuilder.Font != null)
-            UISetup.CreateCommonPrefabs();
+        UISetup.BuildAllPrefabs(false);
     }
 }

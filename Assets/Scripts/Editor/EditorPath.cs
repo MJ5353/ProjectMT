@@ -13,7 +13,7 @@ public static class EditorPath
     public const string MonsterModelDir = ModelDir + "Actor/Monster/";
     public const string MushroomModelDir = ModelDir + "Mushroom/";
     public const string FontDir = AssetsRoot + "Art/Fonts/Galmuri/";
-    public const string UISpriteDir = AssetsRoot + "Art/UI/Sprites/";
+    public const string UISpriteDir = AssetsRoot + "Art/UI/Sprites/"; // 하위 폴더 Common·HUD·Lobby·Icon/*. 생성기는 UIBuilder.LoadSprite(이름)로 찾는다
 
     public const string DataDir = ResourcesRoot + "Data/";
     public const string MonsterDataDir = DataDir + "Monsters/";
@@ -30,8 +30,9 @@ public static class EditorPath
     public const string PickupPrefabDir = ResourcesRoot + CommonPath.PickupDir;
     public const string MapPrefabDir = ResourcesRoot + CommonPath.MapDir;
     public const string PrefabExtension = ".prefab";             // Resources 경로 → 에셋 경로: ResourcesRoot + 경로 + 확장자
-    public const string BattleUIPrefabDir = PrefabDir + "UI/Battle/";
-    public const string CommonUIPrefabDir = PrefabDir + "UI/Common/";
+    public const string PopupUIPrefabDir = ResourcesRoot + CommonPath.PopupUIDir;
+    public const string HUDUIPrefabDir = ResourcesRoot + CommonPath.HUDUIDir;
+    public const string CommonUIPrefabDir = ResourcesRoot + CommonPath.CommonUIDir;
     public const string MaterialAssetDir = ResourcesRoot + CommonPath.MaterialDir;
 
     // 에셋 파일 (에디터) ---
@@ -41,12 +42,15 @@ public static class EditorPath
     public const string PlayerDef = PlayerDataDir + "Player.asset";
     public const string DefaultMapDef = MapDataDir + "Map_001_Field.asset"; // Battle 씬을 만들 때 넣는 지역
     public const string MonsterBalance = BalanceDataDir + "MonsterBalance.asset";
-    public const string ResultScreenPrefab = BattleUIPrefabDir + "ResultScreen.prefab";
-    public const string BattleHudPrefab = BattleUIPrefabDir + "BattleHud.prefab";
-    public const string DeathPopupPrefab = BattleUIPrefabDir + "DeathPopup.prefab";
-    public const string MarketPopupPrefab = BattleUIPrefabDir + "MarketPopup.prefab";
+    public const string PopupResultPrefab = PopupUIPrefabDir + "PopupResult.prefab";
+    public const string HUDBattlePrefab = HUDUIPrefabDir + "HUDBattle.prefab";
+    public const string PopupDeathPrefab = PopupUIPrefabDir + "PopupDeath.prefab";
+    public const string PopupMarketPrefab = PopupUIPrefabDir + "PopupMarket.prefab";
+    public const string PopupMarketCountPrefab = PopupUIPrefabDir + "PopupMarket_Count.prefab";
+    public const string MarketMerchantRowPrefab = ResourcesRoot + CommonPath.MarketMerchantRow + PrefabExtension;
+    public const string BattleLootRowPrefab = ResourcesRoot + CommonPath.BattleLootRow + PrefabExtension;
     public const string GaugePrefab = CommonUIPrefabDir + "UIGauge.prefab";
-    public const string ItemSlotPrefab = CommonUIPrefabDir + "UIItemSlot.prefab";
+    public const string CommonSlotPrefab = ResourcesRoot + CommonPath.CommonSlot + PrefabExtension;
     public const string ButtonPrefab = CommonUIPrefabDir + "UIButton.prefab";
     public const string Font = FontDir + "Galmuri11.ttf";
     public const string FontAsset = FontDir + "Galmuri11 SDF.asset";
