@@ -369,6 +369,41 @@ def body_player():
     K = lambda f, b, **kw: (f, b, kw)
     def stride(f, a, arm, **body):
         return [K(f, 'LegL', pitch=-a), K(f, 'LegR', pitch=a), K(f, 'ArmL', pitch=arm), K(f, 'ArmR', pitch=-arm), K(f, 'Body', **body)]
+    # 러시 공통 자세: 다리 앞뒤로 벌림, 칼날은 수평(무기 pitch 70)
+    RUSH_STANCE = {'LegL': dict(pitch=-18), 'LegR': dict(pitch=18), 'ArmL': dict(pitch=-25, roll=20), 'Weapon': dict(pitch=70)}
+    RUSH_SIDE = {+1: (-35, -50), -1: (28, 40)}     # 베기 방향 → 시작 자세(몸 yaw, 팔 yaw). +1 = 오른쪽→왼쪽
+
+    def pose(f, **bones):
+        out = []
+        for b, kw in {**RUSH_STANCE, **bones}.items():
+            out.append(K(f, b, **kw))
+        return out
+
+    def rush_slash(d):
+        (b0, a0), (b1, a1) = RUSH_SIDE[d], RUSH_SIDE[-d]
+        return [*pose(0, Body=dict(yaw=b0), ArmR=dict(pitch=-72, yaw=a0), Root=dict(up=-0.04)),
+                *pose(1, Body=dict(yaw=b0 * 1.2), ArmR=dict(pitch=-72, yaw=a0 * 1.2), Root=dict(up=-0.05)),
+                *pose(3, Body=dict(yaw=b1 * 0.8), ArmR=dict(pitch=-78, yaw=a1 * 0.85), Root=dict(up=-0.07, fwd=0.1)),
+                *pose(5, Body=dict(yaw=b1 * 1.15), ArmR=dict(pitch=-76, yaw=a1 * 1.15), Root=dict(up=-0.05, fwd=0.07)),
+                *pose(10, Body=dict(yaw=b1), ArmR=dict(pitch=-72, yaw=a1), Root=dict(up=-0.04))]
+
+    def rush_finish():
+        # Root yaw를 -360에서 0으로 돌려 한 바퀴 돈 뒤 기본 자세로 돌아온다(끝에서 되감기지 않게)
+        return [K(0, 'Root', yaw=-360, up=-0.04), K(0, 'ArmR', pitch=-40), K(0, 'LegL', pitch=-18), K(0, 'LegR', pitch=18),
+                K(5, 'Root', yaw=-360, up=-0.14), K(5, 'Body', pitch=18), K(5, 'ArmR', pitch=25), K(5, 'ArmL', pitch=25),
+                K(5, 'LegL', pitch=-8), K(5, 'LegR', pitch=8), K(5, 'Head', pitch=-8),
+                K(9, 'Root', yaw=-180, up=0.7), K(9, 'Body', pitch=-10), K(9, 'ArmR', pitch=-150), K(9, 'ArmL', pitch=-140),
+                K(9, 'LegL', pitch=-35), K(9, 'LegR', pitch=-30),
+                K(13, 'Root', yaw=0, up=1.25), K(13, 'Body', pitch=-25), K(13, 'ArmR', pitch=-180), K(13, 'ArmL', pitch=-155), K(13, 'Head', pitch=-15),
+                K(17, 'Root', up=1.38), K(17, 'Body', pitch=-30), K(17, 'ArmR', pitch=-192), K(17, 'ArmL', pitch=-165),
+                K(17, 'LegL', pitch=-40), K(17, 'LegR', pitch=-35), K(17, 'Head', pitch=-15),
+                K(19, 'Root', up=0.8), K(19, 'Body', pitch=8), K(19, 'ArmR', pitch=-120), K(19, 'ArmL', pitch=-90),
+                K(21, 'Root', up=-0.1), K(21, 'Body', pitch=28, s=(1.08, 0.9, 1.08)), K(21, 'ArmR', pitch=-40), K(21, 'ArmL', pitch=-30),
+                K(21, 'LegL', pitch=-28), K(21, 'LegR', pitch=22), K(21, 'Head', pitch=6),
+                K(24, 'Root', up=-0.08), K(24, 'Body', pitch=26), K(24, 'ArmR', pitch=-42),
+                K(36, 'Root', up=-0.07), K(36, 'Body', pitch=24), K(36, 'ArmR', pitch=-40), K(36, 'ArmL', pitch=-25),
+                K(36, 'LegL', pitch=-26), K(36, 'LegR', pitch=20), K(36, 'Head', pitch=4)]
+
     anims = {
         'Idle': (48, True, [K(24, 'Body', s=(1, 1.03, 1)), K(24, 'ArmL', roll=-4), K(24, 'ArmR', roll=4), K(24, 'Head', pitch=3)]),
         'Walk': (24, True, [*stride(0, 25, 20), K(6, 'Body', up=0.03), *stride(12, -25, -20), K(18, 'Body', up=0.03)]),
@@ -408,6 +443,12 @@ def body_player():
                                         K(7, 'LegL', pitch=30), K(7, 'LegR', pitch=-30), K(7, 'Body', pitch=30, yaw=20),
                                         K(7, 'ArmR', pitch=-20, yaw=40), K(7, 'ArmL', pitch=-30), K(7, 'Root', up=-0.05, fwd=0.1),
                                         K(12, 'Body', pitch=25, yaw=15), K(12, 'ArmR', pitch=-25, yaw=35), K(12, 'Root', up=-0.03, fwd=0.1)]),
+        # 퍼펙트 닷지 러시(26.11.22): 좌·우를 번갈아 이어 붙이는 빠른 베기. RushL 끝 자세 = RushR 시작 자세(반대도 같음)라
+        # 클릭마다 번갈아 재생해도 끊기지 않는다. 판정 프레임 3, 길이 10
+        'Attack_RushL': (10, False, rush_slash(+1)),
+        'Attack_RushR': (10, False, rush_slash(-1)),
+        # 러시 막타: 웅크림 → 한 바퀴 돌며 도약 → 정점에서 크게 젖힘 → 내려찍기. 판정 프레임 21, 착지 자세 36까지 유지
+        'Attack_RushFinish': (50, False, rush_finish()),
         'Hit': (12, False, [K(3, 'Body', pitch=-15), K(3, 'Head', pitch=-12), K(3, 'Root', fwd=-0.08)]),
         'Death': (40, False, [K(10, 'Body', pitch=-10), K(10, 'Head', pitch=-10), K(22, 'Root', pitch=88, up=0.3),
                               K(26, 'Root', pitch=80, up=0.33), K(40, 'Root', pitch=88, up=0.3), K(40, 'ArmL', pitch=-20)]),
