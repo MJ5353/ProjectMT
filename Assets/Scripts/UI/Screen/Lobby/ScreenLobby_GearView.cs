@@ -194,7 +194,7 @@ public class ScreenLobby_GearView : UITabView
 
         if (emblem != null)
         {
-            m_EmblemImage.E_SetImage(emblem.Icon, emblem.Tint);
+            m_EmblemImage.E_SetImage(emblem.Icon); // 그림이 없으면 칸을 끈다
             m_EmblemName.E_SetText(emblem.DisplayName);
         }
 

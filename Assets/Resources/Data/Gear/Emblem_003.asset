@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DisplayName: "\uBC24\uC758 \uC0AC\uB0E5\uAFBC"
   <ID>k__BackingField: Emblem_003
   <Description>k__BackingField: 
-  <Icon>k__BackingField: {fileID: 21300000, guid: 685c2bb60953d6a4580a8338a9fb856a, type: 3}
+  <Icon>k__BackingField: {fileID: 21300000, guid: f85ed21b5e1d434891901385b6541847, type: 3}
   <NeedCount>k__BackingField: 16
   <Tint>k__BackingField: {r: 0.31, g: 0.64, b: 0.88, a: 1}
   m_ListBonus:
