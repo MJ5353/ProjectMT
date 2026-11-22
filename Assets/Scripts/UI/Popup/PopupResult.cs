@@ -6,10 +6,10 @@ using UnityEngine.UI;
 
 // ==================================================
 
-// 전투 결과 팝업. BattleFlow Result 상태가 띄우고 닫는다. 끝난 이유(BattleFlow.HuntResult)와 BattleService의 시간·받은 보상(DicReward)을 읽어 보여 준다.
+// 전투 결과 팝업. BattleFlow Result 상태가 Flow를 넘겨 띄우고 닫는다. 끝난 이유(BattleFlow.HuntResult)와 BattleService의 시간·받은 보상(DicReward)을 읽어 보여 준다.
 // [mj] todo) 신선 등급은 전투 쪽 데이터(ListLootGrade 가안)가 확정되면 칸 뱃지로 붙인다
 
-public class PopupResult : PopupBase
+public class PopupResult : PopupFlowBase<BattleFlow>
 {
     private const float SlotPopTime = 0.18f;  // 칸 하나가 튀어나오는 시간
     private const float SlotInterval = 0.08f; // 다음 칸이 나오기까지 간격
@@ -38,21 +38,8 @@ public class PopupResult : PopupBase
 
     protected override void OnOpen()
     {
-        BattleFlow battle = FlowManager.Instance.Battle;
-        if (battle == null)
-        {
-            // 다시 쓰는 팝업이라 지난번 결과가 남지 않게 비운다(버튼도 BattleFlow가 있어야 동작한다)
-            m_Title.E_SetText(string.Empty);
-            m_Summary.E_SetText(string.Empty);
-            
-            FillLoot(null);
-            SetButtonsInteractable(false);
-
-            return;
-        }
-
-        BattleService battleS = battle.BattleS;
-        EHuntResult result = battle.HuntResult;
+        BattleService battleS = Flow.BattleS;
+        EHuntResult result = Flow.HuntResult;
         EStringKey title = result switch
         {
             EHuntResult.Exited => EStringKey.Result_TitleExited,
@@ -71,28 +58,20 @@ public class PopupResult : PopupBase
 
     #region OnClick
     
+    // 로딩 화면이 덮고 정리하는 동안 두 번 눌리지 않게 먼저 막는다(다시 하기·로비 공통)
     private void OnClickRetry()
     {
-        BattleFlow battle = FlowManager.Instance.Battle;
-        if (battle == null)
-            return;
-
-        // 씬 로드 중 두 번 눌리지 않게 막는다
         SetButtonsInteractable(false);
         
-        if (battle.Retry() == false)
+        if (Flow.Retry() == false)
             SetButtonsInteractable(true);
     }
 
     private void OnClickLobby()
     {
-        BattleFlow battle = FlowManager.Instance.Battle;
-        if (battle == null)
-            return;
-
         SetButtonsInteractable(false);
         
-        if (battle.TryGoLobby() == false)
+        if (Flow.TryGoLobby() == false)
             SetButtonsInteractable(true);
     }
 
@@ -100,16 +79,12 @@ public class PopupResult : PopupBase
     
     // ---
 
-    // dicLoot가 null이면 빈 결과로 보인다
     private void FillLoot(IReadOnlyDictionary<string, int> dicLoot)
     {
         m_ListLoot.Clear();
-        if (dicLoot != null)
+        foreach (var pair in dicLoot)
         {
-            foreach (var pair in dicLoot)
-            {
-                m_ListLoot.Add(pair);
-            }
+            m_ListLoot.Add(pair);
         }
 
         // 칸은 꺼 둔 채 준비하고, 여는 연출 뒤에 하나씩 켠다(그래서 Refresh 대신 Get)

@@ -5,12 +5,12 @@ using UnityEngine.UI;
 
 // ==================================================
 
-// 토벌 종료 뒤 현장 시장 팝업. 왼쪽 오늘 온 상인, 가운데 고른 상인, 오른쪽 위 고른 버섯·합계·[거래], 오른쪽 아래 남은 버섯.
+// 토벌 종료 뒤 현장 시장 팝업(BattleFlow Market 상태가 Flow를 넘겨 띄운다). 왼쪽 오늘 온 상인, 가운데 고른 상인, 오른쪽 위 고른 버섯·합계·[거래], 오른쪽 아래 남은 버섯.
 // 계산과 결과는 HuntData가 정하고 여기서는 요청(Trade·Wait·EndMarket)만 보낸다. 시장이 닫히면(MarketClosed) 스스로 닫힌다.
 // 열릴 때 시작 연출(PopupMarket_Intro)이 이어진다. 연출 중에 누르면 끝 모습으로 건너뛰고, 끝 모습에서 한 번 더 누르면 연출을 닫고 본 화면이 나타난다.
 // 결과 화면 전환과 저장은 MarketClosed를 받은 쪽(BattleService)이 한다
 
-public class PopupMarket : PopupBase
+public class PopupMarket : PopupFlowBase<BattleFlow>
 {
     [SerializeField] private UINightClock m_Clock = null;
     [SerializeField] private CanvasGroup m_Body = null; // 시계를 뺀 나머지. 시작 연출 뒤 서서히 나타난다(시계는 HUD 자리에 그대로 있는 것처럼)

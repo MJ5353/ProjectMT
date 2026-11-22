@@ -48,7 +48,7 @@ public sealed partial class BattleFlow
                 return;
 
             m_IsPopupOpened = true;
-            FlowManager.Instance.PopupS?.Open<PopupDeath>(EPopupType.PopupDeath);
+            FlowManager.Instance.PopupS?.Open<PopupDeath, BattleFlow>(EPopupType.PopupDeath, Flow);
         }
     }
 
@@ -66,7 +66,7 @@ public sealed partial class BattleFlow
 
             BattleService battleS = Flow.BattleS;
             PlayerDataManager.Instance.Hunt.BeginMarket(battleS.DicLoot, battleS.RemainTime, battleS.NightTime);
-            FlowManager.Instance.PopupS?.Open<PopupMarket>(EPopupType.PopupMarket);
+            FlowManager.Instance.PopupS?.Open<PopupMarket, BattleFlow>(EPopupType.PopupMarket, Flow);
         }
 
         // 시장 도중 씬이 바뀌어도(Flow End) 멈춘 시간이 남지 않게 여기서 푼다
@@ -95,7 +95,7 @@ public sealed partial class BattleFlow
         {
             Flow.UnitS.StopBrains();
             Flow.BattleS.Finish(Flow.HuntResult);
-            m_Popup = FlowManager.Instance.PopupS?.Open<PopupResult>(EPopupType.PopupResult);
+            m_Popup = FlowManager.Instance.PopupS?.Open<PopupResult, BattleFlow>(EPopupType.PopupResult, Flow);
         }
 
         public override void Exit()

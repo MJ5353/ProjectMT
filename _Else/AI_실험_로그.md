@@ -593,3 +593,4 @@
 - 정리안 1~4: Title·Lobby Flow는 상태 없는 FlowBase로, GameManager의 씬 전환·다시 하기 로딩을 Loading(work) 하나로(SceneLoader.Wait 추가), FlowManager 시작·알림을 StartCurrent로, 몬스터 판단 정지와 종료 버튼을 매 프레임 검사 대신 상태가 바뀔 때(UnitService.StopBrains, BattleStateChanged) 처리. 컴파일·플레이 확인 안 함, 커밋하지 않음.
 - 정리안 6~8: 땅에 떨어진 버섯을 픽업마다 Update로 돌리지 않고 BattleService.Tick이 한 번에 돌림, 토벌 종료는 늘 시장을 거치게 하고 시장 없이 끝내던 개발용 갈래 삭제, BattleFlow 상태 클래스를 BattleFlow.States.cs로 나눔. 컴파일·플레이 확인 안 함, 커밋하지 않음.
 - Flow 추가 검토: 쓰러진 뒤에도 빨려 들던 버섯이 다시 주워지던 문제 수정, 토벌 종료 확인 팝업을 화면에서 BattleFlow로 옮기고 프리팹 없을 때 갈래 삭제, 사망·결과 팝업의 Flow 없음 처리 삭제, 낡은 주석 정리. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 팝업 Flow 귀속: 대장 지적(팝업이 어디에 붙는지 쓰는 쪽이 알아야 하는 구조)으로 PopupFlowBase<TFlow>와 PopupService.Open<T, TFlow>(type, flow)를 추가해 Flow를 열기 전에 넣고, 사망·결과·시장 팝업을 BattleFlow 귀속으로 바꿈. 확인·개수 조절 팝업은 공용으로 유지. 컴파일 확인 안 함, 커밋하지 않음.
