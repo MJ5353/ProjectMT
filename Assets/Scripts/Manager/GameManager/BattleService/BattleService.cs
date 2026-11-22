@@ -72,6 +72,19 @@ public sealed class BattleService : ServiceBase
 
     // virtual ---
 
+    // 땅에 떨어진 픽업을 움직인다(낙하·제자리·빨려 듦). 시장에서 시간이 멈추면 같이 멈춘다
+    public override void Tick(float deltaTime)
+    {
+        if (deltaTime <= 0f)
+            return;
+
+        // 주우면 목록에서 빠지므로 뒤에서부터 돈다
+        for (int i = m_ListPickup.Count - 1; i >= 0; i--)
+        {
+            m_ListPickup[i].Tick(deltaTime);
+        }
+    }
+
     public override void Init()
     {
         FlowManager.Instance.Battle.UnitS.UnitRemoved += ReleaseSpawnSlot;
@@ -160,7 +173,7 @@ public sealed class BattleService : ServiceBase
 
     // 픽업 ---
 
-    // 땅에 떨어지는 픽업(버섯·골드 동전)을 꺼낸다. 판이 끝나면 남은 것을 돌려받으려고 기억해 둔다
+    // 땅에 떨어지는 픽업(버섯·골드 동전)을 꺼낸다. 움직임은 Tick이 돌리고, 판이 끝나면 남은 것을 돌려받는다
     public MushroomPickup SpawnPickup(MushroomPickup prefab, Vector3 position)
     {
         MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, position, Quaternion.identity);
@@ -379,25 +392,20 @@ public sealed class BattleService : ServiceBase
         playerDataM.RunSave();
     }
 
-    // 시장 없이 끝낼 때. 토벌 종료(시장 팝업이 없을 때)는 주운 그대로, 밤이 끝나면 주운 개수만큼 썩은 버섯, 귀가는 빈손
+    // 시장을 거치지 않고 끝날 때. 밤이 끝나면 주운 개수만큼 썩은 버섯, 귀가는 빈손(토벌 종료는 늘 시장을 거친다)
     private void FillReward(EHuntResult result)
     {
         m_DicReward.Clear();
+        if (result != EHuntResult.TimedOut)
+            return;
 
         int total = 0;
         foreach (var pair in m_DicLoot)
         {
             total += pair.Value;
-            
-            // [mj] todo) 인벤토리는 아직 신선도를 모른다. 시장이 들어오면 신선도별로 넘긴다
-            if (result == EHuntResult.Exited)
-            {
-                m_DicReward.TryGetValue(pair.Key.ItemID, out int count);
-                m_DicReward[pair.Key.ItemID] = count + pair.Value;
-            }
         }
 
-        if (result == EHuntResult.TimedOut && total > 0)
+        if (total > 0)
             m_DicReward[ItemDef.RottenID] = total;
     }
     

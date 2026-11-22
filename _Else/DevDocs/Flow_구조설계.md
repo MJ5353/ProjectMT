@@ -66,6 +66,7 @@
 - 요청 입구는 `BattleFlow`(ExitHunt·TryRevive·GiveUp·Retry·TryGoLobby)이고, 현재 상태가 맞지 않으면 무시한다. Market·Result에 들어갈 때 `UnitService.StopBrains`로 모든 유닛 판단을 한 번에 멈춘다(유닛이 매 프레임 Flow 상태를 보지 않는다). 종료 버튼은 `BattleStateChanged`로 켜고 끈다.
 - `BattleService`는 스폰(`StartHunt`, Start 상태)·리스폰·밤 시간(`AdvanceNight`, Play 상태)·떨구기(`DropLoot`, Down 상태)·보상(`SetMarketReward`·`Finish`, Result 상태)만 남았다. 쓰러짐은 C# 이벤트 `PlayerDied`로 Flow에 알린다.
 - 전용 Service: Unit·HitStop·Battle(이펙트는 공용). 지역(`MapDef`)은 `BattleSceneController`가 Flow를 만들 때 넘긴다.
+- (정리안 6~8 반영) 토벌 종료는 늘 Market을 거친다(시장 팝업이 없을 때의 개발용 갈래 삭제). 땅의 픽업은 각자 Update 대신 `BattleService.Tick`이 돌린다. 상태 클래스는 `BattleFlow.States.cs`(partial)로 나눴다.
 
 ### 일시정지
 
@@ -123,6 +124,7 @@
 - 26.11.21 대장: 씬 이름은 `SceneDef`(DataDef)로 데이터에 연결한다. `SceneNames` 상수와 `[mj] todo)`는 이걸로 대체한다.
 - 26.11.21 대장: Table은 편집기용 공식값이라 Def와 헷갈리지 않게 이름을 바꾼다(`MonsterBalanceTable`). `PopupTable`은 `PopupDef`로 대체돼 삭제.
 - 26.11.22 대장: 다시 하기는 Flow·Service를 새로 만들지 않고 같은 인스턴스를 Clear 후 다시 Begin한다(GC 방지). 정리안 1~4 반영: Title·Lobby는 상태 없는 `FlowBase`, `GameManager`의 로딩 덮기를 `Loading(work)` 하나로(가짜 로딩은 `SceneLoader.Wait`), `FlowManager.StartCurrent`로 시작·알림 묶기, 유닛 판단 정지·종료 버튼을 상태 변경 시점 처리로.
+- 26.11.22 대장: 정리안 6~8 반영. 픽업 움직임은 `BattleService.Tick`이 돌리고(`MushroomPickup.Tick`), `ExitHunt`는 늘 Market으로(시장 없이 Exited로 끝나는 갈래와 `FillReward`의 Exited 처리 삭제), BattleFlow 상태는 partial 파일 `BattleFlow.States.cs`로 분리.
 - 26.11.22 묶음 5 반영: `MonsterBalanceTable` → `MonsterFormula`(편집기 자동 배정 공식값, 에셋 `Data/Balance/MonsterFormula.asset`). 옛 에셋은 처음 불러올 때 새 이름으로 옮긴다.
 - 26.11.22 묶음 4 반영: 다시 하기는 `GameManager.RestartFlow` → `FlowManager.Restart`(씬 유지, 공용 팝업·UI 요소 유지, 이펙트만 비움). 새 판 알림은 `FlowBegan` 재사용. `ReloadScene`은 DebugPanel 전용으로 남김.
 - 26.11.22 묶음 3 반영: BattleFlow 상태 Start·Play·Down·Market·Result, 끝난 이유 `EHuntResult`, 팝업은 상태가 열고 화면은 요청만. Start→Play는 스폰 다음 프레임(상태 Enter 안에서 상태를 바꾸지 않는다).

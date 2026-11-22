@@ -26,7 +26,7 @@ public interface IPickupItem
 // ==================================================
 
 // 바닥에 떨어진 버섯(골드 동전도 같은 방식, ItemID만 재화). 튀어 올랐다 떨어진 뒤, 플레이어가 가까이 오면 빨려 들어가 주워진다.
-// BattleService.SpawnPickup으로 꺼내고(판이 끝나면 남은 것을 돌려받는다), 주우면 DespawnPickup으로 돌려준다. 여러 개를 흩뿌릴 때는 S_Drop
+// BattleService.SpawnPickup으로 꺼내고(움직임은 BattleService.Tick, 판이 끝나면 남은 것을 돌려받는다), 주우면 DespawnPickup으로 돌려준다. 여러 개를 흩뿌릴 때는 S_Drop
 public class MushroomPickup : PoolableMono
 {
     private const float Gravity = -20f;
@@ -49,12 +49,9 @@ public class MushroomPickup : PoolableMono
 
     // ------------------------------------------------
 
-    private void Update()
+    // BattleService.Tick이 매 프레임 부른다(픽업마다 Update를 두지 않는다)
+    public void Tick(float deltaTime)
     {
-        float deltaTime = Time.deltaTime;
-        if (deltaTime <= 0f)
-            return;
-
         m_Age += deltaTime;
 
         if (m_IsMagnet)

@@ -12,20 +12,21 @@ public enum EBattleFlowState
 // 한 판이 끝난 이유. 결과 상태에 넘기는 값이다
 public enum EHuntResult
 {
-    Exited,   // 토벌 종료. 시장에서 판 골드와 못 판 버섯(썩은 버섯), 시장이 없으면 주운 버섯 그대로
+    Exited,   // 토벌 종료. 시장에서 판 골드와 못 판 버섯(썩은 버섯)
     TimedOut, // 밤이 끝나 쫓겨남. 주운 버섯은 썩은 버섯이 된다
     GaveUp,   // 쓰러진 뒤 귀가. 아무것도 못 받는다
 }
 
 // ==================================================
 
-// 전투 씬 흐름(하룻밤 한 판). 전투 전용 Service(Unit·HitStop·Battle)를 들고, 지역(MapDef)과 맵(MapRoot)은 씬 컨트롤러가 넘긴다.
+// 전투 씬 흐름(한 판). 전투 전용 Service(Unit·HitStop·Battle)를 들고, 지역(MapDef)과 맵(MapRoot)은 씬 컨트롤러가 넘긴다.
 // 다시 하기는 씬을 다시 읽지 않고 이 Flow를 End → Begin으로 다시 돌린다(FlowManager.Restart). Service·상태는 새로 만들지 않고 Clear·Enter에서 되돌린다
 // 단계 전환과 팝업 띄우기는 여기 상태가 맡고, BattleService는 스폰·밤 시간·주운 버섯·보상 같은 데이터와 처리만 한다. 화면(ScreenBattle)은 표시와 요청만 한다.
+// 상태 클래스는 BattleFlow.States.cs에 있다
 // 접근: FlowManager.Instance.Battle?.UnitS / HitStopS / BattleS (전투가 아니면 Battle이 null)
 // !!) 등록 순서 = Init 순서. BattleService가 스폰 때 UnitService를 쓰므로 Unit을 먼저 넣는다
 
-public sealed class BattleFlow : FlowBase<EBattleFlowState>
+public sealed partial class BattleFlow : FlowBase<EBattleFlowState>
 {
     // service
     public UnitService UnitS { get; }
@@ -53,17 +54,11 @@ public sealed class BattleFlow : FlowBase<EBattleFlowState>
 
     // 요청(화면·팝업이 부른다) ---
 
-    // 토벌 종료(확인 팝업 뒤). 시장 팝업이 있으면 시장으로, 없으면 주운 그대로 받고 끝낸다
+    // 토벌 종료(확인 팝업 뒤). 현장 시장으로 간다
     public void ExitHunt()
     {
-        if (State != EBattleFlowState.Play)
-            return;
-
-        PopupService popupS = FlowManager.Instance.PopupS;
-        if (popupS != null && popupS.HasPrefab(EPopupType.PopupMarket))
+        if (State == EBattleFlowState.Play)
             ChangeState(EBattleFlowState.Market);
-        else
-            EndHunt(EHuntResult.Exited);
     }
 
     // 사망 팝업의 부활. 골드가 모자라면 false
@@ -111,109 +106,4 @@ public sealed class BattleFlow : FlowBase<EBattleFlowState>
 
     // 화면(종료 버튼 등)이 매 프레임 상태를 읽지 않게 바뀔 때 알린다
     protected override void OnStateChanged(EBattleFlowState state) => SEventManager.Publish(new BattleStateChanged(state));
-
-    // state ---
-
-    private sealed class StartState : FlowStateBase<BattleFlow>
-    {
-        public StartState(BattleFlow flow) : base(flow) { }
-
-        public override void Enter() => Flow.BattleS.StartHunt();
-
-        // 스폰한 프레임이 지나고 넘어간다(Enter 안에서 상태를 바꾸지 않는다)
-        public override void Update(float deltaTime) => Flow.ChangeState(EBattleFlowState.Play);
-    }
-
-    // 밤 시계는 이 상태에서만 흐른다
-    private sealed class PlayState : FlowStateBase<BattleFlow>
-    {
-        public PlayState(BattleFlow flow) : base(flow) { }
-
-        public override void Update(float deltaTime)
-        {
-            BattleService battleS = Flow.BattleS;
-            battleS.AdvanceNight(deltaTime);
-
-            if (battleS.IsNightOver)
-                Flow.EndHunt(EHuntResult.TimedOut);
-        }
-    }
-
-    // 주운 버섯을 떨구는 걸 잠깐 보여 준 뒤 부활/귀가 팝업. 팝업은 고른 뒤 스스로 닫힌다
-    private sealed class DownState : FlowStateBase<BattleFlow>
-    {
-        private bool m_IsPopupOpened;
-
-        public DownState(BattleFlow flow) : base(flow) { }
-
-        public override void Enter()
-        {
-            m_IsPopupOpened = false;
-            Flow.BattleS.DropLoot();
-        }
-
-        public override void Update(float deltaTime)
-        {
-            if (m_IsPopupOpened || Flow.TimeInState < GameManager.Instance.Define.DownPopupDelay)
-                return;
-
-            m_IsPopupOpened = true;
-            FlowManager.Instance.PopupS?.Open<PopupDeath>(EPopupType.PopupDeath);
-        }
-    }
-
-    // 시장이 열린 동안 게임 시간을 멈춘다. 시장 팝업은 MarketClosed를 받으면 스스로 닫힌다
-    private sealed class MarketState : FlowStateBase<BattleFlow>
-    {
-        public MarketState(BattleFlow flow) : base(flow) { }
-
-        public override void Enter()
-        {
-            Flow.UnitS.StopBrains(); // 시장부터는 싸우지 않는다
-            
-            TimeManager.Instance.SetPause(EPauseReason.Market, true);
-            SEventManager.Subscribe<MarketClosed>(OnMarketClosed);
-
-            BattleService battleS = Flow.BattleS;
-            PlayerDataManager.Instance.Hunt.BeginMarket(battleS.DicLoot, battleS.RemainTime, battleS.NightTime);
-            FlowManager.Instance.PopupS?.Open<PopupMarket>(EPopupType.PopupMarket);
-        }
-
-        // 시장 도중 씬이 바뀌어도(Flow End) 멈춘 시간이 남지 않게 여기서 푼다
-        public override void Exit()
-        {
-            SEventManager.Unsubscribe<MarketClosed>(OnMarketClosed);
-            TimeManager.Instance.SetPause(EPauseReason.Market, false);
-        }
-
-        // 시장 닫기 또는 밤이 다 감. 골드·썩은 버섯·신뢰도는 HuntData가 이미 넣었다
-        private void OnMarketClosed(MarketClosed evt)
-        {
-            Flow.BattleS.SetMarketReward(evt);
-            Flow.EndHunt(EHuntResult.Exited);
-        }
-    }
-
-    // 결과 팝업은 공용 PopupService가 들고 있어 Flow가 끝나도 닫히지 않는다. 다시 하기에 남지 않게 나갈 때 직접 닫는다
-    private sealed class ResultState : FlowStateBase<BattleFlow>
-    {
-        private PopupResult m_Popup;
-
-        public ResultState(BattleFlow flow) : base(flow) { }
-
-        public override void Enter()
-        {
-            Flow.UnitS.StopBrains();
-            Flow.BattleS.Finish(Flow.HuntResult);
-            m_Popup = FlowManager.Instance.PopupS?.Open<PopupResult>(EPopupType.PopupResult);
-        }
-
-        public override void Exit()
-        {
-            if (m_Popup != null)
-                m_Popup.Close();
-
-            m_Popup = null;
-        }
-    }
 }

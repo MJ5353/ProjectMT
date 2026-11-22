@@ -92,5 +92,6 @@ public abstract class FlowBase<TState> : FlowBase where TState : struct, Enum
     protected virtual void OnStateChanged(TState state) { }
 
     protected sealed override void TickState(float deltaTime) => m_StateMachine.Update(deltaTime);
+    
     protected sealed override void StopState() => m_StateMachine.Stop();
 }
