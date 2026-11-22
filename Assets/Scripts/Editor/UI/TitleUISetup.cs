@@ -16,7 +16,8 @@ public static class TitleUISetup
 {
     private const string TitleSprite = "UI_Title"; // 78x57 도트
     private const float TitleScale = 8f;           // 도트 한 칸 = 8px(기준 해상도 1080 높이)
-    private const float LoadingTitleScale = 4f;
+    private const string LoadingTitleSprite = "UI_Title_Engrave"; // 76x54 반투명 검정 음각판. 로딩 화면은 이걸 쓴다
+    private const float LoadingTitleScale = 8f;    // 타이틀 화면과 같은 크기(26.11.22 대장: 두 배로)
     private const string StartBGSprite = "UI_Title_StartBG"; // 64x12. "클릭하여 시작하기" 뒤 좌우로 연해지는 띠
     private const string TitleBackgroundSprite = "UI_Title_Background";
     private static readonly Color TitleBackgroundTint = new Color(0.65f, 0.65f, 0.65f); // 그림을 어둡게 눌러 글자가 뜨게(26.11.22 대장 프리팹 값)
@@ -117,7 +118,7 @@ public static class TitleUISetup
         Button burstButton = AddBackgroundButton(UIBuilder.Stretch("Background", root), UIStyle.Background);
         RectTransform safe = UIBuilder.CreateSafeArea(root);
 
-        AddTitleImage(safe, new Vector2(0.5f, 0.6f), LoadingTitleScale);
+        AddTitleImage(safe, new Vector2(0.5f, 0.6f), LoadingTitleScale, LoadingTitleSprite);
 
         RectTransform text = UIBuilder.Anchored("Text", safe, new Vector2(0.5f, 0.3f), Vector2.zero, new Vector2(800, 80));
         UIBuilder.SetOutline(UIBuilder.Label(text, EStringKey.Loading_Text, UIStyle.FontNormal));
@@ -145,9 +146,9 @@ public static class TitleUISetup
     }
 
     // 타이틀 도트 그림을 scale배로 anchor 가운데에 놓는다. 그림이 없으면 빈 칸(LoadSprite가 경고)
-    private static RectTransform AddTitleImage(Transform parent, Vector2 anchor, float scale)
+    private static RectTransform AddTitleImage(Transform parent, Vector2 anchor, float scale, string spriteName = TitleSprite)
     {
-        Sprite sprite = UIBuilder.LoadSprite(TitleSprite);
+        Sprite sprite = UIBuilder.LoadSprite(spriteName);
         Vector2 size = sprite != null ? sprite.rect.size * scale : Vector2.zero;
 
         RectTransform rt = UIBuilder.Anchored("Title", parent, anchor, Vector2.zero, size);

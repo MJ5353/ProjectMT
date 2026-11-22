@@ -77,6 +77,7 @@ public enum EStringKey
     // clock (UINightClock, 전투·시장 공용)
     Clock_MarketCloseFormat,    // {0} 시간 {1} 분
     Clock_ActionTimeFormat,     // {0} 행동당 분
+    Clock_NightLeft,            // 전투 시계 창 위 머리글
 
     // market (PopupMarket·PopupMarketCounter·PopupMarket_MerchantRow)
     Market_MerchantCaption,

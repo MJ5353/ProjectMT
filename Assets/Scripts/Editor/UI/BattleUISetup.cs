@@ -11,7 +11,26 @@ public static class BattleUISetup
 
     private const int LootFontSize = 27; // 주운 버섯 목록 글자 크기
     private const float SkillIconSize = 64f; // 이어 쓸 수 있는 스킬 줄의 작은 아이콘
-    private const string CircleSprite = "UI_Circle"; // 반투명 원 바탕(스킬 아이콘·토벌 종료). 없으면 사각형으로 보인다
+    private const string CircleSprite = "UI_Circle"; // 반투명 원 바탕(스킬 아이콘). 없으면 사각형으로 보인다
+    private const float ClockSize = 140f;                                   // 밤 시계 지름. 마스크·테두리가 어긋나지 않게 정사각형으로 둔다
+    private static readonly Vector2 ClockPosition = new Vector2(44, -30);    // 좌상단 기준
+    private static readonly Vector2 ExitButtonSize = new Vector2(135, 148);  // 토벌 종료: 바탕 없이 음각 아이콘 + 아래 라벨
+    private static readonly Vector2 ExitButtonPosition = new Vector2(49, -190); // 시계 아래(좌상단 기준)
+    private const float ExitIconInset = 25f;                                // 아이콘 좌우 여백(판 안쪽)
+    private const float ExitLabelCenterY = -20f;                            // 라벨 띠 중심(버튼 아래 끝 기준, 판 아래로 살짝 걸침)
+    private const string ExitIconSprite = "HUD_EndHunt_Engrave";           // 반투명 음각 아이콘
+    private const float LabelBarHeight = 45f;                               // 토벌 종료 아래 반투명 검은 띠
+    private static readonly Vector2 ClockTimePosition = new Vector2(14, 18);  // 시계 오른쪽 가운데 기준 남은 시간(시장, 아래 작은 글자 자리만큼 위로)
+    private static readonly Vector2 ClockWindowPosition = new Vector2(14, -6);  // 전투: 시계 오른쪽 파인 창(계기판) 안에 남은 시간
+    private static readonly Vector2 ClockWindowSize = new Vector2(190, 68);
+    private static readonly Vector2 ClockCaptionPosition = new Vector2(0, 40);  // 창 위 가운데 작은 "남은 밤"(창 위 끝 기준)
+    private const float ClockCaptionHeight = 40f;
+    private const string ClockWindowSprite = "HUD_Time_Window";             // 반투명 음각 창(9-slice)
+    private const string ExitPlateSprite = "HUD_EndHunt_Button";
+    private static readonly Color ExitPlateColor = new Color(0.6f, 0.67f, 0.55f, 0.55f); // 흰 판에 얹는 반투명 Tint
+    private static readonly Vector2 ClockTimeSize = new Vector2(232, 105);
+    private static readonly Vector2 ClockSubPosition = new Vector2(14, -52);  // 그 아래 "행동당 30분"(시장만)
+    private static readonly Vector2 ClockSubSize = new Vector2(232, 36);
 
     // ==================================================
 
@@ -62,19 +81,26 @@ public static class BattleUISetup
         SkillSlot(safe, "Dash", "HUD_Dash", new Vector2(-230, 50), 110f, out GameObject dashActive);
         AddSkillChain(attackSlot);
 
-        // 우상단 토벌 종료: 동그란 깃발 버튼 + 아래 작은 글자
-        RectTransform exitRect = UIBuilder.Anchored("ExitButton", safe, new Vector2(1, 1), new Vector2(-50, -30), new Vector2(110, 110));
-        Image exitBack = SpriteImage("Back", exitRect, CircleSprite, 0f);
-        exitBack.color = new Color(UIStyle.Gold.r, UIStyle.Gold.g, UIStyle.Gold.b, 0.85f);
-        exitBack.raycastTarget = true;
-        SpriteImage("Icon", exitRect, "HUD_EndHunt", 24f);
-        RectTransform exitText = UIBuilder.Rect("Text", exitRect, new Vector2(-0.5f, 0), new Vector2(1.5f, 0), new Vector2(0, -40), Vector2.zero);
-        UIBuilder.SetOutline(UIBuilder.Label(exitText, EStringKey.Battle_Exit, 30));
+        // 시계 아래 토벌 종료: 반투명 Tint 흰 판 위 음각 아이콘 + 아래 반투명 검은 띠 위 "토벌 종료". 누르면 확인 팝업을 거친다
+        RectTransform exitRect = UIBuilder.Anchored("ExitButton", safe, new Vector2(0, 1), ExitButtonPosition, ExitButtonSize);
+        UIBuilder.AddImage(exitRect, Color.clear, true); // 보이지 않는 누름 영역(버튼 전체)
+        Image exitPlate = SpriteImage("Plate", exitRect, ExitPlateSprite, 0f);
+        exitPlate.color = ExitPlateColor;
+        Image exitIcon = SpriteImage("Icon", exitPlate.rectTransform, ExitIconSprite, 0f); // 판 안쪽, 좌우만 여백
+        exitIcon.rectTransform.offsetMin = new Vector2(ExitIconInset, 0);
+        exitIcon.rectTransform.offsetMax = new Vector2(-ExitIconInset, 0);
+
         Button exit = exitRect.gameObject.AddComponent<Button>();
-        exit.targetGraphic = exitBack;
+        exit.targetGraphic = exitPlate; // 누르면 판이 어두워진다
+        ColorBlock exitColors = exit.colors;
+        exitColors.pressedColor = new Color(0.6f, 0.6f, 0.6f, 1f);
+        exitColors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+        exit.colors = exitColors;
+
+        LabelBar(exitRect, "LabelBar", ExitLabelCenterY, 30f, EStringKey.Battle_Exit);
 
         // 그 아래 주운 버섯 목록(버섯·신선도별)
-        RectTransform lootRect = UIBuilder.Anchored("LootList", safe, new Vector2(1, 1), new Vector2(-40, -200), new Vector2(507, 0));
+        RectTransform lootRect = UIBuilder.Anchored("LootList", safe, new Vector2(1, 1), new Vector2(-40, -49), new Vector2(507, 0));
         UIBuilder.ListOption lootList = new(lootRect, EUIListAxis.Vertical, new Vector2(0, 43), new Vector2(0, 3), TextAnchor.UpperRight,
             isStretch: true, isFitContent: true);
 
@@ -174,29 +200,48 @@ public static class BattleUISetup
         return effect;
     }
 
-    // 밤 시계: 둥근 마스크 안에서 하늘 띠가 내려가고, 위에 흰 테두리, 아래에 남은 시간과 시장용 작은 글자("행동당 30분").
-    // 전투 HUD와 시장 팝업이 같은 자리(좌상단)에 같은 모양으로 쓴다. 시장 팝업은 어두운 바탕 위라 외곽선 없는 글자를 쓴다
-    public static UINightClock BuildNightClock(Transform parent, bool isOutline = true)
+    // 밤 시계: 둥근 마스크 안에서 하늘 띠가 내려가고, 위에 음각 테두리(마스크와 같은 칸).
+    // 남은 시간은 시계 오른쪽. 시장(isMarket)은 아래에 작은 글자("행동당 30분")도 쓴다
+    public static UINightClock BuildNightClock(Transform parent, bool isMarket = false)
     {
-        RectTransform clockRoot = UIBuilder.Anchored("NightClock", parent, new Vector2(0, 1), new Vector2(40, -30), new Vector2(160, 160));
+        RectTransform clockRoot = UIBuilder.Anchored("NightClock", parent, new Vector2(0, 1), ClockPosition, Vector2.one * ClockSize);
         Image mask = SpriteImage("Mask", clockRoot, "HUD_NightClock_Fill", 0f);
         mask.preserveAspect = false;
         mask.gameObject.AddComponent<Mask>().showMaskGraphic = false;
         RectTransform sky = UIBuilder.Rect("Sky", mask.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
         sky.pivot = new Vector2(0.5f, 0f);
-        sky.sizeDelta = new Vector2(160f, 160f * 5f); // 48x240 도트 비율
+        sky.sizeDelta = new Vector2(ClockSize, ClockSize * 5f); // 48x240 도트 비율
         SpriteImage(sky, "HUD_NightClock_Sky").preserveAspect = false;
-        SpriteImage("Frame", clockRoot, "HUD_NightClock_Frame", 0f);
-        RectTransform timeRect = UIBuilder.Rect("Time", clockRoot, Vector2.zero, new Vector2(1, 0), new Vector2(-40, -56), new Vector2(40, 0));
-        TMP_Text time = UIBuilder.Label(timeRect, "05:00", UIStyle.FontLarge);
-        RectTransform subRect = UIBuilder.Rect("Sub", clockRoot, Vector2.zero, new Vector2(1, 0), new Vector2(-40, -90), new Vector2(40, -56));
-        TMP_Text sub = UIBuilder.Label(subRect, "행동당 30분", UIStyle.FontSmall, TextAlignmentOptions.Left);
-        if (isOutline)
+        SpriteImage("Frame", clockRoot, "HUD_NightClock_Frame", 0f); // 마스크와 같은 칸(음각 테두리)
+
+        // 남은 시간은 시계 오른쪽(시장 프리팹에서 맞춘 자리 기준)
+        RectTransform subRect = UIBuilder.Anchored("Sub", clockRoot, new Vector2(1, 0.5f), ClockSubPosition, ClockSubSize);
+        subRect.pivot = new Vector2(0, 0.5f);
+
+        TMP_Text time;
+        if (isMarket)
         {
-            UIBuilder.SetOutline(time);
-            UIBuilder.SetOutline(sub);
+            // 시장: 어두운 바탕 위라 그냥 밝은 글자 두 줄("남은 시간\n5시간 30분")
+            RectTransform timeRect = UIBuilder.Anchored("Time", clockRoot, new Vector2(1, 0.5f), ClockTimePosition, ClockTimeSize);
+            timeRect.pivot = new Vector2(0, 0.5f);
+            time = UIBuilder.Label(timeRect, "남은 시간\n5시간 30분", UIStyle.FontNormal, TextAlignmentOptions.Left);
+        }
+        else
+        {
+            // 전투: 계기판처럼 파인 창(음각) 안에 숫자, 위에 작은 "남은 밤". 정보는 창, 버튼은 둥근 판으로 모양을 나눈다
+            RectTransform windowRect = UIBuilder.Anchored("Window", clockRoot, new Vector2(1, 0.5f), ClockWindowPosition, ClockWindowSize);
+            windowRect.pivot = new Vector2(0, 0.5f);
+            Image window = SpriteImage(windowRect, ClockWindowSprite);
+            window.preserveAspect = false;
+            window.type = Image.Type.Sliced;
+            time = UIBuilder.Label(UIBuilder.Stretch("Time", windowRect), "05:00", UIStyle.FontLarge);
+
+            RectTransform captionRect = UIBuilder.Anchored("Caption", windowRect, new Vector2(0.5f, 1f), ClockCaptionPosition, new Vector2(ClockWindowSize.x, ClockCaptionHeight));
+            UIBuilder.SetOutline(UIBuilder.Fit(UIBuilder.Label(captionRect, EStringKey.Clock_NightLeft, UIStyle.FontSmall)));
         }
 
+        UIBuilder.Fit(time);
+        TMP_Text sub = UIBuilder.Fit(UIBuilder.Label(subRect, "행동당 30분", UIStyle.FontSmall, TextAlignmentOptions.Left));
         sub.color = UIStyle.TextDim;
         sub.gameObject.SetActive(false);
 
@@ -332,6 +377,16 @@ public static class BattleUISetup
         UIBuilder.SetRef(skillIcon, "m_Icon", icon);
 
         return skillIcon;
+    }
+
+    // 부모 아래쪽에 붙는 반투명 검은 띠 + 가운데 글자(시계 남은 시간·토벌 종료). centerY는 부모 아래 변 기준 띠 가운데 높이, extraWidth는 부모보다 넓힐 폭
+    private static TMP_Text LabelBar(RectTransform parent, string name, float centerY, float extraWidth, EStringKey? key)
+    {
+        float half = LabelBarHeight * 0.5f;
+        RectTransform bar = UIBuilder.Rect(name, parent, Vector2.zero, new Vector2(1, 0), new Vector2(-extraWidth * 0.5f, centerY - half), new Vector2(extraWidth * 0.5f, centerY + half));
+        UIBuilder.AddImage(bar, UIStyle.Dim);
+
+        return key.HasValue ? UIBuilder.Label(bar, key.Value, UIStyle.FontNormal) : UIBuilder.Label(bar, "05:00", UIStyle.FontNormal);
     }
 
     private static Image SpriteImage(string name, Transform parent, string sprite, float inset)

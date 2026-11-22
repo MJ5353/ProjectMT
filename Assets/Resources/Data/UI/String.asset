@@ -57,9 +57,11 @@ MonoBehaviour:
   - <Key>k__BackingField: Battle_LootStaleFormat
     <Value>k__BackingField: "{0} \uB35C \uC2E0\uC120 x{1}"
   - <Key>k__BackingField: Clock_MarketCloseFormat
-    <Value>k__BackingField: "\uC2DC\uC7A5\uC774 \uB2EB\uAE30\uAE4C\uC9C0, {0}h {1:00}m"
+    <Value>k__BackingField: "\uB0A8\uC740 \uC2DC\uAC04\n{0}\uC2DC\uAC04 {1:00}\uBD84"
   - <Key>k__BackingField: Clock_ActionTimeFormat
     <Value>k__BackingField: "\uD589\uB3D9\uB2F9 {0}\uBD84"
+  - <Key>k__BackingField: Clock_NightLeft
+    <Value>k__BackingField: "\uB0A8\uC740 \uBC24"
   - <Key>k__BackingField: Death_Title
     <Value>k__BackingField: "\uC4F0\uB7EC\uC84C\uB2E4"
   - <Key>k__BackingField: Death_Desc
@@ -122,7 +124,7 @@ MonoBehaviour:
   - <Key>k__BackingField: Market_SoldFormat
     <Value>k__BackingField: "\uD310 \uACE8\uB4DC {0:N0}G"
   - <Key>k__BackingField: Market_TotalFormat
-    <Value>k__BackingField: "\uD569\uACC4 {0}G  ({1}/{2}\uBB36\uC74C)"
+    <Value>k__BackingField: "{0}G  ({1}/{2}\uBB36\uC74C)"
   - <Key>k__BackingField: Market_NoMerchant
     <Value>k__BackingField: "\uC624\uB298\uC740 \uC0C1\uC778\uC774 \uC5C6\uB2E4"
   - <Key>k__BackingField: Market_MerchantInfoFormat
