@@ -26,7 +26,7 @@ public class PlayerBrain : BrainBase
     public PlayerBrain(UnitController owner, PlayerDef def) : base(owner)
     {
         m_Def = def;
-        m_Rush = new PerfectDodgeRush(owner, def);
+        m_Rush = new PerfectDodgeRush(owner, def, TargetSelector);
     }
 
     public override void Reset()
@@ -49,7 +49,7 @@ public class PlayerBrain : BrainBase
         if (IsStopped)
             return;
 
-        m_Rush.TryStart();
+        m_Rush.TryStart(hit.Attacker);
     }
 
     protected override void OnStop()
@@ -76,7 +76,10 @@ public class PlayerBrain : BrainBase
             return;
 
         UpdateAttackInput(pressedAttack);
-        UpdateMoveInput();
+
+        // 러시 돌진 중에는 러시가 이동을 정한다
+        if (m_Rush.IsApproaching == false)
+            UpdateMoveInput();
     }
 
     // ==================================================
@@ -92,7 +95,8 @@ public class PlayerBrain : BrainBase
             m_Rush.OnQueued(pressedAttack);
         }
 
-        if (m_QueuedAttack == null || action.CanRequest(EActionType.Attack) == false)
+        // 러시 돌진 중에는 예약만 해 두고 도착한 뒤 낸다
+        if (m_QueuedAttack == null || m_Rush.IsApproaching || action.CanRequest(EActionType.Attack) == false)
             return;
 
         AttackSpec attack = m_QueuedAttack;
@@ -175,9 +179,12 @@ public class PlayerBrain : BrainBase
         return forward * raw.y + right * raw.x;
     }
 
-    // 가까운 적이 있으면 그쪽, 없으면 입력 방향, 그것도 없으면 지금 앞
+    // 러시 중이면 퍼닷몹 쪽. 아니면 가까운 적이 있으면 그쪽, 없으면 입력 방향, 그것도 없으면 지금 앞
     private Vector3 FindAimDirection()
     {
+        if (m_Rush.IsActive && m_Rush.TryGetAimDirection(out Vector3 rushDirection))
+            return rushDirection;
+
         Vector3 input = GetMoveInput();
         Vector3 fallback = input.sqrMagnitude > 0.01f ? input : Owner.transform.forward;
         return TargetSelector.GetAimDirection(m_Def.AutoAimRange, fallback);

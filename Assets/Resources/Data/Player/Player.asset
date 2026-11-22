@@ -42,6 +42,7 @@ MonoBehaviour:
   <RushSlowRate>k__BackingField: 0.05
   <RushTime>k__BackingField: 3
   <RushFinishWindow>k__BackingField: 1
+  <RushApproachSpeed>k__BackingField: 25
   <RushLeft>k__BackingField: {fileID: 11400000, guid: b0ff956230e34e21b542e3f97e6192b5, type: 2}
   <RushRight>k__BackingField: {fileID: 11400000, guid: f9aa20ad8d744a63bc948f8afc43c264, type: 2}
   <RushFinisher>k__BackingField: {fileID: 11400000, guid: 2469ba86862147ebb93df35b1fe66982, type: 2}

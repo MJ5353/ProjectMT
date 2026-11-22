@@ -48,6 +48,9 @@ public class PlayerDef : UnitDef
     public float RushFinishWindow { get; private set; } = 1f;    // 빈틈 타이머 마지막 이 시간 안의 첫 클릭이 막타
 
     [field: SerializeField]
+    public float RushApproachSpeed { get; private set; } = 25f;  // [mj] todo) 임시값. 러시 시작 때 퍼닷몹 앞까지 돌진하는 속도
+
+    [field: SerializeField]
     public SkillDef RushLeft { get; private set; } = null;       // 러시 좌 베기. 클릭마다 좌·우를 번갈아 낸다. 비면 러시 없음
 
     [field: SerializeField]
