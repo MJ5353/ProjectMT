@@ -61,13 +61,13 @@ public class GameManager : MonoSingleton<GameManager>
         return StartTransition(SceneManager.GetActiveScene().name);
     }
 
-    // 씬을 다시 읽지 않고 지금 Flow만 새로 시작한다(전투 다시 하기). 정리·재스폰이 보이지 않게 로딩 화면을 덮는다
+    // 씬을 다시 읽지 않고 지금 Flow만 다시 시작한다(전투 다시 하기). 정리·재스폰이 보이지 않게 로딩 화면을 덮는다
     public bool RestartFlow()
     {
         if (IsTransitioning || FlowManager.Instance.IsRunning == false)
             return false;
 
-        StartCoroutine(RestartTransition());
+        StartCoroutine(Loading(RestartRoutine()));
         return true;
     }
 
@@ -89,23 +89,19 @@ public class GameManager : MonoSingleton<GameManager>
             return false;
         }
 
-        StartCoroutine(Transition(sceneName));
+        StartCoroutine(Loading(LoadSceneRoutine(sceneName)));
         return true;
     }
 
-    private IEnumerator Transition(string sceneName)
+    // 로딩 화면을 덮은 채 work를 돌린다. 도는 동안은 전환 중(IsTransitioning)이라 다른 전환을 받지 않는다
+    private IEnumerator Loading(IEnumerator work)
     {
         IsTransitioning = true;
 
         try
         {
-            UIManager uiM = UIManager.Instance;
-            uiM.ShowLoading(true);
-
-            // 씬 오브젝트가 살아 있을 때 지금 Flow와 Service를 정리한다(UI 칸 회수·팝업 삭제 포함)
-            FlowManager.Instance.End();
-
-            yield return SceneLoader.Load(sceneName, Define.MinLoadingTime, uiM.SetLoadingProgress);
+            UIManager.Instance.ShowLoading(true);
+            yield return work;
         }
         finally
         {
@@ -114,37 +110,20 @@ public class GameManager : MonoSingleton<GameManager>
         }
     }
 
-    private IEnumerator RestartTransition()
+    // 씬 오브젝트가 살아 있을 때 지금 Flow와 Service를 정리하고(UI 칸 회수·팝업 삭제 포함) 다음 씬을 읽는다
+    private IEnumerator LoadSceneRoutine(string sceneName)
     {
-        IsTransitioning = true;
+        FlowManager.Instance.End();
+        yield return SceneLoader.Load(sceneName, Define.MinLoadingTime, UIManager.Instance.SetLoadingProgress);
+    }
 
-        try
-        {
-            UIManager uiM = UIManager.Instance;
-            uiM.ShowLoading(true);
+    // 누른 버튼(결과 팝업) 처리가 끝난 다음 프레임에 Flow를 다시 돌리고, 씬 전환과 같은 시간만큼 덮는다
+    private IEnumerator RestartRoutine()
+    {
+        yield return null;
 
-            // 누른 버튼(결과 팝업) 처리가 끝난 다음 프레임에 정리한다
-            yield return null;
-
-            FlowManager.Instance.Restart();
-
-            // 씬 전환과 같은 가짜 로딩. 일시정지와 상관없이 실제 시간으로 찬다
-            float minSeconds = Define.MinLoadingTime;
-            float startTime = Time.unscaledTime;
-            float ratio = 0f;
-            
-            while (ratio < 1f)
-            {
-                ratio = minSeconds > 0f ? (Time.unscaledTime - startTime) / minSeconds : 1f;
-                uiM.SetLoadingProgress(Mathf.Clamp01(ratio));
-                yield return null;
-            }
-        }
-        finally
-        {
-            UIManager.Instance.ShowLoading(false);
-            IsTransitioning = false;
-        }
+        FlowManager.Instance.Restart();
+        yield return SceneLoader.Wait(Define.MinLoadingTime, UIManager.Instance.SetLoadingProgress);
     }
 
     // virtual ---

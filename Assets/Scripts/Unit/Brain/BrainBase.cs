@@ -4,7 +4,7 @@
 // 판단(UnitBrain)의 기반(플레이어 입력·몬스터 AI). "무엇을 할지"만 정해 실행기(UnitExecutor)에 요청한다.
 // Feature(부품)가 아니라 주인이 직접 들고, 매 프레임 부품 Tick → 행동 다음, 이동(LateTick) 전에 부른다.
 // 감지(대상 찾기·거리)는 TargetSelector가 맡는다.
-// 전투가 끝나면 스스로 멈추고(OnStop) 하던 행동을 정리한다. 피격·사망·행동 끝은 훅으로 받는다
+// 시장·결과로 넘어가면 BattleFlow가 멈추고(UnitService.StopBrains → Stop) 하던 행동을 정리한다. 피격·사망·행동 끝은 훅으로 받는다
 
 public abstract class BrainBase
 {
@@ -37,18 +37,11 @@ public abstract class BrainBase
         TargetSelector.Clear();
     }
 
-    // 전투 중일 때만 판단한다. 시장·결과로 넘어간 프레임에 한 번 멈춘다
+    // 멈추기 전까지 판단한다
     public void Tick(float deltaTime)
     {
         if (IsStopped)
             return;
-
-        BattleFlow battle = FlowManager.Instance.Battle;
-        if (battle != null && battle.IsHuntOver)
-        {
-            Stop();
-            return;
-        }
 
         Think(deltaTime);
     }

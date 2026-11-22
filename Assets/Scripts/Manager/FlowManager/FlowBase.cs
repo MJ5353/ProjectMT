@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 // 씬 하나의 흐름. 이 씬에서만 쓰는 Service를 들고 Init·Tick·Clear를 부른다. 공용 Service는 FlowManager가 따로 돌린다.
 // 어떤 Flow를 쓸지는 씬 컨트롤러(CreateFlow)가 정하고, FlowManager가 Begin·Tick·End를 부른다.
-// 자식은 생성자에서 Service를 Register하고, 시작·끝에 할 일은 OnBegin·OnEnd에 둔다
+// 자식은 생성자에서 Service를 Register하고, 시작·끝에 할 일은 OnBegin·OnEnd에 둔다.
+// 다시 하기는 같은 인스턴스로 End → Begin을 다시 부른다. Service는 Clear에서 처음 상태로 되돌려야 한다
 
 public abstract class FlowBase
 {
@@ -65,7 +66,8 @@ public abstract class FlowBase
 
 // ==================================================
 
-// 상태(enum)를 가진 Flow. 상태는 생성자에서 AddState로 등록하고, OnBegin에서 첫 상태로 ChangeState한다
+// 상태(enum)를 가진 Flow. 상태는 생성자에서 AddState로 등록하고, OnBegin에서 첫 상태로 ChangeState한다.
+// 상태가 하나뿐이면(Title·Lobby) 이걸 쓰지 않고 FlowBase를 바로 상속한다
 
 public abstract class FlowBase<TState> : FlowBase where TState : struct, Enum
 {
@@ -76,11 +78,18 @@ public abstract class FlowBase<TState> : FlowBase where TState : struct, Enum
 
     // ------------------------------------------------
 
-    public void ChangeState(TState next) => m_StateMachine.Change(next);
+    // 상태를 바꾸고(이전 Exit → 다음 Enter) 자식에게 알린다
+    public void ChangeState(TState next)
+    {
+        m_StateMachine.Change(next);
+        OnStateChanged(next);
+    }
 
     protected void AddState(TState key, IState state) => m_StateMachine.Add(key, state);
 
     // virtual ---
+
+    protected virtual void OnStateChanged(TState state) { }
 
     protected sealed override void TickState(float deltaTime) => m_StateMachine.Update(deltaTime);
     protected sealed override void StopState() => m_StateMachine.Stop();

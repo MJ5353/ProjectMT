@@ -51,7 +51,8 @@ public static class EditorPath
     public const string TitleScene = ScenesDir + nameof(ESceneType.Title) + SceneExtension;
     public const string PlayerDef = PlayerDataDir + "Player.asset";
     public const string DefaultMapDef = MapDataDir + "Map_001_Field.asset"; // Battle 씬을 만들 때 넣는 지역
-    public const string MonsterBalance = BalanceDataDir + "MonsterBalance.asset";
+    public const string MonsterFormula = BalanceDataDir + "MonsterFormula.asset";       // 몬스터 자동 배정 공식(MonsterFormula)
+    public const string OldMonsterBalance = BalanceDataDir + "MonsterBalance.asset";    // 이름 바꾸기 전 에셋. 자동으로 옮긴 뒤 지운다
     public const string PopupDefAsset = UIDataDir + PopupDef.PopupID + ".asset";
     public const string UIComponentDefAsset = UIDataDir + UIComponentDef.UIComponentID + ".asset";
     public const string StringDefAsset = UIDataDir + StringDef.StringID + ".asset";

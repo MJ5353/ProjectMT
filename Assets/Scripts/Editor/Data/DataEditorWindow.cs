@@ -133,7 +133,7 @@ public sealed class DataEditorWindow : EditorWindow
             m_AutoFill.menu.AppendAction($"{scope}/스킬 Def 만들기", _ => AutoFillSkills(isAll));
         }
         m_AutoFill.menu.AppendSeparator();
-        m_AutoFill.menu.AppendAction("밸런스 공식 열기", _ => RunAction(() => Selection.activeObject = MonsterAutoFill.LoadTable()));
+        m_AutoFill.menu.AppendAction("밸런스 공식 열기", _ => RunAction(() => Selection.activeObject = MonsterAutoFill.LoadFormula()));
         actions.Add(m_AutoFill);
         m_BuildPickup = new Button(() => BuildPickups(false)) { text = "픽업 전체 빌드", tooltip = "버섯 Def마다 Pickup_NNN_Key 프리팹을 만들고 Def에 연결합니다. 이미 있는 픽업은 ID·연결만 맞춥니다." };
         actions.Add(m_BuildPickup);

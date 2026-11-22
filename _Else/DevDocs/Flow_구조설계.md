@@ -43,13 +43,13 @@
 ### Flow 기반 클래스
 
 - **`FlowBase`**(26.11.22 반영): 생성자에서 `Register<T>`로 전용 Service를 넣고, 수명은 `Begin → Tick → End`. `Begin`은 등록 순서로 Init 후 `OnBegin`, `End`는 상태 머신을 멈추고 `OnEnd` 뒤 등록 역순으로 `Clear`. 자식은 `OnBegin`·`OnEnd`만 덮어쓴다. `FlowManager`는 이 타입으로만 다룬다.
-- **`FlowBase<TState>`**: 기존 `StateMachine<TState>`(Common/Util)를 들고 `AddState`(생성자)·`ChangeState`·`State`·`TimeInState`를 제공한다.
+- **`FlowBase<TState>`**: 기존 `StateMachine<TState>`(Common/Util)를 들고 `AddState`(생성자)·`ChangeState`·`State`·`TimeInState`를 제공한다. 상태가 바뀌면 자식 훅 `OnStateChanged`를 부른다(BattleFlow는 `BattleStateChanged` 이벤트로 알림). 상태가 하나뿐인 Flow는 이걸 쓰지 않고 `FlowBase`를 바로 상속한다.
 - **`FlowStateBase<TFlow>`**: `IState` 구현. 주인 Flow를 받고 `Enter`·`Update`·`Exit`를 덮어쓴다.
 - (묶음 3 반영) Flow는 전용 Service를 늘 Tick하고(유닛·히트스톱은 모든 상태에서 돈다), 단계에 묶인 일(밤 흐르기·리스폰)은 상태 Update가 `BattleService.AdvanceNight`처럼 직접 부른다. Service는 스스로 "지금 진행 중인가"를 검사하지 않는다. 앱 일시정지를 Flow에 알리는 `OnPause`는 필요해지면 넣는다.
 
 ### TitleFlow · LobbyFlow
 
-- 상태: Play 하나(`ETitleFlowState`·`ELobbyFlowState`). 씬 전용 Service가 생기면 생성자에서 등록한다(26.11.22 반영).
+- 상태 없음(`FlowBase` 바로 상속, 26.11.22 정리). 씬 전용 Service가 생기면 생성자에서 등록하고, 단계가 생기면 `FlowBase<TState>`로 바꾼다.
 
 ### BattleFlow
 
@@ -63,7 +63,7 @@
 
 - (묶음 3 반영) 사망(Down, `DownPopupDelay` 뒤)·시장(Market)·결과(Result) 팝업은 각 상태가 연다. 결과 팝업은 Result `Exit`가 닫는다. `ScreenBattle`은 표시와 토벌 종료 요청(`BattleFlow.ExitHunt`)만 하고, 종료 버튼은 Play 상태에서만 눌린다. `PlayerDowned`·`BattleEnded` 이벤트는 없앴다.
 - 끝난 이유는 `EHuntResult`(Exited·TimedOut·GaveUp)로 `BattleFlow.HuntResult`에 두고 Result가 읽는다. `EBattleState`는 없앴다.
-- 요청 입구는 `BattleFlow`(ExitHunt·TryRevive·GiveUp·Retry·TryGoLobby)이고, 현재 상태가 맞지 않으면 무시한다. 몬스터 판단은 `BattleFlow.IsHuntOver`(Market·Result)면 멈춘다.
+- 요청 입구는 `BattleFlow`(ExitHunt·TryRevive·GiveUp·Retry·TryGoLobby)이고, 현재 상태가 맞지 않으면 무시한다. Market·Result에 들어갈 때 `UnitService.StopBrains`로 모든 유닛 판단을 한 번에 멈춘다(유닛이 매 프레임 Flow 상태를 보지 않는다). 종료 버튼은 `BattleStateChanged`로 켜고 끈다.
 - `BattleService`는 스폰(`StartHunt`, Start 상태)·리스폰·밤 시간(`AdvanceNight`, Play 상태)·떨구기(`DropLoot`, Down 상태)·보상(`SetMarketReward`·`Finish`, Result 상태)만 남았다. 쓰러짐은 C# 이벤트 `PlayerDied`로 Flow에 알린다.
 - 전용 Service: Unit·HitStop·Battle(이펙트는 공용). 지역(`MapDef`)은 `BattleSceneController`가 Flow를 만들 때 넘긴다.
 
@@ -82,7 +82,7 @@
 1. **씬 진입**: `SceneControllerBase.Awake`(매니저 생성·UI 루트·카메라) → `Start`에서 `FlowManager.Begin(CreateFlow())` → 공용 Service Init(Effect → UIReuse → Popup) → Flow `Begin`(전용 Service Init, 첫 상태 진입) → `FlowBegan` 이벤트.
 2. **진행**: `SceneControllerBase.Update` → `FlowManager.Tick` → 공용 Service Tick + 현재 Flow 상태 Update.
 3. **씬 전환**: `GameManager.ChangeScene(ESceneType)` → 로딩 오버레이 → `FlowManager.End()`(Flow `End` → `UIReuseService` UI 요소 회수 → `PopupService` 팝업 파괴 → `EffectService` 회수) → 씬 로드. 요소 회수가 팝업 파괴보다 먼저여야 한다(UI 스레드 26.11.21). 정리 입구는 여기 한 곳이고 `SceneUnloading` 이벤트는 이 순서로 대체한다. `OnDestroy`는 정리가 안 된 경우의 안전망만 맡는다.
-4. **다시 하기(Retry)**(묶음 4 반영): 씬을 다시 로드하지 않는다. `BattleFlow.Retry` → `GameManager.RestartFlow`(로딩 오버레이, 다음 프레임에) → `FlowManager.Restart`: 씬 컨트롤러의 `CreateFlow`로 새 Flow를 만들고, 지금 Flow `End` → `EffectService.Clear` → 새 Flow `Begin` → `FlowBegan`. 공용 UIReuse·Popup은 연결을 유지한다(화면이 든 UI 요소가 회수되지 않게). `FlowManager.Begin`은 Flow 대신 만드는 함수(`Func<FlowBase>`)를 받아 기억한다.
+4. **다시 하기(Retry)**(묶음 4 반영): 씬을 다시 로드하지 않는다. `BattleFlow.Retry` → `GameManager.RestartFlow`(로딩 오버레이, 다음 프레임에) → `FlowManager.Restart`: 같은 Flow 인스턴스로 `End` → `EffectService.Clear` → `Begin` → `FlowBegan`. Flow·Service를 새로 만들지 않고(할당 없음) 각 Service의 `Clear`가 처음 상태로 되돌린다. 공용 UIReuse·Popup은 연결을 유지한다(화면이 든 UI 요소가 회수되지 않게). 씬 컨트롤러 `CreateFlow`는 씬마다 한 번만 불리고, 맵도 그때 한 번 만든다.
 
 ### Retry에서 챙길 것
 
@@ -104,7 +104,7 @@
 2. (26.11.22 반영) Flow 뼈대 + 씬 전환 분리(UI 오버레이 정리는 먼저 반영): FlowManager·Flow 기반, Title·Lobby·BattleFlow(Play 하나), 공용·전용 Service 이전, `SceneDef`, GameManager 씬 전환 전용, 정리 입구 하나, 호출부 교체
 3. (26.11.22 반영) BattleFlow 상태 나누기: `EBattleState` 폐지, 팝업을 상태 Enter로
 4. (26.11.22 반영) 씬 재로드 없는 Retry
-5. 이름 정리(`MonsterBalanceTable`)
+5. (26.11.22 반영) 이름 정리(`MonsterBalanceTable` → `MonsterFormula`)
 
 묶음 2·3은 `ScreenBattle`·`PopupResult`·`PopupDeath` 등 UI 파일도 바꾸므로 UI 작업과 겹치지 않을 때 한다.
 
@@ -122,6 +122,8 @@
 - 26.11.21 대장: 토벌 종료 버튼은 확인 팝업("토벌을 종료할까요?" 예/아니오)을 거친다.
 - 26.11.21 대장: 씬 이름은 `SceneDef`(DataDef)로 데이터에 연결한다. `SceneNames` 상수와 `[mj] todo)`는 이걸로 대체한다.
 - 26.11.21 대장: Table은 편집기용 공식값이라 Def와 헷갈리지 않게 이름을 바꾼다(`MonsterBalanceTable`). `PopupTable`은 `PopupDef`로 대체돼 삭제.
+- 26.11.22 대장: 다시 하기는 Flow·Service를 새로 만들지 않고 같은 인스턴스를 Clear 후 다시 Begin한다(GC 방지). 정리안 1~4 반영: Title·Lobby는 상태 없는 `FlowBase`, `GameManager`의 로딩 덮기를 `Loading(work)` 하나로(가짜 로딩은 `SceneLoader.Wait`), `FlowManager.StartCurrent`로 시작·알림 묶기, 유닛 판단 정지·종료 버튼을 상태 변경 시점 처리로.
+- 26.11.22 묶음 5 반영: `MonsterBalanceTable` → `MonsterFormula`(편집기 자동 배정 공식값, 에셋 `Data/Balance/MonsterFormula.asset`). 옛 에셋은 처음 불러올 때 새 이름으로 옮긴다.
 - 26.11.22 묶음 4 반영: 다시 하기는 `GameManager.RestartFlow` → `FlowManager.Restart`(씬 유지, 공용 팝업·UI 요소 유지, 이펙트만 비움). 새 판 알림은 `FlowBegan` 재사용. `ReloadScene`은 DebugPanel 전용으로 남김.
 - 26.11.22 묶음 3 반영: BattleFlow 상태 Start·Play·Down·Market·Result, 끝난 이유 `EHuntResult`, 팝업은 상태가 열고 화면은 요청만. Start→Play는 스폰 다음 프레임(상태 Enter 안에서 상태를 바꾸지 않는다).
 - 26.11.22: 토벌 종료 확인 팝업이 떠 있는 동안 게임 시간 전체를 멈춘다(구현 기준, Confirm 이유).
@@ -137,4 +139,3 @@
 
 - `SceneDef`에 씬 이름 외에 무엇을 둘지(로딩 연출 등). 키는 `ESceneType`으로 정해졌다.
 - 시장 정지를 timeScale(Market 이유)로 둘지, Market 상태가 전투 Service를 Tick하지 않는 방식으로 바꿀지.
-- `MonsterBalanceTable`의 새 이름.

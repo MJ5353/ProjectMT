@@ -71,6 +71,15 @@ public sealed class UnitService : ServiceBase
         m_ListToRemove.Clear();
     }
 
+    // 모든 유닛의 판단을 멈추고 제자리에 세운다(시장·결과로 넘어갈 때 BattleFlow가 부른다). 다음 판은 새로 꺼낸 유닛이라 다시 움직인다
+    public void StopBrains()
+    {
+        foreach (UnitController unit in m_ListUnit)
+        {
+            unit.BrainBase.Stop();
+        }
+    }
+
     public void Despawn(int unitID)
     {
         if (m_IsTicking)
@@ -95,6 +104,7 @@ public sealed class UnitService : ServiceBase
     }
 
     // 남은 유닛을 모두 풀로 돌려보낸다(다시 하기에 겹치지 않게). 판이 끝나는 정리라 UnitRemoved는 보내지 않는다.
+    // 유닛 번호(m_LastUnitID)는 되돌리지 않는다. 다시 하기에도 지난 판 번호와 겹치지 않게 이어 센다
     // 씬과 함께 이미 지워진 유닛은 건너뛴다(UnitFactory.Release가 null을 거른다)
     public override void Clear()
     {

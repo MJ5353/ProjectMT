@@ -106,8 +106,8 @@ public static class MapSpawnAutoFill
         }
 
         // 지역 몬스터 5종: [0] 잡몹 A, [1] 잡몹 B, [2] 엘리트 A, [3] 엘리트 B, [4] 보스
-        int firstNo = (map.Order - 1) * MonsterBalanceTable.MonstersPerMap + 1;
-        MonsterDef[] arrMonster = new MonsterDef[MonsterBalanceTable.MonstersPerMap];
+        int firstNo = (map.Order - 1) * MonsterFormula.MonstersPerMap + 1;
+        MonsterDef[] arrMonster = new MonsterDef[MonsterFormula.MonstersPerMap];
         foreach (MonsterDef monster in listMonster)
         {
             if (MonsterAutoFill.TryParseNo(monster.name, out int no) == false)

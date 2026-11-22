@@ -3,7 +3,7 @@ using UnityEngine;
 // ==================================================
 
 // 전투 씬. 지역(MapDef)을 골라 BattleFlow(전투 Service Unit·HitStop·Battle)를 만든다. 이펙트·팝업은 공용(FlowManager)
-// 맵은 씬이 처음 Flow를 만들 때 한 번 만들어 들고, 다시 하기(Flow만 새로 시작)에도 그대로 쓴다. 씬과 함께 지워진다
+// 맵은 Flow를 만들 때 한 번 만들어 넘긴다. 다시 하기는 같은 Flow를 다시 쓰므로 맵도 그대로다. 씬과 함께 지워진다
 
 [DefaultExecutionOrder(-1100)]
 public sealed class BattleSceneController : SceneControllerBase
@@ -12,8 +12,6 @@ public sealed class BattleSceneController : SceneControllerBase
 
     [SerializeField] private MapDef m_DefaultMap = null;
 
-    private MapRoot m_Map;
-
     public ScreenBattle ScreenUI => GetScreen<ScreenBattle>();
 
     // ------------------------------------------------
@@ -21,10 +19,7 @@ public sealed class BattleSceneController : SceneControllerBase
     protected override FlowBase CreateFlow()
     {
         MapDef mapDef = GetMap();
-        if (m_Map == null)
-            m_Map = CreateMap(mapDef);
-
-        return new BattleFlow(mapDef, m_Map);
+        return new BattleFlow(mapDef, CreateMap(mapDef));
     }
 
     // 지역 맵을 지금 씬에 만든다. 없으면 null(스폰 지점 없이 원점에서 시작한다)

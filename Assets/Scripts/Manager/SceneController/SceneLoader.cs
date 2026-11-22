@@ -35,4 +35,18 @@ public static class SceneLoader
         while (op.isDone == false)
             yield return null;
     }
+
+    // 읽을 씬 없이 minSeconds(unscaled) 동안 진행바만 채운다(다시 하기처럼 씬을 바꾸지 않을 때의 가짜 로딩)
+    public static IEnumerator Wait(float minSeconds, Action<float> onProgress)
+    {
+        float startTime = Time.unscaledTime;
+        float ratio = 0f;
+
+        while (ratio < 1f)
+        {
+            ratio = minSeconds > 0f ? Mathf.Clamp01((Time.unscaledTime - startTime) / minSeconds) : 1f;
+            onProgress?.Invoke(ratio);
+            yield return null;
+        }
+    }
 }

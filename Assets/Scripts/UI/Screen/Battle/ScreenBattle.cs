@@ -33,12 +33,14 @@ public class ScreenBattle : ScreenBase
     private void OnEnable()
     {
         SEventManager.Subscribe<FlowBegan>(OnFlowBegan);
+        SEventManager.Subscribe<BattleStateChanged>(OnBattleStateChanged);
         SEventManager.Subscribe<LootChanged>(OnLootChanged);
     }
 
     private void OnDisable()
     {
         SEventManager.Unsubscribe<FlowBegan>(OnFlowBegan);
+        SEventManager.Unsubscribe<BattleStateChanged>(OnBattleStateChanged);
         SEventManager.Unsubscribe<LootChanged>(OnLootChanged);
     }
 
@@ -50,7 +52,6 @@ public class ScreenBattle : ScreenBase
 
         BattleService battleS = battle.BattleS;
         m_Clock.SetTime(battleS.RemainTime, battleS.NightTime);
-        m_ExitButton.E_SetInteractable(battle.State == EBattleFlowState.Play);
 
         UpdatePlayer(battleS.Player);
     }
@@ -164,6 +165,12 @@ public class ScreenBattle : ScreenBase
 
         m_LastHp = -1;
         RefreshLootList(battle.BattleS.DicLoot);
+    }
+
+    // 토벌 종료는 Play에서만 누를 수 있다
+    private void OnBattleStateChanged(BattleStateChanged evt)
+    {
+        m_ExitButton.E_SetInteractable(evt.State == EBattleFlowState.Play);
     }
 
     private void OnLootChanged(LootChanged evt)

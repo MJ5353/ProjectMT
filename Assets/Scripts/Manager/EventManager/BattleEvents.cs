@@ -36,6 +36,17 @@ public readonly struct LootPicked
     }
 }
 
+// 전투 흐름 상태가 바뀜(BattleFlow). 종료 버튼처럼 상태에 따라 켜고 끄는 화면이 받는다
+public readonly struct BattleStateChanged
+{
+    public readonly EBattleFlowState State;
+
+    public BattleStateChanged(EBattleFlowState state)
+    {
+        State = state;
+    }
+}
+
 // 주운 버섯 목록(BattleService.DicLoot)이 바뀜. 줍거나, 쓰러져 떨궜을 때
 public readonly struct LootChanged
 {

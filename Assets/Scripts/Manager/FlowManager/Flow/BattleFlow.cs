@@ -20,7 +20,7 @@ public enum EHuntResult
 // ==================================================
 
 // 전투 씬 흐름(하룻밤 한 판). 전투 전용 Service(Unit·HitStop·Battle)를 들고, 지역(MapDef)과 맵(MapRoot)은 씬 컨트롤러가 넘긴다.
-// 다시 하기는 씬을 다시 읽지 않고 이 Flow를 끝낸 뒤 같은 지역·맵으로 새 BattleFlow를 시작한다(FlowManager.Restart)
+// 다시 하기는 씬을 다시 읽지 않고 이 Flow를 End → Begin으로 다시 돌린다(FlowManager.Restart). Service·상태는 새로 만들지 않고 Clear·Enter에서 되돌린다
 // 단계 전환과 팝업 띄우기는 여기 상태가 맡고, BattleService는 스폰·밤 시간·주운 버섯·보상 같은 데이터와 처리만 한다. 화면(ScreenBattle)은 표시와 요청만 한다.
 // 접근: FlowManager.Instance.Battle?.UnitS / HitStopS / BattleS (전투가 아니면 Battle이 null)
 // !!) 등록 순서 = Init 순서. BattleService가 스폰 때 UnitService를 쓰므로 Unit을 먼저 넣는다
@@ -33,7 +33,6 @@ public sealed class BattleFlow : FlowBase<EBattleFlowState>
     public BattleService BattleS { get; }
 
     public EHuntResult HuntResult { get; private set; } // Result 상태에서만 의미가 있다
-    public bool IsHuntOver => State == EBattleFlowState.Market || State == EBattleFlowState.Result; // 몬스터 판단을 멈춘다(BrainBase)
 
     // ------------------------------------------------
 
@@ -110,6 +109,9 @@ public sealed class BattleFlow : FlowBase<EBattleFlowState>
 
     protected override void OnBegin() => ChangeState(EBattleFlowState.Start);
 
+    // 화면(종료 버튼 등)이 매 프레임 상태를 읽지 않게 바뀔 때 알린다
+    protected override void OnStateChanged(EBattleFlowState state) => SEventManager.Publish(new BattleStateChanged(state));
+
     // state ---
 
     private sealed class StartState : FlowStateBase<BattleFlow>
@@ -167,11 +169,12 @@ public sealed class BattleFlow : FlowBase<EBattleFlowState>
 
         public override void Enter()
         {
-            BattleService battleS = Flow.BattleS;
-
+            Flow.UnitS.StopBrains(); // 시장부터는 싸우지 않는다
+            
             TimeManager.Instance.SetPause(EPauseReason.Market, true);
             SEventManager.Subscribe<MarketClosed>(OnMarketClosed);
 
+            BattleService battleS = Flow.BattleS;
             PlayerDataManager.Instance.Hunt.BeginMarket(battleS.DicLoot, battleS.RemainTime, battleS.NightTime);
             FlowManager.Instance.PopupS?.Open<PopupMarket>(EPopupType.PopupMarket);
         }
@@ -200,6 +203,7 @@ public sealed class BattleFlow : FlowBase<EBattleFlowState>
 
         public override void Enter()
         {
+            Flow.UnitS.StopBrains();
             Flow.BattleS.Finish(Flow.HuntResult);
             m_Popup = FlowManager.Instance.PopupS?.Open<PopupResult>(EPopupType.PopupResult);
         }

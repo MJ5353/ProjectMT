@@ -32,7 +32,7 @@ public abstract class SceneControllerBase : MonoBehaviour
     }
 
     // 다른 오브젝트의 Awake·OnEnable이 끝난 뒤 Flow를 시작한다(화면이 OnEnable에서 이벤트를 먼저 구독한다)
-    private void Start() => FlowManager.Instance.Begin(CreateFlow);
+    private void Start() => FlowManager.Instance.Begin(CreateFlow());
 
     private void Update()
     {
@@ -70,7 +70,7 @@ public abstract class SceneControllerBase : MonoBehaviour
         TimeManager.Instance.SetPause(EPauseReason.Focus, hasFocus == false);
     }
 
-    // 이 씬의 Flow를 만든다. 씬 전용 Service는 Flow가 들고, 공용(이펙트·UI 요소·팝업)은 FlowManager가 붙인다. 다시 하기 때 다시 불린다
+    // 이 씬의 Flow를 만든다. 씬 전용 Service는 Flow가 들고, 공용(이펙트·UI 요소·팝업)은 FlowManager가 붙인다. 씬마다 한 번만 불린다(다시 하기는 같은 Flow를 다시 쓴다)
     protected abstract FlowBase CreateFlow();
 
     protected T GetScreen<T>() where T : ScreenBase => m_Screen as T;

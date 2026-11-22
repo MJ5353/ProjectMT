@@ -9,7 +9,7 @@ using UnityEngine;
 // ==================================================
 
 // 몬스터 자동 배정. 맵(MapDef) → 버섯(지역 버섯 목록) → 몬스터(MonsterDef)를 이어서 채운다.
-//  - 밸런스: MonsterBalanceTable 공식으로 지역 순서·등급·번호에 따라 기입
+//  - 밸런스: MonsterFormula 공식으로 지역 순서·등급·번호에 따라 기입
 //  - 드랍: 몬스터가 사는 지역의 버섯 목록에서 추천(목록 앞쪽 = 흔한 버섯). 잡몹은 앞쪽, 엘리트는 뒤쪽, 보스는 전부
 //  - 버섯: 드랍 버섯으로 장식 부위(BattlePart None)를 만든다. 위치·크기·기울기는 스폰마다 랜덤. 깨지는 부위는 건드리지 않는다
 // 지역은 MapDef 스폰 목록에서 찾고, 없으면 번호로 정한다(001~005 첫 지역). 등급은 이름(Boss_)과 번호 순서(잡몹 2 → 엘리트 2 → 보스)
@@ -79,12 +79,12 @@ public static class MonsterAutoFill
         if (listDef == null || listDef.Count == 0 || parts == EPart.None)
             return false;
 
-        MonsterBalanceTable table = LoadTable();
-        List<Plan> listPlan = MakePlans(listDef, parts, table, new System.Random());
+        MonsterFormula formula = LoadFormula();
+        List<Plan> listPlan = MakePlans(listDef, parts, formula, new System.Random());
         string report = Describe(listPlan, parts);
         CLogger.Log("MonsterAutoFill", report);
 
-        string message = Shorten(report, 28) + "\n\n공식은 MonsterBalance 에셋에서 고칩니다. Ctrl+Z로 되돌릴 수 있습니다.";
+        string message = Shorten(report, 28) + "\n\n공식은 MonsterFormula 에셋에서 고칩니다. Ctrl+Z로 되돌릴 수 있습니다.";
         if (EditorUtility.DisplayDialog($"몬스터 자동 배정 ({GetPartLabel(parts)})", message, "적용", "취소") == false)
             return false;
 
@@ -92,18 +92,32 @@ public static class MonsterAutoFill
         return true;
     }
 
-    public static MonsterBalanceTable LoadTable()
+    public static MonsterFormula LoadFormula()
     {
-        MonsterBalanceTable table = AssetDatabase.LoadAssetAtPath<MonsterBalanceTable>(EditorPath.MonsterBalance);
-        if (table != null)
-            return table;
+        MonsterFormula formula = AssetDatabase.LoadAssetAtPath<MonsterFormula>(EditorPath.MonsterFormula);
+        if (formula != null)
+            return formula;
 
-        Directory.CreateDirectory(Path.GetDirectoryName(EditorPath.MonsterBalance)!);
-        table = ScriptableObject.CreateInstance<MonsterBalanceTable>();
-        AssetDatabase.CreateAsset(table, EditorPath.MonsterBalance);
+        // 이름을 바꾸기 전 에셋(MonsterBalance.asset)이 있으면 새 이름으로 옮겨 값을 잇는다
+        // [mj] todo) 옮겨진 뒤에는 이 분기와 EditorPath.OldMonsterBalance를 지운다
+        if (AssetDatabase.LoadAssetAtPath<MonsterFormula>(EditorPath.OldMonsterBalance) != null)
+        {
+            string error = AssetDatabase.MoveAsset(EditorPath.OldMonsterBalance, EditorPath.MonsterFormula);
+            if (error.E_IsNullOrEmpty())
+            {
+                CLogger.Log("MonsterAutoFill", $"몬스터 공식 에셋 이름을 바꿨습니다: {EditorPath.MonsterFormula}");
+                return AssetDatabase.LoadAssetAtPath<MonsterFormula>(EditorPath.MonsterFormula);
+            }
+
+            CLogger.Warning("MonsterAutoFill", $"몬스터 공식 에셋을 옮기지 못했습니다: {error}");
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(EditorPath.MonsterFormula)!);
+        formula = ScriptableObject.CreateInstance<MonsterFormula>();
+        AssetDatabase.CreateAsset(formula, EditorPath.MonsterFormula);
         AssetDatabase.SaveAssets();
-        CLogger.Log("MonsterAutoFill", $"밸런스 공식 에셋을 기본값으로 만들었습니다: {EditorPath.MonsterBalance}", table);
-        return table;
+        CLogger.Log("MonsterAutoFill", $"몬스터 공식 에셋을 기본값으로 만들었습니다: {EditorPath.MonsterFormula}", formula);
+        return formula;
     }
 
     public static string GetPartLabel(EPart parts)
@@ -126,7 +140,7 @@ public static class MonsterAutoFill
 
     // 계획 ---
 
-    public static List<Plan> MakePlans(IReadOnlyList<MonsterDef> listDef, EPart parts, MonsterBalanceTable table, System.Random random)
+    public static List<Plan> MakePlans(IReadOnlyList<MonsterDef> listDef, EPart parts, MonsterFormula formula, System.Random random)
     {
         List<MapDef> listMap = DataTools.CollectDefs().OfType<MapDef>().OrderBy(mapDef => mapDef.Order).ToList();
         List<Plan> listPlan = new();
@@ -135,14 +149,14 @@ public static class MonsterAutoFill
         {
             Plan plan = new Plan(def);
             FillPosition(plan, listMap);
-            FillBalance(plan, table);
+            FillBalance(plan, formula);
 
             // 소켓 버섯도 드랍 추천에서 고르므로 소켓만 할 때도 드랍을 계산한다(적용은 드랍을 고른 경우만)
             List<MushroomDef> listPool = MakeMushroomPool(plan);
             if ((parts & (EPart.Drop | EPart.Socket)) != 0)
-                FillDrops(plan, table, listPool);
+                FillDrops(plan, formula, listPool);
             if ((parts & EPart.Socket) != 0)
-                FillSockets(plan, table, random);
+                FillSockets(plan, formula, random);
 
             listPlan.Add(plan);
         }
@@ -158,16 +172,16 @@ public static class MonsterAutoFill
         if (hasNo == false)
             plan.ListWarning.Add("이름에 번호(Monster_NNN_Key)가 없어 첫 지역 잡몹으로 계산");
 
-        int slot = hasNo ? (no - 1) % MonsterBalanceTable.MonstersPerMap : 0;
+        int slot = hasNo ? (no - 1) % MonsterFormula.MonstersPerMap : 0;
         if (def.name.Contains(BossMark))
         {
             plan.Tier = EMonsterTier.Boss;
             plan.OrderInTier = 0;
         }
-        else if (slot >= MonsterBalanceTable.NormalPerMap)
+        else if (slot >= MonsterFormula.NormalPerMap)
         {
             plan.Tier = EMonsterTier.Elite;
-            plan.OrderInTier = Mathf.Min(slot - MonsterBalanceTable.NormalPerMap, 1);
+            plan.OrderInTier = Mathf.Min(slot - MonsterFormula.NormalPerMap, 1);
         }
         else
         {
@@ -176,7 +190,7 @@ public static class MonsterAutoFill
         }
 
         // 스폰 목록에 있는 지역이 우선, 없으면 번호로 정한 순서의 지역
-        int orderByNo = hasNo ? (no - 1) / MonsterBalanceTable.MonstersPerMap + 1 : 1;
+        int orderByNo = hasNo ? (no - 1) / MonsterFormula.MonstersPerMap + 1 : 1;
         MapDef mapDef = listMap.FirstOrDefault(candidate => candidate.ListSpawn.Any(spawn => spawn != null && spawn.Monster == def));
         if (mapDef == null)
             mapDef = listMap.FirstOrDefault(candidate => candidate.Order == orderByNo);
@@ -187,12 +201,12 @@ public static class MonsterAutoFill
             plan.ListWarning.Add($"지역을 못 찾음(순서 {orderByNo}). 드랍·소켓은 건너뜀");
     }
 
-    private static void FillBalance(Plan plan, MonsterBalanceTable table)
+    private static void FillBalance(Plan plan, MonsterFormula formula)
     {
-        MonsterBalanceTable.TierStat stat = table.GetTier(plan.Tier);
-        plan.Hp = table.CalcHp(plan.Tier, plan.OrderInTier);
-        plan.Damage = table.CalcDamage(plan.Tier, plan.OrderInTier);
-        plan.MoveSpeed = Round(table.CalcMoveSpeed(plan.Tier, plan.MapIndex));
+        MonsterFormula.TierStat stat = formula.GetTier(plan.Tier);
+        plan.Hp = formula.CalcHp(plan.Tier, plan.OrderInTier);
+        plan.Damage = formula.CalcDamage(plan.Tier, plan.OrderInTier);
+        plan.MoveSpeed = Round(formula.CalcMoveSpeed(plan.Tier, plan.MapIndex));
         plan.HitStunTime = stat.HitStunTime;
         plan.WindupTime = stat.WindupTime;
     }
@@ -231,12 +245,12 @@ public static class MonsterAutoFill
         return listPool.Distinct().ToList();
     }
 
-    private static void FillDrops(Plan plan, MonsterBalanceTable table, List<MushroomDef> listPool)
+    private static void FillDrops(Plan plan, MonsterFormula formula, List<MushroomDef> listPool)
     {
         if (listPool.Count == 0)
             return;
 
-        MonsterBalanceTable.TierStat stat = table.GetTier(plan.Tier);
+        MonsterFormula.TierStat stat = formula.GetTier(plan.Tier);
         AddDrop(plan, listPool[0], stat.DropMin, stat.DropMax, 1f);
         if (stat.ExtraDropChance <= 0f)
             return;
@@ -261,13 +275,13 @@ public static class MonsterAutoFill
     }
 
     // 드랍 버섯으로 장식 부위를 만든다. 주 버섯은 등급 개수만큼, 나머지는 0~1개씩. 꽂을 소켓은 스폰 때 고른다
-    private static void FillSockets(Plan plan, MonsterBalanceTable table, System.Random random)
+    private static void FillSockets(Plan plan, MonsterFormula formula, System.Random random)
     {
         List<MushroomDef> listMushroom = plan.ListDrop.Select(drop => drop.Mushroom).Distinct().ToList();
         if (listMushroom.Count == 0)
             return;
 
-        MonsterBalanceTable.TierStat stat = table.GetTier(plan.Tier);
+        MonsterFormula.TierStat stat = formula.GetTier(plan.Tier);
         int min = Mathf.Max(1, stat.SocketMin);
         int max = Mathf.Max(min, stat.SocketMax);
         for (int i = 0; i < listMushroom.Count; ++i)
@@ -282,7 +296,7 @@ public static class MonsterAutoFill
 
             bool isMain = i == 0;
             plan.ListDecor.Add(new MonsterDef.PartEntry(EBattlePartType.None, model, null, null, isMain ? min : 0, isMain ? max : 1,
-                stat.MushroomScale, table.MushroomTilt, 0, 1f, 0f));
+                stat.MushroomScale, formula.MushroomTilt, 0, 1f, 0f));
         }
     }
 

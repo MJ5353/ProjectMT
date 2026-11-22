@@ -584,3 +584,10 @@
 ## 씬을 다시 읽지 않는 다시 하기(Flow 묶음 4)
 - 다시 하기를 씬 재로드 대신 GameManager.RestartFlow → FlowManager.Restart로 바꿈. 로딩 화면을 덮고 지금 BattleFlow를 끝낸 뒤 같은 지역으로 새 BattleFlow를 시작하며, 공용 팝업·UI 요소는 유지하고 월드 이펙트만 비움.
 - 맵은 BattleSceneController가 한 번 만들어 재사용하고, 유닛은 UnitService.Clear에서 풀로, 땅의 픽업은 BattleService가 기억했다가 Clear에서 돌려받음. HUD(체력·주운 목록·머리 위 체력바)와 추적 카메라는 FlowBegan으로 새 판에 다시 붙음. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 몬스터 공식 이름 정리(Flow 묶음 5)
+- 편집기 자동 배정 공식값 MonsterBalanceTable을 Def와 헷갈리지 않게 MonsterFormula로 바꾸고, 옛 에셋(MonsterBalance.asset)은 처음 불러올 때 MonsterFormula.asset으로 옮기게 함. 스크립트 파일 이름은 대장이 Unity에서 바꿈. 컴파일 확인 안 함, 커밋하지 않음.
+
+## Flow 정리(다시 하기 재사용·상태 알림)
+- 대장 지적대로 다시 하기 때 Flow·Service를 새로 만들지 않고 같은 인스턴스를 End → Begin으로 다시 씀(Clear가 되돌림, 할당 없음).
+- 정리안 1~4: Title·Lobby Flow는 상태 없는 FlowBase로, GameManager의 씬 전환·다시 하기 로딩을 Loading(work) 하나로(SceneLoader.Wait 추가), FlowManager 시작·알림을 StartCurrent로, 몬스터 판단 정지와 종료 버튼을 매 프레임 검사 대신 상태가 바뀔 때(UnitService.StopBrains, BattleStateChanged) 처리. 컴파일·플레이 확인 안 함, 커밋하지 않음.
