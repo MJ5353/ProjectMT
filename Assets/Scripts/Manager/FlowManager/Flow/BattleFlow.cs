@@ -21,7 +21,7 @@ public enum EHuntResult
 
 // 전투 씬 흐름(한 판). 전투 전용 Service(Unit·HitStop·Battle)를 들고, 지역(MapDef)과 맵(MapRoot)은 씬 컨트롤러가 넘긴다.
 // 다시 하기는 씬을 다시 읽지 않고 이 Flow를 End → Begin으로 다시 돌린다(FlowManager.Restart). Service·상태는 새로 만들지 않고 Clear·Enter에서 되돌린다
-// 단계 전환과 팝업 띄우기는 여기 상태가 맡고, BattleService는 스폰·밤 시간·주운 버섯·보상 같은 데이터와 처리만 한다. 화면(ScreenBattle)은 표시와 요청만 한다.
+// 단계 전환과 팝업 띄우기(토벌 종료 확인 포함)는 여기와 상태가 맡고, BattleService는 스폰·밤 시간·주운 버섯·보상 같은 데이터와 처리만 한다. 화면(ScreenBattle)은 표시와 요청만 한다.
 // 상태 클래스는 BattleFlow.States.cs에 있다
 // 접근: FlowManager.Instance.Battle?.UnitS / HitStopS / BattleS (전투가 아니면 Battle이 null)
 // !!) 등록 순서 = Init 순서. BattleService가 스폰 때 UnitService를 쓰므로 Unit을 먼저 넣는다
@@ -54,11 +54,18 @@ public sealed partial class BattleFlow : FlowBase<EBattleFlowState>
 
     // 요청(화면·팝업이 부른다) ---
 
-    // 토벌 종료(확인 팝업 뒤). 현장 시장으로 간다
+    // 토벌 종료 버튼. "토벌을 종료할까요?"를 묻고(묻는 동안 게임 시간 정지) 예면 현장 시장으로 간다
     public void ExitHunt()
     {
-        if (State == EBattleFlowState.Play)
-            ChangeState(EBattleFlowState.Market);
+        if (State != EBattleFlowState.Play)
+            return;
+
+        PopupConfirm confirm = FlowManager.Instance.PopupS.Open<PopupConfirm>(EPopupType.PopupConfirm);
+        if (confirm == null)
+            return; // 원본이 없으면 PopupDef가 에러를 남긴다
+
+        TimeManager.Instance.SetPause(EPauseReason.Confirm, true);
+        confirm.Set(EStringKey.Battle_ExitConfirm, OnConfirmExit, OnCancelExit);
     }
 
     // 사망 팝업의 부활. 골드가 모자라면 false
@@ -93,6 +100,18 @@ public sealed partial class BattleFlow : FlowBase<EBattleFlowState>
         HuntResult = result;
         ChangeState(EBattleFlowState.Result);
     }
+
+    // 확인 멈춤을 풀고 시장으로(Market 상태가 시장 이유로 다시 멈춘다)
+    private void OnConfirmExit()
+    {
+        TimeManager.Instance.SetPause(EPauseReason.Confirm, false);
+
+        if (State == EBattleFlowState.Play)
+            ChangeState(EBattleFlowState.Market);
+    }
+
+    // 아니오·뒤로 가기, 씬 전환으로 확인 팝업이 정리될 때도 불린다
+    private void OnCancelExit() => TimeManager.Instance.SetPause(EPauseReason.Confirm, false);
 
     private void OnPlayerDied()
     {

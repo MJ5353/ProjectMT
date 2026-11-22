@@ -146,10 +146,13 @@ public class MushroomPickup : PoolableMono
 
     private void UpdateMagnet(float deltaTime)
     {
+        // 빨려 드는 중에 쓰러지면(떨군 버섯이 다시 주워지지 않게) 그 자리에서 다시 떨어진다
         UnitController player = FlowManager.Instance.Battle?.UnitS.Player;
-        if (player == null)
+        if (player == null || player.IsValid() == false)
         {
             m_IsMagnet = false;
+            m_IsLanded = false;
+            m_Velocity = Vector3.zero;
             return;
         }
 

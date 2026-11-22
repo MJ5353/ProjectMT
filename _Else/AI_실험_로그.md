@@ -592,3 +592,4 @@
 - 대장 지적대로 다시 하기 때 Flow·Service를 새로 만들지 않고 같은 인스턴스를 End → Begin으로 다시 씀(Clear가 되돌림, 할당 없음).
 - 정리안 1~4: Title·Lobby Flow는 상태 없는 FlowBase로, GameManager의 씬 전환·다시 하기 로딩을 Loading(work) 하나로(SceneLoader.Wait 추가), FlowManager 시작·알림을 StartCurrent로, 몬스터 판단 정지와 종료 버튼을 매 프레임 검사 대신 상태가 바뀔 때(UnitService.StopBrains, BattleStateChanged) 처리. 컴파일·플레이 확인 안 함, 커밋하지 않음.
 - 정리안 6~8: 땅에 떨어진 버섯을 픽업마다 Update로 돌리지 않고 BattleService.Tick이 한 번에 돌림, 토벌 종료는 늘 시장을 거치게 하고 시장 없이 끝내던 개발용 갈래 삭제, BattleFlow 상태 클래스를 BattleFlow.States.cs로 나눔. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- Flow 추가 검토: 쓰러진 뒤에도 빨려 들던 버섯이 다시 주워지던 문제 수정, 토벌 종료 확인 팝업을 화면에서 BattleFlow로 옮기고 프리팹 없을 때 갈래 삭제, 사망·결과 팝업의 Flow 없음 처리 삭제, 낡은 주석 정리. 컴파일·플레이 확인 안 함, 커밋하지 않음.
