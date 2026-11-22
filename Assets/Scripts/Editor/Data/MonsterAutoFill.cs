@@ -190,8 +190,8 @@ public static class MonsterAutoFill
     private static void FillBalance(Plan plan, MonsterBalanceTable table)
     {
         MonsterBalanceTable.TierStat stat = table.GetTier(plan.Tier);
-        plan.Hp = table.CalcHp(plan.Tier, plan.MapIndex, plan.OrderInTier);
-        plan.Damage = table.CalcDamage(plan.Tier, plan.MapIndex, plan.OrderInTier);
+        plan.Hp = table.CalcHp(plan.Tier, plan.OrderInTier);
+        plan.Damage = table.CalcDamage(plan.Tier, plan.OrderInTier);
         plan.MoveSpeed = Round(table.CalcMoveSpeed(plan.Tier, plan.MapIndex));
         plan.HitStunTime = stat.HitStunTime;
         plan.WindupTime = stat.WindupTime;

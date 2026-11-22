@@ -13,7 +13,7 @@ public enum EGearOpenResult
 
 // ==================================================
 
-// 정비 탭 강화 노드. 연 노드 ID를 저장하고, 열기 요청·엠블렘 단계·플레이어 능력치 출처(StatFeature)를 맡는다.
+// 정비 탭 강화 노드. 연 노드 ID를 저장하고, 열기 요청·엠블렘 단계·플레이어 능력치·패시브 출처를 맡는다.
 // UI는 TryOpen만 부르고 GearChanged를 받아 다시 그린다. 노드·엠블렘 목록은 DB(GearNodeDef·EmblemDef)에서 처음 쓸 때 모은다
 
 public class GearData : PlayerDataBase
@@ -77,16 +77,16 @@ public class GearData : PlayerDataBase
         return EGearOpenResult.Ok;
     }
 
-    // 플레이어 능력치에 출처를 넣는다. 연 노드와 지금 단계까지 엠블렘이 각각 출처 하나
-    public void ApplyStat(StatFeature stat)
+    // 플레이어에 출처를 넣는다. 연 노드(능력치·패시브)와 지금 단계까지 엠블렘(능력치)이 각각 출처 하나
+    public void ApplyTo(UnitController player)
     {
         foreach (GearNodeDef node in ListNode)
         {
             if (IsOpened(node) == false)
                 continue;
 
-            stat.AddSource(node, node.ListModifier);
-            AddSpecial(stat, node);
+            player.StatF.AddSource(node, node.ListModifier);
+            player.PassiveF.AddSource(node, node.Passive);
         }
 
         foreach (EmblemDef emblem in m_ListEmblem)
@@ -94,7 +94,7 @@ public class GearData : PlayerDataBase
             if (emblem.NeedCount > OpenedCount)
                 break;
 
-            stat.AddSource(emblem, emblem.ListModifier);
+            player.StatF.AddSource(emblem, emblem.ListModifier);
         }
     }
 
@@ -184,36 +184,6 @@ public class GearData : PlayerDataBase
 
     // ==================================================
 
-    // 수치 하나로 안 되는 스페셜. 훅 구조(PassiveDef)로 옮기면 사라진다
-    private static void AddSpecial(StatFeature stat, GearNodeDef node)
-    {
-        switch (node.Special)
-        {
-            case EGearSpecial.Insurance:
-            {
-                stat.AddInsurance(node.SpecialRange);
-                break;
-            }
-            case EGearSpecial.SkillBoost:
-            {
-                if (node.TargetSkill != null)
-                    stat.AddSkillBoost(node.TargetSkill.Attack, node.SpecialValue, node.SpecialValue2);
-                
-                break;
-            }
-            case EGearSpecial.LastStand:
-            {
-                stat.SetLastStand(node.SpecialValue, node.SpecialValue2);
-                break;
-            }
-            case EGearSpecial.SporeRegen:
-            {
-                stat.AddPickupHeal(UnityEngine.Mathf.RoundToInt(node.SpecialValue));
-                break;
-            }
-        }
-    }
-    
     // DB가 준비된 뒤(처음 쓸 때) 한 번 모은다
     private void CollectDefs()
     {

@@ -95,10 +95,7 @@ public sealed class BattleService : ServiceBase
         SpawnPlayer();
         
         if (m_Player != null && m_Player.HealthF != null)
-        {
             m_Player.HealthF.Died += OnPlayerDied;
-            m_Player.HitF.Hit += OnPlayerHit;
-        }
 
         GameManager.Instance.UnitS.UnitRemoved += ReleaseSpawnSlot;
         SEventManager.Subscribe<LootPicked>(OnLootPicked);
@@ -138,10 +135,7 @@ public sealed class BattleService : ServiceBase
 
         UnitController player = m_Player.E_Alive();
         if (player != null && player.HealthF != null)
-        {
             player.HealthF.Died -= OnPlayerDied;
-            player.HitF.Hit -= OnPlayerHit;
-        }
 
         m_DicSpawnByUnitID.Clear();
         m_ListSpawn.Clear();
@@ -249,8 +243,8 @@ public sealed class BattleService : ServiceBase
         if (m_Player == null)
             return;
 
-        // 정비 강화를 능력치 출처로 넣는다. 늘어난 최대 체력만큼 체력도 찬다(HealthFeature가 StatFeature.Changed로)
-        PlayerDataManager.Instance.Gear.ApplyStat(m_Player.StatF);
+        // 정비 강화를 능력치·패시브 출처로 넣는다. 늘어난 최대 체력만큼 체력도 찬다(HealthFeature가 StatFeature.Changed로)
+        PlayerDataManager.Instance.Gear.ApplyTo(m_Player);
     }
 
     // 슬롯 번호(1부터) → 맵 지점
@@ -282,6 +276,7 @@ public sealed class BattleService : ServiceBase
         if (controller == null)
             return;
 
+        controller.StatF.AddSource(Map, Map.ListMonsterModifier); // 지역 난이도(체력·공격 배율)
         m_DicSpawnByUnitID.Add(controller.UnitID, spawn);
         spawn.IsAlive = true;
         spawn.RespawnTimer = 0f;
@@ -320,26 +315,23 @@ public sealed class BattleService : ServiceBase
 
     #region OnAction
     
+    // 재화(골드 동전)는 바로 인벤토리에 넣고(귀가해도 남는다), 버섯은 주운 목록에 넣는다. 그다음 플레이어 패시브(주웠을 때)
     private void OnLootPicked(LootPicked evt)
     {
-        LootKey key = new(evt.ItemID, evt.Freshness, evt.Rarity);
-        m_DicLoot.TryGetValue(key, out int count);
-        m_DicLoot[key] = count + evt.Amount;
-        SEventManager.Publish(new LootChanged());
+        if (GameDatabase.S_TryGet(evt.ItemID, out CurrencyDef _))
+        {
+            PlayerDataManager.Instance.Inventory.Add(evt.ItemID, evt.Amount);
+        }
+        else
+        {
+            LootKey key = new(evt.ItemID, evt.Freshness, evt.Rarity);
+            m_DicLoot.TryGetValue(key, out int count);
+            m_DicLoot[key] = count + evt.Amount;
+            SEventManager.Publish(new LootChanged());
+        }
 
-        // 포자 재생(정비 스페셜): 주울 때 체력 회복
-        if (m_Player != null && m_Player.StatF.PickupHeal > 0)
-            m_Player.HealthF.Heal(m_Player.StatF.PickupHeal * evt.Amount);
-    }
-
-    // 상해보험(정비 스페셜): 맞으면 골드를 바로 넣는다. 귀가해도 남는다
-    private void OnPlayerHit(HitParams hit, bool isFlinch)
-    {
-        Vector2Int range = m_Player.StatF.InsuranceGold;
-        if (range.y <= 0)
-            return;
-
-        PlayerDataManager.Instance.Inventory.Add(CurrencyDef.GoldID, Random.Range(range.x, range.y + 1));
+        if (m_Player != null)
+            m_Player.PassiveF.OnPickup(evt);
     }
 
     // 바로 끝내지 않고 부활/귀가를 고르게 한다(ScreenBattle가 팝업을 띄운다)

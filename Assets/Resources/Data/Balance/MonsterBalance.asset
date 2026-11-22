@@ -14,8 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterBalanceTable
   <BaseHp>k__BackingField: 30
   <BaseDamage>k__BackingField: 10
-  <MapHpRate>k__BackingField: 2
-  <MapDamageRate>k__BackingField: 1.5
   <MapSpeedAdd>k__BackingField: 0.08
   <OrderStepRate>k__BackingField: 0.2
   <MushroomTilt>k__BackingField: 12

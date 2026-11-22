@@ -16,7 +16,7 @@ MonoBehaviour:
   <ID>k__BackingField: Monster_010_Boss_PolarBear
   <Description>k__BackingField: 
   <Icon>k__BackingField: {fileID: 0}
-  <MaxHp>k__BackingField: 900
+  <MaxHp>k__BackingField: 450
   <HitStunTime>k__BackingField: 0.1
   <BreakImmune>k__BackingField: 3
   <TurnSpeed>k__BackingField: 900

@@ -19,8 +19,8 @@ public enum ERarity
 
 // ==================================================
 
-// 바닥에 떨어진 버섯. 튀어 올랐다 떨어진 뒤, 플레이어가 가까이 오면 빨려 들어가 주워진다.
-// ResourceManager 풀로 꺼내고 돌려준다
+// 바닥에 떨어진 버섯(골드 동전도 같은 방식, ItemID만 재화). 튀어 올랐다 떨어진 뒤, 플레이어가 가까이 오면 빨려 들어가 주워진다.
+// ResourceManager 풀로 꺼내고 돌려준다. 여러 개를 흩뿌릴 때는 S_Drop
 public class MushroomPickup : PoolableMono
 {
     private const float Gravity = -20f;
@@ -66,6 +66,18 @@ public class MushroomPickup : PoolableMono
         {
             m_IsMagnet = true;
             HideBeam();
+        }
+    }
+
+    // origin 위로 count개를 흩뿌린다(몬스터 드랍·골드 동전)
+    public static void S_Drop(MushroomPickup prefab, Vector3 origin, int count, EFreshness freshness, ERarity rarity)
+    {
+        Vector3 position = origin + Vector3.up * Define.MonsterDropHeight;
+        for (int i = 0; i < count; i++)
+        {
+            MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, position, Quaternion.identity);
+            Vector2 spread = Random.insideUnitCircle * Define.MonsterDropSpread;
+            pickup.Launch(new Vector3(spread.x, Define.MonsterDropUpSpeed, spread.y), freshness, rarity);
         }
     }
 

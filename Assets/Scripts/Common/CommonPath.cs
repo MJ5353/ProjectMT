@@ -19,6 +19,7 @@ public static class CommonPath
     public const string ActorDir = "Prefabs/Actor/";           // 플레이어 프리팹(Player)
     public const string MonsterDir = ActorDir + "Monster/";    // 몬스터 프리팹(Monster_NNN_Key)
     public const string PickupDir = ActorDir + "Pickup/";      // 버섯 픽업 프리팹(Pickup_NNN_Key)
+    public const string GoldPickup = PickupDir + "Pickup_Gold"; // 골드 동전 픽업(상해보험 등). MushroomPickupBuilder가 만든다
     public const string MapDir = "Prefabs/Map/";               // 맵 프리팹(Map_NNN_Key)
     
     // else

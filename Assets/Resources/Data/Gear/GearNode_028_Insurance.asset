@@ -14,14 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GearNodeDef
   m_DisplayName: "\uC0C1\uD574\uBCF4\uD5D8"
   <ID>k__BackingField: GearNode_028_Insurance
-  <Description>k__BackingField: "\uB9DE\uC73C\uBA74 \uACE8\uB4DC 5~10\uC744 \uBC1B\uB294\uB2E4."
+  <Description>k__BackingField: "\uB9DE\uC73C\uBA74 \uACE8\uB4DC \uB3D9\uC804 5~10\uAC1C\uB97C \uB5A8\uAD70\uB2E4."
   <Icon>k__BackingField: {fileID: 0}
   m_ListModifier: []
-  <Special>k__BackingField: 1
-  <SpecialValue>k__BackingField: 0
-  <SpecialValue2>k__BackingField: 0
-  <SpecialRange>k__BackingField: {x: 5, y: 10}
-  <TargetSkill>k__BackingField: {fileID: 0}
+  <Passive>k__BackingField: {fileID: 11400000, guid: 74ebb3cbbab44e26b3dfe1f7b3b2d376, type: 2}
   <Cost>k__BackingField: 300
   m_ListRequire:
   - {fileID: 11400000, guid: 036ac6e2bc565f643bbce9303426aa99, type: 2}

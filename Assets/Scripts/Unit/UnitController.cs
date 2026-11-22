@@ -24,6 +24,7 @@ public class UnitController : PoolableMono
 
     // feature
     public StatFeature StatF { get; private set; }    // 능력치(출처별 수정치). 다른 부품이 생성자에서 구독하므로 맨 먼저 만든다
+    public PassiveFeature PassiveF { get; private set; }    // 패시브(PassiveDef) 훅. 출처별
     public HealthFeature HealthF { get; private set; }
     public MoveFeature MoveF { get; private set; }
     public AnimFeature AnimF { get; private set; }
@@ -50,6 +51,7 @@ public class UnitController : PoolableMono
         }
 
         StatF = AddFeature(new StatFeature(this));
+        PassiveF = AddFeature(new PassiveFeature(this));
         MoveF = AddFeature(new MoveFeature(this, m_Property.CharacterController, Def.TurnSpeed));
         AnimF = AddFeature(new AnimFeature(this, m_Property.Animator));
         HealthF = AddFeature(new HealthFeature(this, Def.MaxHp));
@@ -111,6 +113,7 @@ public class UnitController : PoolableMono
 
         m_ListFeature.Clear();
         StatF = null;
+        PassiveF = null;
         HealthF = null;
         MoveF = null;
         AnimF = null;
@@ -171,6 +174,7 @@ public class UnitController : PoolableMono
         if (IsDead)
             return;
 
+        PassiveF.OnHit(hit);
         BrainBase.OnHit(hit);
         if (isFlinch)
             UnitExecutor.RequestHit();

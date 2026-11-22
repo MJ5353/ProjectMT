@@ -24,6 +24,7 @@ public static class EditorPath
     public const string BalanceDataDir = DataDir + "Balance/";
     public const string UIDataDir = DataDir + "UI/";
     public const string GearDataDir = DataDir + "Gear/";        // 정비 강화 노드(GearNode_*)·엠블렘(Emblem_*)
+    public const string PassiveDataDir = DataDir + "Passive/";  // 패시브(Passive_NNN_Key). 정비 스페셜 노드가 참조한다
 
     public const string PrefabDir = ResourcesRoot + "Prefabs/";
     public const string ActorPrefabDir = ResourcesRoot + CommonPath.ActorDir;

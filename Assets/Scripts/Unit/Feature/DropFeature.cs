@@ -8,8 +8,6 @@ public class DropFeature : UnitFeature
 {
     private readonly MonsterDef m_Def;
 
-    private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
-
     // ------------------------------------------------
 
     public DropFeature(UnitController owner, MonsterDef def) : base(owner)
@@ -29,7 +27,6 @@ public class DropFeature : UnitFeature
 
     private void SpawnDrops()
     {
-        Vector3 origin = Owner.transform.position + Vector3.up * Define.MonsterDropHeight;
         foreach (MonsterDef.DropEntry drop in m_Def.ListDrop)
         {
             if (drop.Mushroom == null || Random.value > drop.Chance)
@@ -42,9 +39,7 @@ public class DropFeature : UnitFeature
             int count = Random.Range(drop.Min, drop.Max + 1);
             for (int i = 0; i < count; i++)
             {
-                MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, origin, Quaternion.identity);
-                Vector2 spread = Random.insideUnitCircle * Define.MonsterDropSpread;
-                pickup.Launch(new Vector3(spread.x, Define.MonsterDropUpSpeed, spread.y), EFreshness.Low, BattleService.RollRarity());
+                MushroomPickup.S_Drop(prefab, Owner.transform.position, 1, EFreshness.Low, BattleService.RollRarity()); // 희귀도는 한 개씩 굴린다
             }
         }
     }

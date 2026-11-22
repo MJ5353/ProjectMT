@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,7 @@ public static class GearDefSetup
 {
     private const string NodePrefix = "GearNode_";
     private const string EmblemPrefix = "Emblem_";
+    private const string PassivePrefix = "Passive_";
     private const int LineLength = 5;
 
     private static readonly int[] s_LineCost = { 50, 100, 200, 400, 800 }; // [mj] todo) 가안. 줄 노드 1~5번째 골드
@@ -38,11 +40,7 @@ public static class GearDefSetup
         public Vector2 Slot;
         public int Cost;
         public StatModifier Modifier;
-        public EGearSpecial Special;
-        public float Value;
-        public float Value2;
-        public Vector2Int Range;
-        public string SkillID;
+        public Func<PassiveDef> Passive;    // 새 패시브 에셋을 만든다(값까지). 이미 있으면 부르지 않는다
         public (string LineKey, int Level)[] Requires;
     }
 
@@ -52,15 +50,15 @@ public static class GearDefSetup
         new() { Key = "PartHunter", Name = "버섯 사냥꾼", Desc = "버섯 부위를 더 잘 깬다.", Slot = new Vector2(1, 1.5f), Cost = 300,
             Modifier = Rate(EStatType.PartDamage, 0.25f), Requires = new[] { ("Attack", 2), ("AttackSpeed", 2) } },
         new() { Key = "RunSlash", Name = "질주 베기", Desc = "달리다 베기 피해 x1.5", Slot = new Vector2(3, 2.5f), Cost = 600,
-            Special = EGearSpecial.SkillBoost, Value = 1.5f, Value2 = 1f, SkillID = "Player_Attack_06", Requires = new[] { ("AttackSpeed", 3), ("Dodge", 3) } },
-        new() { Key = "Insurance", Name = "상해보험", Desc = "맞으면 골드 5~10을 받는다.", Slot = new Vector2(5, 0.5f), Cost = 300,
-            Special = EGearSpecial.Insurance, Range = new Vector2Int(5, 10), Requires = new[] { ("Dodge", 1), ("Defense", 1) } },
+            Passive = () => SkillBoost("Player_Attack_06", 1.5f, 1f), Requires = new[] { ("AttackSpeed", 3), ("Dodge", 3) } },
+        new() { Key = "Insurance", Name = "상해보험", Desc = "맞으면 골드 동전 5~10개를 떨군다.", Slot = new Vector2(5, 0.5f), Cost = 300,
+            Passive = () => Create<PassiveGoldOnHitDef>(passive => passive.EditorSetup(new Vector2Int(5, 10))), Requires = new[] { ("Dodge", 1), ("Defense", 1) } },
         new() { Key = "LastStand", Name = "든든한 뿌리", Desc = "체력 30% 이하일 때 받는 피해 -30%", Slot = new Vector2(7, 2.5f), Cost = 600,
-            Special = EGearSpecial.LastStand, Value = 0.3f, Value2 = 0.3f, Requires = new[] { ("Defense", 3), ("MaxHp", 3) } },
+            Passive = () => Create<PassiveLowHpGuardDef>(passive => passive.EditorSetup(0.3f, 0.3f)), Requires = new[] { ("Defense", 3), ("MaxHp", 3) } },
 
         // 극의 노드(줄 끝)
         new() { Key = "Barbarian", Name = "바바리안", Desc = "막타 내려찍기 피해 x1.5, 범위 x1.3", Slot = new Vector2(0, 5), Cost = 1500,
-            Special = EGearSpecial.SkillBoost, Value = 1.5f, Value2 = 1.3f, SkillID = "Player_Attack_05", Requires = new[] { ("Attack", 5) } },
+            Passive = () => SkillBoost("Player_Attack_05", 1.5f, 1.3f), Requires = new[] { ("Attack", 5) } },
         new() { Key = "SwiftFeet", Name = "탁월한 속도", Desc = "이동 속도가 한 단계 빨라진다.", Slot = new Vector2(2, 5), Cost = 1500,
             Modifier = Rate(EStatType.MoveSpeed, 0.15f), Requires = new[] { ("AttackSpeed", 5) } },
         new() { Key = "Gale", Name = "질풍", Desc = "대시로 더 멀리 간다.", Slot = new Vector2(4, 5), Cost = 1500,
@@ -68,7 +66,7 @@ public static class GearDefSetup
         new() { Key = "IronCap", Name = "강철 갓", Desc = "약한 공격에는 움찔하지 않는다.", Slot = new Vector2(6, 5), Cost = 1500,
             Modifier = new StatModifier(EStatType.BreakResist, EStatModType.Add, 1f), Requires = new[] { ("Defense", 5) } },
         new() { Key = "SporeRegen", Name = "포자 재생", Desc = "버섯을 주울 때 체력 3 회복", Slot = new Vector2(8, 5), Cost = 1500,
-            Special = EGearSpecial.SporeRegen, Value = 3f, Requires = new[] { ("MaxHp", 5) } },
+            Passive = () => Create<PassiveHealOnPickupDef>(passive => passive.EditorSetup(3)), Requires = new[] { ("MaxHp", 5) } },
     };
 
     // 엠블렘: 필요 노드 수, 이름, 보너스(누적). 그림은 리소스 작업 후 Icon에 직접 넣는다
@@ -90,6 +88,7 @@ public static class GearDefSetup
     public static void CreateAll()
     {
         Directory.CreateDirectory(EditorPath.GearDataDir);
+        Directory.CreateDirectory(EditorPath.PassiveDataDir);
 
         int created = 0;
         Dictionary<string, GearNodeDef> dicNode = new();
@@ -106,7 +105,7 @@ public static class GearDefSetup
                 if (isNew)
                 {
                     node.EditorSetIdentity(id, $"{line.Name} {s_Roman[level - 1]}");
-                    node.EditorSetup(new List<StatModifier> { Rate(line.Stat, line.Value) }, EGearSpecial.None, 0f, 0f, Vector2Int.zero, null, s_LineCost[level - 1], new Vector2(line.Column, level - 1));
+                    node.EditorSetup(new List<StatModifier> { Rate(line.Stat, line.Value) }, null, s_LineCost[level - 1], new Vector2(line.Column, level - 1));
                     dicRequire[node] = new List<GearNodeDef>();
                     if (level > 1)
                         dicRequire[node].Add(dicNode[LineKey(line.Key, level - 1)]);
@@ -117,26 +116,26 @@ public static class GearDefSetup
             }
         }
 
-        // 스페셜 노드
+        // 스페셜 노드. 패시브가 있으면 Passive_NNN_Key 에셋을 먼저 만든다(번호는 패시브 있는 노드 순)
+        int passiveNumber = 1;
         foreach (SpecialRow row in s_Specials)
         {
             string id = $"{NodePrefix}{number:000}_{row.Key}";
             number++;
 
+            PassiveDef passive = null;
+            if (row.Passive != null)
+            {
+                passive = LoadOrCreatePassive($"{PassivePrefix}{passiveNumber:000}_{row.Key}", row.Name, row.Desc, row.Passive, ref created);
+                passiveNumber++;
+            }
+
             GearNodeDef node = LoadOrCreate<GearNodeDef>(id, ref created, out bool isNew);
             if (isNew == false)
                 continue;
 
-            SkillDef skill = null;
-            if (row.SkillID.E_IsNullOrEmpty() == false)
-            {
-                skill = AssetDatabase.LoadAssetAtPath<SkillDef>($"{EditorPath.SkillDataDir}{row.SkillID}.asset");
-                if (skill == null)
-                    CLogger.Warning("GearDefSetup", $"{id}: 공격 {row.SkillID}이 없습니다. 에셋에서 TargetSkill을 채우세요.");
-            }
-
             node.EditorSetIdentity(id, row.Name, row.Desc);
-            node.EditorSetup(row.Modifier != null ? new List<StatModifier> { row.Modifier } : new List<StatModifier>(), row.Special, row.Value, row.Value2, row.Range, skill, row.Cost, row.Slot);
+            node.EditorSetup(row.Modifier != null ? new List<StatModifier> { row.Modifier } : new List<StatModifier>(), passive, row.Cost, row.Slot);
             dicRequire[node] = row.Requires.Select(require => dicNode[LineKey(require.LineKey, require.Level)]).ToList();
         }
 
@@ -185,4 +184,38 @@ public static class GearDefSetup
     }
 
     private static StatModifier Rate(EStatType stat, float value) => new(stat, EStatModType.Rate, value);
+
+    // 패시브 ---
+
+    private static T Create<T>(Action<T> setup) where T : PassiveDef
+    {
+        T passive = ScriptableObject.CreateInstance<T>();
+        setup(passive);
+        return passive;
+    }
+
+    private static PassiveDef SkillBoost(string skillID, float damageRate, float radiusRate)
+    {
+        SkillDef skill = AssetDatabase.LoadAssetAtPath<SkillDef>($"{EditorPath.SkillDataDir}{skillID}.asset");
+        if (skill == null)
+            CLogger.Warning("GearDefSetup", $"공격 {skillID}이 없습니다. 패시브 에셋에서 Skill을 채우세요.");
+
+        return Create<PassiveSkillBoostDef>(passive => passive.EditorSetup(skill, damageRate, radiusRate));
+    }
+
+    // 있으면 그대로 쓰고, 없으면 create로 만들어 저장한다
+    private static PassiveDef LoadOrCreatePassive(string id, string name, string desc, Func<PassiveDef> create, ref int created)
+    {
+        string path = $"{EditorPath.PassiveDataDir}{id}.asset";
+        PassiveDef passive = AssetDatabase.LoadAssetAtPath<PassiveDef>(path);
+        if (passive != null)
+            return passive;
+
+        passive = create();
+        passive.EditorSetIdentity(id, name, desc);
+        AssetDatabase.CreateAsset(passive, path);
+        created++;
+
+        return passive;
+    }
 }

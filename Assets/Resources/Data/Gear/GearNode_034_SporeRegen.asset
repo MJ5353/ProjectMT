@@ -18,11 +18,7 @@ MonoBehaviour:
     3 \uD68C\uBCF5"
   <Icon>k__BackingField: {fileID: 0}
   m_ListModifier: []
-  <Special>k__BackingField: 4
-  <SpecialValue>k__BackingField: 3
-  <SpecialValue2>k__BackingField: 0
-  <SpecialRange>k__BackingField: {x: 0, y: 0}
-  <TargetSkill>k__BackingField: {fileID: 0}
+  <Passive>k__BackingField: {fileID: 11400000, guid: a70f0aca42d54ba5a3e21db6e9c6430a, type: 2}
   <Cost>k__BackingField: 1500
   m_ListRequire:
   - {fileID: 11400000, guid: bf02d597620c96f419ae8343b1e70089, type: 2}

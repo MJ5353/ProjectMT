@@ -86,3 +86,4 @@ MonoBehaviour:
   - <Slot>k__BackingField: 21
     <Monster>k__BackingField: {fileID: 11400000, guid: 1c86353192e9ae648ba022cf325e0995, type: 2}
     <RespawnDelay>k__BackingField: -1
+  m_ListMonsterModifier: []

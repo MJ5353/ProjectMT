@@ -17,11 +17,7 @@ MonoBehaviour:
   <Description>k__BackingField: "\uB2EC\uB9AC\uB2E4 \uBCA0\uAE30 \uD53C\uD574 x1.5"
   <Icon>k__BackingField: {fileID: 0}
   m_ListModifier: []
-  <Special>k__BackingField: 2
-  <SpecialValue>k__BackingField: 1.5
-  <SpecialValue2>k__BackingField: 1
-  <SpecialRange>k__BackingField: {x: 0, y: 0}
-  <TargetSkill>k__BackingField: {fileID: 11400000, guid: f131cb9420ac4d3da261483a93e6988a, type: 2}
+  <Passive>k__BackingField: {fileID: 11400000, guid: 419ea291235444aa8eaa9d2e607ff14b, type: 2}
   <Cost>k__BackingField: 600
   m_ListRequire:
   - {fileID: 11400000, guid: c2bfe51d7caa54a418da22270f858c66, type: 2}

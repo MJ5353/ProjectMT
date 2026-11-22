@@ -11,9 +11,9 @@ public class ScreenTitle : ScreenBase
     [SerializeField] private Button m_StartButton = null;
     [SerializeField] private RectTransform m_PressLabel = null;
 
-    private const float HopTime = 0.4f; // 한 번 튀어 올랐다 내려오는 시간(초)
-    private const float HopHeight = 3f; // 튀는 높이
-    private const float HopRest = 1.5f; // 다음 튀기까지 쉬는 시간(초)
+    private const float HopHeight = 4f;   // 튀는 높이
+    private const float HopTime = 1.5f;       // 한 번 튀어 올랐다 내려오는 시간(초)
+    private const float HopRestTime = 1f; // 다음 튀기까지 쉬는 시간(초)
 
     private readonly UISequence m_BobSequence = new();
     private readonly UISequence m_StartSequence = new();
@@ -26,7 +26,7 @@ public class ScreenTitle : ScreenBase
         m_StartButton.E_SetOnClick(OnClickStart);
 
         m_PressLabelPos = m_PressLabel.anchoredPosition;
-        m_BobSequence.Tween(HopTime, t => m_PressLabel.anchoredPosition = m_PressLabelPos + Vector2.up * (Mathf.Sin(t * Mathf.PI) * HopHeight)).Wait(HopRest);
+        m_BobSequence.Tween(HopTime, t => m_PressLabel.anchoredPosition = m_PressLabelPos + Vector2.up * (Mathf.Sin(t * Mathf.PI) * HopHeight)).Wait(HopRestTime);
     }
 
     private void OnEnable() => PlayBob();

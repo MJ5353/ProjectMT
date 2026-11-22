@@ -14,9 +14,9 @@ public enum EMonsterTier
 
 // 몬스터 자동 배정 공식의 튜닝값. 데이터 편집기 > 몬스터 > 자동 배정이 읽어서 MonsterDef에 기입한다.
 // 시야·추적 포기 거리·공용 쿨·배회 속도 배율은 여기 말고 AI 프리셋(AIDef: AI_Normal·AI_Elite·AI_Boss)에서 정한다.
-// 순서: 지역 순서(Order)와 등급, 같은 등급 안 번호로 수치를 키운다.
-//   체력 = 기본 체력 × 등급 배율 × 지역 배율^(지역 순서-1) × (1 + 번호 가산 × 등급 안 순번)
-//   공격 = 기본 공격 × 등급 배율 × 지역 배율^(지역 순서-1) × (1 + 번호 가산 × 등급 안 순번)
+// 순서: 등급, 같은 등급 안 번호로 수치를 키운다. 지역 난이도(체력·공격 배율)는 굽지 않고 MapDef.ListMonsterModifier가 스폰 때 능력치 출처로 넣는다.
+//   체력 = 기본 체력 × 등급 배율 × (1 + 번호 가산 × 등급 안 순번)
+//   공격 = 기본 공격 × 등급 배율 × (1 + 번호 가산 × 등급 안 순번)
 // 에셋: Assets/Resources/Data/Balance/MonsterBalance.asset (없으면 자동 배정 때 기본값으로 만든다)
 
 [CreateAssetMenu(menuName = "MushTaker/Data/Monster Balance", fileName = "MonsterBalance")]
@@ -94,12 +94,6 @@ public class MonsterBalanceTable : ScriptableObject
     public int BaseDamage { get; private set; } = 1;
 
     // 성장 ---
-    [field: SerializeField, Tooltip("지역이 하나 뒤로 갈 때마다 체력 배율")]
-    public float MapHpRate { get; private set; } = 1.8f;
-
-    [field: SerializeField, Tooltip("지역이 하나 뒤로 갈 때마다 공격력 배율")]
-    public float MapDamageRate { get; private set; } = 1.4f;
-
     [field: SerializeField, Tooltip("지역이 하나 뒤로 갈 때마다 이동 속도 가산(0.1 = +10%)")]
     public float MapSpeedAdd { get; private set; } = 0.08f;
 
@@ -138,19 +132,20 @@ public class MonsterBalanceTable : ScriptableObject
         }
     }
 
-    // mapIndex: 0부터(첫 지역 0), orderInTier: 같은 등급 안 순번(0부터)
-    public int CalcHp(EMonsterTier tier, int mapIndex, int orderInTier)
+    // orderInTier: 같은 등급 안 순번(0부터). 지역 배율은 MapDef 쪽
+    public int CalcHp(EMonsterTier tier, int orderInTier)
     {
-        float value = BaseHp * GetTier(tier).HpRate * Mathf.Pow(MapHpRate, mapIndex) * (1f + OrderStepRate * orderInTier);
+        float value = BaseHp * GetTier(tier).HpRate * (1f + OrderStepRate * orderInTier);
         return Mathf.Max(1, Mathf.RoundToInt(value));
     }
 
-    public int CalcDamage(EMonsterTier tier, int mapIndex, int orderInTier)
+    public int CalcDamage(EMonsterTier tier, int orderInTier)
     {
-        float value = BaseDamage * GetTier(tier).DamageRate * Mathf.Pow(MapDamageRate, mapIndex) * (1f + OrderStepRate * orderInTier);
+        float value = BaseDamage * GetTier(tier).DamageRate * (1f + OrderStepRate * orderInTier);
         return Mathf.Max(1, Mathf.RoundToInt(value));
     }
 
+    // mapIndex: 0부터(첫 지역 0)
     public float CalcMoveSpeed(EMonsterTier tier, int mapIndex)
     {
         return GetTier(tier).MoveSpeed * (1f + MapSpeedAdd * mapIndex);

@@ -8,12 +8,16 @@ using UnityEngine;
 
 // 버섯 픽업 프리팹 일괄 제작. MushroomDef 한 장 = 픽업 한 개(Prefabs/Actor/Pickup/Pickup_NNN_Key.prefab, 모델 Mush_NNN_Key.fbx).
 // Def는 픽업을 참조하지 않는다. 드랍 자동 배정은 MushroomDef.PickupPath(이름 규칙)로 찾는다.
+// 골드 동전 픽업(Pickup_Gold, 납작한 금색 큐브)도 여기서 같이 만든다.
 // !!) 이미 있는 픽업은 기본으로 덮어쓰지 않는다(ID만 맞춤). 덮어쓰면 몬스터 드랍 참조가 끊길 수 있으니 강제 빌드 후에는 드랍 자동 배정을 다시 돌릴 것
 
 public static class MushroomPickupBuilder
 {
     private const float ModelScale = 0.96f; // 버섯 모델 크기(26.11.20 대장: 0.8의 1.2배)
     private const string LegacyRingName = "RarityRing"; // 예전에 픽업마다 붙였던 고리 자식. 남아 있으면 지운다
+    private const string GoldMaterialName = "M_Gold";
+    private static readonly Vector3 s_CoinScale = new(0.3f, 0.3f, 0.06f); // 동전 크기(세워서 돈다)
+    private static readonly Color s_GoldColor = new(1f, 0.78f, 0.2f);
 
     // ------------------------------------------------
 
@@ -46,6 +50,15 @@ public static class MushroomPickupBuilder
                 FixItemID(def, path);
                 FixPickup(path);
             }
+        }
+
+        string goldPath = EditorPath.ResourcesRoot + CommonPath.GoldPickup + EditorPath.PrefabExtension;
+        if (File.Exists(goldPath) == false || isForce)
+        {
+            if (BuildGoldPickup(goldPath))
+                builtCount++;
+            else
+                listFailed.Add(CommonPath.GoldPickup);
         }
 
         AssetDatabase.SaveAssets();
@@ -91,6 +104,48 @@ public static class MushroomPickupBuilder
         {
             Object.DestroyImmediate(root);
         }
+    }
+
+    // 골드 동전: 재화 ID를 든 픽업 + 납작한 금색 큐브
+    private static bool BuildGoldPickup(string path)
+    {
+        GameObject root = new GameObject(Path.GetFileNameWithoutExtension(path));
+        try
+        {
+            MushroomPickup pickup = root.AddComponent<MushroomPickup>();
+            BattleSetup.SetString(pickup, "m_ItemID", CurrencyDef.GoldID);
+
+            GameObject coin = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            coin.name = "Coin";
+            Object.DestroyImmediate(coin.GetComponent<Collider>());
+            coin.transform.SetParent(root.transform, false);
+            coin.transform.localPosition = Vector3.up * (s_CoinScale.y * 0.5f);
+            coin.transform.localScale = s_CoinScale;
+            coin.GetComponent<MeshRenderer>().sharedMaterial = LoadOrCreateGoldMaterial();
+
+            return PrefabUtility.SaveAsPrefabAsset(root, path) != null;
+        }
+        finally
+        {
+            Object.DestroyImmediate(root);
+        }
+    }
+
+    private static Material LoadOrCreateGoldMaterial()
+    {
+        string path = $"{EditorPath.MaterialAssetDir}{GoldMaterialName}.mat";
+        Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material != null)
+            return material;
+
+        Directory.CreateDirectory(EditorPath.MaterialAssetDir);
+        material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+        material.SetColor("_BaseColor", s_GoldColor);
+        material.SetFloat("_Metallic", 0.8f);
+        material.SetFloat("_Smoothness", 0.6f);
+        AssetDatabase.CreateAsset(material, path);
+
+        return material;
     }
 
     // 이미 있는 픽업: 모델 크기를 ModelScale에 맞추고, 예전 고리 자식이 남아 있으면 지운다
