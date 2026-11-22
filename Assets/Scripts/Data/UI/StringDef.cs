@@ -63,6 +63,7 @@ public enum EStringKey
     Stat_PartDamage,
     Stat_DashDistance,
     Stat_BreakResist,
+    Stat_AttackRadius,
 
     // battle
     Battle_Exit,

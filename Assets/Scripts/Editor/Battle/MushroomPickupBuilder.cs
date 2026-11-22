@@ -52,13 +52,14 @@ public static class MushroomPickupBuilder
             }
         }
 
-        string goldPath = EditorPath.ResourcesRoot + CommonPath.GoldPickup + EditorPath.PrefabExtension;
+        string goldPickup = CurrencyDef.S_GetPickupPath(CurrencyDef.GoldID);
+        string goldPath = EditorPath.ResourcesRoot + goldPickup + EditorPath.PrefabExtension;
         if (File.Exists(goldPath) == false || isForce)
         {
             if (BuildGoldPickup(goldPath))
                 builtCount++;
             else
-                listFailed.Add(CommonPath.GoldPickup);
+                listFailed.Add(goldPickup);
         }
 
         AssetDatabase.SaveAssets();

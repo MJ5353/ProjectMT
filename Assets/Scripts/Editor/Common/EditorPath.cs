@@ -20,6 +20,7 @@ public static class EditorPath
     public const string PlayerDataDir = DataDir + "Player/";
     public const string MapDataDir = DataDir + "Maps/";
     public const string MushroomDataDir = DataDir + "Mushrooms/";
+    public const string CurrencyDataDir = DataDir + "Currencies/";
     public const string SkillDataDir = DataDir + "Skills/";
     public const string BalanceDataDir = DataDir + "Balance/";
     public const string UIDataDir = DataDir + "UI/";

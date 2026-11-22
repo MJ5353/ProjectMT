@@ -47,39 +47,37 @@ public class PassiveFeature : UnitFeature
 
     // 훅 ---
 
-    public void ModifyAttack(AttackSpec spec, ref float damageRate, ref float radiusRate)
+    // 피해 계산 중(Attack·Taken) 순간 능력치 Rate 합
+    public float GetRate(EPassiveTrigger trigger, in PassiveContext context, EStatType stat)
     {
+        float rate = 0f;
         foreach (PassiveDef passive in m_ListPassive)
         {
-            passive.ModifyAttack(Owner, spec, ref damageRate, ref radiusRate);
+            rate += passive.GetRate(trigger, context, stat);
         }
-    }
 
-    public void ModifyTaken(ref float takenRate)
-    {
-        foreach (PassiveDef passive in m_ListPassive)
-        {
-            passive.ModifyTaken(Owner, ref takenRate);
-        }
+        return rate;
     }
 
     public void OnHit(in HitParams hit)
     {
-        foreach (PassiveDef passive in m_ListPassive)
-        {
-            passive.OnHit(Owner, hit);
-        }
+        Execute(EPassiveTrigger.Hit, PassiveContext.S_Hit(Owner, hit));
     }
 
     public void OnPickup(in LootPicked loot)
     {
-        foreach (PassiveDef passive in m_ListPassive)
-        {
-            passive.OnPickup(Owner, loot);
-        }
+        Execute(EPassiveTrigger.Pickup, PassiveContext.S_Pickup(Owner, loot));
     }
 
     // ==================================================
+
+    private void Execute(EPassiveTrigger trigger, in PassiveContext context)
+    {
+        foreach (PassiveDef passive in m_ListPassive)
+        {
+            passive.Execute(trigger, context);
+        }
+    }
 
     private void ClearAll()
     {

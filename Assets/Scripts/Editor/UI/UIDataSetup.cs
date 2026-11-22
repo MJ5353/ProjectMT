@@ -63,6 +63,7 @@ public static class UIDataSetup
         { EStringKey.Stat_PartDamage, "버섯 부위 피해 +{0}" },
         { EStringKey.Stat_DashDistance, "대시 거리 +{0}" },
         { EStringKey.Stat_BreakResist, "경직 저항 +{0}" },
+        { EStringKey.Stat_AttackRadius, "공격 범위 +{0}" },
 
         { EStringKey.Battle_Exit, "토벌 종료" },
         { EStringKey.Battle_ExitConfirm, "토벌을 종료할까요?" },

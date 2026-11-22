@@ -5,7 +5,7 @@ using UnityEngine.Serialization;
 
 // 버섯 정의. 재배 시간, 수확량, 강화치 등은 기획 표가 정해지면 추가한다
 [CreateAssetMenu(menuName = "MushTaker/Data/Mushroom", fileName = "Mushroom_")]
-public class MushroomDef : DataDef
+public class MushroomDef : DataDef, IPickupItem
 {
     private const string KeyPrefix = "Mushroom_";
 

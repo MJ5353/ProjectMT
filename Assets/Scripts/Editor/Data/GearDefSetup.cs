@@ -40,7 +40,7 @@ public static class GearDefSetup
         public Vector2 Slot;
         public int Cost;
         public StatModifier Modifier;
-        public Func<PassiveDef> Passive;    // 새 패시브 에셋을 만든다(값까지). 이미 있으면 부르지 않는다
+        public Func<List<PassiveRule>> Passive;    // 새 패시브 에셋의 규칙. 이미 있으면 부르지 않는다
         public (string LineKey, int Level)[] Requires;
     }
 
@@ -50,15 +50,15 @@ public static class GearDefSetup
         new() { Key = "PartHunter", Name = "버섯 사냥꾼", Desc = "버섯 부위를 더 잘 깬다.", Slot = new Vector2(1, 1.5f), Cost = 300,
             Modifier = Rate(EStatType.PartDamage, 0.25f), Requires = new[] { ("Attack", 2), ("AttackSpeed", 2) } },
         new() { Key = "RunSlash", Name = "질주 베기", Desc = "달리다 베기 피해 x1.5", Slot = new Vector2(3, 2.5f), Cost = 600,
-            Passive = () => SkillBoost("Player_Attack_06", 1.5f, 1f), Requires = new[] { ("AttackSpeed", 3), ("Dodge", 3) } },
+            Passive = () => Rules(new PassiveRule(EPassiveTrigger.Attack, Conditions(SkillIs("Player_Attack_06")), Effects(Stats(Rate(EStatType.Attack, 0.5f))))), Requires = new[] { ("AttackSpeed", 3), ("Dodge", 3) } },
         new() { Key = "Insurance", Name = "상해보험", Desc = "맞으면 골드 동전 5~10개를 떨군다.", Slot = new Vector2(5, 0.5f), Cost = 300,
-            Passive = () => Create<PassiveGoldOnHitDef>(passive => passive.EditorSetup(new Vector2Int(5, 10))), Requires = new[] { ("Dodge", 1), ("Defense", 1) } },
+            Passive = () => Rules(new PassiveRule(EPassiveTrigger.Hit, Conditions(), Effects(new PassiveEffect_DropPickup(LoadCurrency(CurrencyDef.GoldID), new Vector2Int(5, 10))))), Requires = new[] { ("Dodge", 1), ("Defense", 1) } },
         new() { Key = "LastStand", Name = "든든한 뿌리", Desc = "체력 30% 이하일 때 받는 피해 -30%", Slot = new Vector2(7, 2.5f), Cost = 600,
-            Passive = () => Create<PassiveLowHpGuardDef>(passive => passive.EditorSetup(0.3f, 0.3f)), Requires = new[] { ("Defense", 3), ("MaxHp", 3) } },
+            Passive = () => Rules(new PassiveRule(EPassiveTrigger.Taken, Conditions(new PassiveCondition_HpBelow(0.3f)), Effects(Stats(Rate(EStatType.Defense, 0.3f))))), Requires = new[] { ("Defense", 3), ("MaxHp", 3) } },
 
         // 극의 노드(줄 끝)
         new() { Key = "Barbarian", Name = "바바리안", Desc = "막타 내려찍기 피해 x1.5, 범위 x1.3", Slot = new Vector2(0, 5), Cost = 1500,
-            Passive = () => SkillBoost("Player_Attack_05", 1.5f, 1.3f), Requires = new[] { ("Attack", 5) } },
+            Passive = () => Rules(new PassiveRule(EPassiveTrigger.Attack, Conditions(SkillIs("Player_Attack_05")), Effects(Stats(Rate(EStatType.Attack, 0.5f), Rate(EStatType.AttackRadius, 0.3f))))), Requires = new[] { ("Attack", 5) } },
         new() { Key = "SwiftFeet", Name = "탁월한 속도", Desc = "이동 속도가 한 단계 빨라진다.", Slot = new Vector2(2, 5), Cost = 1500,
             Modifier = Rate(EStatType.MoveSpeed, 0.15f), Requires = new[] { ("AttackSpeed", 5) } },
         new() { Key = "Gale", Name = "질풍", Desc = "대시로 더 멀리 간다.", Slot = new Vector2(4, 5), Cost = 1500,
@@ -66,7 +66,7 @@ public static class GearDefSetup
         new() { Key = "IronCap", Name = "강철 갓", Desc = "약한 공격에는 움찔하지 않는다.", Slot = new Vector2(6, 5), Cost = 1500,
             Modifier = new StatModifier(EStatType.BreakResist, EStatModType.Add, 1f), Requires = new[] { ("Defense", 5) } },
         new() { Key = "SporeRegen", Name = "포자 재생", Desc = "버섯을 주울 때 체력 3 회복", Slot = new Vector2(8, 5), Cost = 1500,
-            Passive = () => Create<PassiveHealOnPickupDef>(passive => passive.EditorSetup(3)), Requires = new[] { ("MaxHp", 5) } },
+            Passive = () => Rules(new PassiveRule(EPassiveTrigger.Pickup, Conditions(new PassiveCondition_PickMushroom()), Effects(new PassiveEffect_Heal(3, true)))), Requires = new[] { ("MaxHp", 5) } },
     };
 
     // 엠블렘: 필요 노드 수, 이름, 보너스(누적). 그림은 리소스 작업 후 Icon에 직접 넣는다
@@ -187,31 +187,39 @@ public static class GearDefSetup
 
     // 패시브 ---
 
-    private static T Create<T>(Action<T> setup) where T : PassiveDef
-    {
-        T passive = ScriptableObject.CreateInstance<T>();
-        setup(passive);
-        return passive;
-    }
+    private static List<PassiveRule> Rules(params PassiveRule[] rules) => rules.ToList();
+    private static List<PassiveCondition> Conditions(params PassiveCondition[] conditions) => conditions.ToList();
+    private static List<PassiveEffect> Effects(params PassiveEffect[] effects) => effects.ToList();
+    private static PassiveEffect_Stat Stats(params StatModifier[] modifiers) => new(modifiers.ToList());
 
-    private static PassiveDef SkillBoost(string skillID, float damageRate, float radiusRate)
+    private static PassiveCondition_Skill SkillIs(string skillID)
     {
         SkillDef skill = AssetDatabase.LoadAssetAtPath<SkillDef>($"{EditorPath.SkillDataDir}{skillID}.asset");
         if (skill == null)
-            CLogger.Warning("GearDefSetup", $"공격 {skillID}이 없습니다. 패시브 에셋에서 Skill을 채우세요.");
+            CLogger.Warning("GearDefSetup", $"공격 {skillID}이 없습니다. 패시브 에셋에서 스킬 조건을 채우세요.");
 
-        return Create<PassiveSkillBoostDef>(passive => passive.EditorSetup(skill, damageRate, radiusRate));
+        return new PassiveCondition_Skill(skill);
     }
 
-    // 있으면 그대로 쓰고, 없으면 create로 만들어 저장한다
-    private static PassiveDef LoadOrCreatePassive(string id, string name, string desc, Func<PassiveDef> create, ref int created)
+    private static CurrencyDef LoadCurrency(string currencyID)
+    {
+        CurrencyDef currency = AssetDatabase.LoadAssetAtPath<CurrencyDef>($"{EditorPath.CurrencyDataDir}{currencyID}.asset");
+        if (currency == null)
+            CLogger.Warning("GearDefSetup", $"재화 {currencyID}이 없습니다. 패시브 에셋에서 픽업 떨구기 아이템을 채우세요.");
+
+        return currency;
+    }
+
+    // 있으면 그대로 쓰고, 없으면 createRules로 규칙을 채워 저장한다
+    private static PassiveDef LoadOrCreatePassive(string id, string name, string desc, Func<List<PassiveRule>> createRules, ref int created)
     {
         string path = $"{EditorPath.PassiveDataDir}{id}.asset";
         PassiveDef passive = AssetDatabase.LoadAssetAtPath<PassiveDef>(path);
         if (passive != null)
             return passive;
 
-        passive = create();
+        passive = ScriptableObject.CreateInstance<PassiveDef>();
+        passive.EditorSetup(createRules());
         passive.EditorSetIdentity(id, name, desc);
         AssetDatabase.CreateAsset(passive, path);
         created++;

@@ -228,6 +228,8 @@ MonoBehaviour:
     <Value>k__BackingField: "\uB300\uC2DC \uAC70\uB9AC +{0}"
   - <Key>k__BackingField: Stat_BreakResist
     <Value>k__BackingField: "\uACBD\uC9C1 \uC800\uD56D +{0}"
+  - <Key>k__BackingField: Stat_AttackRadius
+    <Value>k__BackingField: "\uACF5\uACA9 \uBC94\uC704 +{0}"
   - <Key>k__BackingField: Title_PressToStart
     <Value>k__BackingField: "\uD074\uB9AD\uD558\uC5EC \uC2DC\uC791\uD558\uAE30"
   - <Key>k__BackingField: Loading_Text

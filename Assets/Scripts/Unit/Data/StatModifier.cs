@@ -18,6 +18,7 @@ public enum EStatType
     PartDamage,     // 버섯 부위 피해 배율
     DashDistance,   // 대시 시간(= 거리)
     BreakResist,    // 경직 저항(UnitDef.BreakImmune에 더함)
+    AttackRadius,   // 공격 판정 범위 배율
 }
 
 public enum EStatModType

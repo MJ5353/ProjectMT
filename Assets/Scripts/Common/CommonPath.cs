@@ -18,8 +18,7 @@ public static class CommonPath
     // 콘텐츠 리소스는 폴더 + 이름(Def ID)으로 찾는다. Def는 프리팹을 참조하지 않는다
     public const string ActorDir = "Prefabs/Actor/";           // 플레이어 프리팹(Player)
     public const string MonsterDir = ActorDir + "Monster/";    // 몬스터 프리팹(Monster_NNN_Key)
-    public const string PickupDir = ActorDir + "Pickup/";      // 버섯 픽업 프리팹(Pickup_NNN_Key)
-    public const string GoldPickup = PickupDir + "Pickup_Gold"; // 골드 동전 픽업(상해보험 등). MushroomPickupBuilder가 만든다
+    public const string PickupDir = ActorDir + "Pickup/";      // 버섯·재화 픽업 프리팹(Pickup_NNN_Key, Pickup_Gold)
     public const string MapDir = "Prefabs/Map/";               // 맵 프리팹(Map_NNN_Key)
     
     // else
