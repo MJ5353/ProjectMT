@@ -107,6 +107,7 @@ public static class BattleUISetup
 
         AddUnitHpBars(safe);
         AddRoarEffect(safe);
+        AddRushEffect(safe);
 
         ScreenBattle screen = root.gameObject.AddComponent<ScreenBattle>();
         UIBuilder.SetRef(screen, "m_Clock", clock);
@@ -199,6 +200,57 @@ public static class BattleUISetup
         UIBuilder.SetRef(effect, "m_BannerText", text);
 
         return effect;
+    }
+
+    // 퍼펙트 닷지 러시 연출: 노치까지 덮는 어둠(구멍은 실행 중에 코드로 그림, HUD 뒤) + 중앙 하단 빈틈 타이머 바 + 가운데 문구
+    private static ScreenBattle_RushEffect AddRushEffect(RectTransform safe)
+    {
+        RectTransform area = UIBuilder.Stretch("RushDim", safe.parent);
+        area.SetAsFirstSibling();
+        RectTransform dimRect = UIBuilder.Anchored("Dim", area, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.one * 4096f);
+        Image dim = UIBuilder.AddImage(dimRect, new Color(0f, 0f, 0f, 0f));
+
+        // 바: 검은 바탕 → 남은 시간 채움 → 막타 구간(반투명 붉은색, 왼쪽부터)
+        RectTransform barRect = UIBuilder.Anchored("RushBar", safe, new Vector2(0.5f, 0f), new Vector2(0, 170), new Vector2(640, 26));
+        UIBuilder.AddImage(barRect, new Color(0f, 0f, 0f, 0.6f));
+        RectTransform fill = UIBuilder.Rect("Fill", barRect, Vector2.zero, Vector2.one, new Vector2(4, 4), new Vector2(-4, -4));
+        Image fillImage = UIBuilder.AddImage(fill, UIStyle.Text);
+        RectTransform zone = UIBuilder.Rect("FinishZone", barRect, Vector2.zero, new Vector2(0.33f, 1f), Vector2.zero, Vector2.zero);
+        UIBuilder.AddImage(zone, new Color(UIStyle.Accent.r, UIStyle.Accent.g, UIStyle.Accent.b, 0.55f));
+        CanvasGroup barGroup = AddNonBlockingGroup(barRect);
+
+        RectTransform finishRect = UIBuilder.Rect("FinishLabel", barRect, new Vector2(0f, 1f), new Vector2(0.33f, 1f), new Vector2(0, 4), new Vector2(0, 60));
+        TMP_Text finishText = UIBuilder.Label(finishRect, EStringKey.Battle_RushFinish, UIStyle.FontLarge);
+        finishText.color = UIStyle.Gold;
+        UIBuilder.SetOutline(finishText);
+        CanvasGroup finishGroup = AddNonBlockingGroup(finishRect);
+
+        RectTransform banner = UIBuilder.Rect("RushBanner", safe, new Vector2(0, 0.5f), new Vector2(1, 0.5f), new Vector2(0, 150), new Vector2(0, 290));
+        banner.SetAsLastSibling();
+        UIBuilder.AddImage(banner, new Color(0f, 0f, 0f, 0.6f));
+        TMP_Text bannerText = UIBuilder.Label(banner, EStringKey.Battle_PerfectDodge, UIStyle.FontTitle);
+        bannerText.color = UIStyle.Gold;
+        CanvasGroup bannerGroup = AddNonBlockingGroup(banner);
+
+        ScreenBattle_RushEffect effect = area.gameObject.AddComponent<ScreenBattle_RushEffect>();
+        UIBuilder.SetRef(effect, "m_Area", area);
+        UIBuilder.SetRef(effect, "m_Dim", dim);
+        UIBuilder.SetRef(effect, "m_Bar", barGroup);
+        UIBuilder.SetRef(effect, "m_BarFill", fill);
+        UIBuilder.SetRef(effect, "m_BarFillImage", fillImage);
+        UIBuilder.SetRef(effect, "m_FinishZone", zone);
+        UIBuilder.SetRef(effect, "m_FinishLabel", finishGroup);
+        UIBuilder.SetRef(effect, "m_Banner", bannerGroup);
+
+        return effect;
+    }
+
+    private static CanvasGroup AddNonBlockingGroup(RectTransform rt)
+    {
+        CanvasGroup group = rt.gameObject.AddComponent<CanvasGroup>();
+        group.blocksRaycasts = false;
+        group.interactable = false;
+        return group;
     }
 
     // 밤 시계: 둥근 마스크 안에서 하늘 띠가 내려가고, 위에 음각 테두리(마스크와 같은 칸).

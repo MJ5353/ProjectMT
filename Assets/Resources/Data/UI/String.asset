@@ -243,3 +243,7 @@ MonoBehaviour:
     <Value>k__BackingField: "\uD310\uB9E4\uD560 \uBC84\uC12F\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."
   - <Key>k__BackingField: Battle_TapToStart
     <Value>k__BackingField: "\uD074\uB9AD\uD558\uC5EC \uC2DC\uC791"
+  - <Key>k__BackingField: Battle_PerfectDodge
+    <Value>k__BackingField: "\uD37C\uD399\uD2B8 \uB2F7\uC9C0!"
+  - <Key>k__BackingField: Battle_RushFinish
+    <Value>k__BackingField: "\uB9C9\uD0C0!"
