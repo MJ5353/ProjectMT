@@ -7,8 +7,11 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "MushTaker/Data/Merchant", fileName = "Merchant_")]
 public class MerchantDef : DataDef
 {
-    [field: SerializeField, Tooltip("이 희귀도 이상이면 선호 배율, 아래면 기본 배율")]
+    [field: SerializeField, Tooltip("선호 희귀도 범위의 아래 끝. PreferRarity~PreferRarityMax면 선호 배율, 밖이면 그 밖 배율")]
     public ERarity PreferRarity { get; private set; } = ERarity.Common;
+
+    [field: SerializeField, Tooltip("선호 희귀도 범위의 위 끝")]
+    public ERarity PreferRarityMax { get; private set; } = ERarity.Epic;
 
     [field: SerializeField, Tooltip("선호 버섯 가격 배율")]
     public float PreferRate { get; private set; } = 1f;
@@ -24,12 +27,18 @@ public class MerchantDef : DataDef
 
     // ------------------------------------------------
 
-    public float GetRate(ERarity rarity) => rarity >= PreferRarity ? PreferRate : OtherRate;
+    public bool IsPrefer(ERarity rarity) => rarity >= PreferRarity && rarity <= PreferRarityMax;
+
+    public float GetRate(ERarity rarity) => IsPrefer(rarity) ? PreferRate : OtherRate;
+
+    // 평소보다 비싸게 사 주는 버섯인지(선호 하트 뱃지). 선호 배율이 그 밖 배율보다 클 때만
+    public bool HasPreferBonus(ERarity rarity) => IsPrefer(rarity) && PreferRate > OtherRate;
 
 #if UNITY_EDITOR
-    public void EditorSetup(ERarity preferRarity, float preferRate, float otherRate, float visitWeight, float priceSwing)
+    public void EditorSetup(ERarity preferRarity, float preferRate, float otherRate, float visitWeight, float priceSwing, ERarity preferRarityMax = ERarity.Epic)
     {
         PreferRarity = preferRarity;
+        PreferRarityMax = preferRarityMax;
         PreferRate = preferRate;
         OtherRate = otherRate;
         VisitWeight = visitWeight;

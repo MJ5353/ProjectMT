@@ -26,7 +26,9 @@ public static class LobbyUISetup
         ("Dispatch", "Tab_Dispatch", EStringKey.Lobby_Tab_Dispatch),
     };
     private const string GoldIconSprite = "Icon_Gold"; // 실행 중에는 UICountLabel이 재화 Def 아이콘으로 다시 채운다
+    private const int GearTabIndex = 0;
     private const int HuntTabIndex = 1;
+    private const float GearNodeSize = 84f;
 
     // ------------------------------------------------
 
@@ -105,6 +107,10 @@ public static class LobbyUISetup
             {
                 huntView = BuildHuntTab(content);
                 listView.Add(huntView);
+            }
+            else if (i == GearTabIndex)
+            {
+                listView.Add(BuildGearTab(content));
             }
             else
             {
@@ -300,6 +306,138 @@ public static class LobbyUISetup
         UIBuilder.SetRef(hunt, "m_EnterButton", enter);
 
         return hunt;
+    }
+
+    // 정비 탭: 왼쪽 엠블렘 · 가운데 강화 노드 트리(노드·선은 템플릿, 실행 중 GearNodeDef마다 복제) · 오른쪽 노드 정보
+    private static ScreenLobby_GearView BuildGearTab(RectTransform parent)
+    {
+        RectTransform view = UIBuilder.Stretch($"View_{s_Tabs[GearTabIndex].Name}", parent);
+
+        // 왼쪽: 엠블렘
+        RectTransform emblem = UIBuilder.Rect("Emblem", view, Vector2.zero, new Vector2(0.24f, 1f), new Vector2(30, 30), new Vector2(-15, -30));
+        UIBuilder.AddImage(emblem, UIStyle.Panel);
+
+        RectTransform emblemImageRt = UIBuilder.Anchored("EmblemImage", emblem, new Vector2(0.5f, 1f), new Vector2(0, -40), new Vector2(240, 240));
+        Image emblemImage = UIBuilder.AddImage(emblemImageRt, Color.white);
+        emblemImage.sprite = UIBuilder.LoadSprite("UI_Slot_Common"); // [mj] todo) 엠블렘 그림 전 임시. 실행 중에는 EmblemDef 아이콘·색으로 바뀐다
+        emblemImage.preserveAspect = true;
+
+        TMP_Text emblemName = InfoLabel(emblem, "EmblemName", "엠블렘", UIStyle.FontLarge, -300, 60);
+        emblemName.alignment = TextAlignmentOptions.Center;
+
+        TMP_Text emblemProgress = InfoLabel(emblem, "EmblemProgress", "강화 0 / 0", UIStyle.FontSmall, -370, 70);
+        emblemProgress.alignment = TextAlignmentOptions.Center;
+        emblemProgress.color = UIStyle.TextDim;
+
+        TMP_Text bonusHeader = InfoLabel(emblem, "BonusHeader", string.Empty, UIStyle.FontSmall, -470, 34);
+        UIBuilder.AddStringKey(bonusHeader, EStringKey.Lobby_Gear_EmblemBonusHeader);
+        bonusHeader.alignment = TextAlignmentOptions.Center;
+        bonusHeader.color = UIStyle.Gold;
+
+        TMP_Text emblemBonus = InfoLabel(emblem, "EmblemBonus", "없음", UIStyle.FontSmall, -515, 200);
+        emblemBonus.alignment = TextAlignmentOptions.Top;
+        emblemBonus.textWrappingMode = TextWrappingModes.Normal;
+
+        // 가운데: 트리
+        RectTransform tree = UIBuilder.Rect("Tree", view, new Vector2(0.24f, 0f), new Vector2(0.74f, 1f), new Vector2(15, 30), new Vector2(-15, -30));
+        UIBuilder.AddImage(tree, UIStyle.Panel);
+
+        TMP_Text treeTitle = UIBuilder.Label(tree, EStringKey.Lobby_Gear_TreeTitle, UIStyle.FontNormal, TextAlignmentOptions.TopLeft, "Title");
+        treeTitle.rectTransform.offsetMin = new Vector2(24, 0);
+        treeTitle.rectTransform.offsetMax = new Vector2(0, -18);
+        treeTitle.color = UIStyle.TextDim;
+
+        RectTransform noticeRt = UIBuilder.Rect("EquipNotice", tree, Vector2.zero, new Vector2(1, 0), new Vector2(20, 12), new Vector2(-20, 52));
+        TMP_Text notice = UIBuilder.Label(noticeRt, EStringKey.Lobby_Gear_EquipComingSoon, UIStyle.FontSmall);
+        notice.color = UIStyle.TextDim;
+
+        // 노드 칸 영역. 노드 중심이 영역 끝에 놓이므로 노드 반 크기만큼 안쪽으로 둔다
+        float inset = GearNodeSize * 0.5f + 20f;
+        RectTransform nodeRoot = UIBuilder.Rect("Nodes", tree, Vector2.zero, Vector2.one, new Vector2(inset, 60 + inset), new Vector2(-inset, -70 - inset));
+
+        RectTransform lineRt = UIBuilder.Anchored("LineTemplate", nodeRoot, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(100, 6));
+        Image line = UIBuilder.AddImage(lineRt, UIStyle.PanelLight);
+
+        ScreenLobby_GearView_Node node = BuildGearNode(nodeRoot);
+
+        // 오른쪽: 노드 정보
+        RectTransform detail = UIBuilder.Rect("Detail", view, new Vector2(0.74f, 0f), Vector2.one, new Vector2(15, 30), new Vector2(-30, -30));
+        UIBuilder.AddImage(detail, UIStyle.Panel);
+
+        TMP_Text detailName = InfoLabel(detail, "Name", "노드 이름", UIStyle.FontLarge, -30, 60);
+        TMP_Text detailEffect = InfoLabel(detail, "Effect", "효과", UIStyle.FontSmall, -110, 220);
+        detailEffect.textWrappingMode = TextWrappingModes.Normal;
+        detailEffect.alignment = TextAlignmentOptions.TopLeft;
+
+        TMP_Text detailRequire = InfoLabel(detail, "Require", "조건", UIStyle.FontSmall, -345, 100);
+        detailRequire.textWrappingMode = TextWrappingModes.Normal;
+        detailRequire.alignment = TextAlignmentOptions.TopLeft;
+        detailRequire.color = UIStyle.TextDim;
+
+        TMP_Text detailCost = InfoLabel(detail, "Cost", "0G", UIStyle.FontNormal, -460, 50);
+        detailCost.color = UIStyle.Gold;
+
+        Button open = UIBuilder.Button(detail, "OpenButton", "강화", new Vector2(320, 110));
+        RectTransform openRt = open.transform as RectTransform;
+        if (openRt != null)
+        {
+            openRt.anchorMin = new Vector2(0.5f, 0f);
+            openRt.anchorMax = new Vector2(0.5f, 0f);
+            openRt.pivot = new Vector2(0.5f, 0f);
+            openRt.anchoredPosition = new Vector2(0, 40);
+        }
+
+        ScreenLobby_GearView gear = view.gameObject.AddComponent<ScreenLobby_GearView>();
+        UIBuilder.SetRef(gear, "m_EmblemImage", emblemImage);
+        UIBuilder.SetRef(gear, "m_EmblemName", emblemName);
+        UIBuilder.SetRef(gear, "m_EmblemProgress", emblemProgress);
+        UIBuilder.SetRef(gear, "m_EmblemBonus", emblemBonus);
+        UIBuilder.SetRef(gear, "m_NodeRoot", nodeRoot);
+        UIBuilder.SetRef(gear, "m_NodeTemplate", node);
+        UIBuilder.SetRef(gear, "m_LineTemplate", line);
+        UIBuilder.SetRef(gear, "m_DetailName", detailName);
+        UIBuilder.SetRef(gear, "m_DetailEffect", detailEffect);
+        UIBuilder.SetRef(gear, "m_DetailRequire", detailRequire);
+        UIBuilder.SetRef(gear, "m_DetailCost", detailCost);
+        UIBuilder.SetRef(gear, "m_OpenButton", open);
+        UIBuilder.SetRef(gear, "m_OpenLabel", open.GetComponentInChildren<TMP_Text>());
+
+        return gear;
+    }
+
+    // 노드 템플릿: 고름 테두리(흰) → 스페셜 테두리(금) → 바탕(버튼) → 아이콘 → 이름
+    private static ScreenLobby_GearView_Node BuildGearNode(RectTransform parent)
+    {
+        RectTransform rt = UIBuilder.Anchored("NodeTemplate", parent, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(GearNodeSize, GearNodeSize));
+
+        RectTransform selectRt = UIBuilder.Stretch("Select", rt, -10f);
+        UIBuilder.AddImage(selectRt, UIStyle.Text);
+
+        RectTransform frameRt = UIBuilder.Stretch("Frame", rt, -5f);
+        Image frame = UIBuilder.AddImage(frameRt, UIStyle.Gold);
+
+        RectTransform bgRt = UIBuilder.Stretch("Bg", rt);
+        Image bg = UIBuilder.AddImage(bgRt, UIStyle.PanelLight, true);
+        Button button = bgRt.gameObject.AddComponent<Button>();
+        button.targetGraphic = bg;
+
+        RectTransform iconRt = UIBuilder.Stretch("Icon", rt, 14f);
+        Image icon = UIBuilder.AddImage(iconRt, new Color(1f, 1f, 1f, 0.35f)); // 아이콘이 있으면 이름 뒤에 흐리게
+        icon.preserveAspect = true;
+
+        TMP_Text nameLabel = UIBuilder.Label(rt, "노드", UIStyle.FontSmall);
+        nameLabel.textWrappingMode = TextWrappingModes.Normal;
+        nameLabel.rectTransform.offsetMin = new Vector2(4, 4);
+        nameLabel.rectTransform.offsetMax = new Vector2(-4, -4);
+
+        ScreenLobby_GearView_Node node = rt.gameObject.AddComponent<ScreenLobby_GearView_Node>();
+        UIBuilder.SetRef(node, "m_Button", button);
+        UIBuilder.SetRef(node, "m_Bg", bg);
+        UIBuilder.SetRef(node, "m_Icon", icon);
+        UIBuilder.SetRef(node, "m_Frame", frame);
+        UIBuilder.SetRef(node, "m_Select", selectRt.gameObject);
+        UIBuilder.SetRef(node, "m_NameLabel", nameLabel); // !!) m_Name은 Object 이름과 겹쳐 직렬화가 깨진다
+        return node;
     }
 
     // 정보 패널 위쪽에서 top만큼 내려온 왼쪽 정렬 라벨

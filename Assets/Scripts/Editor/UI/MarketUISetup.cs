@@ -127,14 +127,16 @@ public static class MarketUISetup
         TMP_Text introMessage = UIBuilder.Label(introMessageRect, "지금 가면... 4시간 30분은 거래할 수 있겠어!", UIStyle.FontNormal);
         introMessage.richText = true;
         intro.gameObject.SetActive(false);
+        PopupMarket_Intro marketIntro = intro.gameObject.AddComponent<PopupMarket_Intro>();
+        UIBuilder.SetRef(marketIntro, "m_Group", introGroup);
+        UIBuilder.SetRef(marketIntro, "m_Button", introButton);
+        UIBuilder.SetRef(marketIntro, "m_TimerText", introTimer);
+        UIBuilder.SetRef(marketIntro, "m_MessageText", introMessage);
 
         PopupMarket popup = root.gameObject.AddComponent<PopupMarket>();
         UIBuilder.SetRef(popup, "m_Clock", clock);
         UIBuilder.SetRef(popup, "m_Body", bodyGroup);
-        UIBuilder.SetRef(popup, "m_Intro", introGroup);
-        UIBuilder.SetRef(popup, "m_IntroButton", introButton);
-        UIBuilder.SetRef(popup, "m_IntroTimer", introTimer);
-        UIBuilder.SetRef(popup, "m_IntroMessage", introMessage);
+        UIBuilder.SetRef(popup, "m_Intro", marketIntro);
         UIBuilder.SetListView(popup, "m_RowPool", merchantList);
         UIBuilder.SetRef(popup, "m_MerchantInfo", merchantInfo);
         UIBuilder.SetListView(popup, "m_PickPool", pickLayout);

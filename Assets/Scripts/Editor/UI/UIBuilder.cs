@@ -10,7 +10,9 @@ using UnityEngine.UI;
 public static class UIBuilder
 {
 
-    private const string SlotMoldSprite = "UI_Slot_Mold"; // 덜 신선한 칸의 곰팡이 얼룩
+    private const string SlotMoldSprite = "UI_Slot_Mold";         // 덜 신선한 칸의 냄새(아이콘 위)
+    private const string SlotMoldBackSprite = "UI_Slot_MoldBack"; // 덜 신선한 칸의 상한 색 바탕(아이콘 아래)
+    private const string SlotBadgeSprite = "UI_Badge_Prefer";     // 상인 선호 버섯 하트
 
     private static TMP_FontAsset s_Font;
 
@@ -347,11 +349,14 @@ public static class UIBuilder
         Button button = rt.gameObject.AddComponent<Button>();
         button.targetGraphic = bg;
 
+        // 상한 색 바탕(덜 신선). 바탕 위·아이콘 아래에 칸 전체를 덮는다
+        GameObject moldBack = BuildSlotMoldBack(rt).gameObject;
+
         RectTransform iconRt = Stretch("Icon", rt, 14f);
         Image icon = AddImage(iconRt, Color.white);
         icon.preserveAspect = true;
 
-        // 곰팡이 얼룩(덜 신선). 아이콘 위·개수 글자 아래에 칸 전체를 덮는다
+        // 냄새(덜 신선). 아이콘 위·개수 글자 아래에 칸 전체를 덮는다
         GameObject mold = BuildSlotMold(rt).gameObject;
 
         TMP_Text count = Label(rt, "x0", UIStyle.FontSmall, TextAlignmentOptions.BottomRight, "Count");
@@ -367,10 +372,12 @@ public static class UIBuilder
         displayName.color = UIStyle.TextDim;
 
         GameObject dim = BuildSlotDim(rt).gameObject;
+        TMP_Text center = BuildSlotCenter(rt);
+        GameObject badge = BuildSlotBadge(rt).gameObject;
         TMP_Text caption = BuildSlotCaption(rt);
 
         UICommonSlot slot = rt.gameObject.AddComponent<UICommonSlot>();
-        slot.EditorSetup(bg, icon, mold, dim, caption, count, displayName, button); // 희귀도 바탕 그림은 RarityDef
+        slot.EditorSetup(bg, icon, mold, moldBack, dim, caption, center, badge, count, displayName, button); // 희귀도 바탕 그림은 RarityDef
 
         return slot;
     }
@@ -479,6 +486,43 @@ public static class UIBuilder
         return mold;
     }
 
+    // 슬롯의 상한 색 바탕. 꺼 둔 채 만든다
+    private static Image BuildSlotMoldBack(RectTransform slot)
+    {
+        RectTransform moldBackRt = Stretch("MoldBack", slot, 4f);
+        Image moldBack = AddImage(moldBackRt, Color.white);
+        moldBack.sprite = LoadSprite(SlotMoldBackSprite);
+        moldBackRt.gameObject.SetActive(false);
+
+        return moldBack;
+    }
+
+    // 슬롯 오른쪽 위 작은 하트(상인 선호). 칸 모서리에서 바깥으로 살짝 넘어간다. 꺼 둔 채 만든다
+    private static Image BuildSlotBadge(RectTransform slot)
+    {
+        RectTransform badgeRt = Anchored("Badge", slot, Vector2.one, new Vector2(8, 8), new Vector2(24, 24)); // 24 중 8이 칸 밖
+        Image badge = AddImage(badgeRt, Color.white);
+        badge.sprite = LoadSprite(SlotBadgeSprite);
+        badge.preserveAspect = true;
+        badgeRt.gameObject.SetActive(false);
+
+        return badge;
+    }
+
+    // 슬롯 가운데 큰 글자("전체", "7 → 3"). 딤 위에 뜬다. 꺼 둔 채 만든다
+    private static TMP_Text BuildSlotCenter(RectTransform slot)
+    {
+        TMP_Text center = Label(slot, string.Empty, UIStyle.FontNormal, TextAlignmentOptions.Center, "Center");
+        center.rectTransform.offsetMin = new Vector2(6, 6);
+        center.rectTransform.offsetMax = new Vector2(-6, -6);
+        center.enableAutoSizing = true;
+        center.fontSizeMin = UIStyle.FontSmall / 2;
+        center.fontSizeMax = UIStyle.FontNormal;
+        center.gameObject.SetActive(false); // SetCenter가 글자 오브젝트를 켜고 끈다
+
+        return center;
+    }
+
     // 슬롯을 덮는 반투명 검정. 꺼 둔 채 만든다
     private static Image BuildSlotDim(RectTransform slot)
     {
@@ -488,7 +532,7 @@ public static class UIBuilder
         return dim;
     }
 
-    // 슬롯 바로 위 작은 글자("일괄판매(x17)"). 칸보다 조금 넓고, 길면 줄어든다. 꺼 둔 채 만든다
+    // 슬롯 바로 위 작은 글자. 칸보다 조금 넓고, 길면 줄어든다. 꺼 둔 채 만든다
     private static TMP_Text BuildSlotCaption(RectTransform slot)
     {
         RectTransform rt = Rect("Caption", slot, new Vector2(0, 1), Vector2.one, new Vector2(-20, 4), new Vector2(20, 34));
@@ -497,7 +541,7 @@ public static class UIBuilder
         caption.enableAutoSizing = true;
         caption.fontSizeMin = UIStyle.FontSmall / 2;
         caption.fontSizeMax = UIStyle.FontSmall;
-        rt.gameObject.SetActive(false);
+        caption.gameObject.SetActive(false); // SetCaption이 글자 오브젝트를 켜고 끈다(rt를 끄면 켜도 안 보인다)
 
         return caption;
     }

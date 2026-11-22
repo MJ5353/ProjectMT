@@ -25,9 +25,7 @@ public class PopupMarket_MerchantInfo : MonoBehaviour
 
         string gainText = trustGain > 0 ? " " + UIStyle.ColorTag(UIStyle.Positive, $"(+{trustGain})") : string.Empty;
         string otherText = merchant.OtherRate > 0f ? $"x{merchant.OtherRate:0.0#}" : UIStyle.ColorTag(UIStyle.Negative, StringDef.S_Get(EStringKey.Market_NotBuying));
-        string rarityName = RarityDef.S_Get(merchant.PreferRarity)?.DisplayName ?? merchant.PreferRarity.ToString(); // 표가 없으면 enum 이름
-
-        m_InfoText.E_SetString(EStringKey.Market_MerchantInfoFormat, trust, gainText, FormatSwing(swingRate), rarityName, merchant.PreferRate, otherText);
+        m_InfoText.E_SetString(EStringKey.Market_MerchantInfoFormat, trust, gainText, FormatSwing(swingRate), FormatPrefer(merchant), merchant.PreferRate, otherText);
     }
 
     // 오늘 온 상인이 없다
@@ -40,6 +38,25 @@ public class PopupMarket_MerchantInfo : MonoBehaviour
     }
 
     // ---
+
+    // 선호 희귀도 범위: "희귀 이상" / "영웅만" / "일반~희귀"
+    private static string FormatPrefer(MerchantDef merchant)
+    {
+        string minName = GetRarityName(merchant.PreferRarity);
+        if (merchant.PreferRarity == merchant.PreferRarityMax)
+            return StringDef.S_Format(EStringKey.Market_PreferOnlyFormat, minName);
+
+        if (merchant.PreferRarityMax == ERarity.Epic)
+            return StringDef.S_Format(EStringKey.Market_PreferAboveFormat, minName);
+
+        return $"{minName}~{GetRarityName(merchant.PreferRarityMax)}";
+    }
+
+    // 표가 없으면 enum 이름
+    private static string GetRarityName(ERarity rarity)
+    {
+        return RarityDef.S_Get(rarity)?.DisplayName ?? rarity.ToString();
+    }
 
     // 오늘 시세: +12%(초록) / -8%(빨강) / 보통
     private static string FormatSwing(float swingRate)

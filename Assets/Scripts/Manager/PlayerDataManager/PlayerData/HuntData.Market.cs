@@ -225,11 +225,17 @@ public partial class HuntData
         if (rate <= 0f || mushroom.Price <= 0)
             return 0;
 
+        float rarityRate = key.Rarity switch
+        {
+            ERarity.Rare => Define.MarketRareRate,
+            ERarity.Epic => Define.MarketEpicRate,
+            _ => 1f,
+        };
         float freshRate = key.Freshness == EFreshness.High ? 1f : Define.MarketLowFreshRate;
         float trustRate = 1f + m_Market.GetTrust(merchant.ID) * Define.TrustPriceRate;
         float swingRate = Mathf.Max(0f, GetSwingRate(merchant));
 
-        return Mathf.Max(1, Mathf.RoundToInt(mushroom.Price * rate * freshRate * trustRate * swingRate));
+        return Mathf.Max(1, Mathf.RoundToInt(mushroom.Price * rarityRate * rate * freshRate * trustRate * swingRate));
     }
 
     // 이번 시장에서 이 상인에게 오른 신뢰도(닫힐 때 반영)

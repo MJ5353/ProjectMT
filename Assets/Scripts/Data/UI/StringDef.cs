@@ -55,11 +55,13 @@ public enum EStringKey
     Market_SoldFormat,               // {0} 판 골드
     Market_TotalFormat,              // {0} 합계 골드 {1} 고른 묶음 {2} 묶음 상한
     Market_NoMerchant,
-    Market_MerchantInfoFormat,       // {0} 신뢰도 {1} 오른 신뢰도 {2} 시세 {3} 희귀도 {4} 선호 배율 {5} 그 밖 배율
+    Market_MerchantInfoFormat,       // {0} 신뢰도 {1} 오른 신뢰도 {2} 시세 {3} 선호 희귀도 범위 {4} 선호 배율 {5} 그 밖 배율
+    Market_PreferOnlyFormat,         // {0} 희귀도
+    Market_PreferAboveFormat,        // {0} 희귀도
     Market_SwingNormal,
     Market_NotBuying,
     Market_PriceFormat,              // {0} 한 개 값
-    Market_SellAllFormat,            // {0} 개수
+    Market_SellAll,
     Market_TradeGoldFormat,          // {0} 받은 골드
     Market_WaitDone,
     Market_Result_Closed,

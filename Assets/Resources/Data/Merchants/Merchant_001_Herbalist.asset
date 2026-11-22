@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MerchantDef
   m_DisplayName: "\uC57D\uC7AC\uC0C1"
   <ID>k__BackingField: Merchant_001_Herbalist
-  <Description>k__BackingField: "\uADC0\uD55C \uBC84\uC12F\uB9CC \uBE44\uC2F8\uAC8C
-    \uC0B0\uB2E4"
+  <Description>k__BackingField: "\uADC0\uD55C \uBC84\uC12F\uC744 \uB354 \uCCD0\uC900\uB2E4"
   <Icon>k__BackingField: {fileID: 0}
   <PreferRarity>k__BackingField: 1
-  <PreferRate>k__BackingField: 2
-  <OtherRate>k__BackingField: 0.5
+  <PreferRarityMax>k__BackingField: 2
+  <PreferRate>k__BackingField: 1.6
+  <OtherRate>k__BackingField: 0.8
   <VisitWeight>k__BackingField: 1
   <PriceSwing>k__BackingField: 0.15

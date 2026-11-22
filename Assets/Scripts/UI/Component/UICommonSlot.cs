@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 // 아이콘 + 개수 칸. DataDef면 무엇이든(버섯·아이템·재화) 담는다. 바탕은 희귀도별 그림(RarityDef, 기본 Common).
 // 표시만 한다. 어떤 데이터인지는 칸을 꺼낸 UI가 들고 있다(클릭은 UIListView.IndexOf로 찾는다).
-// 덜 신선하면 칸 모서리에 곰팡이 얼룩(m_Mold)을 띄운다. 아이콘이 없으면 버섯은 버섯 색(Tint)으로 칠하고, 그 밖은 바탕색만 보인다
+// 덜 신선하면 상한 색 바탕(m_MoldBack, 아이콘 아래)과 냄새(m_Mold, 아이콘 위)를 띄운다. 오른쪽 위에는 하트 뱃지(m_Badge), 가운데에는 큰 글자(m_Center)를 띄울 수 있다. 아이콘이 없으면 버섯은 버섯 색(Tint)으로 칠하고, 그 밖은 바탕색만 보인다
 public class UICommonSlot : PoolableMonoUI
 {
     [SerializeField] private Button m_Button = null;
@@ -16,11 +16,14 @@ public class UICommonSlot : PoolableMonoUI
     [SerializeField] private GameObject m_Dim = null;  // 칸 위를 덮는 반투명 검정(아이콘·곰팡이 위, 위 글자 아래)
     
     [SerializeField] private TMP_Text m_Caption = null; // 칸 바로 위 작은 글자
+    [SerializeField] private TMP_Text m_Center = null;  // 칸 가운데 큰 글자(딤 위). "전체", "7 → 3"
+    [SerializeField] private GameObject m_Badge = null; // 오른쪽 위 작은 하트(상인 선호 버섯)
     [SerializeField] private TMP_Text m_Count = null;
     [SerializeField] private TMP_Text m_NameText = null;
 
     // [mj] todo) 일반화. slot layer table 만들어서 slot cover, slot extra bg 등을 설정할 수 있게
-    [SerializeField] private GameObject m_Mold = null; // 곰팡이 얼룩. 덜 신선할 때만 켠다
+    [SerializeField] private GameObject m_Mold = null;     // 냄새(아이콘 위). 덜 신선할 때만 켠다
+    [SerializeField] private GameObject m_MoldBack = null; // 상한 색 바탕(아이콘 아래). 덜 신선할 때만 켠다
 
 
     private Action<UICommonSlot> m_OnClick;
@@ -41,6 +44,8 @@ public class UICommonSlot : PoolableMonoUI
         SetFreshness(EFreshness.High);
         SetDim(false);
         SetCaption(null);
+        SetCenter(null);
+        SetBadge(false);
 
         m_NameText.E_SetText(string.Empty);
     }
@@ -90,6 +95,8 @@ public class UICommonSlot : PoolableMonoUI
         SetFreshness(EFreshness.High);
         SetDim(false);
         SetCaption(null);
+        SetCenter(null);
+        SetBadge(false);
         SetCount(count);
         
         m_NameText.E_SetText(displayName);
@@ -104,7 +111,9 @@ public class UICommonSlot : PoolableMonoUI
 
     public void SetFreshness(EFreshness freshness)
     {
-        m_Mold.E_SetActive(freshness == EFreshness.Low);
+        bool isLow = freshness == EFreshness.Low;
+        m_Mold.E_SetActive(isLow);
+        m_MoldBack.E_SetActive(isLow);
     }
 
     public void SetDim(bool isDim)
@@ -115,6 +124,16 @@ public class UICommonSlot : PoolableMonoUI
     public void SetCaption(string text)
     {
         m_Caption.E_SetTextWithActive(text); // 비었으면 끈다
+    }
+
+    public void SetCenter(string text)
+    {
+        m_Center.E_SetTextWithActive(text); // 비었으면 끈다
+    }
+
+    public void SetBadge(bool isActive)
+    {
+        m_Badge.E_SetActive(isActive);
     }
 
     // 그림이 있으면 그림 그대로, 없으면 희귀도 색만 칠한다
@@ -150,13 +169,16 @@ public class UICommonSlot : PoolableMonoUI
     }
 
 #if UNITY_EDITOR
-    public void EditorSetup(Image background, Image icon, GameObject mold, GameObject dim, TMP_Text caption, TMP_Text count, TMP_Text displayName, Button button)
+    public void EditorSetup(Image background, Image icon, GameObject mold, GameObject moldBack, GameObject dim, TMP_Text caption, TMP_Text center, GameObject badge, TMP_Text count, TMP_Text displayName, Button button)
     {
         m_Background = background;
         m_Icon = icon;
         m_Mold = mold;
+        m_MoldBack = moldBack;
         m_Dim = dim;
         m_Caption = caption;
+        m_Center = center;
+        m_Badge = badge;
         m_Count = count;
         m_NameText = displayName;
         m_Button = button;

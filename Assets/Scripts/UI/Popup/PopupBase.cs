@@ -25,6 +25,8 @@ public class PopupBase : MonoBehaviour
 
     public virtual bool IsCloseOnBack => true;  // 뒤로 가기(Esc, 안드로이드 뒤로)로 닫을 수 있는지
     private bool HasTween => m_Group != null || m_Window != null;
+    protected bool IsOpening => m_OpenSequence.IsPlaying;      // 여는 연출(팝업별 연출 포함) 중
+    protected bool IsOpenWaiting => m_OpenSequence.IsWaiting;  // 여는 연출이 WaitUntil에서 기다리는 중
 
     // ------------------------------------------------
 

@@ -123,6 +123,12 @@ public class DefineDef : DataDef
     public float MarketLowFreshRate { get; private set; } = 0.6f;   // [mj] todo) 가안. 덜 신선한 버섯 가격 배율
 
     [field: SerializeField]
+    public float MarketRareRate { get; private set; } = 2.5f;       // 희귀 버섯 가격 배율(일반 1)
+
+    [field: SerializeField]
+    public float MarketEpicRate { get; private set; } = 6f;         // 영웅 버섯 가격 배율(일반 1)
+
+    [field: SerializeField]
     public int TrustMax { get; private set; } = 100;                // 상인 신뢰도 상한
 
     [field: SerializeField]
