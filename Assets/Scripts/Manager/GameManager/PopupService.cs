@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 
 // ==================================================
 
-// 씬마다 하나 두는 팝업 스택. 마지막에 연 팝업이 맨 위에 오고, 뒤로 가기는 맨 위부터 닫는다.
+// 팝업 스택. 공용 Service라 FlowManager가 한 번 만들어 두고 씬마다 연결(Init)·해제(Clear)한다. 마지막에 연 팝업이 맨 위에 오고, 뒤로 가기는 맨 위부터 닫는다.
 // 팝업 원본은 팝업 ID(EPopupType)로 PopupDef(에디터가 채운 프리팹 표)에서 꺼낸다.
 // 팝업은 종류마다 하나만 만들어 두고 닫으면 끄기만 한다. 다시 열면 같은 인스턴스를 쓰고, 씬이 바뀔 때만 지운다
 
@@ -23,9 +23,6 @@ public sealed class PopupService : ServiceBase
 
     // ------------------------------------------------
 
-    // 씬이 내려가기 전에 정리한다(OnDestroy 때는 팝업이 씬과 함께 이미 지워졌을 수 있다)
-    private void OnSceneUnloading(SceneUnloading evt) => Clear();
-
     // 팝업 원본이 등록돼 있는지(없어도 에러 로그를 남기지 않는다)
     public bool HasPrefab(EPopupType type) => m_Def.E_Alive()?.Has(type) ?? false;
     
@@ -35,14 +32,12 @@ public sealed class PopupService : ServiceBase
         
         if (GameDatabase.S_TryGet(PopupDef.PopupID, out m_Def) == false)
             CLogger.Error("PopupService", "PopupDef가 DB에 없습니다. UI 프리팹 표 갱신을 실행하세요.");
-        
-        SEventManager.Subscribe<SceneUnloading>(OnSceneUnloading);
     }
 
-    // 열린 팝업은 OnClose(구독 해제)를 부르고, 만들어 둔 팝업은 모두 지운다
+    // 열린 팝업은 OnClose(구독 해제)를 부르고, 만들어 둔 팝업은 모두 지운다.
+    // FlowManager.End가 씬이 내려가기 전에 부른다(OnDestroy 때는 팝업이 씬과 함께 이미 지워졌을 수 있다)
     public override void Clear()
     {
-        SEventManager.Unsubscribe<SceneUnloading>(OnSceneUnloading);
         List<PopupBase> listInstance = new(m_DicInstance.Values);
         
         m_ListPopup.Clear();

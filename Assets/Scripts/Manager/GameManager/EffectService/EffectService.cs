@@ -3,7 +3,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 이펙트 입구. 모든 씬의 공용 Service(GameManager가 넣는다).
+// 이펙트 입구. 모든 씬의 공용 Service(FlowManager가 한 번 만들어 두고 씬마다 연결·해제한다).
 // 파티클 이펙트(EffectController)는 풀에서 꺼내 살아 있는 동안 들고 있다가 끝나면 돌려놓고,
 // 피격 복셀 조각·타격 마크는 ChunkRenderer로 오브젝트 없이 그린다.
 // 공격 이펙트는 데이터(AttackSpec.Effect), 부위 파괴·사망·줍기처럼 정해진 연출은 ECommonEffectType으로 부른다(프리팹 FX_{타입 이름})

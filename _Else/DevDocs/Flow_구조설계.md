@@ -2,7 +2,7 @@
 
 최종 수정: 26.11.22
 
-씬 전환과 씬 안의 진행 단계를 어떻게 나누는지 적는다. 지금 코드(`EGameState`·`BattleService.EBattleState`)를 이 구조로 바꾸기 위한 설계다. 26.11.22 기준 일시정지 이유 플래그(묶음 1)와 UI 오버레이 정리(묶음 2 사전 정리)가 코드에 반영됐다.
+씬 전환과 씬 안의 진행 단계를 어떻게 나누는지 적는다. 지금 코드(`EGameState`·`BattleService.EBattleState`)를 이 구조로 바꾸기 위한 설계다. 26.11.22 기준 일시정지 이유 플래그(묶음 1), UI 오버레이 정리, Flow 뼈대와 씬 전환 분리(묶음 2)가 코드에 반영됐다. 아래 "지금 구조와 문제"는 묶음 2 이전 기준이다.
 
 ## 1. 상세 정보
 
@@ -22,9 +22,9 @@
 | `GameManager` | Manager | 씬 전환(`ChangeScene`), 전환 동안 `UIManager`에 로딩 화면 켜기·끄기, 전환 직전 `FlowManager.End()`, 전역 데이터(`Database`·`Define`) |
 | `UIManager` | Manager | 씬 UI 루트 연결·해제, 오버레이(`OverlayLoading`), 버튼 클릭 버섯 연출(`UIClickBurst`). 씬 전환에 지워지지 않는다(26.11.22 반영) |
 | `RootManager` | Manager | [Managers] 루트 오브젝트만(26.11.22, UI 루트는 UIManager로) |
-| `FlowManager` | Manager | 현재 Flow 하나, 공용 Service(`EffectService` → `UIReuseService` → `PopupService` 순서로 등록), 일시정지 이유 묶음, Tick 전달 |
+| `FlowManager` | Manager | 현재 Flow 하나, 공용 Service(`EffectService` → `UIReuseService` → `PopupService`)를 한 번 만들어 씬마다 Init·Clear, Tick 전달. 공용 접근자는 Flow가 없을 때(전환 사이) null(26.11.22 반영) |
 | `FlowBase` 계열 | 일반 클래스 | 씬 하나의 진행 상태 머신과 그 씬 전용 Service |
-| `SceneControllerBase` | 씬 Mono | 매니저 생성, UI 루트·카메라 등록, 어떤 Flow인지 정해 `Begin`, 앱 일시정지·포커스 전달 |
+| `SceneControllerBase` | 씬 Mono | 매니저 생성, UI 루트·카메라 등록, `CreateFlow()`로 Flow를 정해 `Start`에서 `Begin`, 앱 일시정지·포커스를 `TimeManager`에 전달 |
 
 - `GameManager`는 "씬을 넘어 살아남는 것 + 씬 갈아끼우기"만 맡는다. `EGameState`와 전환 허용 표는 없앤다.
 - Service 접근자는 `GameManager`에 남기지 않는다. 호출부를 `FlowManager.Instance.PopupS`, `FlowManager.Instance.Battle.UnitS`처럼 바꾼다(26.11.21 대장).
@@ -42,13 +42,14 @@
 
 ### Flow 기반 클래스
 
-- **`FlowBase`**: Service 목록과 `Register<T>`, 수명 `Enter → Tick → Exit`, 일시정지 통지 `OnPause(bool)`. `Exit`는 상태 머신을 멈춘 뒤 Service를 등록 역순으로 `Clear`한다. `FlowManager`는 이 타입으로만 다룬다.
-- **`FlowBase<TState>`**: 기존 `StateMachine<TState>`(Common/Util)를 들고 `Change(TState)`·`Current`를 제공한다.
-- **`FlowStateBase<TFlow>`**: `IState` 구현. owner Flow를 받고, **상태의 Update가 이번 프레임에 어떤 Service를 Tick할지 정한다.** Service가 스스로 "지금 진행 중인가"를 검사하지 않는다.
+- **`FlowBase`**(26.11.22 반영): 생성자에서 `Register<T>`로 전용 Service를 넣고, 수명은 `Begin → Tick → End`. `Begin`은 등록 순서로 Init 후 `OnBegin`, `End`는 상태 머신을 멈추고 `OnEnd` 뒤 등록 역순으로 `Clear`. 자식은 `OnBegin`·`OnEnd`만 덮어쓴다. `FlowManager`는 이 타입으로만 다룬다.
+- **`FlowBase<TState>`**: 기존 `StateMachine<TState>`(Common/Util)를 들고 `AddState`(생성자)·`ChangeState`·`State`·`TimeInState`를 제공한다.
+- **`FlowStateBase<TFlow>`**: `IState` 구현. 주인 Flow를 받고 `Enter`·`Update`·`Exit`를 덮어쓴다.
+- 묶음 3 예정: 상태의 Update가 이번 프레임에 어떤 Service를 Tick할지 정한다(지금은 Flow가 전용 Service를 모두 Tick). Service가 스스로 "지금 진행 중인가"를 검사하지 않게 한다. 앱 일시정지를 Flow에 알리는 `OnPause`는 필요해지면 넣는다.
 
 ### TitleFlow · LobbyFlow
 
-- 상태: Play 하나. 씬 전용 Service가 생기면 여기에 등록한다.
+- 상태: Play 하나(`ETitleFlowState`·`ELobbyFlowState`). 씬 전용 Service가 생기면 생성자에서 등록한다(26.11.22 반영).
 
 ### BattleFlow
 
@@ -63,7 +64,7 @@
 - 사망·시장·결과 팝업은 각 상태의 `Enter`가 연다. 지금은 `ScreenBattle`이 `PlayerDowned`·`BattleEnded` 이벤트를 받아 여는데, 흐름을 한 곳에서 읽히게 하고 화면은 표시만 하게 한다. 종료 버튼 활성 조건도 "Play 상태"로 바뀐다.
 - 끝난 이유(나가기·시간 초과·귀가)는 상태가 아니라 Result에 넘기는 값(`EHuntResult` 가칭)이다. `EBattleState`는 없앤다.
 - `BattleService`는 스폰·리스폰, 밤 시간, 주운 버섯, 보상 계산 같은 데이터와 처리만 남고, 단계 전환은 BattleFlow 상태가 한다.
-- 전용 Service: Unit·HitStop·Battle(이펙트는 공용). 지역(`MapDef`)은 `BattleSceneController`가 Flow를 만들 때 넘긴다.
+- 전용 Service: Unit·HitStop·Battle(이펙트는 공용). 지역(`MapDef`)은 `BattleSceneController`가 Flow를 만들 때 넘긴다(26.11.22 반영, 지금 상태는 `EBattleFlowState.Play` 하나).
 
 ### 일시정지
 
@@ -72,14 +73,14 @@
 - **게임 시간 정지**(timeScale 0): `EPauseReason` 플래그(App·Focus·Confirm·Market)로 모으고 하나라도 켜져 있으면 멈춘다. `TimeManager.SetPause(EPauseReason, bool)`, 이유는 건 쪽이 직접 푼다. 히트스톱은 따로 둔다. 일시정지 메뉴는 두지 않는다(26.11.22 반영).
 - **밤 시계 정지**: Down·Market·Result. 게임 시간은 흐르고(연출·팝업 동작) 밤만 멈춘다. Flow 상태가 정한다.
 - 일시정지는 FSM 상태로 두지 않는다. 이유가 겹치거나(Down 중 앱 비활성) 복귀할 상태를 따로 기억해야 하는 문제를 피하기 위해서다.
-- 앱 일시정지·포커스는 지금 `SceneControllerBase`가 받아 `TimeManager`에 바로 넘긴다. Flow 뼈대가 생기면 `FlowManager`를 거쳐 현재 Flow에 `OnPause`도 알린다.
+- 앱 일시정지·포커스는 `SceneControllerBase`가 받아 `TimeManager`에 바로 넘긴다. 앱 종료 중(매니저가 먼저 파괴될 수 있음) 판단이 거기 있어서 묶음 2에서도 옮기지 않았다.
 - 시장은 지금 Market 이유로 게임 시간 전체를 멈춘다. 상태별 Tick으로 바꿀지는 미정.
 
 ### 전환 순서
 
-1. **씬 진입**: `SceneControllerBase.Awake`(매니저 생성·UI 루트·카메라) → `Start`에서 `FlowManager.Begin(CreateFlow())` → Flow `Enter`(Service 등록·Init, 첫 상태 진입).
+1. **씬 진입**: `SceneControllerBase.Awake`(매니저 생성·UI 루트·카메라) → `Start`에서 `FlowManager.Begin(CreateFlow())` → 공용 Service Init(Effect → UIReuse → Popup) → Flow `Begin`(전용 Service Init, 첫 상태 진입) → `FlowBegan` 이벤트.
 2. **진행**: `SceneControllerBase.Update` → `FlowManager.Tick` → 공용 Service Tick + 현재 Flow 상태 Update.
-3. **씬 전환**: `GameManager.ChangeScene` → `FlowManager.End()`(Flow `Exit` → `UIReuseService` UI 요소 회수 → `PopupService` 팝업 파괴) → 씬 로드. 요소 회수가 팝업 파괴보다 먼저여야 한다(UI 스레드 26.11.21). 정리 입구는 여기 한 곳이고 `SceneUnloading` 이벤트는 이 순서로 대체한다. `OnDestroy`는 정리가 안 된 경우의 안전망만 맡는다.
+3. **씬 전환**: `GameManager.ChangeScene(ESceneType)` → 로딩 오버레이 → `FlowManager.End()`(Flow `End` → `UIReuseService` UI 요소 회수 → `PopupService` 팝업 파괴 → `EffectService` 회수) → 씬 로드. 요소 회수가 팝업 파괴보다 먼저여야 한다(UI 스레드 26.11.21). 정리 입구는 여기 한 곳이고 `SceneUnloading` 이벤트는 이 순서로 대체한다. `OnDestroy`는 정리가 안 된 경우의 안전망만 맡는다.
 4. **다시 하기(Retry)**: 씬을 다시 로드하지 않는다. 현재 BattleFlow를 `Exit`로 정리하고 같은 지역으로 새 BattleFlow를 `Begin`한다.
 
 ### Retry에서 챙길 것
@@ -98,7 +99,7 @@
 각 묶음이 끝나면 컴파일되고 지금과 같게 돌아가도록 나눈다.
 
 1. 일시정지 이유 플래그(26.11.22 반영)
-2. Flow 뼈대 + 씬 전환 분리(UI 오버레이 정리는 26.11.22 먼저 반영): FlowManager·Flow 기반, Title·Lobby·BattleFlow(Play 하나), 공용·전용 Service 이전, `SceneDef`, GameManager 씬 전환 전용, 정리 입구 하나, 호출부 교체
+2. (26.11.22 반영) Flow 뼈대 + 씬 전환 분리(UI 오버레이 정리는 먼저 반영): FlowManager·Flow 기반, Title·Lobby·BattleFlow(Play 하나), 공용·전용 Service 이전, `SceneDef`, GameManager 씬 전환 전용, 정리 입구 하나, 호출부 교체
 3. BattleFlow 상태 나누기: `EBattleState` 폐지, 팝업을 상태 Enter로
 4. 씬 재로드 없는 Retry
 5. 이름 정리(`MonsterBalanceTable`)
@@ -126,10 +127,10 @@
 - 26.11.22 대장: 오버레이도 기반 클래스(`OverlayBase`)로 묶는다. 종류가 늘면 `EOverlayType` 표로 넓힌다.
 - 26.11.22 대장: `RootManager`는 [Managers] 루트만 맡고, 씬 UI 루트·오버레이·클릭 연출은 새 `UIManager`가 맡는다.
 - 26.11.22 대장: 묶음 2 결정 — SceneDef는 씬마다 에셋 + `ESceneType`, `GameManager.ChangeScene(ESceneType)`, Flow 종류는 씬 컨트롤러 `CreateFlow`가 정함. 접근자 `FlowManager.Instance.EffectS/UIReuseS/PopupS`, `.Battle.UnitS/HitStopS/BattleS`. 묶음 2 동안 결과는 `BattleEnded` 이벤트로만, Retry는 씬 재로드 유지. `GameStateChanged` → `FlowBegan`, `SceneUnloading` 폐지.
+- 26.11.22 묶음 2 반영: `EGameState`·전환 허용 표·`SceneNames` 삭제. SceneDef 에셋 `Resources/Data/Scenes/Scene_Title·Lobby·Battle`(씬 이름 = `ESceneType` 이름, 에디터 씬 경로도 `nameof(ESceneType.X)`). Retry는 `GameManager.ReloadScene()`. 공용 접근자는 Flow가 없을 때 null을 돌려줘 호출부의 `?.`가 의미를 갖게 했다. DebugPanel 이동 버튼은 Title·Lobby·Battle(지금 씬은 다시 불러오기).
 
 ## 3. 미정
 
-- `SceneDef`에 씬 이름 외에 무엇을 둘지(Flow 종류, 로딩 연출 등)와 `ChangeScene`이 받는 키(SceneDef 참조 또는 ID).
+- `SceneDef`에 씬 이름 외에 무엇을 둘지(로딩 연출 등). 키는 `ESceneType`으로 정해졌다.
 - 시장 정지를 timeScale(Market 이유)로 둘지, Market 상태가 전투 Service를 Tick하지 않는 방식으로 바꿀지.
 - `MonsterBalanceTable`의 새 이름.
-- `GameManager`의 `internal` 메서드 3곳은 이 개편에서 사라지거나 `public`으로 바뀐다(코드 스타일: asmdef 없으니 internal 대신 public).

@@ -5,16 +5,6 @@ using UnityEngine.SceneManagement;
 
 // ==================================================
 
-// [mj] todo) data로 scene name 연결
-public static class SceneNames
-{
-    public const string Title = "Title";
-    public const string Lobby = "Lobby";
-    public const string Battle = "Battle";
-}
-
-// ==================================================
-
 public static class SceneLoader
 {
     // 다음 씬이 다 읽혀도 minSeconds(unscaled)가 지나기 전에는 넘어가지 않는다(가짜 로딩. 그동안 OverlayLoading이 덮고 있다).

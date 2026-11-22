@@ -35,17 +35,17 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
         m_BossRoot.E_SetActive(false);
     }
 
-    // 서비스는 씬 컨트롤러 Start(-1100)에서 등록되므로 Start에서 구독한다. 해제는 따로 하지 않는다(씬이 닫힐 때 UnitService.Clear가 구독을 비운다)
+    // Flow는 씬 컨트롤러 Start(-1100)에서 시작되므로 Start에서 구독한다. 해제는 따로 하지 않는다(씬이 닫힐 때 UnitService.Clear가 구독을 비운다)
     private void Start()
     {
-        UnitService units = GameManager.Instance.UnitS;
+        UnitService units = FlowManager.Instance.Battle?.UnitS;
         if (units != null)
             units.UnitRemoved += OnUnitRemoved;
     }
 
     private void LateUpdate()
     {
-        UnitService units = GameManager.Instance.UnitS;
+        UnitService units = FlowManager.Instance.Battle?.UnitS;
         Camera cam = CameraManager.Instance.Main;
         
         if (units == null || cam == null)
@@ -88,7 +88,7 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
             bar.Remain = define.MonsterHpBarShowTime;
             if (bar.Gauge == null)
             {
-                bar.Gauge = GameManager.Instance.UIReuseS?.Spawn<UIGauge>(EUIComponentType.ScreenBattle_UnitHpBar, m_Root);
+                bar.Gauge = FlowManager.Instance.UIReuseS?.Spawn<UIGauge>(EUIComponentType.ScreenBattle_UnitHpBar, m_Root);
                 bar.Gauge.E_Alive()?.SetValue(bar.LastHp, unit.HealthF.MaxHp, true); // 줄기 전 값에서 시작해야 잔상이 보인다
             }
 
@@ -139,7 +139,7 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
         if (bar.Gauge == null)
             return;
 
-        GameManager.Instance.UIReuseS?.Despawn(bar.Gauge);
+        FlowManager.Instance.UIReuseS?.Despawn(bar.Gauge);
         bar.Gauge = null;
     }
 

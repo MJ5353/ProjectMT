@@ -46,10 +46,10 @@ public class ScreenTitle : ScreenBase
         GameManager gameM = GameManager.Instance;
         UIManager.Instance.PlayClickBurst();
 
-        if (m_StartSequence.IsPlaying || gameM.CanChange(EGameState.Lobby) == false)
+        if (m_StartSequence.IsPlaying || gameM.CanChangeScene(ESceneType.Lobby) == false)
             return;
 
-        m_StartSequence.Clear().Wait(gameM.Define.ClickBurstTime).Call(() => GameManager.Instance.ChangeState(EGameState.Lobby)).Play(this);
+        m_StartSequence.Clear().Wait(gameM.Define.ClickBurstTime).Call(() => GameManager.Instance.ChangeScene(ESceneType.Lobby)).Play(this);
     }
 
 #if UNITY_EDITOR

@@ -43,7 +43,7 @@ public abstract class BrainBase
         if (IsStopped)
             return;
 
-        BattleService battle = GameManager.Instance.BattleS;
+        BattleService battle = FlowManager.Instance.Battle?.BattleS;
         if (battle != null && battle.State != EBattleState.Playing)
         {
             Stop();

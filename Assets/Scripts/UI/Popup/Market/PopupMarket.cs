@@ -314,7 +314,7 @@ public class PopupMarket : PopupBase
         if (merchant != null)
             price = hunt.GetPrice(merchant, key);
 
-        m_CounterPopup = GameManager.Instance.PopupS.Open<PopupMarketCounter>(EPopupType.PopupMarketCounter);
+        m_CounterPopup = FlowManager.Instance.PopupS.Open<PopupMarketCounter>(EPopupType.PopupMarketCounter);
         m_CounterPopup.Setup(key, have, picked, price, count => OnCountConfirm(key, count), OnCountClosed);
     }
 

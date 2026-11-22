@@ -5,209 +5,104 @@ using UnityEngine.SceneManagement;
 
 // ==================================================
 
-public enum EGameState
-{
-    None,
-    Lobby,
-    Battle,
-    Result,
-    Title
-}
+// 씬 전환을 맡는다(SceneDef로 씬 이름을 찾아 로딩 화면을 덮고 불러온다). 전역 데이터(Database·Define)도 여기서 읽는다.
+// 씬 안의 흐름과 Service는 FlowManager가 맡는다. 씬을 바꾸기 전에 FlowManager.End로 지금 씬을 정리한다
 
-// ==================================================
-
-// 로비와 전투의 상태 전환과 씬 서비스의 수명 주기를 관리한다.
 public class GameManager : MonoSingleton<GameManager>
 {
-    private static readonly Dictionary<EGameState, EGameState[]> s_DicAllowedTransition = new()
-    {
-        { EGameState.None, new[] { EGameState.Title, EGameState.Lobby, EGameState.Battle } },
-        { EGameState.Title, new[] { EGameState.Lobby } },
-        { EGameState.Lobby, new[] { EGameState.Battle } },
-        { EGameState.Battle, new[] { EGameState.Result, EGameState.Lobby } },
-        { EGameState.Result, new[] { EGameState.Lobby, EGameState.Battle } },
-    };
-
-    private readonly List<ServiceBase> m_ListService = new();
-    private Scene m_ServiceScene;
+    private const string SceneDefMissingHint = "데이터 편집기에서 DB 갱신을 실행하세요.";
+    
+    private readonly Dictionary<ESceneType, SceneDef> m_DicScene = new();
 
     public GameDatabase Database { get; private set; }
     public DefineDef Define { get; private set; } // 전역 조절값. 에셋이 없으면 코드 기본값으로 만든다
-    public EGameState Current { get; private set; } = EGameState.None;
     public bool IsTransitioning { get; private set; }
-
-    // service
-    public BattleService BattleS { get; private set; }
-    public UnitService UnitS { get; private set; }
-    public EffectService EffectS { get; private set; }
-    public HitStopService HitStopS { get; private set; }
-    public PopupService PopupS { get; private set; }
-    public UIReuseService UIReuseS { get; private set; }
 
     // ------------------------------------------------
 
-    // 씬 전용 Service는 씬 컨트롤러가 정하고(RegisterServices), 공용(이펙트·UI 요소·팝업)은 여기서 넣는다.
-    // !!) EffectService는 맨 먼저 넣는다. 전투 Service가 Init에서 이펙트를 부를 수 있다
-    // !!) UIReuseService를 PopupService보다 먼저 넣는다. 씬 전환 때 팝업 안 칸을 먼저 회수해야 팝업과 함께 지워지지 않는다
-    internal void InitSceneServices(Scene scene, SceneControllerBase sceneController)
+    // 지금 넘어갈 수 있는지(전환 중이 아니고, 씬이 등록돼 있고, 빌드에 들어 있다)
+    public bool CanChangeScene(ESceneType type)
     {
-        if (m_ServiceScene == scene)
-            return;
-
-        ClearSceneServices(m_ServiceScene);
-        m_ServiceScene = scene;
-
-        EffectS = Register(new EffectService());
-        sceneController.RegisterServices(this);
-        UIReuseS = Register(new UIReuseService());
-        PopupS = Register(new PopupService());
-
-        foreach (ServiceBase service in m_ListService)
-        {
-            service.Init();
-        }
-
-        if (Current == EGameState.None && IsTransitioning == false)
-            ChangeState(sceneController.State);
+        return IsTransitioning == false && CanLoad(type);
     }
 
-    // BattleSceneController가 부른다
-    public void RegisterBattleServices(MapDef mapDef)
+    // 씬이 등록돼 있고 빌드에 들어 있는지(전환 중이어도 본다)
+    public bool CanLoad(ESceneType type)
     {
-        UnitS = Register(new UnitService());
-        HitStopS = Register(new HitStopService());
-        BattleS = Register(new BattleService(mapDef));
+        return TryGetSceneName(type, out string sceneName) && Application.CanStreamedLevelBeLoaded(sceneName);
     }
 
-    private T Register<T>(T service) where T : ServiceBase
+    public bool ChangeScene(ESceneType type)
     {
-        m_ListService.Add(service);
-        return service;
-    }
-
-    internal void TickSceneServices(Scene scene, float deltaTime)
-    {
-        if (m_ServiceScene != scene)
-            return;
-
-        foreach (ServiceBase service in m_ListService)
-        {
-            service.Tick(deltaTime);
-        }
-    }
-
-    internal void ClearSceneServices(Scene scene)
-    {
-        if (m_ServiceScene != scene)
-            return;
-
-        for (int i = m_ListService.Count - 1; i >= 0; i--)
-        {
-            m_ListService[i].Clear();
-        }
-
-        m_ListService.Clear();
-        BattleS = null;
-        UnitS = null;
-        EffectS = null;
-        HitStopS = null;
-        UIReuseS = null;
-        PopupS = null;
-
-        m_ServiceScene = default;
-    }
-
-    // 상태와 씬 전환 ---
-
-    public static string GetSceneName(EGameState state)
-    {
-        switch (state)
-        {
-            case EGameState.Title:
-                return SceneNames.Title;
-            case EGameState.Lobby:
-                return SceneNames.Lobby;
-            case EGameState.Battle:
-                return SceneNames.Battle;
-            default: // 결과(Result)처럼 씬이 따로 없는 상태는 null
-                return null;
-        }
-    }
-
-    public bool CanChange(EGameState next)
-    {
-        if (IsTransitioning || s_DicAllowedTransition.TryGetValue(Current, out EGameState[] targets) == false)
+        if (IsTransitioning)
             return false;
 
-        return targets.E_Contains(next);
-    }
-
-    public bool ChangeState(EGameState next)
-    {
-        if (CanChange(next) == false)
+        if (TryGetSceneName(type, out string sceneName) == false)
         {
-            CLogger.Warning("GameManager", $"허용되지 않은 전환: {Current} → {next}");
+            CLogger.Warning("GameManager", $"{type} 씬 정의(SceneDef)가 없습니다. {SceneDefMissingHint}");
             return false;
         }
 
-        return StartTransition(next, Current == EGameState.Result && next == EGameState.Battle);
-    }
-
-    public bool RetryBattle()
-    {
-        if (Current == EGameState.Result)
-            return ChangeState(EGameState.Battle);
-
-        if (Current != EGameState.Battle || IsTransitioning)
-            return false;
-
-        return StartTransition(EGameState.Battle, true);
-    }
-
-    private bool StartTransition(EGameState next, bool reloadScene)
-    {
-        string sceneName = GetSceneName(next);
-        bool shouldLoad = sceneName != null && (reloadScene || SceneManager.GetActiveScene().name != sceneName);
-
-        if (shouldLoad && Application.CanStreamedLevelBeLoaded(sceneName) == false)
+        if (SceneManager.GetActiveScene().name == sceneName)
         {
-            CLogger.Warning("GameManager", $"씬을 로드할 수 없습니다: {sceneName}");
+            CLogger.Warning("GameManager", $"이미 {sceneName} 씬입니다. 다시 불러오려면 ReloadScene을 쓰세요.");
             return false;
         }
 
-        StartCoroutine(Transition(next, shouldLoad ? sceneName : null));
+        return StartTransition(sceneName);
+    }
+
+    // 지금 씬을 다시 불러온다(전투 다시 하기)
+    public bool ReloadScene()
+    {
+        // [mj] todo) 묶음 4에서 씬을 다시 읽지 않고 BattleFlow만 새로 시작하도록 바꾼다
+        if (IsTransitioning)
+            return false;
+
+        return StartTransition(SceneManager.GetActiveScene().name);
+    }
+
+    private bool TryGetSceneName(ESceneType type, out string sceneName)
+    {
+        sceneName = null;
+        if (m_DicScene.TryGetValue(type, out SceneDef def) == false || def.SceneName.E_IsNullOrEmpty())
+            return false;
+
+        sceneName = def.SceneName;
         return true;
     }
 
-    private IEnumerator Transition(EGameState next, string sceneName)
+    private bool StartTransition(string sceneName)
+    {
+        if (Application.CanStreamedLevelBeLoaded(sceneName) == false)
+        {
+            CLogger.Warning("GameManager", $"씬을 로드할 수 없습니다(Build Settings 확인): {sceneName}");
+            return false;
+        }
+
+        StartCoroutine(Transition(sceneName));
+        return true;
+    }
+
+    private IEnumerator Transition(string sceneName)
     {
         IsTransitioning = true;
-        EGameState from = Current;
 
         try
         {
-            if (sceneName != null)
-            {
-                Scene previousScene = SceneManager.GetActiveScene();
-                SEventManager.Publish(new SceneUnloading()); // 씬 오브젝트가 살아 있을 때 UI 칸을 풀로 돌려보낸다
-                UIManager uiM = UIManager.Instance;
-                uiM.ShowLoading(true);
-                yield return SceneLoader.Load(sceneName, Define.MinLoadingTime, uiM.SetLoadingProgress);
+            UIManager uiM = UIManager.Instance;
+            uiM.ShowLoading(true);
 
-                Scene loadedScene = SceneManager.GetActiveScene();
-                if (loadedScene == previousScene || loadedScene.name != sceneName)
-                    yield break;
-            }
+            // 씬 오브젝트가 살아 있을 때 지금 Flow와 Service를 정리한다(UI 칸 회수·팝업 삭제 포함)
+            FlowManager.Instance.End();
 
-            Current = next;
+            yield return SceneLoader.Load(sceneName, Define.MinLoadingTime, uiM.SetLoadingProgress);
         }
         finally
         {
             UIManager.Instance.ShowLoading(false);
             IsTransitioning = false;
         }
-
-        SEventManager.Publish(new GameStateChanged(from, next));
     }
 
     // virtual ---
@@ -225,6 +120,15 @@ public class GameManager : MonoSingleton<GameManager>
         }
 
         Define = define;
+
+        m_DicScene.Clear();
+        foreach (SceneDef sceneDef in Database.GetAll<SceneDef>())
+        {
+            if (sceneDef == null || m_DicScene.TryAdd(sceneDef.Type, sceneDef))
+                continue;
+
+            CLogger.Warning("GameManager", $"같은 씬 종류가 두 번 등록됨: {sceneDef.Type} ({sceneDef.name})");
+        }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (TryGetComponent<DebugPanel>(out _) == false)

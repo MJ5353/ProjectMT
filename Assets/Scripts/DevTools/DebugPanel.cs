@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 개발용 치트 패널(IMGUI). 오른쪽 위 DBG 버튼으로 연다. 릴리스 빌드에는 들어가지 않는다.
-// 흐름 이동, 몬스터 소환, 시장(버섯 줍기·시간·상인·신뢰도), 정비(초기화·골드), 데이터베이스 아이템 지급, 세이브 저장·삭제를 한 곳에서 한다
+// 씬 이동, 몬스터 소환, 시장(버섯 줍기·시간·상인·신뢰도), 정비(초기화·골드), 데이터베이스 아이템 지급, 세이브 저장·삭제를 한 곳에서 한다
 public class DebugPanel : MonoBehaviour
 {
     private const float RefHeight = 960f;
@@ -13,7 +13,7 @@ public class DebugPanel : MonoBehaviour
     private const int DebugTrustStep = 10;
     private static readonly int[] s_DebugGoldSteps = { 1000, 10000 }; // 정비 시험용 골드
 
-    private static readonly EGameState[] s_MoveStates = { EGameState.Lobby, EGameState.Battle, EGameState.Result };
+    private static readonly ESceneType[] s_MoveScenes = { ESceneType.Title, ESceneType.Lobby, ESceneType.Battle };
 
     private bool m_IsOpen = false;
     private Vector2 m_ScrollPos = Vector2.zero;
@@ -41,7 +41,7 @@ public class DebugPanel : MonoBehaviour
         DrawFlow(gameM);
         GUILayout.Space(8);
 
-        DrawSpawn(gameM);
+        DrawSpawn(gameM.Database);
         GUILayout.Space(8);
         
         DrawMarket(gameM);
@@ -59,36 +59,57 @@ public class DebugPanel : MonoBehaviour
         GUILayout.EndArea();
     }
 
+    // 지금 Flow 이름과 씬 이동 버튼. 지금 씬 버튼은 다시 불러오기
     private void DrawFlow(GameManager gameM)
     {
-        GUILayout.Label($"상태: {gameM.Current}");
+        FlowBase flow = FlowManager.Instance.Current;
+        GUILayout.Label($"흐름: {(flow != null ? flow.GetType().Name : "없음")}");
         GUILayout.BeginHorizontal();
 
-        foreach (EGameState state in s_MoveStates)
+        foreach (ESceneType type in s_MoveScenes)
         {
-            GUI.enabled = gameM.CanChange(state);
-            if (GUILayout.Button(state.ToString()))
-                gameM.ChangeState(state);
+            bool isCurrent = IsCurrentScene(flow, type);
+            GUI.enabled = isCurrent ? gameM.IsTransitioning == false : gameM.CanChangeScene(type);
+            
+            if (GUILayout.Button(isCurrent ? $"{type}(다시)" : type.ToString()) == false)
+                continue;
+
+            if (isCurrent)
+                gameM.ReloadScene();
+            else
+                gameM.ChangeScene(type);
         }
 
         GUI.enabled = true;
         GUILayout.EndHorizontal();
     }
 
-    // 전투 중일 때만 몬스터 목록을 보여 주고, 누르면 플레이어 앞에 소환한다
-    private void DrawSpawn(GameManager gameM)
+    private static bool IsCurrentScene(FlowBase flow, ESceneType type)
     {
-        if (gameM.UnitS == null || gameM.UnitS.Player == null || gameM.Database == null)
+        return type switch
+        {
+            ESceneType.Title => flow is TitleFlow,
+            ESceneType.Lobby => flow is LobbyFlow,
+            ESceneType.Battle => flow is BattleFlow,
+            _ => false,
+        };
+    }
+
+    // 전투 중일 때만 몬스터 목록을 보여 주고, 누르면 플레이어 앞에 소환한다
+    private void DrawSpawn(GameDatabase database)
+    {
+        UnitService units = FlowManager.Instance.Battle?.UnitS;
+        if (units == null || units.Player == null || database == null)
             return;
 
         GUILayout.Label("몬스터 소환(플레이어 앞)");
-        foreach (MonsterDef def in gameM.Database.GetAll<MonsterDef>())
+        foreach (MonsterDef def in database.GetAll<MonsterDef>())
         {
             if (def == null)
                 continue;
 
             if (GUILayout.Button(def.ID))
-                SpawnInFront(gameM.UnitS, def);
+                SpawnInFront(units, def);
         }
     }
 
@@ -115,7 +136,7 @@ public class DebugPanel : MonoBehaviour
             return;
 
         GUILayout.Label("시장");
-        BattleService battleS = gameM.BattleS;
+        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
         HuntData hunt = playerDataM.Hunt;
 
         if (battleS != null && battleS.State == EBattleState.Playing && GUILayout.Button($"버섯 {DebugLootCount}개 줍기(신선도·희귀도 랜덤)"))

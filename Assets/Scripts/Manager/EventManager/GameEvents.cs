@@ -1,14 +1,13 @@
 // 게임 전역 이벤트 모음. 새 이벤트는 readonly struct로 여기에 추가한다
 
-public readonly struct GameStateChanged
+// 씬의 Flow가 시작됨(공용·전용 Service의 Init이 끝난 뒤). FlowManager가 보낸다
+public readonly struct FlowBegan
 {
-    public readonly EGameState From;
-    public readonly EGameState To;
+    public readonly FlowBase Flow;
 
-    public GameStateChanged(EGameState from, EGameState to)
+    public FlowBegan(FlowBase flow)
     {
-        From = from;
-        To = to;
+        Flow = flow;
     }
 }
 
@@ -77,9 +76,4 @@ public readonly struct GearChanged
     {
         NodeID = nodeID;
     }
-}
-
-// 씬을 바꾸기 직전(아직 지금 씬 오브젝트가 살아 있다). 씬에 붙은 UI가 목록 칸을 풀로 돌려보낸다
-public readonly struct SceneUnloading
-{
 }

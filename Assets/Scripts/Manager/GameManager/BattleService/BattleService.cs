@@ -15,7 +15,7 @@ public enum EBattleState
 // ==================================================
 
 // 전투 한 판(하룻밤) 진행. 몬스터 스폰·리스폰, 밤 카운트다운, 주운 버섯, 쓰러짐·부활, 끝내는 방식을 맡는다.
-// 끝나면 끝난 방식에 따라 보상을 인벤토리에 넣고 게임 흐름을 결과(Result)로 넘긴다.
+// 끝나면 끝난 방식에 따라 보상을 인벤토리에 넣고 BattleEnded를 보낸다(결과 팝업은 ScreenBattle이 띄운다).
 // 토벌 종료는 바로 끝내지 않고 현장 시장(HuntData)을 연다. 시장이 열린 동안은 시간을 멈추고(TimeManager), MarketClosed를 받으면 끝낸다
 public sealed class BattleService : ServiceBase
 {
@@ -98,7 +98,7 @@ public sealed class BattleService : ServiceBase
         if (m_Player != null && m_Player.HealthF != null)
             m_Player.HealthF.Died += OnPlayerDied;
 
-        GameManager.Instance.UnitS.UnitRemoved += ReleaseSpawnSlot;
+        FlowManager.Instance.Battle.UnitS.UnitRemoved += ReleaseSpawnSlot;
         SEventManager.Subscribe<LootPicked>(OnLootPicked);
 
         if (Map == null)
@@ -126,7 +126,7 @@ public sealed class BattleService : ServiceBase
 
     public override void Clear()
     {
-        GameManager.Instance.UnitS.UnitRemoved -= ReleaseSpawnSlot;
+        FlowManager.Instance.Battle.UnitS.UnitRemoved -= ReleaseSpawnSlot;
         SEventManager.Unsubscribe<LootPicked>(OnLootPicked);
         SEventManager.Unsubscribe<MarketClosed>(OnMarketClosed);
 
@@ -147,12 +147,12 @@ public sealed class BattleService : ServiceBase
         m_SpawnSlots = null; // 맵 오브젝트는 씬과 함께 사라진다
     }
 
-    public void Retry() => GameManager.Instance.RetryBattle();
+    public void Retry() => GameManager.Instance.ReloadScene();
 
     // 떨어지는 버섯 하나의 희귀도. 지금 지역(MapDef)의 가중치로 굴린다. 전투 밖이면 Common
     public static ERarity RollRarity()
     {
-        MapDef map = GameManager.Instance.BattleS?.Map;
+        MapDef map = FlowManager.Instance.Battle?.BattleS.Map;
         return map.E_Alive()?.RollRarity() ?? ERarity.Common;
     }
 
@@ -192,14 +192,7 @@ public sealed class BattleService : ServiceBase
         return true;
     }
 
-    public bool TryGoLobby()
-    {
-        GameManager gameM = GameManager.Instance;
-        if (Application.CanStreamedLevelBeLoaded(SceneNames.Lobby) == false)
-            return false;
-
-        return gameM.ChangeState(EGameState.Lobby);
-    }
+    public bool TryGoLobby() => GameManager.Instance.ChangeScene(ESceneType.Lobby);
 
     #region Spawn
 
@@ -243,7 +236,7 @@ public sealed class BattleService : ServiceBase
             CLogger.Warning("BattleService", $"플레이어 슬롯 {MapDef.GetSlotName(playerSlot)}이 맵에 없어 원점에서 시작합니다.");
         }
 
-        m_Player = GameManager.Instance.UnitS.Spawn(playerDef, position, rotation);
+        m_Player = FlowManager.Instance.Battle.UnitS.Spawn(playerDef, position, rotation);
         if (m_Player == null)
             return;
 
@@ -276,7 +269,7 @@ public sealed class BattleService : ServiceBase
 
     private void Spawn(SpawnState spawn)
     {
-        UnitController controller = GameManager.Instance.UnitS.Spawn(spawn.Entry.Monster, spawn.Point.position + Vector3.up * SpawnLift, GetSpawnRotation(spawn.Point));
+        UnitController controller = FlowManager.Instance.Battle.UnitS.Spawn(spawn.Entry.Monster, spawn.Point.position + Vector3.up * SpawnLift, GetSpawnRotation(spawn.Point));
         if (controller == null)
             return;
 
@@ -443,9 +436,6 @@ public sealed class BattleService : ServiceBase
             playerDataM.Hunt.MarkCleared(Map);
 
         playerDataM.RunSave();
-
-        if (GameManager.Instance.Current == EGameState.Battle)
-            GameManager.Instance.ChangeState(EGameState.Result);
         
         SEventManager.Publish(new BattleEnded(result == EBattleState.Exited));
     }

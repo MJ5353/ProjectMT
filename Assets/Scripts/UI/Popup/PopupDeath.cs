@@ -26,7 +26,7 @@ public class PopupDeath : PopupBase
 
     protected override void OnOpen()
     {
-        BattleService battleS = GameManager.Instance.BattleS;
+        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
         if (battleS == null)
         {
             // 다시 쓰는 팝업이라 지난번 값이 남지 않게 비우고 부활은 막는다
@@ -43,14 +43,14 @@ public class PopupDeath : PopupBase
 
     private void OnClickRevive()
     {
-        BattleService battleS = GameManager.Instance.BattleS;
+        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
         if (battleS != null && battleS.TryRevive())
             Close();
     }
 
     private void OnClickHome()
     {
-        BattleService battleS = GameManager.Instance.BattleS;
+        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
         Close();
         battleS?.GiveUp();
     }

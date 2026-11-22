@@ -3,9 +3,9 @@ using UnityEngine;
 
 // ==================================================
 
-// ResourceManager를 감싸 UI 요소를 꺼내고 돌려준다(UnitFactory와 같은 역할). 씬마다 하나, GameManager가 공용 Service로 넣는다.
-// 꺼낸 요소를 기억해 두었다가 씬이 바뀌기 직전(SceneUnloading)에 한꺼번에 풀로 돌려받는다. 화면 쪽은 씬 전환 때 따로 반납하지 않는다.
-// !!) GameManager가 PopupService보다 먼저 등록해서, 팝업이 지워지기 전에 팝업 안 칸부터 회수한다
+// ResourceManager를 감싸 UI 요소를 꺼내고 돌려준다(UnitFactory와 같은 역할). 공용 Service라 FlowManager가 한 번 만들어 두고 씬마다 연결·해제한다.
+// 꺼낸 요소를 기억해 두었다가 씬이 바뀌기 직전(FlowManager.End → Clear)에 한꺼번에 풀로 돌려받는다. 화면 쪽은 씬 전환 때 따로 반납하지 않는다.
+// !!) FlowManager.End가 PopupService보다 먼저 Clear해서, 팝업이 지워지기 전에 팝업 안 칸부터 회수한다
 
 public sealed class UIReuseService : ServiceBase
 {
@@ -14,19 +14,14 @@ public sealed class UIReuseService : ServiceBase
 
     // ------------------------------------------------
 
-    private void OnSceneUnloading(SceneUnloading evt) => DespawnAll();
-    
     public override void Init()
     {
         if (GameDatabase.S_TryGet(UIComponentDef.UIComponentID, out m_Def) == false)
             CLogger.Error("UIReuseService", "UIComponentDef가 DB에 없습니다. UI 프리팹 표 갱신을 실행하세요.");
-        
-        SEventManager.Subscribe<SceneUnloading>(OnSceneUnloading);
     }
 
     public override void Clear()
     {
-        SEventManager.Unsubscribe<SceneUnloading>(OnSceneUnloading);
         DespawnAll();
         
         m_Def = null;

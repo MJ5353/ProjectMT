@@ -260,7 +260,7 @@ public class HitFeature : UnitFeature
 
     private void ApplyHitStop(in HitParams hit)
     {
-        GameManager.Instance.HitStopS?.Request(hit.HitStop);
+        FlowManager.Instance.Battle?.HitStopS.Request(hit.HitStop);
     }
 
     private void ApplyCameraShake(in HitParams hit)
@@ -271,7 +271,7 @@ public class HitFeature : UnitFeature
     // 전투 씬이 아니면 조각을 튀기지 않는다. 타격 마크는 실제 맞은 자리(부위 표면)에 띄운다
     private void ApplyChunkBurst(in HitParams hit, int partIndex)
     {
-        EffectService effectS = GameManager.Instance.EffectS;
+        EffectService effectS = FlowManager.Instance.EffectS;
         if (effectS == null)
             return;
 

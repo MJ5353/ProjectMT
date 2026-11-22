@@ -33,7 +33,8 @@ public static class EditorPath
     public const string AnimatorDir = ActorPrefabDir + "Animators/";
     public const string PickupPrefabDir = ResourcesRoot + CommonPath.PickupDir;
     public const string MapPrefabDir = ResourcesRoot + CommonPath.MapDir;
-    public const string PrefabExtension = ".prefab";             // Resources 경로 → 에셋 경로: ResourcesRoot + 경로 + 확장자
+    public const string PrefabExtension = ".prefab";
+    public const string SceneExtension = ".unity";             // Resources 경로 → 에셋 경로: ResourcesRoot + 경로 + 확장자
     public const string UIPrefabDir = PrefabDir + "UI/";        // UI 프리팹 저장 위치. 런타임은 경로를 쓰지 않고 PopupDef·UIComponentDef가 프리팹을 직접 참조한다(등록 때 하위 폴더까지 enum 이름으로 찾는다)
     public const string ComponentUIPrefabDir = UIPrefabDir + "Component/"; // 스크립트 폴더(UI/Component·Popup·Screen)와 같게 둔다
     public const string PopupUIPrefabDir = UIPrefabDir + "Popup/";
@@ -45,9 +46,9 @@ public static class EditorPath
 
     // 에셋 파일 (에디터) ---
     public const string GameDatabaseAsset = ResourcesRoot + CommonPath.GameDatabase + ".asset";
-    public const string BattleScene = ScenesDir + SceneNames.Battle + ".unity";
-    public const string LobbyScene = ScenesDir + SceneNames.Lobby + ".unity";
-    public const string TitleScene = ScenesDir + SceneNames.Title + ".unity";
+    public const string BattleScene = ScenesDir + nameof(ESceneType.Battle) + SceneExtension; // 씬 파일 이름 = ESceneType 이름 = SceneDef.SceneName
+    public const string LobbyScene = ScenesDir + nameof(ESceneType.Lobby) + SceneExtension;
+    public const string TitleScene = ScenesDir + nameof(ESceneType.Title) + SceneExtension;
     public const string PlayerDef = PlayerDataDir + "Player.asset";
     public const string DefaultMapDef = MapDataDir + "Map_001_Field.asset"; // Battle 씬을 만들 때 넣는 지역
     public const string MonsterBalance = BalanceDataDir + "MonsterBalance.asset";

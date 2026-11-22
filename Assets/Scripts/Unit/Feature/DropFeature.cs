@@ -20,7 +20,7 @@ public class DropFeature : UnitFeature
     {
         SpawnDrops();
 
-        UnitService units = GameManager.Instance.UnitS;
+        UnitService units = FlowManager.Instance.Battle?.UnitS;
         if (units != null)
             SEventManager.Publish(new MonsterKilled(units, Owner.UnitID, m_Def, Owner.transform.position));
     }

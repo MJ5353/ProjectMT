@@ -46,7 +46,7 @@ public class ScreenBattle : ScreenBase
 
     private void Update()
     {
-        BattleService battleS = GameManager.Instance.BattleS;
+        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
         if (battleS == null)
             return;
 
@@ -133,7 +133,7 @@ public class ScreenBattle : ScreenBase
     // 바로 나가지 않고 "토벌을 종료할까요?"를 묻는다. 묻는 동안 게임을 멈춘다. 확인 팝업 프리팹이 없으면 묻지 않고 나간다
     private void OnClickExit()
     {
-        PopupConfirm confirm = GameManager.Instance.PopupS?.Open<PopupConfirm>(EPopupType.PopupConfirm);
+        PopupConfirm confirm = FlowManager.Instance.PopupS?.Open<PopupConfirm>(EPopupType.PopupConfirm);
         if (confirm == null)
         {
             ExitHunt();
@@ -160,32 +160,33 @@ public class ScreenBattle : ScreenBase
     // 시장을 열고 팝업(PopupMarket)을 띄운다. 시장 프리팹이 없으면 시장 없이 끝낸다
     private void ExitHunt()
     {
-        GameManager gameM = GameManager.Instance;
-        BattleService battleS = gameM.BattleS;
+        FlowManager flowM = FlowManager.Instance;
+        BattleService battleS = flowM.Battle?.BattleS;
         
         if (battleS == null)
             return;
 
-        bool isMarket = gameM.PopupS != null && gameM.PopupS.HasPrefab(EPopupType.PopupMarket);
+        PopupService popupS = flowM.PopupS;
+        bool isMarket = popupS != null && popupS.HasPrefab(EPopupType.PopupMarket);
         battleS.ExitHunt(isMarket);
         
         if (battleS.State == EBattleState.Market)
-            gameM.PopupS?.Open<PopupMarket>(EPopupType.PopupMarket);
+            popupS?.Open<PopupMarket>(EPopupType.PopupMarket);
     }
 
     private void OnLootChanged(LootChanged evt)
     {
-        RefreshLootList(GameManager.Instance.BattleS.DicLoot);
+        RefreshLootList(FlowManager.Instance.Battle.BattleS.DicLoot);
     }
 
     private void OnPlayerDowned(PlayerDowned evt)
     {
-        GameManager.Instance.PopupS?.Open<PopupDeath>(EPopupType.PopupDeath);
+        FlowManager.Instance.PopupS?.Open<PopupDeath>(EPopupType.PopupDeath);
     }
 
     // 시장 팝업은 MarketClosed로, 사망 팝업은 귀가(GiveUp) 전에 스스로 닫힌다
     private void OnBattleEnded(BattleEnded evt)
     {
-        GameManager.Instance.PopupS?.Open<PopupResult>(EPopupType.PopupResult);
+        FlowManager.Instance.PopupS?.Open<PopupResult>(EPopupType.PopupResult);
     }
 }

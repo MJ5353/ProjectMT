@@ -37,7 +37,7 @@ public class AIDeadStateBase : AIStateBase
     // 발밑에 먼지. 몸 반지름 0.5를 기준 크기로 키운다
     private void PlayDeathEffect()
     {
-        EffectService effectS = GameManager.Instance.EffectS;
+        EffectService effectS = FlowManager.Instance.EffectS;
         if (effectS == null)
             return;
         

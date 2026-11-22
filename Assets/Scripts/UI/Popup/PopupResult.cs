@@ -38,7 +38,7 @@ public class PopupResult : PopupBase
 
     protected override void OnOpen()
     {
-        BattleService battleS = GameManager.Instance.BattleS;
+        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
         if (battleS == null)
         {
             // 다시 쓰는 팝업이라 지난번 결과가 남지 않게 비운다(버튼도 BattleService가 있어야 동작한다)
@@ -63,7 +63,7 @@ public class PopupResult : PopupBase
         m_Summary.E_SetString(EStringKey.Result_SummaryFormat, UINightClock.FormatRealTime(Mathf.FloorToInt(battleS.ElapsedTime)), FormatTrust(battleS.State));
 
         FillLoot(battleS.DicReward);
-        m_LobbyButton.E_SetActive(Application.CanStreamedLevelBeLoaded(SceneNames.Lobby));
+        m_LobbyButton.E_SetActive(GameManager.Instance.CanLoad(ESceneType.Lobby));
         SetButtonsInteractable(true);
     }
 
@@ -71,7 +71,7 @@ public class PopupResult : PopupBase
     
     private void OnClickRetry()
     {
-        BattleService battleS = GameManager.Instance.BattleS;
+        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
         if (battleS == null)
             return;
 
@@ -82,7 +82,7 @@ public class PopupResult : PopupBase
 
     private void OnClickLobby()
     {
-        BattleService battleS = GameManager.Instance.BattleS;
+        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
         if (battleS == null)
             return;
 

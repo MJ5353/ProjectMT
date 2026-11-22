@@ -48,7 +48,7 @@ public class TargetSelector
     // range 안에서 가장 가까운 적(기억하지 않음)
     public UnitController FindNearest(float range)
     {
-        UnitService UnitS = GameManager.Instance.UnitS;
+        UnitService UnitS = FlowManager.Instance.Battle?.UnitS;
         if (UnitS == null)
             return null;
 

@@ -142,7 +142,7 @@ public class MushroomPickup : PoolableMono
 
     private void UpdateMagnet(float deltaTime)
     {
-        UnitController player = GameManager.Instance.UnitS?.Player;
+        UnitController player = FlowManager.Instance.Battle?.UnitS.Player;
         if (player == null)
         {
             m_IsMagnet = false;
@@ -160,7 +160,7 @@ public class MushroomPickup : PoolableMono
 
     private bool IsPlayerNear()
     {
-        UnitController player = GameManager.Instance.UnitS?.Player;
+        UnitController player = FlowManager.Instance.Battle?.UnitS.Player;
         if (player == null || player.IsValid() == false)
             return false;
 
@@ -178,19 +178,19 @@ public class MushroomPickup : PoolableMono
             default: return;
         }
 
-        m_Beam = GameManager.Instance.EffectS?.Show(type, groundPosition, Quaternion.identity);
+        m_Beam = FlowManager.Instance.EffectS?.Show(type, groundPosition, Quaternion.identity);
     }
 
     private void HideBeam()
     {
-        GameManager.Instance.EffectS?.Hide(m_Beam);
+        FlowManager.Instance.EffectS?.Hide(m_Beam);
         m_Beam = null;
     }
 
     private void Collect()
     {
         SEventManager.Publish(new LootPicked(m_ItemID, m_Amount, Freshness, Rarity));
-        GameManager.Instance.EffectS?.Play(ECommonEffectType.Pickup, transform.position, Quaternion.identity);
+        FlowManager.Instance.EffectS?.Play(ECommonEffectType.Pickup, transform.position, Quaternion.identity);
         ResourceManager.S_Despawn(this);
     }
 }
