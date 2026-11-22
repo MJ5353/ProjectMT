@@ -45,6 +45,7 @@ public static class EditorPath
     public const string GameDatabaseAsset = ResourcesRoot + CommonPath.GameDatabase + ".asset";
     public const string BattleScene = ScenesDir + SceneNames.Battle + ".unity";
     public const string LobbyScene = ScenesDir + SceneNames.Lobby + ".unity";
+    public const string TitleScene = ScenesDir + SceneNames.Title + ".unity";
     public const string PlayerDef = PlayerDataDir + "Player.asset";
     public const string DefaultMapDef = MapDataDir + "Map_001_Field.asset"; // Battle 씬을 만들 때 넣는 지역
     public const string MonsterBalance = BalanceDataDir + "MonsterBalance.asset";
@@ -53,6 +54,8 @@ public static class EditorPath
     public const string StringDefAsset = UIDataDir + StringDef.StringID + ".asset";
     public const string RarityDefAsset = UIDataDir + RarityDef.RarityID + ".asset";
     public const string PopupResultPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupResult) + PrefabExtension;
+    public const string ScreenTitlePrefab = ScreenUIPrefabDir + nameof(ScreenTitle) + PrefabExtension;
+    public const string ScreenLoadingPrefab = ScreenUIPrefabDir + nameof(ScreenLoading) + PrefabExtension;
     public const string ScreenLobbyPrefab = LobbyScreenUIPrefabDir + nameof(ScreenLobby) + PrefabExtension;
     public const string ScreenBattlePrefab = BattleScreenUIPrefabDir + nameof(ScreenBattle) + PrefabExtension;
     public const string PopupDeathPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupDeath) + PrefabExtension;

@@ -10,7 +10,8 @@ public enum EGameState
     None,
     Lobby,
     Battle,
-    Result
+    Result,
+    Title
 }
 
 // ==================================================
@@ -20,7 +21,8 @@ public class GameManager : MonoSingleton<GameManager>
 {
     private static readonly Dictionary<EGameState, EGameState[]> s_DicAllowedTransition = new()
     {
-        { EGameState.None, new[] { EGameState.Lobby, EGameState.Battle } },
+        { EGameState.None, new[] { EGameState.Title, EGameState.Lobby, EGameState.Battle } },
+        { EGameState.Title, new[] { EGameState.Lobby } },
         { EGameState.Lobby, new[] { EGameState.Battle } },
         { EGameState.Battle, new[] { EGameState.Result, EGameState.Lobby } },
         { EGameState.Result, new[] { EGameState.Lobby, EGameState.Battle } },
@@ -28,6 +30,7 @@ public class GameManager : MonoSingleton<GameManager>
 
     private readonly List<ServiceBase> m_ListService = new();
     private Scene m_ServiceScene;
+    private ScreenLoading m_Loading; // 첫 씬 전환 때 만들고, 전환 동안만 켠다. 원본이 없으면 null(로딩 화면 없이 넘어간다)
 
     public GameDatabase Database { get; private set; }
     public DefineDef Define { get; private set; } // 전역 조절값. 에셋이 없으면 코드 기본값으로 만든다
@@ -121,6 +124,8 @@ public class GameManager : MonoSingleton<GameManager>
     {
         switch (state)
         {
+            case EGameState.Title:
+                return SceneNames.Title;
             case EGameState.Lobby:
                 return SceneNames.Lobby;
             case EGameState.Battle:
@@ -186,7 +191,13 @@ public class GameManager : MonoSingleton<GameManager>
             {
                 Scene previousScene = SceneManager.GetActiveScene();
                 SEventManager.Publish(new SceneUnloading()); // 씬 오브젝트가 살아 있을 때 UI 칸을 풀로 돌려보낸다
-                yield return SceneLoader.Load(sceneName);
+                // !!) OnInit에서 만들면 아직 Instance 등록 전이라 문구(UILabel → StringDef)가 DB를 못 찾는다. 첫 전환 때 만든다
+                if (m_Loading == null)
+                    m_Loading = ResourceManager.Instance.Create(ResourceManager.Instance.Load<ScreenLoading>(CommonPath.ScreenLoading, "MushTaker/UI/모든 UI 다시 만들기를 실행하세요."), transform);
+
+                m_Loading.E_SetActive(true);
+                System.Action<float> onProgress = m_Loading != null ? m_Loading.SetProgress : null;
+                yield return SceneLoader.Load(sceneName, Define.MinLoadingTime, onProgress);
 
                 Scene loadedScene = SceneManager.GetActiveScene();
                 if (loadedScene == previousScene || loadedScene.name != sceneName)
@@ -197,6 +208,7 @@ public class GameManager : MonoSingleton<GameManager>
         }
         finally
         {
+            m_Loading.E_SetActive(false);
             IsTransitioning = false;
         }
 

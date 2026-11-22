@@ -10,6 +10,10 @@ public class DefineDef : DataDef
 {
     public const string DefineID = "Define";
 
+    // 씬 전환 ---
+    [field: SerializeField]
+    public float MinLoadingTime { get; private set; } = 1f;          // 씬 전환 때 로딩 화면(가짜 로딩)을 최소 이만큼(초) 보여 준다
+
     // 전투 진행 ---
     [field: SerializeField]
     public float RespawnBlockDistance { get; private set; } = 15f;  // 플레이어가 이보다 가까우면 리스폰을 미룬다(눈앞에 갑자기 생기지 않게)

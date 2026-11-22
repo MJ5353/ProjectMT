@@ -448,12 +448,12 @@ public static class LobbyUISetup
 
     private static void AddToBuildSettings()
     {
-        List<EditorBuildSettingsScene> listScene = EditorBuildSettings.scenes
-            .Where(s => s.path != EditorPath.LobbyScene)
-            .ToList();
+        // 빌드 첫 씬은 타이틀(TitleUISetup). 로비는 없을 때만 뒤에 붙인다
+        List<EditorBuildSettingsScene> listScene = EditorBuildSettings.scenes.ToList();
+        if (listScene.Any(s => s.path == EditorPath.LobbyScene))
+            return;
 
-        // 빌드 첫 씬은 로비
-        listScene.Insert(0, new EditorBuildSettingsScene(EditorPath.LobbyScene, true));
+        listScene.Add(new EditorBuildSettingsScene(EditorPath.LobbyScene, true));
         EditorBuildSettings.scenes = listScene.ToArray();
     }
 }

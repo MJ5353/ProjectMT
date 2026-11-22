@@ -5,7 +5,7 @@ using UnityEngine.UI;
 // ==================================================
 
 // 누른 자리에서 버섯 아이콘이 튀어 퍼지며 사라지는 UI 연출. EffectService가 들고(UseClickBurst를 켠 씬만) 매 프레임 조각을 움직인다.
-// 화면 아무 데나 누를 때가 아니라, 버튼이 EffectService.PlayClickBurst를 부를 때만 터진다(로비 하단 탭·[입장], 타이틀·로딩의 배경 버튼)
+// 화면 아무 데나 누를 때가 아니라, 버튼이 EffectService.PlayClickBurst를 부를 때만 터진다(로비 하단 탭·[입장], 타이틀·로딩 화면의 배경 버튼)
 // 조각은 UICommonImage를 UIReuseService로 꺼내 UI 루트 맨 위(팝업보다 위)에 띄우고, 끝나면 돌려준다. 수치는 DefineDef(ClickBurst*)
 
 public sealed class UIClickBurst
@@ -43,13 +43,21 @@ public sealed class UIClickBurst
         UpdatePieces(GameManager.Instance.Define);
     }
 
-    // 지금 누른 자리(포인터 위치)에서 터뜨린다
-    public void Play()
+    // 지금 누른 자리(포인터 위치)에서 터뜨린다. root가 없으면 씬 UI 루트에 띄우고, 씬 전환 중에는 터뜨리지 않는다(로딩 화면이 덮는다)
+    public void Play(RectTransform root)
     {
-        if (m_ListIcon.Count == 0 || GameManager.Instance.IsTransitioning)
+        if (m_ListIcon.Count == 0)
             return;
 
-        Pop(GameManager.Instance.Define, InputManager.Instance.UI.Point.ReadValue<Vector2>());
+        if (root == null)
+        {
+            if (GameManager.Instance.IsTransitioning)
+                return;
+
+            root = RootManager.Instance.UIRoot;
+        }
+
+        Pop(GameManager.Instance.Define, InputManager.Instance.UI.Point.ReadValue<Vector2>(), root);
     }
 
     // 남은 조각은 씬이 바뀌기 직전 UIReuseService가 한꺼번에 돌려받는다
@@ -97,9 +105,8 @@ public sealed class UIClickBurst
         }
     }
 
-    private void Pop(DefineDef define, Vector2 screenPosition)
+    private void Pop(DefineDef define, Vector2 screenPosition, RectTransform root)
     {
-        RectTransform root = RootManager.Instance.UIRoot;
         UIReuseService uiReuseS = GameManager.Instance.UIReuseS;
         
         if (root == null || uiReuseS == null || root.gameObject.activeInHierarchy == false)

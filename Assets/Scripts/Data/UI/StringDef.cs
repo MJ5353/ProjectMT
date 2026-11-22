@@ -17,6 +17,10 @@ public enum EStringKey
     Common_Cancel,
     Common_Confirm,
 
+    // title·loading (ScreenTitle·ScreenLoading)
+    Title_PressToStart,
+    Loading_Text,
+
     // lobby
     Lobby_Tab_Gear,
     Lobby_Tab_Hunt,

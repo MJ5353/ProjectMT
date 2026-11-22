@@ -87,10 +87,10 @@ public sealed class EffectService : ServiceBase
 
     // ---
 
-    // 버튼 클릭 자리에서 버섯을 튀긴다. 연출을 끈 씬에서는 아무 일도 없다
-    public void PlayClickBurst()
+    // 버튼 클릭 자리에서 버섯을 튀긴다. 연출을 끈 씬에서는 아무 일도 없다. root를 주면 그 아래(씬 밖 로딩 화면 등)에 띄운다
+    public void PlayClickBurst(RectTransform root = null)
     {
-        m_ClickBurst?.Play();
+        m_ClickBurst?.Play(root);
     }
     
     // 풀에서 꺼내 재생한다. 크기는 프리팹 기준 배율

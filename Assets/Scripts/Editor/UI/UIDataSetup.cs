@@ -21,6 +21,9 @@ public static class UIDataSetup
         { EStringKey.Common_Cancel, "취소" },
         { EStringKey.Common_Confirm, "확인" },
 
+        { EStringKey.Title_PressToStart, "클릭하여 시작하기" },
+        { EStringKey.Loading_Text, "불러오는 중..." },
+
         { EStringKey.Lobby_Tab_Gear, "정비" },
         { EStringKey.Lobby_Tab_Hunt, "토벌" },
         { EStringKey.Lobby_Tab_Breed, "개량" },
