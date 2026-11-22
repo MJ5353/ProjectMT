@@ -1,3 +1,5 @@
+using System;
+
 // ==================================================
 
 // 지금 씬의 흐름(Flow)과 모든 씬이 같이 쓰는 공용 Service(이펙트·UI 요소·팝업)를 맡는다.
@@ -10,6 +12,7 @@ public sealed class FlowManager : MonoSingleton<FlowManager>
 {
     public FlowBase Current { get; private set; }
     
+    private Func<FlowBase> m_CreateFlow; // 지금 씬의 Flow를 만드는 함수(씬 컨트롤러 CreateFlow). 다시 하기(Restart)가 같은 Flow를 새로 만든다
     private EffectService m_EffectS;
     private UIReuseService m_UIReuseS;
     private PopupService m_PopupS;
@@ -22,22 +25,46 @@ public sealed class FlowManager : MonoSingleton<FlowManager>
 
     // ------------------------------------------------
 
-    // 씬 컨트롤러가 Start에서 부른다. 이전 Flow가 남아 있으면 먼저 정리한다
+    // 씬 컨트롤러가 Start에서 Flow를 만드는 함수와 함께 부른다. 이전 Flow가 남아 있으면 먼저 정리한다
     // !!) 이펙트를 맨 먼저 연결한다. 전투 Service가 Init에서 이펙트를 부를 수 있다
-    public void Begin(FlowBase flow)
+    public void Begin(Func<FlowBase> createFlow)
     {
         End();
 
+        FlowBase flow = createFlow?.Invoke();
         if (flow == null)
             return;
 
+        m_CreateFlow = createFlow;
         Current = flow;
+        
         m_EffectS.Init();
         m_UIReuseS.Init();
         m_PopupS.Init();
 
         flow.Begin();
         SEventManager.Publish(new FlowBegan(flow));
+    }
+
+    // 씬은 그대로 두고 지금 Flow만 정리한 뒤 같은 Flow를 새로 시작한다(전투 다시 하기, GameManager.RestartFlow가 부른다).
+    // 공용 Service는 연결을 유지하고(화면이 들고 있는 UI 요소·팝업은 그대로), 월드에 남은 이펙트만 비운다
+    public bool Restart()
+    {
+        if (IsRunning == false)
+            return false;
+
+        FlowBase flow = m_CreateFlow?.Invoke();
+        if (flow == null)
+            return false;
+
+        Current.End();
+        m_EffectS.Clear();
+
+        Current = flow;
+        flow.Begin();
+        
+        SEventManager.Publish(new FlowBegan(flow));
+        return true;
     }
 
     public void Tick(float deltaTime)
@@ -66,6 +93,7 @@ public sealed class FlowManager : MonoSingleton<FlowManager>
         m_EffectS.Clear();
         
         Current = null;
+        m_CreateFlow = null;
     }
 
     // virtual ---

@@ -29,9 +29,12 @@ public class PartFeature : UnitFeature
     {
         public readonly Renderer Normal;
         public readonly Renderer Broken;                    // 없으면 깨질 때 사라진다
+        
         public Transform Socket { get; private set; }       // 이번 스폰에 꽂힌 소켓. null이면 안 꽂힘
         public Vector3 NormalScale { get; private set; }
 
+        // ------------------------------------------------
+        
         public Mushroom(Renderer normal, Renderer broken)
         {
             Normal = normal;
@@ -267,16 +270,21 @@ public class PartFeature : UnitFeature
         if (part.Entry.Mushroom == null)
             return;
 
+        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
         MushroomPickup prefab = ResourceManager.Instance.Load<MushroomPickup>(part.Entry.Mushroom.PickupPath, "데이터 편집기 > 버섯 > 픽업 빌드");
-        if (prefab == null)
+        
+        if (battleS == null || prefab == null)
             return;
 
         EFreshness freshness = Owner.IsDead ? EFreshness.Low : EFreshness.High;
         for (int i = 0; i < part.PlacedCount; i++)
         {
             Vector3 position = part.ListMushroom[i].Socket.position;
-            MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, position, Quaternion.identity);
+            MushroomPickup pickup = battleS.SpawnPickup(prefab, position);
             
+            if (pickup == null)
+                return;
+
             Vector2 spread = Random.insideUnitCircle * Define.PartDropSpread;
             pickup.Launch(new Vector3(spread.x, Define.PartDropUpSpeed, spread.y), freshness, BattleService.RollRarity());
         }

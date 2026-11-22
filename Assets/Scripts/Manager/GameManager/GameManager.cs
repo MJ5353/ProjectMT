@@ -52,14 +52,23 @@ public class GameManager : MonoSingleton<GameManager>
         return StartTransition(sceneName);
     }
 
-    // 지금 씬을 다시 불러온다(전투 다시 하기)
+    // 지금 씬을 다시 불러온다(개발용 DebugPanel). 전투 다시 하기는 RestartFlow
     public bool ReloadScene()
     {
-        // [mj] todo) 묶음 4에서 씬을 다시 읽지 않고 BattleFlow만 새로 시작하도록 바꾼다
         if (IsTransitioning)
             return false;
 
         return StartTransition(SceneManager.GetActiveScene().name);
+    }
+
+    // 씬을 다시 읽지 않고 지금 Flow만 새로 시작한다(전투 다시 하기). 정리·재스폰이 보이지 않게 로딩 화면을 덮는다
+    public bool RestartFlow()
+    {
+        if (IsTransitioning || FlowManager.Instance.IsRunning == false)
+            return false;
+
+        StartCoroutine(RestartTransition());
+        return true;
     }
 
     private bool TryGetSceneName(ESceneType type, out string sceneName)
@@ -97,6 +106,39 @@ public class GameManager : MonoSingleton<GameManager>
             FlowManager.Instance.End();
 
             yield return SceneLoader.Load(sceneName, Define.MinLoadingTime, uiM.SetLoadingProgress);
+        }
+        finally
+        {
+            UIManager.Instance.ShowLoading(false);
+            IsTransitioning = false;
+        }
+    }
+
+    private IEnumerator RestartTransition()
+    {
+        IsTransitioning = true;
+
+        try
+        {
+            UIManager uiM = UIManager.Instance;
+            uiM.ShowLoading(true);
+
+            // 누른 버튼(결과 팝업) 처리가 끝난 다음 프레임에 정리한다
+            yield return null;
+
+            FlowManager.Instance.Restart();
+
+            // 씬 전환과 같은 가짜 로딩. 일시정지와 상관없이 실제 시간으로 찬다
+            float minSeconds = Define.MinLoadingTime;
+            float startTime = Time.unscaledTime;
+            float ratio = 0f;
+            
+            while (ratio < 1f)
+            {
+                ratio = minSeconds > 0f ? (Time.unscaledTime - startTime) / minSeconds : 1f;
+                uiM.SetLoadingProgress(Mathf.Clamp01(ratio));
+                yield return null;
+            }
         }
         finally
         {

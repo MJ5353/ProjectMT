@@ -3,17 +3,42 @@ using UnityEngine;
 // ==================================================
 
 // 전투 씬. 지역(MapDef)을 골라 BattleFlow(전투 Service Unit·HitStop·Battle)를 만든다. 이펙트·팝업은 공용(FlowManager)
+// 맵은 씬이 처음 Flow를 만들 때 한 번 만들어 들고, 다시 하기(Flow만 새로 시작)에도 그대로 쓴다. 씬과 함께 지워진다
 
 [DefaultExecutionOrder(-1100)]
 public sealed class BattleSceneController : SceneControllerBase
 {
+    private const string MapMissingHint = "프리팹 이름이 MapDef ID와 같은지, 누락 전투 에셋 복구를 했는지 확인하세요.";
+
     [SerializeField] private MapDef m_DefaultMap = null;
+
+    private MapRoot m_Map;
 
     public ScreenBattle ScreenUI => GetScreen<ScreenBattle>();
 
     // ------------------------------------------------
 
-    protected override FlowBase CreateFlow() => new BattleFlow(GetMap());
+    protected override FlowBase CreateFlow()
+    {
+        MapDef mapDef = GetMap();
+        if (m_Map == null)
+            m_Map = CreateMap(mapDef);
+
+        return new BattleFlow(mapDef, m_Map);
+    }
+
+    // 지역 맵을 지금 씬에 만든다. 없으면 null(스폰 지점 없이 원점에서 시작한다)
+    private static MapRoot CreateMap(MapDef mapDef)
+    {
+        if (mapDef == null)
+            return null;
+
+        MapRoot prefab = ResourceManager.Instance.Load<MapRoot>(mapDef.PrefabPath, MapMissingHint);
+        if (prefab == null)
+            return null;
+
+        return ResourceManager.S_Create(prefab);
+    }
 
     // 로비에서 고른 지역 → 씬 기본 지역 → (개발용) 기본 지역 순
     private MapDef GetMap()

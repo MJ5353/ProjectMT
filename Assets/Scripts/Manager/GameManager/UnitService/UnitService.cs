@@ -94,16 +94,22 @@ public sealed class UnitService : ServiceBase
         m_Factory.Release(unit);
     }
 
-    // 씬이 닫히며 남은 유닛이 함께 지워지므로 목록만 비운다
+    // 남은 유닛을 모두 풀로 돌려보낸다(다시 하기에 겹치지 않게). 판이 끝나는 정리라 UnitRemoved는 보내지 않는다.
+    // 씬과 함께 이미 지워진 유닛은 건너뛴다(UnitFactory.Release가 null을 거른다)
     public override void Clear()
     {
+        UnitRemoved = null;
+        foreach (UnitController unit in m_ListUnit)
+        {
+            m_Factory.Release(unit);
+        }
+
         m_DicUnit.Clear();
         m_DicUnitID.Clear();
         m_ListUnit.Clear();
         m_ListToRemove.Clear();
         
         Player = null;
-        UnitRemoved = null;
     }
 
     public bool TryGetUnitID(Transform unitTransform, out int unitID)

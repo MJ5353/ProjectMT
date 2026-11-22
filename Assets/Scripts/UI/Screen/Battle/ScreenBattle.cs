@@ -32,11 +32,13 @@ public class ScreenBattle : ScreenBase
 
     private void OnEnable()
     {
+        SEventManager.Subscribe<FlowBegan>(OnFlowBegan);
         SEventManager.Subscribe<LootChanged>(OnLootChanged);
     }
 
     private void OnDisable()
     {
+        SEventManager.Unsubscribe<FlowBegan>(OnFlowBegan);
         SEventManager.Unsubscribe<LootChanged>(OnLootChanged);
     }
 
@@ -152,6 +154,16 @@ public class ScreenBattle : ScreenBase
     private void OnCancelExit()
     {
         TimeManager.Instance.SetPause(EPauseReason.Confirm, false);
+    }
+
+    // 새 판 시작(씬 진입·다시 하기). 체력바는 처음부터 다시 채우고, 주운 목록은 비운다
+    private void OnFlowBegan(FlowBegan evt)
+    {
+        if (evt.Flow is not BattleFlow battle)
+            return;
+
+        m_LastHp = -1;
+        RefreshLootList(battle.BattleS.DicLoot);
     }
 
     private void OnLootChanged(LootChanged evt)

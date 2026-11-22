@@ -580,3 +580,7 @@
 - BattleFlow를 Start·Play·Down·Market·Result 상태로 나누고 EBattleState를 없앰. 끝난 이유는 EHuntResult(Exited·TimedOut·GaveUp) 값으로 Result에 넘김.
 - 사망·시장·결과 팝업은 각 상태 Enter가 띄우고, ScreenBattle은 표시와 토벌 종료 요청만 함. BattleService는 스폰·밤 시간·떨구기·보상 처리만 남기고 상태 검사를 뺌. PlayerDowned·BattleEnded 이벤트 삭제.
 - 로딩 화면에 지난 클릭 버섯 조각이 반투명하게 남던 원인(꺼진 조각을 풀에 돌려주지 않고 목록에서만 뺌)을 고치고, 로딩을 닫을 때 그 위 조각을 먼저 회수하게 함. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 씬을 다시 읽지 않는 다시 하기(Flow 묶음 4)
+- 다시 하기를 씬 재로드 대신 GameManager.RestartFlow → FlowManager.Restart로 바꿈. 로딩 화면을 덮고 지금 BattleFlow를 끝낸 뒤 같은 지역으로 새 BattleFlow를 시작하며, 공용 팝업·UI 요소는 유지하고 월드 이펙트만 비움.
+- 맵은 BattleSceneController가 한 번 만들어 재사용하고, 유닛은 UnitService.Clear에서 풀로, 땅의 픽업은 BattleService가 기억했다가 Clear에서 돌려받음. HUD(체력·주운 목록·머리 위 체력바)와 추적 카메라는 FlowBegan으로 새 판에 다시 붙음. 컴파일·플레이 확인 안 함, 커밋하지 않음.

@@ -2,7 +2,7 @@
 
 최종 수정: 26.11.22
 
-씬 전환과 씬 안의 진행 단계를 어떻게 나누는지 적는다. 지금 코드(`EGameState`·`BattleService.EBattleState`)를 이 구조로 바꾸기 위한 설계다. 26.11.22 기준 일시정지 이유 플래그(묶음 1), UI 오버레이 정리, Flow 뼈대와 씬 전환 분리(묶음 2), BattleFlow 상태 나누기(묶음 3)가 코드에 반영됐다. 아래 "지금 구조와 문제"는 묶음 2 이전 기준이다.
+씬 전환과 씬 안의 진행 단계를 어떻게 나누는지 적는다. 지금 코드(`EGameState`·`BattleService.EBattleState`)를 이 구조로 바꾸기 위한 설계다. 26.11.22 기준 일시정지 이유 플래그(묶음 1), UI 오버레이 정리, Flow 뼈대와 씬 전환 분리(묶음 2), BattleFlow 상태 나누기(묶음 3), 씬 재로드 없는 다시 하기(묶음 4)가 코드에 반영됐다. 아래 "지금 구조와 문제"는 묶음 2 이전 기준이다.
 
 ## 1. 상세 정보
 
@@ -82,7 +82,7 @@
 1. **씬 진입**: `SceneControllerBase.Awake`(매니저 생성·UI 루트·카메라) → `Start`에서 `FlowManager.Begin(CreateFlow())` → 공용 Service Init(Effect → UIReuse → Popup) → Flow `Begin`(전용 Service Init, 첫 상태 진입) → `FlowBegan` 이벤트.
 2. **진행**: `SceneControllerBase.Update` → `FlowManager.Tick` → 공용 Service Tick + 현재 Flow 상태 Update.
 3. **씬 전환**: `GameManager.ChangeScene(ESceneType)` → 로딩 오버레이 → `FlowManager.End()`(Flow `End` → `UIReuseService` UI 요소 회수 → `PopupService` 팝업 파괴 → `EffectService` 회수) → 씬 로드. 요소 회수가 팝업 파괴보다 먼저여야 한다(UI 스레드 26.11.21). 정리 입구는 여기 한 곳이고 `SceneUnloading` 이벤트는 이 순서로 대체한다. `OnDestroy`는 정리가 안 된 경우의 안전망만 맡는다.
-4. **다시 하기(Retry)**: 씬을 다시 로드하지 않는다. 현재 BattleFlow를 `Exit`로 정리하고 같은 지역으로 새 BattleFlow를 `Begin`한다.
+4. **다시 하기(Retry)**(묶음 4 반영): 씬을 다시 로드하지 않는다. `BattleFlow.Retry` → `GameManager.RestartFlow`(로딩 오버레이, 다음 프레임에) → `FlowManager.Restart`: 씬 컨트롤러의 `CreateFlow`로 새 Flow를 만들고, 지금 Flow `End` → `EffectService.Clear` → 새 Flow `Begin` → `FlowBegan`. 공용 UIReuse·Popup은 연결을 유지한다(화면이 든 UI 요소가 회수되지 않게). `FlowManager.Begin`은 Flow 대신 만드는 함수(`Func<FlowBase>`)를 받아 기억한다.
 
 ### Retry에서 챙길 것
 
@@ -91,9 +91,10 @@
 - 결과 팝업은 공용 `PopupService`가 들고 있어 Flow `Exit`로는 닫히지 않는다. Result 상태 `Exit`에서 직접 닫는다. 팝업은 닫으면 꺼지고 종류당 하나를 재사용하므로, 다시 열 때 내용을 새로 채워야 한다.
 - 전투 HUD처럼 씬에 남는 UI는 새 판 시작을 알아야 한다. BattleFlow `Enter`가 시작 이벤트를 내고 HUD가 이를 받아 초기화한다.
 - 카메라 추적 대상은 Start 상태에서 새 플레이어로 다시 지정한다. 정비 강화(`Gear.ApplyTo`)도 스폰 때 다시 적용된다.
-- 정리·재스폰 사이가 보이지 않게 `ScreenLoading`을 짧게 씌운다(제안).
-- 맵은 `BattleSceneController`가 들고 BattleFlow에 스폰 지점만 넘긴다(지금은 `BattleService.SpawnMap`이 만든다).
-- 새 판 시작은 BattleFlow Start가 `BattleStarted` 이벤트로 알린다. `ScreenBattle`(주운 버섯 목록·시계·체력바)이 이걸로 초기화한다.
+- (묶음 4 반영) 정리·재스폰 사이는 `OverlayLoading`이 `MinLoadingTime` 동안 덮는다.
+- (묶음 4 반영) 맵은 `BattleSceneController`가 처음 `CreateFlow` 때 한 번 만들어 들고 `BattleFlow(mapDef, map)`로 넘긴다.
+- (묶음 4 반영) 새 판 시작은 따로 `BattleStarted`를 두지 않고 기존 `FlowBegan`을 쓴다. `ScreenBattle`(체력·주운 목록), `ScreenBattle_UnitHpBars`(남은 바 회수, 새 UnitService 구독), `FollowCamera`(새 플레이어 추적)가 이걸 받는다.
+- (묶음 4 반영) 유닛은 `UnitService.Clear`가 풀로 돌려보내고(이전엔 씬과 함께 지워지길 기대해 목록만 비웠다), 땅의 픽업은 `BattleService.SpawnPickup`으로만 꺼내 기억했다가 `Clear`에서 돌려받는다.
 
 ### 적용 순서
 
@@ -102,7 +103,7 @@
 1. 일시정지 이유 플래그(26.11.22 반영)
 2. (26.11.22 반영) Flow 뼈대 + 씬 전환 분리(UI 오버레이 정리는 먼저 반영): FlowManager·Flow 기반, Title·Lobby·BattleFlow(Play 하나), 공용·전용 Service 이전, `SceneDef`, GameManager 씬 전환 전용, 정리 입구 하나, 호출부 교체
 3. (26.11.22 반영) BattleFlow 상태 나누기: `EBattleState` 폐지, 팝업을 상태 Enter로
-4. 씬 재로드 없는 Retry
+4. (26.11.22 반영) 씬 재로드 없는 Retry
 5. 이름 정리(`MonsterBalanceTable`)
 
 묶음 2·3은 `ScreenBattle`·`PopupResult`·`PopupDeath` 등 UI 파일도 바꾸므로 UI 작업과 겹치지 않을 때 한다.
@@ -121,6 +122,7 @@
 - 26.11.21 대장: 토벌 종료 버튼은 확인 팝업("토벌을 종료할까요?" 예/아니오)을 거친다.
 - 26.11.21 대장: 씬 이름은 `SceneDef`(DataDef)로 데이터에 연결한다. `SceneNames` 상수와 `[mj] todo)`는 이걸로 대체한다.
 - 26.11.21 대장: Table은 편집기용 공식값이라 Def와 헷갈리지 않게 이름을 바꾼다(`MonsterBalanceTable`). `PopupTable`은 `PopupDef`로 대체돼 삭제.
+- 26.11.22 묶음 4 반영: 다시 하기는 `GameManager.RestartFlow` → `FlowManager.Restart`(씬 유지, 공용 팝업·UI 요소 유지, 이펙트만 비움). 새 판 알림은 `FlowBegan` 재사용. `ReloadScene`은 DebugPanel 전용으로 남김.
 - 26.11.22 묶음 3 반영: BattleFlow 상태 Start·Play·Down·Market·Result, 끝난 이유 `EHuntResult`, 팝업은 상태가 열고 화면은 요청만. Start→Play는 스폰 다음 프레임(상태 Enter 안에서 상태를 바꾸지 않는다).
 - 26.11.22: 토벌 종료 확인 팝업이 떠 있는 동안 게임 시간 전체를 멈춘다(구현 기준, Confirm 이유).
 - 26.11.22 대장: 위 적용 순서로 진행. 묶음 1 반영.

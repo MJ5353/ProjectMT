@@ -19,7 +19,8 @@ public enum EHuntResult
 
 // ==================================================
 
-// 전투 씬 흐름(하룻밤 한 판). 전투 전용 Service(Unit·HitStop·Battle)를 들고, 지역(MapDef)은 씬 컨트롤러가 골라 넘긴다.
+// 전투 씬 흐름(하룻밤 한 판). 전투 전용 Service(Unit·HitStop·Battle)를 들고, 지역(MapDef)과 맵(MapRoot)은 씬 컨트롤러가 넘긴다.
+// 다시 하기는 씬을 다시 읽지 않고 이 Flow를 끝낸 뒤 같은 지역·맵으로 새 BattleFlow를 시작한다(FlowManager.Restart)
 // 단계 전환과 팝업 띄우기는 여기 상태가 맡고, BattleService는 스폰·밤 시간·주운 버섯·보상 같은 데이터와 처리만 한다. 화면(ScreenBattle)은 표시와 요청만 한다.
 // 접근: FlowManager.Instance.Battle?.UnitS / HitStopS / BattleS (전투가 아니면 Battle이 null)
 // !!) 등록 순서 = Init 순서. BattleService가 스폰 때 UnitService를 쓰므로 Unit을 먼저 넣는다
@@ -36,11 +37,11 @@ public sealed class BattleFlow : FlowBase<EBattleFlowState>
 
     // ------------------------------------------------
 
-    public BattleFlow(MapDef mapDef)
+    public BattleFlow(MapDef mapDef, MapRoot map)
     {
         UnitS = Register(new UnitService());
         HitStopS = Register(new HitStopService());
-        BattleS = Register(new BattleService(mapDef));
+        BattleS = Register(new BattleService(mapDef, map));
 
         BattleS.PlayerDied += OnPlayerDied;
 
@@ -83,8 +84,8 @@ public sealed class BattleFlow : FlowBase<EBattleFlowState>
             EndHunt(EHuntResult.GaveUp);
     }
 
-    // [mj] todo) 묶음 4에서 씬을 다시 읽지 않고 이 Flow를 정리한 뒤 새로 시작한다
-    public bool Retry() => GameManager.Instance.ReloadScene();
+    // 결과 팝업의 다시 하기. 로딩 화면을 덮고 이 Flow를 정리한 뒤 새로 시작한다(씬은 그대로)
+    public bool Retry() => State == EBattleFlowState.Result && GameManager.Instance.RestartFlow();
 
     public bool TryGoLobby() => GameManager.Instance.ChangeScene(ESceneType.Lobby);
 
@@ -190,7 +191,7 @@ public sealed class BattleFlow : FlowBase<EBattleFlowState>
         }
     }
 
-    // 다시 쓰는 결과 팝업이라 나갈 때 직접 닫는다(묶음 4 Retry 대비)
+    // 결과 팝업은 공용 PopupService가 들고 있어 Flow가 끝나도 닫히지 않는다. 다시 하기에 남지 않게 나갈 때 직접 닫는다
     private sealed class ResultState : FlowStateBase<BattleFlow>
     {
         private PopupResult m_Popup;

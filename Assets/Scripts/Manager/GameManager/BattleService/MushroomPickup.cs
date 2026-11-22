@@ -26,7 +26,7 @@ public interface IPickupItem
 // ==================================================
 
 // 바닥에 떨어진 버섯(골드 동전도 같은 방식, ItemID만 재화). 튀어 올랐다 떨어진 뒤, 플레이어가 가까이 오면 빨려 들어가 주워진다.
-// ResourceManager 풀로 꺼내고 돌려준다. 여러 개를 흩뿌릴 때는 S_Drop
+// BattleService.SpawnPickup으로 꺼내고(판이 끝나면 남은 것을 돌려받는다), 주우면 DespawnPickup으로 돌려준다. 여러 개를 흩뿌릴 때는 S_Drop
 public class MushroomPickup : PoolableMono
 {
     private const float Gravity = -20f;
@@ -75,13 +75,20 @@ public class MushroomPickup : PoolableMono
         }
     }
 
-    // origin 위로 count개를 흩뿌린다(몬스터 드랍·골드 동전)
+    // origin 위로 count개를 흩뿌린다(몬스터 드랍·골드 동전). 전투 밖이면 떨구지 않는다
     public static void S_Drop(MushroomPickup prefab, Vector3 origin, int count, EFreshness freshness, ERarity rarity)
     {
+        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
+        if (battleS == null)
+            return;
+
         Vector3 position = origin + Vector3.up * Define.MonsterDropHeight;
         for (int i = 0; i < count; i++)
         {
-            MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, position, Quaternion.identity);
+            MushroomPickup pickup = battleS.SpawnPickup(prefab, position);
+            if (pickup == null)
+                return;
+
             Vector2 spread = Random.insideUnitCircle * Define.MonsterDropSpread;
             pickup.Launch(new Vector3(spread.x, Define.MonsterDropUpSpeed, spread.y), freshness, rarity);
         }
@@ -190,7 +197,13 @@ public class MushroomPickup : PoolableMono
     private void Collect()
     {
         SEventManager.Publish(new LootPicked(m_ItemID, m_Amount, Freshness, Rarity));
-        FlowManager.Instance.EffectS?.Play(ECommonEffectType.Pickup, transform.position, Quaternion.identity);
-        ResourceManager.S_Despawn(this);
+        FlowManager flowM = FlowManager.Instance;
+        flowM.EffectS?.Play(ECommonEffectType.Pickup, transform.position, Quaternion.identity);
+
+        BattleService battleS = flowM.Battle?.BattleS;
+        if (battleS != null)
+            battleS.DespawnPickup(this);
+        else
+            ResourceManager.S_Despawn(this);
     }
 }

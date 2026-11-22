@@ -17,8 +17,9 @@ public sealed class BattleService : ServiceBase
     private readonly Dictionary<string, int> m_DicPickedCurrency = new(); // 전투 중 주워 바로 인벤토리에 넣은 재화(골드 동전). 결과 화면에 더해 보여 준다
     private readonly List<SpawnState> m_ListSpawn = new();
     private readonly Dictionary<int, SpawnState> m_DicSpawnByUnitID = new();
+    private readonly List<MushroomPickup> m_ListPickup = new(); // 땅에 떨어져 있는 픽업. 판이 끝나면(Clear) 남은 것을 돌려받는다
     
-    private Transform[] m_SpawnSlots; // [i] = SpawnSlot_{i+1}. 생성한 맵에서 받는다
+    private readonly MapRoot m_MapRoot; // 씬 컨트롤러가 만들어 넘긴 맵. 다시 하기에도 같은 맵을 쓴다
     private UnitController m_Player;
     private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
     private bool m_IsMarketRewarded; // 시장이 보상을 이미 인벤토리에 넣었다(SetMarketReward)
@@ -56,9 +57,10 @@ public sealed class BattleService : ServiceBase
     
     // ------------------------------------------------
 
-    public BattleService(MapDef mapDef)
+    public BattleService(MapDef mapDef, MapRoot map)
     {
         Map = mapDef;
+        m_MapRoot = map;
     }
 
     // 밤을 흘리고 비어 있는 슬롯을 다시 채운다. Play 상태만 부른다(쓰러짐·시장·결과 동안은 밤이 멈춘다)
@@ -76,10 +78,9 @@ public sealed class BattleService : ServiceBase
         SEventManager.Subscribe<LootPicked>(OnLootPicked);
     }
 
-    // 맵·플레이어·몬스터를 만든다. BattleFlow Start 상태가 부른다
+    // 플레이어·몬스터를 만든다(맵은 씬 컨트롤러가 이미 만들었다). BattleFlow Start 상태가 부른다
     public void StartHunt()
     {
-        SpawnMap();
         SpawnPlayer();
         
         if (m_Player != null && m_Player.HealthF != null)
@@ -117,6 +118,14 @@ public sealed class BattleService : ServiceBase
         if (player != null && player.HealthF != null)
             player.HealthF.Died -= OnPlayerDied;
 
+        // 다시 하기에 떨어진 버섯이 남지 않게 돌려받는다(빛기둥은 픽업이 돌아갈 때 끈다). 씬과 함께 지워진 것은 건너뛴다
+        foreach (MushroomPickup pickup in m_ListPickup)
+        {
+            ResourceManager.S_Despawn(pickup);
+        }
+
+        m_ListPickup.Clear();
+
         m_DicSpawnByUnitID.Clear();
         m_ListSpawn.Clear();
         m_DicLoot.Clear();
@@ -126,7 +135,6 @@ public sealed class BattleService : ServiceBase
         m_IsMarketRewarded = false;
         ElapsedTime = 0f;
         m_Player = null;
-        m_SpawnSlots = null; // 맵 오브젝트는 씬과 함께 사라진다
     }
 
     // 떨어지는 버섯 하나의 희귀도. 지금 지역(MapDef)의 가중치로 굴린다. 전투 밖이면 Common
@@ -150,24 +158,26 @@ public sealed class BattleService : ServiceBase
         return true;
     }
 
-    #region Spawn
+    // 픽업 ---
 
-    // 지역 맵을 만든다. 씬은 Single로 불러서 지금 씬에 들어간다
-    private void SpawnMap()
+    // 땅에 떨어지는 픽업(버섯·골드 동전)을 꺼낸다. 판이 끝나면 남은 것을 돌려받으려고 기억해 둔다
+    public MushroomPickup SpawnPickup(MushroomPickup prefab, Vector3 position)
     {
-        if (Map == null)
-            return;
+        MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, position, Quaternion.identity);
+        if (pickup != null)
+            m_ListPickup.Add(pickup);
 
-        MapRoot prefab = ResourceManager.Instance.Load<MapRoot>(Map.PrefabPath, "프리팹 이름이 MapDef ID와 같은지, 누락 전투 에셋 복구를 했는지 확인하세요.");
-        if (prefab == null)
-            return;
-
-        MapRoot map = ResourceManager.S_Create(prefab);
-        if (map == null)
-            return;
-
-        m_SpawnSlots = map.SpawnSlots;
+        return pickup;
     }
+
+    // 주운 픽업을 돌려준다
+    public void DespawnPickup(MushroomPickup pickup)
+    {
+        m_ListPickup.Remove(pickup);
+        ResourceManager.S_Despawn(pickup);
+    }
+
+    #region Spawn
 
     private void SpawnPlayer()
     {
@@ -203,11 +213,12 @@ public sealed class BattleService : ServiceBase
     // 슬롯 번호(1부터) → 맵 지점
     private Transform GetSlot(int slot)
     {
+        Transform[] slots = m_MapRoot.E_Alive()?.SpawnSlots;
         int index = slot - 1;
-        if (m_SpawnSlots == null || index < 0 || index >= m_SpawnSlots.Length)
+        if (slots == null || index < 0 || index >= slots.Length)
             return null;
 
-        return m_SpawnSlots[index];
+        return slots[index];
     }
 
     // 지점의 수평 방향(yaw)만 쓴다
@@ -317,7 +328,7 @@ public sealed class BattleService : ServiceBase
             // shortcut: 픽업 하나를 1개로 본다(MushroomPickup.m_Amount 기본값), 묶음 픽업이 생기면 개수를 나눈다
             for (int i = 0; i < pair.Value; i++)
             {
-                MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, origin, Quaternion.identity);
+                MushroomPickup pickup = SpawnPickup(prefab, origin);
                 Vector2 spread = Random.insideUnitCircle * Define.DownDropSpread;
                 pickup.Launch(new Vector3(spread.x, Define.DownDropUpSpeed, spread.y), pair.Key.Freshness, pair.Key.Rarity);
             }
