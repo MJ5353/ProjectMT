@@ -602,3 +602,4 @@
 
 ## 퍼펙트 닷지 묶음 1(판정)
 - 대시 무적 중 공격이 닿으면 퍼펙트 닷지로 판정. 맞은 뒤·부활 무적과 섞이지 않게 HitFeature에 판정 창을 따로 두고(대시가 켬, PlayerDef.PerfectDodgeWindow, 0이면 대시 무적 전체), 대시 한 번에 한 번만 PerfectDodged 이벤트를 쏨. 패시브 훅 EPassiveTrigger.PerfectDodge 추가, 확인용 로그 한 줄. 슬로우·러시·UI는 다음 묶음. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 묶음 2(시간): TimeManager에 슬로우 배율(SetSlow)을 넣어 일시정지·히트스톱과 한 곳에서 timeScale을 정하고, 슬로우를 무시하는 유닛(UnitDef.IsSlowImmune, 플레이어)은 PlayerTimeRate(1/슬로우)를 Tick·애니 속도·무적 시간·회전에 곱해 제 속도로 움직이게 함. 슬로우 중에는 히트스톱 요청을 받지 않음. 슬로우를 켜는 쪽(러시)은 묶음 3. 컴파일·플레이 확인 안 함, 커밋하지 않음.

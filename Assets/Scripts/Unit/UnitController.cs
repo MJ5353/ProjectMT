@@ -37,6 +37,7 @@ public class UnitController : PoolableMono
     public UnitProperty Property => m_Property;
     public Transform VisualRoot => m_Property.Animator.transform;
     public CharacterController HurtBody => m_Property.CharacterController;
+    public float TimeRate { get; private set; } = 1f;       // 이 유닛만 게임 시간에 더 곱하는 배율. 슬로우를 무시하는 유닛(Def.IsSlowImmune)만 1이 아니다
 
     // ------------------------------------------------
 
@@ -87,6 +88,11 @@ public class UnitController : PoolableMono
     {
         if (enabled == false)
             return;
+
+        // 슬로우 무시: 게임 시간(deltaTime)과 애니 속도에만 곱한다. unscaled로 도는 부품은 그대로
+        TimeRate = Def.IsSlowImmune ? TimeManager.Instance.PlayerTimeRate : 1f;
+        deltaTime *= TimeRate;
+        AnimF.SetTimeRate(TimeRate);
 
         for (int i = 0; i < m_ListFeature.Count; ++i)
         {

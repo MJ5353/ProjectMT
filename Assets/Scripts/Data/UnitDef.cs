@@ -49,6 +49,7 @@ public abstract class UnitDef : DataDef
     public AttackSpec MainAttack => GetBasicAttack(0); // 첫 기본 공격. 없으면 null
     public virtual ETeam Team => ETeam.Monster;
     public virtual bool IsUntargetable => false; // true면 노려지지도 맞지도 않는다(펫)
+    public virtual bool IsSlowImmune => false;   // true면 전체 슬로우 중에도 제 속도(TimeManager.PlayerTimeRate)
 
     // ------------------------------------------------
 

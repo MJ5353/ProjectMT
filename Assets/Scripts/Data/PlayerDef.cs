@@ -55,6 +55,7 @@ public class PlayerDef : UnitDef
     public float HoldTime { get; private set; } = 0.35f;           // [mj] todo) 임시값. 이만큼 누르고 있으면 HoldAttack
 
     public override ETeam Team => ETeam.Player;
+    public override bool IsSlowImmune => true;
     public override string PrefabPath => CommonPath.ActorDir + ID;
     public AttackSpec UpAttack => GetBasicAttack(1); // 두 번째 기본 공격: 위로 치기(높은 부위용). 없으면 null
 
