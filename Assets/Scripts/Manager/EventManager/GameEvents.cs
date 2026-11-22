@@ -68,6 +68,17 @@ public readonly struct MarketClosed
     }
 }
 
+// 정비 강화 노드가 열림(디버그 초기화면 NodeID가 null). 정비 탭이 다시 그린다
+public readonly struct GearChanged
+{
+    public readonly string NodeID;
+
+    public GearChanged(string nodeID)
+    {
+        NodeID = nodeID;
+    }
+}
+
 // 씬을 바꾸기 직전(아직 지금 씬 오브젝트가 살아 있다). 씬에 붙은 UI가 목록 칸을 풀로 돌려보낸다
 public readonly struct SceneUnloading
 {

@@ -13,6 +13,7 @@ public static class UIBuilder
     private const string SlotMoldSprite = "UI_Slot_Mold";         // 덜 신선한 칸의 냄새(아이콘 위)
     private const string SlotMoldBackSprite = "UI_Slot_MoldBack"; // 덜 신선한 칸의 상한 색 바탕(아이콘 아래)
     private const string SlotBadgeSprite = "UI_Badge_Prefer";     // 상인 선호 버섯 하트
+    private const string SlotCountSprite = "UI_Badge_Count";      // 개수 뱃지 바탕(9-slice)
 
     private static TMP_FontAsset s_Font;
 
@@ -359,9 +360,11 @@ public static class UIBuilder
         // 냄새(덜 신선). 아이콘 위·개수 글자 아래에 칸 전체를 덮는다
         GameObject mold = BuildSlotMold(rt).gameObject;
 
-        TMP_Text count = Label(rt, "x0", UIStyle.FontSmall, TextAlignmentOptions.BottomRight, "Count");
-        count.rectTransform.offsetMin = new Vector2(6, 4);
-        count.rectTransform.offsetMax = new Vector2(-8, -4);
+        // 개수 뱃지: 오른쪽 아래 모서리에 얹은 바탕 + 숫자
+        Image countBadge = BuildSlotCountBadge(rt);
+        TMP_Text count = Label(countBadge.rectTransform, "x0", UIStyle.FontSmall, TextAlignmentOptions.Center, "Count");
+        count.rectTransform.offsetMin = new Vector2(6, 0);
+        count.rectTransform.offsetMax = new Vector2(-6, 0);
         count.enableAutoSizing = true; // 큰 골드도 칸 안에 들어가게 줄인다
         count.fontSizeMin = UIStyle.FontSmall / 2;
         count.fontSizeMax = UIStyle.FontSmall;
@@ -377,7 +380,7 @@ public static class UIBuilder
         TMP_Text caption = BuildSlotCaption(rt);
 
         UICommonSlot slot = rt.gameObject.AddComponent<UICommonSlot>();
-        slot.EditorSetup(bg, icon, mold, moldBack, dim, caption, center, badge, count, displayName, button); // 희귀도 바탕 그림은 RarityDef
+        slot.EditorSetup(bg, icon, mold, moldBack, dim, caption, center, badge, countBadge.gameObject, count, displayName, button); // 희귀도 바탕 그림은 RarityDef
 
         return slot;
     }
@@ -509,7 +512,23 @@ public static class UIBuilder
         return badge;
     }
 
-    // 슬롯 가운데 큰 글자("전체", "7 → 3"). 딤 위에 뜬다. 꺼 둔 채 만든다
+    // 슬롯 오른쪽 아래 개수 뱃지 바탕. 모서리에서 살짝 바깥으로 나간다. 그림이 없으면 반투명 검정
+    private static Image BuildSlotCountBadge(RectTransform slot)
+    {
+        RectTransform badgeRt = Anchored("CountBadge", slot, new Vector2(1, 0), new Vector2(4, -2), new Vector2(64, 30));
+        Image badge = AddImage(badgeRt, UIStyle.Dim);
+        Sprite sprite = LoadSprite(SlotCountSprite);
+        if (sprite != null)
+        {
+            badge.sprite = sprite;
+            badge.type = Image.Type.Sliced;
+            badge.color = Color.white;
+        }
+
+        return badge;
+    }
+
+    // 슬롯 가운데 큰 글자("전체", "7→3"). 딤 위에 뜬다. 꺼 둔 채 만든다
     private static TMP_Text BuildSlotCenter(RectTransform slot)
     {
         TMP_Text center = Label(slot, string.Empty, UIStyle.FontNormal, TextAlignmentOptions.Center, "Center");

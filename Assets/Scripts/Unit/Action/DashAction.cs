@@ -13,11 +13,12 @@ public class DashAction : UnitAction
     private readonly float m_AnimSpeed;     // 대시 중 달리기 애니 배속
 
     public override EActionType Type => EActionType.Dash;
-    public override bool IsFinished => Time >= m_Duration;
+    public override bool IsFinished => Time >= m_CurrentDuration;
     public bool IsReady => m_CooldownRemain <= 0f;
 
     private Vector3 m_Direction;
     private float m_CooldownRemain;
+    private float m_CurrentDuration;   // 이번 대시 시간(대시 거리 강화 반영)
 
     // ------------------------------------------------
 
@@ -46,10 +47,11 @@ public class DashAction : UnitAction
             m_CooldownRemain -= deltaTime;
     }
 
-    // 쿨은 대시 시간까지 포함해서 건다(대시가 끝난 뒤부터 Cooldown만큼)
+    // 쿨은 대시 시간까지 포함해서 건다(대시가 끝난 뒤부터 Cooldown만큼). 시간·쿨은 강화(UnitStat)를 곱한다
     protected override void Enter()
     {
-        m_CooldownRemain = m_Cooldown + m_Duration;
+        m_CurrentDuration = m_Duration * Owner.Stat.DashTimeRate;
+        m_CooldownRemain = m_Cooldown * Owner.Stat.DashCooldownRate + m_CurrentDuration;
 
         Owner.MoveF.FaceTo(m_Direction, true);
         Owner.MoveF.SetVelocity(m_Direction * m_Speed);
@@ -57,7 +59,7 @@ public class DashAction : UnitAction
         Owner.AnimF.Play(AnimKey.Run, true);
 
         if (m_IsInvincible)
-            Owner.HitF.SetInvincible(m_Duration);
+            Owner.HitF.SetInvincible(m_CurrentDuration);
     }
 
     public override void Exit()

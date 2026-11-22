@@ -7,7 +7,7 @@ using UnityEngine;
 // 맞는 쪽 전부. 어디를 맞을 수 있나(몸 판정 모양)와 맞았을 때 처리(팀·무적·사망 거르기 → 체력 → HitDef 반응)를 맡는다.
 // 판정 모양: 뼈마다 구·캡슐. 목록이 비면 HurtBody 캡슐로 맞는다(플레이어·잡몹). 버섯 부위가 걸린 뼈는 부위 번호를 달아 부위 판정이 된다
 // 순서: 부위 → 체력 → 넉백 → 번쩍 → 히트스톱 → 조각·타격 마크
-// 경직: 맞을 때마다 Break를 쌓아 UnitDef.BreakImmune을 넘고 판단이 허락(CanFlinch)하면 경직(넉백·피격 행동). 아니면 넉백 없이 데미지·번쩍만
+// 경직: 맞을 때마다 Break를 쌓아 UnitDef.BreakImmune(+ 강화 경직 저항)을 넘고 판단이 허락(CanFlinch)하면 경직(넉백·피격 행동). 아니면 넉백 없이 데미지·번쩍만
 // 번쩍이 히트스톱 중에도 끝나야 해서 실제 시간(unscaled)으로 돌고, 무적 시간만 게임 시간으로 바꿔 깎는다
 
 public class HitFeature : UnitFeature
@@ -141,12 +141,14 @@ public class HitFeature : UnitFeature
 
         int bodyDamage = hit.Damage;
         int partIndex = -1;
+
         PartFeature parts = Owner.PartF; // 버섯 부위가 있는 유닛(몬스터)만
-        if (parts != null && parts.TryHit(hit.PartIndex, hit.Damage, out float bodyDamageRate))
+        if (parts != null && parts.TryHit(hit.PartIndex, hit.PartDamage, out float bodyDamageRate))
         {
             partIndex = hit.PartIndex;
             bodyDamage = Mathf.RoundToInt(hit.Damage * bodyDamageRate);
         }
+        bodyDamage = Owner.Stat.ReduceTaken(bodyDamage, Owner.HealthF.Ratio); // 방어 강화(플레이어)
 
         bool isFlinch = AddBreak(hit.Break);
         Owner.HealthF.TakeDamage(bodyDamage);
@@ -169,7 +171,7 @@ public class HitFeature : UnitFeature
         m_BreakStack += breakPower;
         m_BreakIdleTime = 0f;
 
-        if (m_BreakStack <= Owner.Def.BreakImmune)
+        if (m_BreakStack <= Owner.Def.BreakImmune + Owner.Stat.BreakResist)
             return false;
 
         m_BreakStack = 0f;

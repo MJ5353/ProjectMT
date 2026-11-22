@@ -32,6 +32,32 @@ public enum EStringKey
     Lobby_Hunt_Unlocked,
     Lobby_Hunt_LockedFormat,    // {0} 먼저 토벌할 지역
 
+    // lobby · gear (ScreenLobby_GearView)
+    Lobby_Gear_TreeTitle,
+    Lobby_Gear_EmblemProgressFormat, // {0} 연 노드 {1} 전체
+    Lobby_Gear_EmblemNextFormat,    // {0} 남은 노드
+    Lobby_Gear_EmblemMax,
+    Lobby_Gear_EmblemBonusHeader,
+    Lobby_Gear_NoBonus,
+    Lobby_Gear_SelectHint,
+    Lobby_Gear_RequireFormat,       // {0} 앞 노드 이름들
+    Lobby_Gear_RequireNone,
+    Lobby_Gear_CostFormat,          // {0} 골드
+    Lobby_Gear_Open,
+    Lobby_Gear_Opened,
+    Lobby_Gear_Locked,
+    Lobby_Gear_NotEnoughGold,
+    Lobby_Gear_EquipComingSoon,
+    Lobby_Gear_Stat_Attack,         // {0} %
+    Lobby_Gear_Stat_MaxHp,          // {0} %
+    Lobby_Gear_Stat_Dodge,          // {0} %
+    Lobby_Gear_Stat_Defense,        // {0} %
+    Lobby_Gear_Stat_AttackSpeed,    // {0} %
+    Lobby_Gear_Stat_MoveSpeed,      // {0} %
+    Lobby_Gear_Stat_PartDamage,     // {0} %
+    Lobby_Gear_Stat_DashDistance,   // {0} %
+    Lobby_Gear_Stat_BreakResist,    // {0} 경직 수치
+
     // battle
     Battle_Exit,
     Battle_ExitConfirm,

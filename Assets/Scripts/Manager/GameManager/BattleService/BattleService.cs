@@ -95,7 +95,10 @@ public sealed class BattleService : ServiceBase
         SpawnPlayer();
         
         if (m_Player != null && m_Player.HealthF != null)
+        {
             m_Player.HealthF.Died += OnPlayerDied;
+            m_Player.HitF.Hit += OnPlayerHit;
+        }
 
         GameManager.Instance.UnitS.UnitRemoved += ReleaseSpawnSlot;
         SEventManager.Subscribe<LootPicked>(OnLootPicked);
@@ -133,9 +136,12 @@ public sealed class BattleService : ServiceBase
         if (State == EBattleState.Market)
             TimeManager.Instance.SetPause(false);
 
-        HealthFeature health = m_Player.E_Alive()?.HealthF;
-        if (health != null)
-            health.Died -= OnPlayerDied;
+        UnitController player = m_Player.E_Alive();
+        if (player != null && player.HealthF != null)
+        {
+            player.HealthF.Died -= OnPlayerDied;
+            player.HitF.Hit -= OnPlayerHit;
+        }
 
         m_DicSpawnByUnitID.Clear();
         m_ListSpawn.Clear();
@@ -240,6 +246,12 @@ public sealed class BattleService : ServiceBase
         }
 
         m_Player = GameManager.Instance.UnitS.Spawn(playerDef, position, rotation);
+        if (m_Player == null)
+            return;
+
+        // 정비 강화를 보정값으로 넣고 늘어난 체력을 채운다
+        PlayerDataManager.Instance.Gear.FillStat(m_Player.Stat);
+        m_Player.RefreshStat();
     }
 
     // 슬롯 번호(1부터) → 맵 지점
@@ -315,6 +327,20 @@ public sealed class BattleService : ServiceBase
         m_DicLoot.TryGetValue(key, out int count);
         m_DicLoot[key] = count + evt.Amount;
         SEventManager.Publish(new LootChanged());
+
+        // 포자 재생(정비 스페셜): 주울 때 체력 회복
+        if (m_Player != null && m_Player.Stat.PickupHeal > 0)
+            m_Player.HealthF.Heal(m_Player.Stat.PickupHeal * evt.Amount);
+    }
+
+    // 상해보험(정비 스페셜): 맞으면 골드를 바로 넣는다. 귀가해도 남는다
+    private void OnPlayerHit(HitParams hit, bool isFlinch)
+    {
+        Vector2Int range = m_Player.Stat.InsuranceGold;
+        if (range.y <= 0)
+            return;
+
+        PlayerDataManager.Instance.Inventory.Add(CurrencyDef.GoldID, Random.Range(range.x, range.y + 1));
     }
 
     // 바로 끝내지 않고 부활/귀가를 고르게 한다(ScreenBattle가 팝업을 띄운다)

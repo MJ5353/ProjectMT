@@ -68,7 +68,8 @@ public class PlayerBrain : BrainBase
     {
         Vector3 input = GetMoveInput();
         float strength = Mathf.Clamp01(input.magnitude);
-        float speed = strength < 0.1f ? 0f : m_Def.MoveSpeed * strength;
+        float speed = strength < 0.1f ? 0f : m_Def.MoveSpeed * Owner.Stat.MoveSpeedRate * strength;
+        
         Owner.UnitExecutor.SetMove(input, speed, strength >= m_Def.RunThreshold);
     }
 

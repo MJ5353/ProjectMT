@@ -31,6 +31,7 @@ public class UnitController : PoolableMono
 
     // get
     public UnitDef Def { get; private set; }    // 수치 데이터(PlayerDef·MonsterDef). OnSpawn에서 받는다
+    public UnitStat Stat { get; } = new();      // 강화 보정값. 몬스터는 비어 있고, 플레이어는 스폰 뒤 BattleService가 채워 RefreshStat을 부른다
     public ETeam Team => Def.Team;
     public bool IsDead => HealthF.IsDead;   // 사망 여부는 밖에서 여기로만 본다
     public UnitProperty Property => m_Property;
@@ -141,6 +142,8 @@ public class UnitController : PoolableMono
         }
 
         UnitID = unitID;
+        Stat.Clear();
+        
         foreach (var feature in m_ListFeature)
         {
             feature.Reset();
@@ -177,6 +180,12 @@ public class UnitController : PoolableMono
     {
         UnitExecutor.RequestDead();
         BrainBase.OnDied();
+    }
+
+    // Stat을 채운 뒤 부른다. 최대 체력이 바뀌었으니 체력을 가득 채운다
+    public void RefreshStat()
+    {
+        HealthF.Reset();
     }
 
     // 체력을 채우고 사망에서 일으킨다. 잠깐 무적을 줘서 일어나자마자 맞지 않게 한다
@@ -241,6 +250,7 @@ public class UnitController : PoolableMono
     {
         List<AttackSpec> listAttack = new();
         Def.CollectAttacks(listAttack);
+        
         return listAttack;
     }
 

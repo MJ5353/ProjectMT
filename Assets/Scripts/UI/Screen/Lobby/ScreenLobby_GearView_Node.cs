@@ -21,6 +21,8 @@ public class ScreenLobby_GearView_Node : MonoBehaviour
     private static readonly Color s_LockedColor = new(0.22f, 0.26f, 0.23f, 1f);
     private static readonly Color s_LockedText = new(0.5f, 0.5f, 0.5f, 1f);
 
+    public GearNodeDef Node { get; private set; }
+    
     [SerializeField] private Button m_Button = null;
     [SerializeField] private Image m_Bg = null;
     [SerializeField] private Image m_Icon = null;
@@ -29,7 +31,6 @@ public class ScreenLobby_GearView_Node : MonoBehaviour
     [SerializeField] private TMP_Text m_NameLabel = null;
 
     public Button Button => m_Button;
-    public GearNodeDef Node { get; private set; }
 
     // ------------------------------------------------
 
@@ -48,17 +49,23 @@ public class ScreenLobby_GearView_Node : MonoBehaviour
         switch (state)
         {
             case EGearNodeState.Opened:
+            {
                 m_Bg.E_SetColor(Node.IsSpecial ? UIStyle.AccentDark : UIStyle.Positive);
                 m_NameLabel.E_SetColor(UIStyle.Text);
                 break;
+            }
             case EGearNodeState.Openable:
+            {
                 m_Bg.E_SetColor(UIStyle.PanelLight);
                 m_NameLabel.E_SetColor(UIStyle.Text);
                 break;
+            }
             default:
+            {
                 m_Bg.E_SetColor(s_LockedColor);
                 m_NameLabel.E_SetColor(s_LockedText);
                 break;
+            }
         }
     }
 }

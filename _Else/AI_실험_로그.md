@@ -437,3 +437,31 @@
 
 - 직접 처음 의도가 데이터 위치가 아니라 길고 읽기 힘든 PopupMarket 정리와 UISequence 연출 정리였다고 정정함. AI가 고른 상태 분리·상인 카드 부품·여는 연출 합치기·#region 묶기를 제안했고 직접 1·2번만 진행을 지시함.
 - 고른 상태(개수 사전·표시 순서·요청 목록·맞추기·되돌리기)를 일반 클래스 PopupMarket_Pick으로, 가운데 상인 카드(그림·이름·설명·신뢰도·시세·선호 배율 글귀)를 부품 PopupMarket_MerchantInfo로 옮겨 PopupMarket이 550줄에서 483줄이 됨. 생성기가 카드 부품을 붙이고 참조를 연결해 UI 다시 만들기가 필요함. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## PopupMarket 시작 연출을 여는 연출로 합침
+- PopupMarket의 따로 돌던 m_IntroSequence를 없애고 OnBuildOpenSequence에 단계 함수(TweenIntroFly·TweenIntroCount·ShowIntroEnd·ShowBodyClock·TweenIntroFade·EndIntro)로 이어 붙임. 시작 값은 OnOpen의 ReadyIntro가 필드에 담음.
+- PopupBase에 IsOpening·IsOpenWaiting 추가. 연출 건너뛰기는 SkipOpen, 닫을 때 멈춤은 BeginClose가 맡음. 컴파일·플레이 미확인.
+
+## PopupMarket 시작 연출 부품 분리
+- 시작 연출(참조 4개·상수·시작 값·단계 함수·글귀 만들기)을 부품 PopupMarket_Intro로 옮김. PopupMarket은 Ready·Append·Continue·SetAlpha·Hide만 부르고, 누를 때 건너뛸지 넘길지만 판단해 약 500줄에서 436줄이 됨.
+- 생성기 MarketUISetup이 Intro에 부품을 붙이고 참조를 연결해 UI 다시 만들기가 필요함. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## 시장 슬롯 그림 3종
+- UI_Slot_Mold의 냄새 줄 세 가닥을 좌우 대칭으로 다시 그려 양옆 6px 여백을 두고, 바깥 두 줄이 위로 갈수록 가운데로 모이게 함. 크기(32x32)·임포트 설정은 그대로.
+- 새 그림 UI_Slot_MoldBack(32x32, 위 탁한 올리브 알파 0.45에서 아래로 투명, 위쪽에 얼룩 점 몇 개)과 UI_Badge_Prefer(12x12 진한 테두리 분홍·빨강 하트)를 Common에 추가. 파이썬으로 생성, 생성 스크립트는 저장소에 넣지 않음. 커밋하지 않음.
+
+## 시장 칸 표시·정렬·금액 연출·상인 밸런스
+- 대장 요청 6건: 고른 칸 딤+가운데 "전체"/"7 → 3", 정렬 등급→종류→신선도, 덜 신선 칸 상한 바탕(아이콘 아래)과 냄새 분리, 선호 하트 뱃지, 합계·판 골드 숫자 굴리기(UISequence), 상인 밸런스. 그림 3장은 리소스 스레드가 그림.
+- 밸런스 원인: 버섯 에셋에 Price가 저장돼 있지 않아 전부 10, 가격식에 등급 배율이 빠져 있었음. 등급 배율(희귀 2.5·영웅 6, DefineDef)과 버섯 기본가 8~20을 넣고, MerchantDef에 선호 희귀도 위 끝(PreferRarityMax)을 더해 상인 4명 역할을 나눔(대장 가안 승인).
+- 칸 위 작은 글자(Caption)가 부모 오브젝트를 꺼 둔 채 만들어져 켜도 안 보이던 생성기 버그를 함께 고침. UI 다시 만들기 필요, 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 정비 강화 노드 구현
+
+- 직접 정비 기획(능력치 5종 노드 트리, 연계·극의 노드 스페셜, 엠블렘 단계 보너스, 장비·코스튬 예정, 밸런스 재편)을 정해 진행을 지시함. AI가 설계서(_Else/Plan/정비_강화노드_설계.md)를 쓰고 바로 구현함.
+- 데이터: GearNodeDef·EmblemDef, GearData(PlayerDataBase, 세이브 v5 gearNodes), 에셋은 메뉴 "정비 노드·엠블렘 만들기"(GearDefSetup)가 34노드·5단계를 만듦. 스페셜 6개(버섯 사냥꾼·질주 베기·든든한 뿌리·질풍·강철 갓·포자 재생)는 AI 제안.
+- 전투: UnitController.Stat(UnitStat)을 BattleService가 플레이어 스폰 때 채움. 피해·부위 피해(HitParams), 방어·경직 저항(HitFeature), 공격 속도·범위(AttackAction), 대시 쿨·거리(DashAction), 이동(PlayerBrain), 최대 체력(HealthFeature), 상해보험·포자 재생(BattleService).
+- UI: ScreenLobby_GearView(엠블렘·노드 트리·정보)와 _Node를 LobbyUISetup이 만들고, 노드·선은 실행 중 템플릿 복제. 문구는 Lobby_Gear_ 키.
+- 밸런스: 피해·체력·부위 내구도 ×10(플레이어 체력 50), MonsterBalance 기준 30/10, 지역 배율 체력 2.0·공격 1.5로 올리고 몬스터 에셋도 같은 비율로 맞춤. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## 시장 칸 표시 다듬기(개수 뱃지)
+- 고른 칸 가운데 글자: "전체"는 빨간색, 일부는 "7→3"으로 공백 없이 "7→"만 회색. 칸 개수는 오른쪽 아래 모서리의 개수 뱃지(바탕 UI_Badge_Count, 9-slice, 그림은 리소스 스레드) 위에 표시하고 개수가 없으면 뱃지째 끔. 하트 뱃지 24로 축소. UI 다시 만들기 필요, 컴파일·플레이 확인 안 함, 커밋하지 않음.
