@@ -123,6 +123,13 @@ public static class MarketUISetup
         UIBuilder.Fit(hint, 0.5f);
         UIBuilder.AddStringKey(hint, EStringKey.Market_StockHint);
         UIBuilder.ListOption stockList = ScrollGrid(stockPanel, 60f + HintHeight);
+        // 팔 버섯이 없으면 남은 버섯 칸 전체를 덮는 딤(머리글 아래부터, 격자 위). 처음엔 꺼 둔다
+        RectTransform soldOut = UIBuilder.Rect("SoldOut", stockPanel, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0, -52));
+        UIBuilder.AddImage(soldOut, UIStyle.Dim, true); // 아래 칸을 누르지 못하게 막는다
+        TMP_Text soldOutText = UIBuilder.Label(soldOut, string.Empty, UIStyle.FontLarge);
+        soldOutText.color = UIStyle.TextDim;
+        UIBuilder.AddStringKey(soldOutText, EStringKey.Market_SoldOut);
+        soldOut.gameObject.SetActive(false);
 
         // 시작 연출(맨 위). 가운데 큰 남은 시간 + 아래 시장 시간 ---
         RectTransform intro = UIBuilder.Stretch("Intro", root);
@@ -152,6 +159,7 @@ public static class MarketUISetup
         UIBuilder.SetRef(popup, "m_MerchantInfo", merchantInfo);
         UIBuilder.SetListView(popup, "m_PickPool", pickLayout);
         UIBuilder.SetListView(popup, "m_StockPool", stockList);
+        UIBuilder.SetRef(popup, "m_SoldOut", soldOut.gameObject);
         UIBuilder.SetRef(popup, "m_TotalText", total);
         UIBuilder.SetRef(popup, "m_MessageText", message);
         UIBuilder.SetRef(popup, "m_SoldText", sold);

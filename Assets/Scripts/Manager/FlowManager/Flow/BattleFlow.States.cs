@@ -4,14 +4,37 @@
 
 public sealed partial class BattleFlow
 {
+    // 스폰한 뒤 판단을 멈추고 시작 팝업(딤 + 클릭하여 시작)을 띄운다. 누르면 BeginPlay로 Play. 다시 하기에도 매번 띄운다.
+    // 밤 시계는 Play에서만 흐르니 시간은 멈추지 않는다(대기 애니는 돈다)
     private sealed class StartState : FlowStateBase<BattleFlow>
     {
+        private PopupHuntStart m_Popup;
+
         public StartState(BattleFlow flow) : base(flow) { }
 
-        public override void Enter() => Flow.BattleS.StartHunt();
+        public override void Enter()
+        {
+            Flow.BattleS.StartHunt();
+            Flow.UnitS.StopBrains();
+            m_Popup = FlowManager.Instance.PopupS?.Open<PopupHuntStart, BattleFlow>(EPopupType.PopupHuntStart, Flow);
+        }
 
-        // 스폰한 프레임이 지나고 넘어간다(Enter 안에서 상태를 바꾸지 않는다)
-        public override void Update(float deltaTime) => Flow.ChangeState(EBattleFlowState.Play);
+        // 팝업 원본이 없으면(아직 안 만듦) 예전처럼 다음 프레임에 바로 시작한다(Enter 안에서 상태를 바꾸지 않는다)
+        public override void Update(float deltaTime)
+        {
+            if (m_Popup == null)
+                Flow.ChangeState(EBattleFlowState.Play);
+        }
+
+        // 누르면 팝업이 스스로 닫힌다. 시작 전에 씬이 바뀌어도 남지 않게 여기서도 닫는다
+        public override void Exit()
+        {
+            if (m_Popup != null)
+                m_Popup.Close();
+
+            m_Popup = null;
+            Flow.UnitS.ResumeBrains();
+        }
     }
 
     // 밤 시계는 이 상태에서만 흐른다

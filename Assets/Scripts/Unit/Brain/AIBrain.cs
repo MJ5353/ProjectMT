@@ -50,6 +50,7 @@ public class AIBrain : BrainBase
     public float WanderSpeed => m_UnitDef.MoveSpeed * Def.WanderSpeedRate;
     public EAIState State => m_Fsm.Current;
     public float TimeInState => m_Fsm.TimeInState;
+    private EAIState FirstState => Def.Type == EAIType.Pet ? EAIState.Follow : EAIState.Idle; // 꺼낼 때·다시 켤 때 들어가는 상태
     public override bool CanFlinch => State != EAIState.Down && State != EAIState.Roar; // 쓰러짐·포효는 맞아도 끊기지 않는다
 
     // ------------------------------------------------
@@ -84,7 +85,7 @@ public class AIBrain : BrainBase
         HomePosition = Owner.transform.position;
         LastHitDirection = Vector3.zero;
 
-        m_Fsm.Change(Def.Type == EAIType.Pet ? EAIState.Follow : EAIState.Idle);
+        m_Fsm.Change(FirstState);
     }
 
     // 감지는 행동 중에도, 상태는 행동이 없을 때만 돌린다
@@ -183,6 +184,12 @@ public class AIBrain : BrainBase
     protected override void OnStop()
     {
         m_Fsm.Stop();
+    }
+
+    // 멈출 때 상태를 비웠으니 처음 상태로 다시 들어간다(보스 첫 포효 대기 등 Reset 값은 그대로)
+    protected override void OnResume()
+    {
+        m_Fsm.Change(FirstState);
     }
     
     #endregion    

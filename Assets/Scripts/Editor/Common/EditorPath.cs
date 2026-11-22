@@ -64,6 +64,7 @@ public static class EditorPath
     public const string ScreenBattlePrefab = BattleScreenUIPrefabDir + nameof(ScreenBattle) + PrefabExtension;
     public const string PopupDeathPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupDeath) + PrefabExtension;
     public const string PopupConfirmPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupConfirm) + PrefabExtension;
+    public const string PopupHuntStartPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupHuntStart) + PrefabExtension;
     public const string PopupMarketPrefab = MarketPopupUIPrefabDir + nameof(EPopupType.PopupMarket) + PrefabExtension;
     public const string PopupMarketCounterPrefab = MarketPopupUIPrefabDir + nameof(EPopupType.PopupMarketCounter) + PrefabExtension;
 

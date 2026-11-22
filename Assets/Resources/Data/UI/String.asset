@@ -65,8 +65,7 @@ MonoBehaviour:
   - <Key>k__BackingField: Death_Title
     <Value>k__BackingField: "\uC4F0\uB7EC\uC84C\uB2E4"
   - <Key>k__BackingField: Death_Desc
-    <Value>k__BackingField: "\uADC0\uAC00\uD558\uBA74 \uC8FC\uC6B4 \uBC84\uC12F\uC744
-      \uBAA8\uB450 \uC783\uC5B4\uC694"
+    <Value>k__BackingField: "\uADC0\uAC00\uD558\uBA74 \uD68D\uB4DD\uD55C \uBC84\uC12F\uC744 \uBAA8\uB450 \uC783\uC5B4\uC694"
   - <Key>k__BackingField: Death_ReviveFormat
     <Value>k__BackingField: "\uBD80\uD65C ({0} \uACE8\uB4DC)"
   - <Key>k__BackingField: Death_Home
@@ -84,9 +83,9 @@ MonoBehaviour:
   - <Key>k__BackingField: Result_TrustEntryFormat
     <Value>k__BackingField: '{0} +{1}'
   - <Key>k__BackingField: Result_LootHeader
-    <Value>k__BackingField: "\uC8FC\uC6B4 \uBC84\uC12F"
+    <Value>k__BackingField: "\uD68D\uB4DD"
   - <Key>k__BackingField: Result_LootEmpty
-    <Value>k__BackingField: "\uC8FC\uC6B4 \uBC84\uC12F\uC774 \uC5C6\uC5B4\uC694"
+    <Value>k__BackingField: "\uD68D\uB4DD\uD55C \uBC84\uC12F\uC774 \uC5C6\uC5B4\uC694"
   - <Key>k__BackingField: Result_Retry
     <Value>k__BackingField: "\uB2E4\uC2DC \uD558\uAE30"
   - <Key>k__BackingField: Result_Lobby
@@ -106,7 +105,7 @@ MonoBehaviour:
   - <Key>k__BackingField: Market_MerchantCaption
     <Value>k__BackingField: "\uC624\uB298 \uC628 \uC0C1\uC778"
   - <Key>k__BackingField: Market_Close
-    <Value>k__BackingField: "\uC2DC\uC7A5 \uB2EB\uAE30"
+    <Value>k__BackingField: "\uC2DC\uC7A5 \uB5A0\uB098\uAE30"
   - <Key>k__BackingField: Market_WaitFormat
     <Value>k__BackingField: "{0}\uBD84 \uAE30\uB2E4\uB9AC\uAE30"
   - <Key>k__BackingField: Market_PickCaption
@@ -236,3 +235,11 @@ MonoBehaviour:
     <Value>k__BackingField: "\uD074\uB9AD\uD558\uC5EC \uC2DC\uC791\uD558\uAE30"
   - <Key>k__BackingField: Loading_Text
     <Value>k__BackingField: "\uBD88\uB7EC\uC624\uB294 \uC911..."
+  - <Key>k__BackingField: Market_ExitConfirm
+    <Value>k__BackingField: "\uC815\uB9D0\uB85C \uB098\uAC00\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\uC624\uB298\uC774 \uC885\uB8CC\uB418\uACE0, \uB0A8\uC740 \uBC84\uC12F\uC740 \uC369\uC2B5\uB2C8\uB2E4."
+  - <Key>k__BackingField: Market_ExitConfirmEmpty
+    <Value>k__BackingField: "\uC815\uB9D0\uB85C \uB098\uAC00\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?\n\uC624\uB298\uC774 \uC885\uB8CC\uB429\uB2C8\uB2E4."
+  - <Key>k__BackingField: Market_SoldOut
+    <Value>k__BackingField: "\uD310\uB9E4\uD560 \uBC84\uC12F\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - <Key>k__BackingField: Battle_TapToStart
+    <Value>k__BackingField: "\uD074\uB9AD\uD558\uC5EC \uC2DC\uC791"

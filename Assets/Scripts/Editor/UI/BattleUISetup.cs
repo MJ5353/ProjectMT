@@ -34,12 +34,13 @@ public static class BattleUISetup
 
     // ==================================================
 
-    // 사망·결과 팝업 → 주운 버섯 줄 → 전투 화면(ScreenBattle) 순서로 만든다. isOverwrite면 있어도 다시 만든다(GUID 유지).
+    // 사망·확인·시작·결과 팝업 → 주운 버섯 줄 → 전투 화면(ScreenBattle) 순서로 만든다. isOverwrite면 있어도 다시 만든다(GUID 유지).
     // 팝업은 ScreenBattle이 참조하지 않고 PopupService.Open<T>(EPopupType)가 PopupDef에서 꺼낸다
     public static readonly (string Path, System.Func<GameObject> Build)[] Prefabs =
     {
         (EditorPath.PopupDeathPrefab, () => BuildDeathPopup().gameObject),
         (EditorPath.PopupConfirmPrefab, () => BuildConfirmPopup().gameObject),
+        (EditorPath.PopupHuntStartPrefab, () => BuildHuntStartPopup().gameObject),
         (EditorPath.PopupResultPrefab, () => BuildResultPopup().gameObject),
         (EditorPath.BattleLootRowPrefab, () => LootRow().gameObject),
         (EditorPath.BattleSkillIconPrefab, () => SkillIcon().gameObject),
@@ -298,7 +299,8 @@ public static class BattleUISetup
         RectTransform window = UIBuilder.Anchored("Window", root, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(720, 360));
         UIBuilder.AddImage(window, UIStyle.Panel, true);
 
-        TMP_Text message = TopLabel(window, "Message", "확인", UIStyle.FontLarge, -60, 100);
+        // 두 줄 문구(시장 닫기 확인)도 들어가게 높이를 두고, 넘치면 글자를 줄인다
+        TMP_Text message = UIBuilder.Fit(TopLabel(window, "Message", "확인", UIStyle.FontLarge, -40, 160));
 
         Button yes = UIBuilder.Button(window, "YesButton", EStringKey.Common_Yes, new Vector2(260, 110), UIStyle.Accent);
         PlaceBottom(yes, -150);
@@ -311,6 +313,34 @@ public static class BattleUISetup
         UIBuilder.SetRef(popup, "m_Message", message);
         UIBuilder.SetRef(popup, "m_YesButton", yes);
         UIBuilder.SetRef(popup, "m_NoButton", no);
+
+        return popup;
+    }
+
+    // 맵 진입 시작 팝업: 화면 전체 딤(어디를 눌러도 시작) + 가운데 맵 이름 + 아래 깜빡이는 "클릭하여 시작"
+    private static PopupHuntStart BuildHuntStartPopup()
+    {
+        RectTransform root = UIBuilder.Stretch(nameof(EPopupType.PopupHuntStart), null);
+        UIBuilder.AddImage(root, UIStyle.Dim, true); // 뒤 화면 터치를 막고 누르면 시작
+        Button button = root.gameObject.AddComponent<Button>();
+        button.transition = Selectable.Transition.None;
+
+        RectTransform mapRect = UIBuilder.Anchored("MapName", root, new Vector2(0.5f, 0.5f), new Vector2(0, 60), new Vector2(1000, 110));
+        mapRect.pivot = new Vector2(0.5f, 0.5f);
+        TMP_Text mapText = UIBuilder.Label(mapRect, "평원", UIStyle.FontTitle);
+        mapText.fontStyle = FontStyles.Bold;
+
+        RectTransform tapRect = UIBuilder.Anchored("Tap", root, new Vector2(0.5f, 0.5f), new Vector2(0, -60), new Vector2(800, 70));
+        tapRect.pivot = new Vector2(0.5f, 0.5f);
+        TMP_Text tapText = UIBuilder.Label(tapRect, string.Empty, UIStyle.FontLarge);
+        tapText.color = UIStyle.Gold;
+        UIBuilder.AddStringKey(tapText, EStringKey.Battle_TapToStart);
+
+        PopupHuntStart popup = root.gameObject.AddComponent<PopupHuntStart>();
+        UIBuilder.SetRef(popup, "m_Group", root.gameObject.AddComponent<CanvasGroup>()); // 여는·닫는 페이드(PopupBase)
+        UIBuilder.SetRef(popup, "m_Button", button);
+        UIBuilder.SetRef(popup, "m_MapText", mapText);
+        UIBuilder.SetRef(popup, "m_TapText", tapText);
 
         return popup;
     }
