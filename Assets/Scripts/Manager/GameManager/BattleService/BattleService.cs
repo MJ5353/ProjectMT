@@ -24,6 +24,7 @@ public sealed class BattleService : ServiceBase
 
     private readonly Dictionary<LootKey, int> m_DicLoot = new(); // 주운 버섯. 신선도별
     private readonly Dictionary<string, int> m_DicReward = new(); // 끝날 때 실제로 인벤토리에 넣은 것(결과 화면용)
+    private readonly Dictionary<string, int> m_DicPickedCurrency = new(); // 전투 중 주워 바로 인벤토리에 넣은 재화(골드 동전). 결과 화면에 더해 보여 준다
     private readonly List<SpawnState> m_ListSpawn = new();
     private readonly Dictionary<int, SpawnState> m_DicSpawnByUnitID = new();
     
@@ -141,6 +142,8 @@ public sealed class BattleService : ServiceBase
         m_ListSpawn.Clear();
         m_DicLoot.Clear();
         m_DicReward.Clear();
+        m_DicPickedCurrency.Clear();
+        
         m_Player = null;
         m_SpawnSlots = null; // 맵 오브젝트는 씬과 함께 사라진다
     }
@@ -321,12 +324,16 @@ public sealed class BattleService : ServiceBase
         if (GameDatabase.S_TryGet(evt.ItemID, out CurrencyDef _))
         {
             PlayerDataManager.Instance.Inventory.Add(evt.ItemID, evt.Amount);
+            
+            m_DicPickedCurrency.TryGetValue(evt.ItemID, out int picked);
+            m_DicPickedCurrency[evt.ItemID] = picked + evt.Amount;
         }
         else
         {
             LootKey key = new(evt.ItemID, evt.Freshness, evt.Rarity);
             m_DicLoot.TryGetValue(key, out int count);
             m_DicLoot[key] = count + evt.Amount;
+            
             SEventManager.Publish(new LootChanged());
         }
 
@@ -421,6 +428,13 @@ public sealed class BattleService : ServiceBase
             {
                 playerDataM.Inventory.Add(pair.Key, pair.Value);
             }
+        }
+
+        // 전투 중 주운 재화는 이미 인벤토리에 있다. 결과 화면에만 더한다(귀가·쓰러짐에도 남는다)
+        foreach (var pair in m_DicPickedCurrency)
+        {
+            m_DicReward.TryGetValue(pair.Key, out int count);
+            m_DicReward[pair.Key] = count + pair.Value;
         }
 
         // 스스로 나오면 지역을 깬 것으로 표시해 다음 지역을 연다(토벌 탭)

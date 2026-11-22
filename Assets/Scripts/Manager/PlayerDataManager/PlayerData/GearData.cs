@@ -61,7 +61,7 @@ public class GearData : PlayerDataBase
         data.gearNodes.AddRange(m_SetOpened);
     }
 
-    // 조건을 보고 골드를 내고 연다. 열리면 GearChanged
+    // 조건을 보고 골드를 내고 연다. 열리면 바로 저장하고 GearChanged
     public EGearOpenResult TryOpen(GearNodeDef node)
     {
         EGearOpenResult result = CheckOpen(node);
@@ -72,6 +72,7 @@ public class GearData : PlayerDataBase
             return EGearOpenResult.NotEnoughGold;
 
         m_SetOpened.Add(node.ID);
+        PlayerDataManager.Instance.RunSave(); // 골드를 냈으니 바로 저장한다(끄면 날아가지 않게)
         SEventManager.Publish(new GearChanged(node.ID));
 
         return EGearOpenResult.Ok;
