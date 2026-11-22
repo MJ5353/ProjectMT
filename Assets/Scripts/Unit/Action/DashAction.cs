@@ -14,6 +14,7 @@ public class DashAction : UnitAction
     private readonly float m_Cooldown;      // 대시가 끝난 뒤 다시 쓰기까지. 기본값
     private readonly bool m_IsInvincible;   // 대시 중 무적
     private readonly float m_AnimSpeed;     // 대시 중 달리기 애니 배속
+    private readonly float m_PerfectDodgeWindow; // 대시 시작부터 퍼펙트 닷지로 치는 시간. 0이면 대시 무적 전체
 
     public override EActionType Type => EActionType.Dash;
     public override bool IsFinished => Time >= m_CurrentDuration;
@@ -25,13 +26,14 @@ public class DashAction : UnitAction
 
     // ------------------------------------------------
 
-    public DashAction(UnitController owner, float speed, float duration, float cooldown, bool isInvincible, float animSpeed) : base(owner)
+    public DashAction(UnitController owner, float speed, float duration, float cooldown, bool isInvincible, float animSpeed, float perfectDodgeWindow) : base(owner)
     {
         m_Speed = speed;
         m_Duration = duration;
         m_Cooldown = cooldown;
         m_IsInvincible = isInvincible;
         m_AnimSpeed = animSpeed;
+        m_PerfectDodgeWindow = perfectDodgeWindow;
     }
 
     public void Setup(Vector3 direction)
@@ -63,7 +65,10 @@ public class DashAction : UnitAction
         Owner.AnimF.Play(AnimKey.Run, true);
 
         if (m_IsInvincible)
+        {
             Owner.HitF.SetInvincible(m_CurrentDuration);
+            Owner.HitF.SetPerfectDodge(m_PerfectDodgeWindow > 0f ? Mathf.Min(m_PerfectDodgeWindow, m_CurrentDuration) : m_CurrentDuration);
+        }
     }
 
     public override void Exit()

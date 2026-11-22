@@ -34,6 +34,9 @@ public class PlayerDef : UnitDef
     [field: SerializeField, FormerlySerializedAs("m_DashAnimSpeed")]
     public float DashAnimSpeed { get; private set; } = 1.6f;   // 대시 중 Run 애니 배속
 
+    [field: SerializeField]
+    public float PerfectDodgeWindow { get; private set; } = 0f; // [mj] todo) 임시값. 대시 시작부터 이 시간 안에 공격이 닿으면 퍼펙트 닷지. 0이면 대시 무적 전체
+
     // 콤보 ---
     // 연타 순서는 첫 타의 AttackSpec.Next로 이어진다(좌 → 우 → 막타). 막타(Next 없음) 다음은 다시 첫 타
     [field: SerializeField]
@@ -60,7 +63,7 @@ public class PlayerDef : UnitDef
     // 대시를 켜고 공격 끊기 시간을 넣는다. 몸 렌더러는 Player 레이어로 옮겨 가려지면 실루엣이 보이게 한다
     public override void SetFeatures(UnitController unit)
     {
-        unit.UnitExecutor.EnableDash(DashSpeed, DashTime, DashCooldown, IsDashInvincible, DashAnimSpeed);
+        unit.UnitExecutor.EnableDash(DashSpeed, DashTime, DashCooldown, IsDashInvincible, DashAnimSpeed, PerfectDodgeWindow);
         unit.UnitExecutor.Attack.CancelDelay = CancelDelay;
 
         int playerLayer = LayerMask.NameToLayer(GameLayers.Player);

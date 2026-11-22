@@ -66,6 +66,7 @@ public class UnitController : PoolableMono
             CLogger.Warning(GetType().Name, $"{Def.name}의 HitDef가 비어 있어 피격 반응이 없습니다", this);
 
         HitF.Hit += OnHit;
+        HitF.PerfectDodged += OnPerfectDodged;
         HealthF.Died += OnDied;
     }
 
@@ -106,7 +107,10 @@ public class UnitController : PoolableMono
     private void Unset()
     {
         if (HitF != null)
+        {
             HitF.Hit -= OnHit;
+            HitF.PerfectDodged -= OnPerfectDodged;
+        }
 
         if (HealthF != null)
             HealthF.Died -= OnDied;
@@ -178,6 +182,16 @@ public class UnitController : PoolableMono
         BrainBase.OnHit(hit);
         if (isFlinch)
             UnitExecutor.RequestHit();
+    }
+
+    // 대시 무적 중 공격이 닿음. 반격(러시)은 판단 쪽이 이어받는다(묶음 3)
+    private void OnPerfectDodged(HitParams hit)
+    {
+        if (IsDead)
+            return;
+
+        CLogger.Log(nameof(UnitController), $"퍼펙트 닷지: {name}");
+        PassiveF.OnPerfectDodge(hit);
     }
 
     private void OnDied()

@@ -19,6 +19,7 @@ public class HitFeature : UnitFeature
     private readonly List<HitShape> m_ListShape = new(); // 만들 때 한 번 정하고 풀 재사용 때도 그대로
 
     public event Action<HitParams, bool> Hit; // bool: 경직하는 타격인지
+    public event Action<HitParams> PerfectDodged; // 퍼펙트 닷지 판정 창(대시 무적) 중 공격이 닿음. 대시 한 번에 한 번
     public float BoundRadius { get; private set; } // 몸 중심(transform)에서 모양들을 감싸는 반지름. 후보 거르기용
 
     // 번쩍
@@ -31,6 +32,7 @@ public class HitFeature : UnitFeature
 
     // flag
     private float m_InvincibleRemain;
+    private float m_PerfectDodgeRemain; // 퍼펙트 닷지 판정 창. 대시가 켜고, 한 번 터지면 0
     private float m_FlashRemain;
     private float m_BreakStack; // 쌓인 경직
     private float m_BreakIdleTime; // 마지막 타격 뒤 지난 게임 시간
@@ -57,6 +59,7 @@ public class HitFeature : UnitFeature
     public override void Reset()
     {
         m_InvincibleRemain = 0f;
+        m_PerfectDodgeRemain = 0f;
         m_BreakStack = 0f;
         IsHidden = false;
         RestoreFlash();
@@ -67,6 +70,9 @@ public class HitFeature : UnitFeature
         // 무적은 게임 시간 기준. 히트스톱(timeScale 0) 중에는 같이 멈춘다
         if (m_InvincibleRemain > 0f)
             m_InvincibleRemain -= unscaledDeltaTime * Time.timeScale;
+
+        if (m_PerfectDodgeRemain > 0f)
+            m_PerfectDodgeRemain -= unscaledDeltaTime * Time.timeScale;
 
         if (m_BreakStack > 0f)
         {
@@ -121,6 +127,12 @@ public class HitFeature : UnitFeature
         m_InvincibleRemain = Mathf.Max(m_InvincibleRemain, duration);
     }
 
+    // 퍼펙트 닷지 판정 창(대시 무적에서만). 맞은 뒤 무적·부활 무적과 구분하려고 따로 든다
+    public void SetPerfectDodge(float duration)
+    {
+        m_PerfectDodgeRemain = duration;
+    }
+
     // 숨기(AIHideState). 무적과 달리 대상 찾기·조준(UnitService)에서도 빠진다
     public void SetHidden(bool isHidden)
     {
@@ -133,8 +145,14 @@ public class HitFeature : UnitFeature
         if (hit.Team == Owner.Team)
             return false;
 
-        if (Owner.IsDead || IsInvincible || IsHidden || Owner.Def.IsUntargetable)
+        if (Owner.IsDead || IsHidden || Owner.Def.IsUntargetable)
             return false;
+
+        if (IsInvincible)
+        {
+            TryPerfectDodge(hit);
+            return false;
+        }
 
         // 부위를 맞으면 부위 내구도와 본체 체력이 함께 깎인다. 본체 쪽은 부위의 몸 피해 배율을 곱한다(DamageCalculator)
         // 깨졌거나 자라는 중이거나 장식인 부위는 몸으로 친다(번쩍도 몸)
@@ -161,6 +179,16 @@ public class HitFeature : UnitFeature
         Hit?.Invoke(hit, isFlinch);
 
         return true;
+    }
+
+    // 무적 중 닿은 공격이 판정 창 안이면 퍼펙트 닷지. 창은 한 번 쓰면 닫아 다단 히트에 다시 터지지 않게 한다
+    private void TryPerfectDodge(in HitParams hit)
+    {
+        if (m_PerfectDodgeRemain <= 0f)
+            return;
+
+        m_PerfectDodgeRemain = 0f;
+        PerfectDodged?.Invoke(hit);
     }
 
     // 경직 판단이 막으면(쓰러짐·포효) 쌓지도 않는다. 넘으면 비운다

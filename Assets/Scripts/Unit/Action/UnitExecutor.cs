@@ -147,8 +147,8 @@ public class UnitExecutor
         m_Move.SetMove(direction.normalized * speed, isRun);
     }
     
-    public void EnableDash(float speed, float duration, float cooldown, bool isInvincible, float animSpeed)
+    public void EnableDash(float speed, float duration, float cooldown, bool isInvincible, float animSpeed, float perfectDodgeWindow)
     {
-        m_Dash = new DashAction(m_Owner, speed, duration, cooldown, isInvincible, animSpeed);
+        m_Dash = new DashAction(m_Owner, speed, duration, cooldown, isInvincible, animSpeed, perfectDodgeWindow);
     }
 }

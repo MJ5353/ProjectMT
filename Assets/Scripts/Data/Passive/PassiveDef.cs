@@ -12,11 +12,12 @@ public enum EPassiveTrigger
     Taken,      // 받는 피해를 계산할 때(DamageCalculator)
     Hit,        // 맞은 뒤(UnitController.OnHit)
     Pickup,     // 주운 뒤(BattleService)
+    PerfectDodge, // 퍼펙트 닷지 직후(UnitController.OnPerfectDodged). Hit 칸에 피한 공격이 들어 있다
 }
 
 // ==================================================
 
-// 훅 지점의 정보. 조건·효과가 읽는다. 훅마다 채워지는 칸이 다르다(Spec은 Attack, Hit은 Hit, Loot은 Pickup)
+// 훅 지점의 정보. 조건·효과가 읽는다. 훅마다 채워지는 칸이 다르다(Spec은 Attack, Hit은 Hit·PerfectDodge, Loot은 Pickup)
 public readonly struct PassiveContext
 {
     public readonly UnitController Owner;
