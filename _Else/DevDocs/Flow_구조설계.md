@@ -35,7 +35,7 @@
 |---|---|---|
 | Screen | 씬마다 하나인 기본 화면(`ScreenTitle`·`ScreenLobby`·`ScreenBattle`) | 씬 컨트롤러 |
 | Popup | 씬 안에서 쌓이는 창 | `PopupService`(Flow 공용) |
-| Overlay | 씬을 넘어 맨 위에 뜨는 것(`OverlayLoading`) | `UIManager` |
+| Overlay | 씬을 넘어 맨 위에 뜨는 것(`OverlayLoading`). 기반 `OverlayBase`(Show·Hide, 자식은 OnShow·OnHide) | `UIManager` |
 
 - 버튼 클릭 버섯 연출(`UIClickBurst`)은 3D 월드 이펙트가 아니라 UI 연출이라 EffectService에서 UIManager로 옮겼다. 조각은 UIReuseService가 아니라 ResourceManager 풀을 직접 쓰고, 띄운 자리(씬 UI 루트·오버레이)별로 회수한다. 씬별 켜기(`UseClickBurst`)는 없앴다.
 - 그래서 로딩 중에도 클릭 연출이 끊기지 않고, Flow 공용 Service(Effect·UIReuse·Popup)는 Flow가 끝날 때 전부 회수하면 된다. 이펙트 수명 enum(`ELifetime`)은 필요 없어져 넣지 않는다.
@@ -123,6 +123,7 @@
 - 26.11.22 대장: 위 적용 순서로 진행. 묶음 1 반영.
 - 26.11.22 대장: 공용 Service는 FlowManager가 한 번만 만들어 계속 들고 씬마다 연결·해제만 한다.
 - 26.11.22 대장: UI 분류에 Overlay를 둔다. `ScreenLoading` → `OverlayLoading`. 클릭 연출은 EffectService에서 빼고 이름(`UIClickBurst`)은 그대로 둔다.
+- 26.11.22 대장: 오버레이도 기반 클래스(`OverlayBase`)로 묶는다. 종류가 늘면 `EOverlayType` 표로 넓힌다.
 - 26.11.22 대장: `RootManager`는 [Managers] 루트만 맡고, 씬 UI 루트·오버레이·클릭 연출은 새 `UIManager`가 맡는다.
 - 26.11.22 대장: 묶음 2 결정 — SceneDef는 씬마다 에셋 + `ESceneType`, `GameManager.ChangeScene(ESceneType)`, Flow 종류는 씬 컨트롤러 `CreateFlow`가 정함. 접근자 `FlowManager.Instance.EffectS/UIReuseS/PopupS`, `.Battle.UnitS/HitStopS/BattleS`. 묶음 2 동안 결과는 `BattleEnded` 이벤트로만, Retry는 씬 재로드 유지. `GameStateChanged` → `FlowBegan`, `SceneUnloading` 폐지.
 

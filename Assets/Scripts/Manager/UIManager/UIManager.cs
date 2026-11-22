@@ -53,7 +53,10 @@ public sealed class UIManager : MonoSingleton<UIManager>
         if (m_Loading == null)
             return;
 
-        m_Loading.gameObject.SetActive(isShow);
+        if (isShow)
+            m_Loading.Show();
+        else
+            m_Loading.Hide();
     }
 
     public void SetLoadingProgress(float ratio)
