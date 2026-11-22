@@ -4,7 +4,8 @@ using UnityEngine.UI;
 
 // ==================================================
 
-// 화면을 누른 자리에서 버섯 아이콘이 튀어 퍼지며 사라지는 UI 연출. EffectService가 들고(UseClickBurst를 켠 씬만) 매 프레임 돌린다.
+// 누른 자리에서 버섯 아이콘이 튀어 퍼지며 사라지는 UI 연출. EffectService가 들고(UseClickBurst를 켠 씬만) 매 프레임 조각을 움직인다.
+// 화면 아무 데나 누를 때가 아니라, 버튼이 EffectService.PlayClickBurst를 부를 때만 터진다(로비 하단 탭·[입장], 타이틀·로딩의 배경 버튼)
 // 조각은 UICommonImage를 UIReuseService로 꺼내 UI 루트 맨 위(팝업보다 위)에 띄우고, 끝나면 돌려준다. 수치는 DefineDef(ClickBurst*)
 
 public sealed class UIClickBurst
@@ -39,15 +40,16 @@ public sealed class UIClickBurst
 
     public void Tick()
     {
-        DefineDef define = GameManager.Instance.Define;
-        UpdatePieces(define);
+        UpdatePieces(GameManager.Instance.Define);
+    }
 
+    // 지금 누른 자리(포인터 위치)에서 터뜨린다
+    public void Play()
+    {
         if (m_ListIcon.Count == 0 || GameManager.Instance.IsTransitioning)
             return;
 
-        InputSystem_Actions.UIActions ui = InputManager.Instance.UI;
-        if (ui.Click.WasPressedThisFrame())
-            Pop(define, ui.Point.ReadValue<Vector2>());
+        Pop(GameManager.Instance.Define, InputManager.Instance.UI.Point.ReadValue<Vector2>());
     }
 
     // 남은 조각은 씬이 바뀌기 직전 UIReuseService가 한꺼번에 돌려받는다

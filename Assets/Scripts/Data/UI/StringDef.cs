@@ -77,6 +77,7 @@ public enum EStringKey
     Market_WaitFormat,               // {0} 분
     Market_PickCaption,
     Market_StockCaption,
+    Market_StockHint,
     Market_Trade,
     Market_SoldFormat,               // {0} 판 골드
     Market_TotalFormat,              // {0} 합계 골드 {1} 고른 묶음 {2} 묶음 상한
@@ -104,6 +105,7 @@ public enum EStringKey
     Market_Counter_PriceFormat,      // {0} 한 개 값 {1} 합계
     Market_Counter_NotBuying,
     Market_Counter_All,
+    Market_Counter_Clear,
     Market_Row_TrustFormat,          // {0} 신뢰도
 
     // death

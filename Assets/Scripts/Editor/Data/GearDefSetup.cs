@@ -72,14 +72,14 @@ public static class GearDefSetup
             Special = EGearSpecial.SporeRegen, Value = 3f, Requires = new[] { ("MaxHp", 5) } },
     };
 
-    // 엠블렘: 필요 노드 수, 이름, 색, 보너스(누적)
-    private static readonly (int Need, string Name, Color Tint, (EGearStat Stat, float Value)[] Bonus)[] s_Emblems =
+    // 엠블렘: 필요 노드 수, 이름, 보너스(누적). 그림은 리소스 작업 후 Icon에 직접 넣는다
+    private static readonly (int Need, string Name, (EGearStat Stat, float Value)[] Bonus)[] s_Emblems =
     {
-        (0, "새싹 채집꾼", new Color(0.62f, 0.62f, 0.62f), new (EGearStat, float)[0]),
-        (8, "숲의 채집꾼", new Color(0.48f, 0.79f, 0.31f), new[] { (EGearStat.MaxHp, 0.05f) }),
-        (16, "밤의 사냥꾼", new Color(0.31f, 0.64f, 0.88f), new[] { (EGearStat.Attack, 0.05f) }),
-        (24, "포자 수호자", new Color(0.71f, 0.37f, 0.88f), new[] { (EGearStat.Defense, 0.05f) }),
-        (34, "버섯왕", new Color(0.95f, 0.76f, 0.31f), new[]
+        (0, "새싹 채집꾼", new (EGearStat, float)[0]),
+        (8, "숲의 채집꾼", new[] { (EGearStat.MaxHp, 0.05f) }),
+        (16, "밤의 사냥꾼", new[] { (EGearStat.Attack, 0.05f) }),
+        (24, "포자 수호자", new[] { (EGearStat.Defense, 0.05f) }),
+        (34, "버섯왕", new[]
         {
             (EGearStat.Attack, 0.05f), (EGearStat.MaxHp, 0.05f), (EGearStat.Dodge, 0.05f), (EGearStat.Defense, 0.05f), (EGearStat.AttackSpeed, 0.05f),
         }),
@@ -149,7 +149,6 @@ public static class GearDefSetup
         }
 
         // 엠블렘
-        Sprite emblemSprite = UIBuilder.LoadSprite("UI_Slot_Common"); // [mj] todo) 엠블렘 그림 전 임시
         for (int i = 0; i < s_Emblems.Length; i++)
         {
             var row = s_Emblems[i];
@@ -159,8 +158,7 @@ public static class GearDefSetup
                 continue;
 
             emblem.EditorSetIdentity(id, row.Name);
-            emblem.EditorSetup(row.Need, row.Tint, row.Bonus.Select(bonus => new EmblemDef.Bonus(bonus.Stat, bonus.Value)).ToList());
-            SetIcon(emblem, emblemSprite);
+            emblem.EditorSetup(row.Need, row.Bonus.Select(bonus => new EmblemDef.Bonus(bonus.Stat, bonus.Value)).ToList());
             EditorUtility.SetDirty(emblem);
         }
 
@@ -185,17 +183,5 @@ public static class GearDefSetup
         AssetDatabase.CreateAsset(def, path);
         created++;
         return def;
-    }
-
-    // DataDef.Icon은 private set이라 직렬화로 넣는다
-    private static void SetIcon(DataDef def, Sprite sprite)
-    {
-        SerializedObject so = new SerializedObject(def);
-        SerializedProperty prop = so.FindProperty("<Icon>k__BackingField");
-        if (prop == null)
-            return;
-
-        prop.objectReferenceValue = sprite;
-        so.ApplyModifiedPropertiesWithoutUndo();
     }
 }

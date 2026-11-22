@@ -44,7 +44,7 @@ public class UITabBar : MonoBehaviour
             int index = i;
             Entry entry = m_ListTab[i];
 
-            entry.Button.E_SetOnClick(() => Select(index));
+            entry.Button.E_SetOnClick(() => OnClickTab(index));
             entry.View.E_SetActive(false);
             SetHighlight(entry, false);
         }
@@ -53,6 +53,13 @@ public class UITabBar : MonoBehaviour
     private void Start()
     {
         Select(m_DefaultIndex);
+    }
+
+    // 누르면 버섯이 튄다(연출을 켠 씬만, 로비)
+    private void OnClickTab(int index)
+    {
+        GameManager.Instance.EffectS.PlayClickBurst();
+        Select(index);
     }
 
     public void Select(int index)

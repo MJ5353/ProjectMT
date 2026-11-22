@@ -318,8 +318,7 @@ public static class LobbyUISetup
         UIBuilder.AddImage(emblem, UIStyle.Panel);
 
         RectTransform emblemImageRt = UIBuilder.Anchored("EmblemImage", emblem, new Vector2(0.5f, 1f), new Vector2(0, -40), new Vector2(240, 240));
-        Image emblemImage = UIBuilder.AddImage(emblemImageRt, Color.white);
-        emblemImage.sprite = UIBuilder.LoadSprite("UI_Slot_Common"); // [mj] todo) 엠블렘 그림 전 임시. 실행 중에는 EmblemDef 아이콘·색으로 바뀐다
+        Image emblemImage = UIBuilder.AddImage(emblemImageRt, Color.white); // 슬롯 없이 뱃지 그림만. 실행 중 EmblemDef 아이콘으로 바뀌고, 그림이 없으면 숨긴다
         emblemImage.preserveAspect = true;
 
         TMP_Text emblemName = InfoLabel(emblem, "EmblemName", "엠블렘", UIStyle.FontLarge, -300, 60);

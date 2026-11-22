@@ -14,7 +14,7 @@ public abstract class SceneControllerBase : MonoBehaviour
     // 이 씬을 바로 실행했을 때 시작할 게임 상태
     public abstract EGameState State { get; }
 
-    // 화면을 누르면 버섯이 튀는 연출(EffectService.UIClickBurst)을 켤지. 타이틀·로딩·로비처럼 클릭이 조작이 아닌 씬만 켠다
+    // 버튼을 누르면 버섯이 튀는 연출(EffectService.UIClickBurst)을 켤지. 타이틀·로딩·로비만 켠다. 터지는 건 PlayClickBurst를 부르는 버튼뿐(타이틀·로딩은 화면 전체 배경 버튼)
     public virtual bool UseClickBurst => false;
     private static bool s_IsQuitting; // 앱 종료 중. 매니저가 먼저 파괴될 수 있어 씬 정리를 건너뛴다
 

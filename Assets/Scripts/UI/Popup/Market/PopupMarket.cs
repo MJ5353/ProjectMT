@@ -158,7 +158,7 @@ public class PopupMarket : PopupBase
     private void RefreshStock(HuntData hunt)
     {
         // 남은 버섯 = 가진 수 - 고른 수. 칸 아래에 고른 상인의 한 개 값을 쓴다.
-        // 담긴 묶음도 자리에 남는다: 딤 + 가운데에 전부면 "전체", 일부면 "17 → 10"(가진 수 → 판 뒤 남는 수)
+        // 담긴 묶음도 자리에 남는다: 딤 + 가운데에 전부면 "전체", 일부면 "17→10"(가진 수 → 판 뒤 남는 수)
 
         m_ListStockKey.Clear();
         foreach (var pair in hunt.DicHarvest)
@@ -230,10 +230,14 @@ public class PopupMarket : PopupBase
         if (picked <= 0)
             return;
 
-        // 고른 칸은 딤 + 가운데 글자. 전부면 "전체", 일부면 "7 → 3"(가진 수 → 판 뒤 남는 수). 아래 개수는 숨긴다
+        // 고른 칸은 딤 + 가운데 글자. 전부면 빨간 "전체", 일부면 "7→3"(가진 수 → 판 뒤 남는 수, "7→"는 회색). 개수 뱃지는 숨긴다
+        string center = picked >= have ? 
+            UIStyle.ColorTag(UIStyle.Negative, StringDef.S_Get(EStringKey.Market_SellAll)) : 
+            UIStyle.ColorTag(UIStyle.TextDim, $"{have}→") + (have - picked);
+        
         slot.SetDim(true);
         slot.SetCount(0);
-        slot.SetCenter(picked >= have ? StringDef.S_Get(EStringKey.Market_SellAll) : $"{have} → {have - picked}");
+        slot.SetCenter(center);
     }
 
     private void SetPickSlot(UICommonSlot slot, LootKey key)

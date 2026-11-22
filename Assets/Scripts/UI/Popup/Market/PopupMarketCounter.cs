@@ -22,7 +22,8 @@ public class PopupMarketCounter : PopupBase
     [SerializeField] private Button m_Minus1Button = null;
     [SerializeField] private Button m_Plus1Button = null;
     [SerializeField] private Button m_Plus10Button = null;
-    [SerializeField] private Button m_AllButton = null;
+    [SerializeField] private Button m_AllButton = null;   // 모두 넣기(가진 개수 전부)
+    [SerializeField] private Button m_ClearButton = null; // 모두 빼기(0개)
     [SerializeField] private Button m_CancelButton = null;
     [SerializeField] private Button m_ConfirmButton = null;
 
@@ -41,6 +42,7 @@ public class PopupMarketCounter : PopupBase
         m_Plus1Button.E_SetOnClick(() => AddCount(StepSmall));
         m_Plus10Button.E_SetOnClick(() => AddCount(StepLarge));
         m_AllButton.E_SetOnClick(() => SetCount(m_Have));
+        m_ClearButton.E_SetOnClick(() => SetCount(0));
         m_CancelButton.E_SetOnClick(Close);
         m_ConfirmButton.E_SetOnClick(OnClickConfirm);
     }
@@ -94,6 +96,7 @@ public class PopupMarketCounter : PopupBase
         m_Plus1Button.E_SetInteractable(canPlus);
         m_Plus10Button.E_SetInteractable(canPlus);
         m_AllButton.E_SetInteractable(canPlus);
+        m_ClearButton.E_SetInteractable(canMinus);
     }
 
     private void OnClickConfirm()

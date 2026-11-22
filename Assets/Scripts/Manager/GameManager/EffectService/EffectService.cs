@@ -7,7 +7,7 @@ using UnityEngine;
 // 파티클 이펙트(EffectController)는 풀에서 꺼내 살아 있는 동안 들고 있다가 끝나면 돌려놓고,
 // 피격 복셀 조각·타격 마크는 ChunkRenderer로 오브젝트 없이 그린다.
 // 공격 이펙트는 데이터(AttackSpec.Effect), 부위 파괴·사망·줍기처럼 정해진 연출은 ECommonEffectType으로 부른다(프리팹 FX_{타입 이름})
-// 화면을 누르면 버섯이 튀는 UI 연출(UIClickBurst)은 씬 컨트롤러가 켠 씬(UseClickBurst)에서만 돈다
+// 버튼을 누르면 버섯이 튀는 UI 연출(UIClickBurst)은 씬 컨트롤러가 켠 씬(UseClickBurst)에서만 있다. 버튼이 PlayClickBurst를 부른다
 
 public sealed class EffectService : ServiceBase
 {
@@ -86,6 +86,12 @@ public sealed class EffectService : ServiceBase
     }
 
     // ---
+
+    // 버튼 클릭 자리에서 버섯을 튀긴다. 연출을 끈 씬에서는 아무 일도 없다
+    public void PlayClickBurst()
+    {
+        m_ClickBurst?.Play();
+    }
     
     // 풀에서 꺼내 재생한다. 크기는 프리팹 기준 배율
     public EffectController Play(EffectController prefab, Vector3 position, Quaternion rotation, float scale = 1f)

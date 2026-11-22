@@ -190,6 +190,7 @@ public class ScreenLobby_HuntView : UITabView
             return;
 
         hunt.Select(m_Selected);
+        GameManager.Instance.EffectS.PlayClickBurst(); // 씬 전환 전에 터뜨린다(전환 중에는 안 터짐)
         GameManager.Instance.ChangeState(EGameState.Battle);
     }
 }

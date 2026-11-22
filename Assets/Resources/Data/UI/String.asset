@@ -111,9 +111,9 @@ MonoBehaviour:
     <Value>k__BackingField: "\uD314 \uBC84\uC12F  \xB7  \uB20C\uB7EC\uC11C \uBB36\uC74C
       \uBE7C\uAE30"
   - <Key>k__BackingField: Market_StockCaption
-    <Value>k__BackingField: "\uB0A8\uC740 \uBC84\uC12F  \xB7  \uB20C\uB7EC\uC11C
-      \uBB36\uC74C \uB2F4\uAE30  \xB7  \uCE78 \uC544\uB798\uB294 \uC774 \uC0C1\uC778\uC758
-      \uD55C \uAC1C \uAC12"
+    <Value>k__BackingField: "\uB0A8\uC740 \uBC84\uC12F  \xB7  \uCE78 \uC544\uB798\uB294 \uC774 \uC0C1\uC778\uC758 \uD55C \uAC1C \uAC12"
+  - <Key>k__BackingField: Market_StockHint
+    <Value>k__BackingField: "\uC2AC\uB86F\uC744 \uD55C \uBC88 \uD074\uB9AD\uD558\uC5EC \uC804\uCCB4 \uB123\uAE30, \uB2E4\uC2DC \uD074\uB9AD\uD558\uC5EC \uAC1C\uC218 \uC870\uC808"
   - <Key>k__BackingField: Market_Trade
     <Value>k__BackingField: "\uAC70\uB798"
   - <Key>k__BackingField: Market_SoldFormat
@@ -171,7 +171,9 @@ MonoBehaviour:
   - <Key>k__BackingField: Market_Counter_NotBuying
     <Value>k__BackingField: "\uC774 \uC0C1\uC778\uC740 \uC0AC\uC9C0 \uC54A\uB294\uB2E4"
   - <Key>k__BackingField: Market_Counter_All
-    <Value>k__BackingField: "\uC804\uBD80"
+    <Value>k__BackingField: "\uBAA8\uB450 \uB123\uAE30"
+  - <Key>k__BackingField: Market_Counter_Clear
+    <Value>k__BackingField: "\uBAA8\uB450 \uBE7C\uAE30"
   - <Key>k__BackingField: Market_Row_TrustFormat
     <Value>k__BackingField: "\uC2E0\uB8B0 {0}"
   - <Key>k__BackingField: Lobby_Gear_TreeTitle

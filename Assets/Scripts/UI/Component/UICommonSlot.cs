@@ -19,6 +19,7 @@ public class UICommonSlot : PoolableMonoUI
     [SerializeField] private TMP_Text m_Center = null;  // 칸 가운데 큰 글자(딤 위). "전체", "7 → 3"
     [SerializeField] private GameObject m_Badge = null; // 오른쪽 위 작은 하트(상인 선호 버섯)
     [SerializeField] private TMP_Text m_Count = null;
+    [SerializeField] private GameObject m_CountBadge = null; // 개수 뒤 바탕(오른쪽 아래 모서리). 개수가 없으면 끈다
     [SerializeField] private TMP_Text m_NameText = null;
 
     // [mj] todo) 일반화. slot layer table 만들어서 slot cover, slot extra bg 등을 설정할 수 있게
@@ -106,7 +107,9 @@ public class UICommonSlot : PoolableMonoUI
     
     public void SetCount(int count)
     {
-        m_Count.E_SetText(count > 0 ? $"x{count:N0}" : string.Empty);
+        bool hasCount = count > 0;
+        m_CountBadge.E_SetActive(hasCount);
+        m_Count.E_SetText(hasCount ? $"x{count:N0}" : string.Empty);
     }
 
     public void SetFreshness(EFreshness freshness)
@@ -169,7 +172,7 @@ public class UICommonSlot : PoolableMonoUI
     }
 
 #if UNITY_EDITOR
-    public void EditorSetup(Image background, Image icon, GameObject mold, GameObject moldBack, GameObject dim, TMP_Text caption, TMP_Text center, GameObject badge, TMP_Text count, TMP_Text displayName, Button button)
+    public void EditorSetup(Image background, Image icon, GameObject mold, GameObject moldBack, GameObject dim, TMP_Text caption, TMP_Text center, GameObject badge, GameObject countBadge, TMP_Text count, TMP_Text displayName, Button button)
     {
         m_Background = background;
         m_Icon = icon;
@@ -179,6 +182,7 @@ public class UICommonSlot : PoolableMonoUI
         m_Caption = caption;
         m_Center = center;
         m_Badge = badge;
+        m_CountBadge = countBadge;
         m_Count = count;
         m_NameText = displayName;
         m_Button = button;
