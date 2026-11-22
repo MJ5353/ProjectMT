@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 // ==================================================
 
-// 타이틀(ScreenTitle)·로딩(ScreenLoading) 화면 프리팹을 만들고, 타이틀 씬을 재생성한다. 로딩은 씬이 아니라 GameManager가 들고 있는 상시 UI다.
+// 타이틀(ScreenTitle)·로딩(OverlayLoading) 화면 프리팹을 만들고, 타이틀 씬을 재생성한다. 로딩은 씬이 아니라 UIManager가 들고 있는 오버레이다.
 // 프리팹은 UISetup의 "모든 UI 다시 만들기"가 Prefabs 표로 만들고, 씬은 로비 씬과 같은 구성(카메라·EventSystem·캔버스·PopupRoot)이다
 
 public static class TitleUISetup
@@ -50,7 +50,7 @@ public static class TitleUISetup
     public static readonly (string Path, System.Func<GameObject> Build)[] Prefabs =
     {
         (EditorPath.ScreenTitlePrefab, () => BuildTitleScreen().gameObject),
-        (EditorPath.ScreenLoadingPrefab, () => BuildLoadingScreen().gameObject),
+        (EditorPath.OverlayLoadingPrefab, () => BuildOverlayLoading().gameObject),
     };
 
     // ==================================================
@@ -111,9 +111,9 @@ public static class TitleUISetup
     }
 
     // 루트가 맨 위 정렬 캔버스(씬 밖 [Managers] 아래에 놓인다) → 바탕 버튼(클릭을 막고 버섯을 튀긴다) → SafeArea → 작은 타이틀 그림·"불러오는 중..."·진행바
-    private static ScreenLoading BuildLoadingScreen()
+    private static OverlayLoading BuildOverlayLoading()
     {
-        RectTransform root = UIBuilder.CreateCanvas(nameof(ScreenLoading), LoadingSortingOrder);
+        RectTransform root = UIBuilder.CreateCanvas(nameof(OverlayLoading), LoadingSortingOrder);
         Button burstButton = AddBackgroundButton(UIBuilder.Stretch("Background", root), UIStyle.Background);
         RectTransform safe = UIBuilder.CreateSafeArea(root);
 
@@ -128,9 +128,9 @@ public static class TitleUISetup
         progressRt.anchoredPosition = Vector2.zero;
         progress.SetRatio(0f, true);
 
-        ScreenLoading screen = root.gameObject.AddComponent<ScreenLoading>();
-        screen.EditorSetup(burstButton, progress);
-        return screen;
+        OverlayLoading overlay = root.gameObject.AddComponent<OverlayLoading>();
+        overlay.EditorSetup(burstButton, progress);
+        return overlay;
     }
 
     // 노치까지 덮는 바탕이 곧 버튼(색 변화 없음)

@@ -8,5 +8,4 @@ using UnityEngine;
 public sealed class TitleSceneController : SceneControllerBase
 {
     public override EGameState State => EGameState.Title;
-    public override bool UseClickBurst => true;
 }

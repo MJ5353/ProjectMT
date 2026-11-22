@@ -17,7 +17,7 @@ public static class SceneNames
 
 public static class SceneLoader
 {
-    // 다음 씬이 다 읽혀도 minSeconds(unscaled)가 지나기 전에는 넘어가지 않는다(가짜 로딩. 그동안 ScreenLoading이 덮고 있다).
+    // 다음 씬이 다 읽혀도 minSeconds(unscaled)가 지나기 전에는 넘어가지 않는다(가짜 로딩. 그동안 OverlayLoading이 덮고 있다).
     // onProgress(0~1)는 실제 읽은 정도와 흐른 시간 비율 중 느린 쪽이라, 빨리 읽혀도 minSeconds 동안 차오른다
     public static IEnumerator Load(string sceneName, float minSeconds, Action<float> onProgress)
     {

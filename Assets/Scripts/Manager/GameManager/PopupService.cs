@@ -31,7 +31,7 @@ public sealed class PopupService : ServiceBase
     
     public override void Init()
     {
-        m_Root = RootManager.Instance.UIRoot;
+        m_Root = UIManager.Instance.UIRoot;
         
         if (GameDatabase.S_TryGet(PopupDef.PopupID, out m_Def) == false)
             CLogger.Error("PopupService", "PopupDef가 DB에 없습니다. UI 프리팹 표 갱신을 실행하세요.");

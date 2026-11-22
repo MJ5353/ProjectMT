@@ -2,7 +2,7 @@
 
 최종 수정: 26.11.22
 
-씬 전환과 씬 안의 진행 단계를 어떻게 나누는지 적는다. 지금 코드(`EGameState`·`BattleService.EBattleState`)를 이 구조로 바꾸기 위한 설계다. 26.11.22 기준 일시정지 이유 플래그(묶음 1)만 코드에 반영됐다.
+씬 전환과 씬 안의 진행 단계를 어떻게 나누는지 적는다. 지금 코드(`EGameState`·`BattleService.EBattleState`)를 이 구조로 바꾸기 위한 설계다. 26.11.22 기준 일시정지 이유 플래그(묶음 1)와 UI 오버레이 정리(묶음 2 사전 정리)가 코드에 반영됐다.
 
 ## 1. 상세 정보
 
@@ -19,13 +19,26 @@
 
 | 클래스 | 종류 | 맡는 것 |
 |---|---|---|
-| `GameManager` | Manager | 씬 전환(`ChangeScene`)과 로딩 화면, 전환 직전 `FlowManager.End()`, 전역 데이터(`Database`·`Define`) |
+| `GameManager` | Manager | 씬 전환(`ChangeScene`), 전환 동안 `UIManager`에 로딩 화면 켜기·끄기, 전환 직전 `FlowManager.End()`, 전역 데이터(`Database`·`Define`) |
+| `UIManager` | Manager | 씬 UI 루트 연결·해제, 오버레이(`OverlayLoading`), 버튼 클릭 버섯 연출(`UIClickBurst`). 씬 전환에 지워지지 않는다(26.11.22 반영) |
+| `RootManager` | Manager | [Managers] 루트 오브젝트만(26.11.22, UI 루트는 UIManager로) |
 | `FlowManager` | Manager | 현재 Flow 하나, 공용 Service(`EffectService` → `UIReuseService` → `PopupService` 순서로 등록), 일시정지 이유 묶음, Tick 전달 |
 | `FlowBase` 계열 | 일반 클래스 | 씬 하나의 진행 상태 머신과 그 씬 전용 Service |
 | `SceneControllerBase` | 씬 Mono | 매니저 생성, UI 루트·카메라 등록, 어떤 Flow인지 정해 `Begin`, 앱 일시정지·포커스 전달 |
 
 - `GameManager`는 "씬을 넘어 살아남는 것 + 씬 갈아끼우기"만 맡는다. `EGameState`와 전환 허용 표는 없앤다.
 - Service 접근자는 `GameManager`에 남기지 않는다. 호출부를 `FlowManager.Instance.PopupS`, `FlowManager.Instance.Battle.UnitS`처럼 바꾼다(26.11.21 대장).
+
+### UI 분류와 오버레이(26.11.22 반영)
+
+| 분류 | 뜻 | 들고 있는 곳 |
+|---|---|---|
+| Screen | 씬마다 하나인 기본 화면(`ScreenTitle`·`ScreenLobby`·`ScreenBattle`) | 씬 컨트롤러 |
+| Popup | 씬 안에서 쌓이는 창 | `PopupService`(Flow 공용) |
+| Overlay | 씬을 넘어 맨 위에 뜨는 것(`OverlayLoading`) | `UIManager` |
+
+- 버튼 클릭 버섯 연출(`UIClickBurst`)은 3D 월드 이펙트가 아니라 UI 연출이라 EffectService에서 UIManager로 옮겼다. 조각은 UIReuseService가 아니라 ResourceManager 풀을 직접 쓰고, 띄운 자리(씬 UI 루트·오버레이)별로 회수한다. 씬별 켜기(`UseClickBurst`)는 없앴다.
+- 그래서 로딩 중에도 클릭 연출이 끊기지 않고, Flow 공용 Service(Effect·UIReuse·Popup)는 Flow가 끝날 때 전부 회수하면 된다. 이펙트 수명 enum(`ELifetime`)은 필요 없어져 넣지 않는다.
 
 ### Flow 기반 클래스
 
@@ -85,7 +98,7 @@
 각 묶음이 끝나면 컴파일되고 지금과 같게 돌아가도록 나눈다.
 
 1. 일시정지 이유 플래그(26.11.22 반영)
-2. Flow 뼈대 + 씬 전환 분리: FlowManager·Flow 기반, Title·Lobby·BattleFlow(Play 하나), 공용·전용 Service 이전, `SceneDef`, GameManager 씬 전환 전용, 정리 입구 하나, 호출부 교체
+2. Flow 뼈대 + 씬 전환 분리(UI 오버레이 정리는 26.11.22 먼저 반영): FlowManager·Flow 기반, Title·Lobby·BattleFlow(Play 하나), 공용·전용 Service 이전, `SceneDef`, GameManager 씬 전환 전용, 정리 입구 하나, 호출부 교체
 3. BattleFlow 상태 나누기: `EBattleState` 폐지, 팝업을 상태 Enter로
 4. 씬 재로드 없는 Retry
 5. 이름 정리(`MonsterBalanceTable`)
@@ -108,6 +121,10 @@
 - 26.11.21 대장: Table은 편집기용 공식값이라 Def와 헷갈리지 않게 이름을 바꾼다(`MonsterBalanceTable`). `PopupTable`은 `PopupDef`로 대체돼 삭제.
 - 26.11.22: 토벌 종료 확인 팝업이 떠 있는 동안 게임 시간 전체를 멈춘다(구현 기준, Confirm 이유).
 - 26.11.22 대장: 위 적용 순서로 진행. 묶음 1 반영.
+- 26.11.22 대장: 공용 Service는 FlowManager가 한 번만 만들어 계속 들고 씬마다 연결·해제만 한다.
+- 26.11.22 대장: UI 분류에 Overlay를 둔다. `ScreenLoading` → `OverlayLoading`. 클릭 연출은 EffectService에서 빼고 이름(`UIClickBurst`)은 그대로 둔다.
+- 26.11.22 대장: `RootManager`는 [Managers] 루트만 맡고, 씬 UI 루트·오버레이·클릭 연출은 새 `UIManager`가 맡는다.
+- 26.11.22 대장: 묶음 2 결정 — SceneDef는 씬마다 에셋 + `ESceneType`, `GameManager.ChangeScene(ESceneType)`, Flow 종류는 씬 컨트롤러 `CreateFlow`가 정함. 접근자 `FlowManager.Instance.EffectS/UIReuseS/PopupS`, `.Battle.UnitS/HitStopS/BattleS`. 묶음 2 동안 결과는 `BattleEnded` 이벤트로만, Retry는 씬 재로드 유지. `GameStateChanged` → `FlowBegan`, `SceneUnloading` 폐지.
 
 ## 3. 미정
 

@@ -525,3 +525,8 @@
 ## 일시정지 이유 플래그
 
 - AI가 `TimeManager.SetPause(bool)`를 `SetPause(EPauseReason, bool)`(App·Focus·Confirm·Market)로 바꾸고 확인 팝업·시장 호출부를 교체, 씬 컨트롤러가 앱 일시정지·포커스를 넘기게 함. 컴파일·플레이 확인 안 함.
+
+## UI 오버레이 정리(Flow 묶음 2 사전 정리)
+
+- 직접 클릭 버섯 연출을 EffectService가 맡는 것과 로딩 화면이 Screen으로 분류된 것을 문제로 짚음. AI가 "씬을 넘어 맨 위에 뜨는 UI" 분류가 없어서라고 보고 Screen·Popup·Overlay 셋으로 나누는 안을 냄. AI의 이펙트 수명 enum 안은 이 정리로 불필요해져 넣지 않음.
+- 직접 `OverlayLoading` 이름과 RootManager 분리(새 UIManager)를 정함. AI가 UIManager에 씬 UI 루트·로딩·클릭 연출을 옮기고, 조각은 ResourceManager 풀로 직접 꺼내 띄운 자리별로 회수하게 바꿈. `UseClickBurst` 삭제. 옛 `ScreenLoading`은 빈 파일로 남겨 삭제를 대장 몫으로 둠. 컴파일·플레이 확인 안 함.

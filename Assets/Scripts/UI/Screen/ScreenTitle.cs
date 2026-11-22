@@ -44,7 +44,7 @@ public class ScreenTitle : ScreenBase
     private void OnClickStart()
     {
         GameManager gameM = GameManager.Instance;
-        gameM.EffectS.PlayClickBurst();
+        UIManager.Instance.PlayClickBurst();
 
         if (m_StartSequence.IsPlaying || gameM.CanChange(EGameState.Lobby) == false)
             return;

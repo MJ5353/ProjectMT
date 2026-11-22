@@ -57,7 +57,7 @@ public static class EditorPath
     public const string RarityDefAsset = UIDataDir + RarityDef.RarityID + ".asset";
     public const string PopupResultPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupResult) + PrefabExtension;
     public const string ScreenTitlePrefab = ScreenUIPrefabDir + nameof(ScreenTitle) + PrefabExtension;
-    public const string ScreenLoadingPrefab = ScreenUIPrefabDir + nameof(ScreenLoading) + PrefabExtension;
+    public const string OverlayLoadingPrefab = ResourcesRoot + CommonPath.OverlayLoading + PrefabExtension;
     public const string ScreenLobbyPrefab = LobbyScreenUIPrefabDir + nameof(ScreenLobby) + PrefabExtension;
     public const string ScreenBattlePrefab = BattleScreenUIPrefabDir + nameof(ScreenBattle) + PrefabExtension;
     public const string PopupDeathPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupDeath) + PrefabExtension;
