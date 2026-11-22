@@ -13,7 +13,7 @@ public enum EGearOpenResult
 
 // ==================================================
 
-// 정비 탭 강화 노드. 연 노드 ID를 저장하고, 열기 요청·엠블렘 단계·전투 보정값(UnitStat)을 맡는다.
+// 정비 탭 강화 노드. 연 노드 ID를 저장하고, 열기 요청·엠블렘 단계·플레이어 능력치 출처(StatFeature)를 맡는다.
 // UI는 TryOpen만 부르고 GearChanged를 받아 다시 그린다. 노드·엠블렘 목록은 DB(GearNodeDef·EmblemDef)에서 처음 쓸 때 모은다
 
 public class GearData : PlayerDataBase
@@ -77,15 +77,15 @@ public class GearData : PlayerDataBase
         return EGearOpenResult.Ok;
     }
 
-    // 플레이어 보정값을 채운다. 연 노드 → 엠블렘 보너스(지난 단계까지) 순
-    public void FillStat(UnitStat stat)
+    // 플레이어 능력치에 출처를 넣는다. 연 노드와 지금 단계까지 엠블렘이 각각 출처 하나
+    public void ApplyStat(StatFeature stat)
     {
         foreach (GearNodeDef node in ListNode)
         {
             if (IsOpened(node) == false)
                 continue;
 
-            stat.Add(node.Stat, node.StatValue);
+            stat.AddSource(node, node.ListModifier);
             AddSpecial(stat, node);
         }
 
@@ -94,15 +94,12 @@ public class GearData : PlayerDataBase
             if (emblem.NeedCount > OpenedCount)
                 break;
 
-            foreach (EmblemDef.Bonus bonus in emblem.ListBonus)
-            {
-                stat.Add(bonus.Stat, bonus.Value);
-            }
+            stat.AddSource(emblem, emblem.ListModifier);
         }
     }
 
-    // 지금 단계까지 엠블렘 보너스를 능력치별로 합친다(정비 탭 표시용)
-    public void CollectEmblemBonus(Dictionary<EGearStat, float> result)
+    // 지금 단계까지 엠블렘 보너스를 능력치·방식별로 합친다(정비 탭 표시용)
+    public void CollectEmblemBonus(List<StatModifier> result)
     {
         CollectDefs();
         result.Clear();
@@ -112,10 +109,13 @@ public class GearData : PlayerDataBase
             if (emblem.NeedCount > OpenedCount)
                 break;
 
-            foreach (EmblemDef.Bonus bonus in emblem.ListBonus)
+            foreach (StatModifier modifier in emblem.ListModifier)
             {
-                result.TryGetValue(bonus.Stat, out float sum);
-                result[bonus.Stat] = sum + bonus.Value;
+                int index = result.FindIndex(sum => sum.Stat == modifier.Stat && sum.Type == modifier.Type);
+                if (index < 0)
+                    result.Add(new StatModifier(modifier.Stat, modifier.Type, modifier.Value));
+                else
+                    result[index] = new StatModifier(modifier.Stat, modifier.Type, result[index].Value + modifier.Value);
             }
         }
     }
@@ -184,7 +184,8 @@ public class GearData : PlayerDataBase
 
     // ==================================================
 
-    private static void AddSpecial(UnitStat stat, GearNodeDef node)
+    // 수치 하나로 안 되는 스페셜. 훅 구조(PassiveDef)로 옮기면 사라진다
+    private static void AddSpecial(StatFeature stat, GearNodeDef node)
     {
         switch (node.Special)
         {

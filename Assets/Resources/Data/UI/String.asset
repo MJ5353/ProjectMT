@@ -207,21 +207,21 @@ MonoBehaviour:
   - <Key>k__BackingField: Lobby_Gear_EquipComingSoon
     <Value>k__BackingField: "\uBB34\uAE30\xB7\uBC29\uC5B4\uAD6C \uC7A5\uCC29\uACFC
       \uCF54\uC2A4\uD2AC \uBCC0\uACBD\uC774 \uCD94\uAC00\uB420 \uC608\uC815\uC785\uB2C8\uB2E4"
-  - <Key>k__BackingField: Lobby_Gear_Stat_Attack
-    <Value>k__BackingField: "\uACF5\uACA9\uB825 +{0}%"
-  - <Key>k__BackingField: Lobby_Gear_Stat_MaxHp
-    <Value>k__BackingField: "\uCD5C\uB300 \uCCB4\uB825 +{0}%"
-  - <Key>k__BackingField: Lobby_Gear_Stat_Dodge
-    <Value>k__BackingField: "\uB300\uC2DC \uCFE8\uD0C0\uC784 -{0}%"
-  - <Key>k__BackingField: Lobby_Gear_Stat_Defense
-    <Value>k__BackingField: "\uBC1B\uB294 \uD53C\uD574 -{0}%"
-  - <Key>k__BackingField: Lobby_Gear_Stat_AttackSpeed
-    <Value>k__BackingField: "\uACF5\uACA9 \uC18D\uB3C4 +{0}%"
-  - <Key>k__BackingField: Lobby_Gear_Stat_MoveSpeed
-    <Value>k__BackingField: "\uC774\uB3D9 \uC18D\uB3C4 +{0}%"
-  - <Key>k__BackingField: Lobby_Gear_Stat_PartDamage
-    <Value>k__BackingField: "\uBC84\uC12F \uBD80\uC704 \uD53C\uD574 +{0}%"
-  - <Key>k__BackingField: Lobby_Gear_Stat_DashDistance
-    <Value>k__BackingField: "\uB300\uC2DC \uAC70\uB9AC +{0}%"
-  - <Key>k__BackingField: Lobby_Gear_Stat_BreakResist
-    <Value>k__BackingField: "\uACBD\uC9C1 \uC800\uD56D +{0:0.#}"
+  - <Key>k__BackingField: Stat_Attack
+    <Value>k__BackingField: "\uACF5\uACA9\uB825 +{0}"
+  - <Key>k__BackingField: Stat_MaxHp
+    <Value>k__BackingField: "\uCD5C\uB300 \uCCB4\uB825 +{0}"
+  - <Key>k__BackingField: Stat_Dodge
+    <Value>k__BackingField: "\uB300\uC2DC \uCFE8\uD0C0\uC784 -{0}"
+  - <Key>k__BackingField: Stat_Defense
+    <Value>k__BackingField: "\uBC1B\uB294 \uD53C\uD574 -{0}"
+  - <Key>k__BackingField: Stat_AttackSpeed
+    <Value>k__BackingField: "\uACF5\uACA9 \uC18D\uB3C4 +{0}"
+  - <Key>k__BackingField: Stat_MoveSpeed
+    <Value>k__BackingField: "\uC774\uB3D9 \uC18D\uB3C4 +{0}"
+  - <Key>k__BackingField: Stat_PartDamage
+    <Value>k__BackingField: "\uBC84\uC12F \uBD80\uC704 \uD53C\uD574 +{0}"
+  - <Key>k__BackingField: Stat_DashDistance
+    <Value>k__BackingField: "\uB300\uC2DC \uAC70\uB9AC +{0}"
+  - <Key>k__BackingField: Stat_BreakResist
+    <Value>k__BackingField: "\uACBD\uC9C1 \uC800\uD56D +{0}"

@@ -28,13 +28,13 @@ public readonly struct HitParams
     public readonly float Break; // 경직 가중치(AttackSpec.Break)
     public readonly float Shake; // 카메라 흔들림 세기(AttackSpec.Shake)
     
-    // 공격 수치는 AttackSpec에서, 피해는 때린 쪽 강화(UnitController.Stat)까지 반영해 채운다. AttackSpec 없는 피해(함정 등)가 생기면 생성자를 따로 둔다
+    // 공격 수치는 AttackSpec에서, 피해는 때린 쪽 능력치까지 DamageCalculator로 채운다. AttackSpec 없는 피해(함정 등)가 생기면 생성자를 따로 둔다
     public HitParams(UnitController attacker, ETeam team, AttackSpec spec, Vector3 direction, Vector3 point, int partIndex = -1)
     {
         Attacker = attacker;
         Team = team;
-        Damage = attacker.Stat.GetDamage(spec);
-        PartDamage = attacker.Stat.GetPartDamage(Damage);
+        Damage = DamageCalculator.GetDamage(attacker, spec);
+        PartDamage = DamageCalculator.GetPartDamage(attacker, Damage);
 
         Direction = direction;
         Knockback = spec.Knockback;

@@ -13,16 +13,17 @@ using UnityEngine;
 
 public class UnitController : PoolableMono
 {
-    public int UnitID { get; private set; }    // UnitService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
-
     [SerializeField] private UnitProperty m_Property = null;    // 프리팹 참조(몸·애니·렌더러·부위 뼈·소켓)
 
     // core
     private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
     public BrainBase BrainBase { get; private set; }            // 판단(플레이어 입력·AI)
     public UnitExecutor UnitExecutor { get; private set; }      // 실행기(이동·공격·대시·피격·사망). 판단 쪽은 여기에 요청만 한다
+    public int UnitID { get; private set; }                     // UnitService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
+    public UnitDef Def { get; private set; }                    // 수치 데이터(PlayerDef·MonsterDef). OnSpawn에서 받는다
 
     // feature
+    public StatFeature StatF { get; private set; }    // 능력치(출처별 수정치). 다른 부품이 생성자에서 구독하므로 맨 먼저 만든다
     public HealthFeature HealthF { get; private set; }
     public MoveFeature MoveF { get; private set; }
     public AnimFeature AnimF { get; private set; }
@@ -30,8 +31,6 @@ public class UnitController : PoolableMono
     public PartFeature PartF { get; private set; }    // 버섯 부위. 없으면 null(SetPartFeature로 붙인다)
 
     // get
-    public UnitDef Def { get; private set; }    // 수치 데이터(PlayerDef·MonsterDef). OnSpawn에서 받는다
-    public UnitStat Stat { get; } = new();      // 강화 보정값. 몬스터는 비어 있고, 플레이어는 스폰 뒤 BattleService가 채워 RefreshStat을 부른다
     public ETeam Team => Def.Team;
     public bool IsDead => HealthF.IsDead;   // 사망 여부는 밖에서 여기로만 본다
     public UnitProperty Property => m_Property;
@@ -50,6 +49,7 @@ public class UnitController : PoolableMono
             return;
         }
 
+        StatF = AddFeature(new StatFeature(this));
         MoveF = AddFeature(new MoveFeature(this, m_Property.CharacterController, Def.TurnSpeed));
         AnimF = AddFeature(new AnimFeature(this, m_Property.Animator));
         HealthF = AddFeature(new HealthFeature(this, Def.MaxHp));
@@ -110,6 +110,7 @@ public class UnitController : PoolableMono
             HealthF.Died -= OnDied;
 
         m_ListFeature.Clear();
+        StatF = null;
         HealthF = null;
         MoveF = null;
         AnimF = null;
@@ -142,8 +143,7 @@ public class UnitController : PoolableMono
         }
 
         UnitID = unitID;
-        Stat.Clear();
-        
+
         foreach (var feature in m_ListFeature)
         {
             feature.Reset();
@@ -180,12 +180,6 @@ public class UnitController : PoolableMono
     {
         UnitExecutor.RequestDead();
         BrainBase.OnDied();
-    }
-
-    // Stat을 채운 뒤 부른다. 최대 체력이 바뀌었으니 체력을 가득 채운다
-    public void RefreshStat()
-    {
-        HealthF.Reset();
     }
 
     // 체력을 채우고 사망에서 일으킨다. 잠깐 무적을 줘서 일어나자마자 맞지 않게 한다

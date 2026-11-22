@@ -20,13 +20,13 @@ public static class GearDefSetup
     private static readonly string[] s_Roman = { "I", "II", "III", "IV", "V" };
 
     // 줄: 열, 능력치, 키, 이름, 노드 하나 값
-    private static readonly (int Column, EGearStat Stat, string Key, string Name, float Value)[] s_Lines =
+    private static readonly (int Column, EStatType Stat, string Key, string Name, float Value)[] s_Lines =
     {
-        (0, EGearStat.Attack, "Attack", "공격력", 0.10f),
-        (2, EGearStat.AttackSpeed, "AttackSpeed", "공격 속도", 0.06f),
-        (4, EGearStat.Dodge, "Dodge", "회피", 0.12f),
-        (6, EGearStat.Defense, "Defense", "방어", 0.06f),
-        (8, EGearStat.MaxHp, "MaxHp", "최대 체력", 0.20f),
+        (0, EStatType.Attack, "Attack", "공격력", 0.10f),
+        (2, EStatType.AttackSpeed, "AttackSpeed", "공격 속도", 0.06f),
+        (4, EStatType.Dodge, "Dodge", "회피", 0.12f),
+        (6, EStatType.Defense, "Defense", "방어", 0.06f),
+        (8, EStatType.MaxHp, "MaxHp", "최대 체력", 0.20f),
     };
 
     // 스페셜 노드
@@ -37,8 +37,7 @@ public static class GearDefSetup
         public string Desc;
         public Vector2 Slot;
         public int Cost;
-        public EGearStat Stat;
-        public float StatValue;
+        public StatModifier Modifier;
         public EGearSpecial Special;
         public float Value;
         public float Value2;
@@ -51,7 +50,7 @@ public static class GearDefSetup
     {
         // 연계 노드(이웃한 두 줄)
         new() { Key = "PartHunter", Name = "버섯 사냥꾼", Desc = "버섯 부위를 더 잘 깬다.", Slot = new Vector2(1, 1.5f), Cost = 300,
-            Stat = EGearStat.PartDamage, StatValue = 0.25f, Requires = new[] { ("Attack", 2), ("AttackSpeed", 2) } },
+            Modifier = Rate(EStatType.PartDamage, 0.25f), Requires = new[] { ("Attack", 2), ("AttackSpeed", 2) } },
         new() { Key = "RunSlash", Name = "질주 베기", Desc = "달리다 베기 피해 x1.5", Slot = new Vector2(3, 2.5f), Cost = 600,
             Special = EGearSpecial.SkillBoost, Value = 1.5f, Value2 = 1f, SkillID = "Player_Attack_06", Requires = new[] { ("AttackSpeed", 3), ("Dodge", 3) } },
         new() { Key = "Insurance", Name = "상해보험", Desc = "맞으면 골드 5~10을 받는다.", Slot = new Vector2(5, 0.5f), Cost = 300,
@@ -63,25 +62,25 @@ public static class GearDefSetup
         new() { Key = "Barbarian", Name = "바바리안", Desc = "막타 내려찍기 피해 x1.5, 범위 x1.3", Slot = new Vector2(0, 5), Cost = 1500,
             Special = EGearSpecial.SkillBoost, Value = 1.5f, Value2 = 1.3f, SkillID = "Player_Attack_05", Requires = new[] { ("Attack", 5) } },
         new() { Key = "SwiftFeet", Name = "탁월한 속도", Desc = "이동 속도가 한 단계 빨라진다.", Slot = new Vector2(2, 5), Cost = 1500,
-            Stat = EGearStat.MoveSpeed, StatValue = 0.15f, Requires = new[] { ("AttackSpeed", 5) } },
+            Modifier = Rate(EStatType.MoveSpeed, 0.15f), Requires = new[] { ("AttackSpeed", 5) } },
         new() { Key = "Gale", Name = "질풍", Desc = "대시로 더 멀리 간다.", Slot = new Vector2(4, 5), Cost = 1500,
-            Stat = EGearStat.DashDistance, StatValue = 0.3f, Requires = new[] { ("Dodge", 5) } },
+            Modifier = Rate(EStatType.DashDistance, 0.3f), Requires = new[] { ("Dodge", 5) } },
         new() { Key = "IronCap", Name = "강철 갓", Desc = "약한 공격에는 움찔하지 않는다.", Slot = new Vector2(6, 5), Cost = 1500,
-            Stat = EGearStat.BreakResist, StatValue = 1f, Requires = new[] { ("Defense", 5) } },
+            Modifier = new StatModifier(EStatType.BreakResist, EStatModType.Add, 1f), Requires = new[] { ("Defense", 5) } },
         new() { Key = "SporeRegen", Name = "포자 재생", Desc = "버섯을 주울 때 체력 3 회복", Slot = new Vector2(8, 5), Cost = 1500,
             Special = EGearSpecial.SporeRegen, Value = 3f, Requires = new[] { ("MaxHp", 5) } },
     };
 
     // 엠블렘: 필요 노드 수, 이름, 보너스(누적). 그림은 리소스 작업 후 Icon에 직접 넣는다
-    private static readonly (int Need, string Name, (EGearStat Stat, float Value)[] Bonus)[] s_Emblems =
+    private static readonly (int Need, string Name, StatModifier[] Bonus)[] s_Emblems =
     {
-        (0, "새싹 채집꾼", new (EGearStat, float)[0]),
-        (8, "숲의 채집꾼", new[] { (EGearStat.MaxHp, 0.05f) }),
-        (16, "밤의 사냥꾼", new[] { (EGearStat.Attack, 0.05f) }),
-        (24, "포자 수호자", new[] { (EGearStat.Defense, 0.05f) }),
+        (0, "새싹 채집꾼", new StatModifier[0]),
+        (8, "숲의 채집꾼", new[] { Rate(EStatType.MaxHp, 0.05f) }),
+        (16, "밤의 사냥꾼", new[] { Rate(EStatType.Attack, 0.05f) }),
+        (24, "포자 수호자", new[] { Rate(EStatType.Defense, 0.05f) }),
         (34, "버섯왕", new[]
         {
-            (EGearStat.Attack, 0.05f), (EGearStat.MaxHp, 0.05f), (EGearStat.Dodge, 0.05f), (EGearStat.Defense, 0.05f), (EGearStat.AttackSpeed, 0.05f),
+            Rate(EStatType.Attack, 0.05f), Rate(EStatType.MaxHp, 0.05f), Rate(EStatType.Dodge, 0.05f), Rate(EStatType.Defense, 0.05f), Rate(EStatType.AttackSpeed, 0.05f),
         }),
     };
 
@@ -107,7 +106,7 @@ public static class GearDefSetup
                 if (isNew)
                 {
                     node.EditorSetIdentity(id, $"{line.Name} {s_Roman[level - 1]}");
-                    node.EditorSetup(line.Stat, line.Value, EGearSpecial.None, 0f, 0f, Vector2Int.zero, null, s_LineCost[level - 1], new Vector2(line.Column, level - 1));
+                    node.EditorSetup(new List<StatModifier> { Rate(line.Stat, line.Value) }, EGearSpecial.None, 0f, 0f, Vector2Int.zero, null, s_LineCost[level - 1], new Vector2(line.Column, level - 1));
                     dicRequire[node] = new List<GearNodeDef>();
                     if (level > 1)
                         dicRequire[node].Add(dicNode[LineKey(line.Key, level - 1)]);
@@ -137,7 +136,7 @@ public static class GearDefSetup
             }
 
             node.EditorSetIdentity(id, row.Name, row.Desc);
-            node.EditorSetup(row.Stat, row.StatValue, row.Special, row.Value, row.Value2, row.Range, skill, row.Cost, row.Slot);
+            node.EditorSetup(row.Modifier != null ? new List<StatModifier> { row.Modifier } : new List<StatModifier>(), row.Special, row.Value, row.Value2, row.Range, skill, row.Cost, row.Slot);
             dicRequire[node] = row.Requires.Select(require => dicNode[LineKey(require.LineKey, require.Level)]).ToList();
         }
 
@@ -158,7 +157,7 @@ public static class GearDefSetup
                 continue;
 
             emblem.EditorSetIdentity(id, row.Name);
-            emblem.EditorSetup(row.Need, row.Bonus.Select(bonus => new EmblemDef.Bonus(bonus.Stat, bonus.Value)).ToList());
+            emblem.EditorSetup(row.Need, row.Bonus.ToList());
             EditorUtility.SetDirty(emblem);
         }
 
@@ -184,4 +183,6 @@ public static class GearDefSetup
         created++;
         return def;
     }
+
+    private static StatModifier Rate(EStatType stat, float value) => new(stat, EStatModType.Rate, value);
 }

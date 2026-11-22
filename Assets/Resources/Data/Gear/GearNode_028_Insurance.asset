@@ -16,8 +16,7 @@ MonoBehaviour:
   <ID>k__BackingField: GearNode_028_Insurance
   <Description>k__BackingField: "\uB9DE\uC73C\uBA74 \uACE8\uB4DC 5~10\uC744 \uBC1B\uB294\uB2E4."
   <Icon>k__BackingField: {fileID: 0}
-  <Stat>k__BackingField: 0
-  <StatValue>k__BackingField: 0
+  m_ListModifier: []
   <Special>k__BackingField: 1
   <SpecialValue>k__BackingField: 0
   <SpecialValue2>k__BackingField: 0

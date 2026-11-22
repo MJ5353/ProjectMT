@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,33 +8,20 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "MushTaker/Data/Emblem", fileName = "Emblem_")]
 public class EmblemDef : DataDef
 {
-    [Serializable]
-    public class Bonus
-    {
-        [field: SerializeField] public EGearStat Stat { get; private set; } = EGearStat.None;
-        [field: SerializeField] public float Value { get; private set; } = 0f; // 0.05 = 5%
-
-        public Bonus(EGearStat stat, float value)
-        {
-            Stat = stat;
-            Value = value;
-        }
-    }
-
     [field: SerializeField]
     public int NeedCount { get; private set; } = 0;                 // 이 단계에 필요한 연 노드 수
 
-    [SerializeField] private List<Bonus> m_ListBonus = new();
+    [SerializeField] private List<StatModifier> m_ListModifier = new(); // 이 단계 보너스. 이 단계 이상이면 플레이어 능력치에 출처로 들어간다
 
-    public IReadOnlyList<Bonus> ListBonus => m_ListBonus;
+    public IReadOnlyList<StatModifier> ListModifier => m_ListModifier;
 
     // ------------------------------------------------
 
 #if UNITY_EDITOR
-    public void EditorSetup(int needCount, List<Bonus> listBonus)
+    public void EditorSetup(int needCount, List<StatModifier> listModifier)
     {
         NeedCount = needCount;
-        m_ListBonus = listBonus;
+        m_ListModifier = listModifier;
     }
 #endif
 }

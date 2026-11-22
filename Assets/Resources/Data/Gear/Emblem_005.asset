@@ -17,15 +17,19 @@ MonoBehaviour:
   <Description>k__BackingField: 
   <Icon>k__BackingField: {fileID: 21300000, guid: abf288d583a443f6914adbcc748071d3, type: 3}
   <NeedCount>k__BackingField: 34
-  <Tint>k__BackingField: {r: 0.95, g: 0.76, b: 0.31, a: 1}
-  m_ListBonus:
+  m_ListModifier:
   - <Stat>k__BackingField: 1
+    <Type>k__BackingField: 0
     <Value>k__BackingField: 0.05
   - <Stat>k__BackingField: 2
+    <Type>k__BackingField: 0
     <Value>k__BackingField: 0.05
   - <Stat>k__BackingField: 3
+    <Type>k__BackingField: 0
     <Value>k__BackingField: 0.05
   - <Stat>k__BackingField: 4
+    <Type>k__BackingField: 0
     <Value>k__BackingField: 0.05
   - <Stat>k__BackingField: 5
+    <Type>k__BackingField: 0
     <Value>k__BackingField: 0.05

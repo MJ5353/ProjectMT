@@ -249,9 +249,8 @@ public sealed class BattleService : ServiceBase
         if (m_Player == null)
             return;
 
-        // 정비 강화를 보정값으로 넣고 늘어난 체력을 채운다
-        PlayerDataManager.Instance.Gear.FillStat(m_Player.Stat);
-        m_Player.RefreshStat();
+        // 정비 강화를 능력치 출처로 넣는다. 늘어난 최대 체력만큼 체력도 찬다(HealthFeature가 StatFeature.Changed로)
+        PlayerDataManager.Instance.Gear.ApplyStat(m_Player.StatF);
     }
 
     // 슬롯 번호(1부터) → 맵 지점
@@ -329,14 +328,14 @@ public sealed class BattleService : ServiceBase
         SEventManager.Publish(new LootChanged());
 
         // 포자 재생(정비 스페셜): 주울 때 체력 회복
-        if (m_Player != null && m_Player.Stat.PickupHeal > 0)
-            m_Player.HealthF.Heal(m_Player.Stat.PickupHeal * evt.Amount);
+        if (m_Player != null && m_Player.StatF.PickupHeal > 0)
+            m_Player.HealthF.Heal(m_Player.StatF.PickupHeal * evt.Amount);
     }
 
     // 상해보험(정비 스페셜): 맞으면 골드를 바로 넣는다. 귀가해도 남는다
     private void OnPlayerHit(HitParams hit, bool isFlinch)
     {
-        Vector2Int range = m_Player.Stat.InsuranceGold;
+        Vector2Int range = m_Player.StatF.InsuranceGold;
         if (range.y <= 0)
             return;
 

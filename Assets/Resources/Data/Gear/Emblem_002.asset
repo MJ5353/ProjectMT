@@ -17,7 +17,7 @@ MonoBehaviour:
   <Description>k__BackingField: 
   <Icon>k__BackingField: {fileID: 21300000, guid: ba40e4a826fc4761978d1f091e0fb251, type: 3}
   <NeedCount>k__BackingField: 8
-  <Tint>k__BackingField: {r: 0.48, g: 0.79, b: 0.31, a: 1}
-  m_ListBonus:
+  m_ListModifier:
   - <Stat>k__BackingField: 2
+    <Type>k__BackingField: 0
     <Value>k__BackingField: 0.05

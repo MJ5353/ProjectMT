@@ -17,8 +17,7 @@ MonoBehaviour:
   <Description>k__BackingField: "\uBC84\uC12F\uC744 \uC8FC\uC6B8 \uB54C \uCCB4\uB825
     3 \uD68C\uBCF5"
   <Icon>k__BackingField: {fileID: 0}
-  <Stat>k__BackingField: 0
-  <StatValue>k__BackingField: 0
+  m_ListModifier: []
   <Special>k__BackingField: 4
   <SpecialValue>k__BackingField: 3
   <SpecialValue2>k__BackingField: 0

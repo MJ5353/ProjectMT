@@ -48,15 +48,17 @@ public enum EStringKey
     Lobby_Gear_Locked,
     Lobby_Gear_NotEnoughGold,
     Lobby_Gear_EquipComingSoon,
-    Lobby_Gear_Stat_Attack,         // {0} %
-    Lobby_Gear_Stat_MaxHp,          // {0} %
-    Lobby_Gear_Stat_Dodge,          // {0} %
-    Lobby_Gear_Stat_Defense,        // {0} %
-    Lobby_Gear_Stat_AttackSpeed,    // {0} %
-    Lobby_Gear_Stat_MoveSpeed,      // {0} %
-    Lobby_Gear_Stat_PartDamage,     // {0} %
-    Lobby_Gear_Stat_DashDistance,   // {0} %
-    Lobby_Gear_Stat_BreakResist,    // {0} 경직 수치
+
+    // stat (StatModifier.ToText). 이름은 Stat_ + EStatType 이름이어야 한다. {0}은 값(10% 또는 수치)
+    Stat_Attack,
+    Stat_MaxHp,
+    Stat_Dodge,
+    Stat_Defense,
+    Stat_AttackSpeed,
+    Stat_MoveSpeed,
+    Stat_PartDamage,
+    Stat_DashDistance,
+    Stat_BreakResist,
 
     // battle
     Battle_Exit,

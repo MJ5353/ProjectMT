@@ -16,8 +16,7 @@ MonoBehaviour:
   <ID>k__BackingField: GearNode_027_RunSlash
   <Description>k__BackingField: "\uB2EC\uB9AC\uB2E4 \uBCA0\uAE30 \uD53C\uD574 x1.5"
   <Icon>k__BackingField: {fileID: 0}
-  <Stat>k__BackingField: 0
-  <StatValue>k__BackingField: 0
+  m_ListModifier: []
   <Special>k__BackingField: 2
   <SpecialValue>k__BackingField: 1.5
   <SpecialValue2>k__BackingField: 1

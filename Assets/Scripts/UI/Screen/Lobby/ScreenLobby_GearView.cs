@@ -38,7 +38,7 @@ public class ScreenLobby_GearView : UITabView
 
     private readonly List<ScreenLobby_GearView_Node> m_ListNode = new();
     private readonly List<(Image Line, GearNodeDef From, GearNodeDef To)> m_ListLine = new();
-    private readonly Dictionary<EGearStat, float> m_DicBonus = new(); // 엠블렘 보너스 합산용
+    private readonly List<StatModifier> m_ListBonus = new(); // 엠블렘 보너스 합산용
     private readonly StringBuilder m_Builder = new();
 
     private ScreenLobby_GearView_Node m_Selected;
@@ -207,16 +207,10 @@ public class ScreenLobby_GearView : UITabView
         
         m_EmblemProgress.E_SetText(m_Builder.ToString());
 
-        gear.CollectEmblemBonus(m_DicBonus); // 지난 단계까지 능력치별 합
+        gear.CollectEmblemBonus(m_ListBonus); // 지난 단계까지 능력치별 합
 
         m_Builder.Clear();
-        foreach (var pair in m_DicBonus)
-        {
-            if (m_Builder.Length > 0)
-                m_Builder.Append('\n');
-
-            m_Builder.Append(GetStatText(pair.Key, pair.Value));
-        }
+        AppendModifiers(m_ListBonus);
 
         m_EmblemBonus.E_SetText(m_Builder.Length > 0 ? m_Builder.ToString() : StringDef.S_Get(EStringKey.Lobby_Gear_NoBonus));
     }
@@ -239,8 +233,7 @@ public class ScreenLobby_GearView : UITabView
         m_Builder.Clear();
         
         // 효과: 능력치 줄 + 스페셜 설명(DataDef.Description)
-        if (node.Stat != EGearStat.None)
-            m_Builder.Append(GetStatText(node.Stat, node.StatValue));
+        AppendModifiers(node.ListModifier);
 
         if (node.Description.E_IsNullOrEmpty() == false)
         {
@@ -307,32 +300,15 @@ public class ScreenLobby_GearView : UITabView
         }
     }
 
-    // 능력치 한 줄. 값은 비율이라 %로, 경직 저항만 수치로
-    private static string GetStatText(EGearStat stat, float value)
+    // 능력치 줄(한 줄에 하나). 글은 StatModifier.ToText(Stat_ 문구 키)
+    private void AppendModifiers(IReadOnlyList<StatModifier> listModifier)
     {
-        int percent = Mathf.RoundToInt(value * 100f);
-        switch (stat)
+        foreach (StatModifier modifier in listModifier)
         {
-            case EGearStat.Attack:
-                return StringDef.S_Format(EStringKey.Lobby_Gear_Stat_Attack, percent);
-            case EGearStat.MaxHp:
-                return StringDef.S_Format(EStringKey.Lobby_Gear_Stat_MaxHp, percent);
-            case EGearStat.Dodge:
-                return StringDef.S_Format(EStringKey.Lobby_Gear_Stat_Dodge, percent);
-            case EGearStat.Defense:
-                return StringDef.S_Format(EStringKey.Lobby_Gear_Stat_Defense, percent);
-            case EGearStat.AttackSpeed:
-                return StringDef.S_Format(EStringKey.Lobby_Gear_Stat_AttackSpeed, percent);
-            case EGearStat.MoveSpeed:
-                return StringDef.S_Format(EStringKey.Lobby_Gear_Stat_MoveSpeed, percent);
-            case EGearStat.PartDamage:
-                return StringDef.S_Format(EStringKey.Lobby_Gear_Stat_PartDamage, percent);
-            case EGearStat.DashDistance:
-                return StringDef.S_Format(EStringKey.Lobby_Gear_Stat_DashDistance, percent);
-            case EGearStat.BreakResist:
-                return StringDef.S_Format(EStringKey.Lobby_Gear_Stat_BreakResist, value);
-            default:
-                return string.Empty;
+            if (m_Builder.Length > 0)
+                m_Builder.Append('\n');
+
+            m_Builder.Append(modifier.ToText());
         }
     }
 }
