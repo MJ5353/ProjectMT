@@ -10,7 +10,8 @@ public enum EGameState
     None,
     Lobby,
     Battle,
-    Result
+    Result,
+    Title
 }
 
 // ==================================================
@@ -20,7 +21,8 @@ public class GameManager : MonoSingleton<GameManager>
 {
     private static readonly Dictionary<EGameState, EGameState[]> s_DicAllowedTransition = new()
     {
-        { EGameState.None, new[] { EGameState.Lobby, EGameState.Battle } },
+        { EGameState.None, new[] { EGameState.Title, EGameState.Lobby, EGameState.Battle } },
+        { EGameState.Title, new[] { EGameState.Lobby } },
         { EGameState.Lobby, new[] { EGameState.Battle } },
         { EGameState.Battle, new[] { EGameState.Result, EGameState.Lobby } },
         { EGameState.Result, new[] { EGameState.Lobby, EGameState.Battle } },
@@ -28,6 +30,7 @@ public class GameManager : MonoSingleton<GameManager>
 
     private readonly List<ServiceBase> m_ListService = new();
     private Scene m_ServiceScene;
+    private ScreenLoading m_Loading; // 첫 씬 전환 때 만들고, 전환 동안만 켠다. 원본이 없으면 null(로딩 화면 없이 넘어간다)
 
     public GameDatabase Database { get; private set; }
     public DefineDef Define { get; private set; } // 전역 조절값. 에셋이 없으면 코드 기본값으로 만든다
@@ -44,7 +47,8 @@ public class GameManager : MonoSingleton<GameManager>
 
     // ------------------------------------------------
 
-    // 씬 전용 Service는 씬 컨트롤러가 정하고(RegisterServices), 공용(UI 요소·팝업)은 여기서 넣는다.
+    // 씬 전용 Service는 씬 컨트롤러가 정하고(RegisterServices), 공용(이펙트·UI 요소·팝업)은 여기서 넣는다.
+    // !!) EffectService는 맨 먼저 넣는다. 전투 Service가 Init에서 이펙트를 부를 수 있다
     // !!) UIReuseService를 PopupService보다 먼저 넣는다. 씬 전환 때 팝업 안 칸을 먼저 회수해야 팝업과 함께 지워지지 않는다
     internal void InitSceneServices(Scene scene, SceneControllerBase sceneController)
     {
@@ -54,10 +58,11 @@ public class GameManager : MonoSingleton<GameManager>
         ClearSceneServices(m_ServiceScene);
         m_ServiceScene = scene;
 
+        EffectS = Register(new EffectService(sceneController.UseClickBurst));
         sceneController.RegisterServices(this);
         UIReuseS = Register(new UIReuseService());
         PopupS = Register(new PopupService());
-        
+
         foreach (ServiceBase service in m_ListService)
         {
             service.Init();
@@ -71,7 +76,6 @@ public class GameManager : MonoSingleton<GameManager>
     public void RegisterBattleServices(MapDef mapDef)
     {
         UnitS = Register(new UnitService());
-        EffectS = Register(new EffectService());
         HitStopS = Register(new HitStopService());
         BattleS = Register(new BattleService(mapDef));
     }
@@ -110,7 +114,7 @@ public class GameManager : MonoSingleton<GameManager>
         HitStopS = null;
         UIReuseS = null;
         PopupS = null;
-        
+
         m_ServiceScene = default;
     }
 
@@ -120,6 +124,8 @@ public class GameManager : MonoSingleton<GameManager>
     {
         switch (state)
         {
+            case EGameState.Title:
+                return SceneNames.Title;
             case EGameState.Lobby:
                 return SceneNames.Lobby;
             case EGameState.Battle:
@@ -185,7 +191,13 @@ public class GameManager : MonoSingleton<GameManager>
             {
                 Scene previousScene = SceneManager.GetActiveScene();
                 SEventManager.Publish(new SceneUnloading()); // 씬 오브젝트가 살아 있을 때 UI 칸을 풀로 돌려보낸다
-                yield return SceneLoader.Load(sceneName);
+                // !!) OnInit에서 만들면 아직 Instance 등록 전이라 문구(UILabel → StringDef)가 DB를 못 찾는다. 첫 전환 때 만든다
+                if (m_Loading == null)
+                    m_Loading = ResourceManager.Instance.Create(ResourceManager.Instance.Load<ScreenLoading>(CommonPath.ScreenLoading, "MushTaker/UI/모든 UI 다시 만들기를 실행하세요."), transform);
+
+                m_Loading.E_SetActive(true);
+                System.Action<float> onProgress = m_Loading != null ? m_Loading.SetProgress : null;
+                yield return SceneLoader.Load(sceneName, Define.MinLoadingTime, onProgress);
 
                 Scene loadedScene = SceneManager.GetActiveScene();
                 if (loadedScene == previousScene || loadedScene.name != sceneName)
@@ -196,6 +208,7 @@ public class GameManager : MonoSingleton<GameManager>
         }
         finally
         {
+            m_Loading.E_SetActive(false);
             IsTransitioning = false;
         }
 

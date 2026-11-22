@@ -16,7 +16,7 @@ MonoBehaviour:
   <ID>k__BackingField: Monster_013_Saurus
   <Description>k__BackingField: 
   <Icon>k__BackingField: {fileID: 0}
-  <MaxHp>k__BackingField: 24
+  <MaxHp>k__BackingField: 74
   <HitStunTime>k__BackingField: 0.2
   <BreakImmune>k__BackingField: 1
   <TurnSpeed>k__BackingField: 900

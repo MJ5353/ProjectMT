@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 개발용 치트 패널(IMGUI). 오른쪽 위 DBG 버튼으로 연다. 릴리스 빌드에는 들어가지 않는다.
-// 흐름 이동, 몬스터 소환, 시장(버섯 줍기·시간·상인·신뢰도), 데이터베이스 아이템 지급, 세이브 저장·삭제를 한 곳에서 한다
+// 흐름 이동, 몬스터 소환, 시장(버섯 줍기·시간·상인·신뢰도), 정비(초기화·골드), 데이터베이스 아이템 지급, 세이브 저장·삭제를 한 곳에서 한다
 public class DebugPanel : MonoBehaviour
 {
     private const float RefHeight = 960f;
@@ -11,6 +11,7 @@ public class DebugPanel : MonoBehaviour
     private const float SpawnGap = 2f; // 플레이어 캡슐과 소환 몬스터 캡슐 사이 거리(m)
     private const int DebugLootCount = 5; // 시장 시험용으로 한 번에 줍는 버섯 수
     private const int DebugTrustStep = 10;
+    private static readonly int[] s_DebugGoldSteps = { 1000, 10000 }; // 정비 시험용 골드
 
     private static readonly EGameState[] s_MoveStates = { EGameState.Lobby, EGameState.Battle, EGameState.Result };
 
@@ -44,6 +45,9 @@ public class DebugPanel : MonoBehaviour
         GUILayout.Space(8);
         
         DrawMarket(gameM);
+        GUILayout.Space(8);
+
+        DrawGear();
         GUILayout.Space(8);
         
         DrawItems(gameM);
@@ -156,6 +160,30 @@ public class DebugPanel : MonoBehaviour
 
         if (GUILayout.Button("신뢰도 모두 0"))
             market.DebugResetTrust();
+    }
+
+    // 정비 시험용. 초기화는 연 노드만 지운다(낸 골드는 돌려주지 않는다)
+    private void DrawGear()
+    {
+        PlayerDataManager playerDataM = PlayerDataManager.Instance;
+        GearData gear = playerDataM.Gear;
+
+        GUILayout.Label($"정비 {gear.OpenedCount}/{gear.TotalCount}, 골드 {playerDataM.Inventory.GetCount(CurrencyDef.GoldID)}");
+        GUILayout.BeginHorizontal();
+
+        foreach (int gold in s_DebugGoldSteps)
+        {
+            if (GUILayout.Button($"골드 +{gold}"))
+                playerDataM.Inventory.Add(CurrencyDef.GoldID, gold);
+        }
+
+        if (GUILayout.Button("정비 초기화"))
+        {
+            gear.DebugReset();
+            playerDataM.RunSave();
+        }
+
+        GUILayout.EndHorizontal();
     }
 
     // 실제로 주운 것처럼 LootPicked를 보낸다(희귀도는 지금 지역 가중치)

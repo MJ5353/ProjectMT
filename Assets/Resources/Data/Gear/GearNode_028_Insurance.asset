@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbdb4405bed4eb944858644a55c54a27, type: 3}
+  m_Name: GearNode_028_Insurance
+  m_EditorClassIdentifier: Assembly-CSharp::GearNodeDef
+  m_DisplayName: "\uC0C1\uD574\uBCF4\uD5D8"
+  <ID>k__BackingField: GearNode_028_Insurance
+  <Description>k__BackingField: "\uB9DE\uC73C\uBA74 \uACE8\uB4DC \uB3D9\uC804 5~10\uAC1C\uB97C \uB5A8\uAD70\uB2E4."
+  <Icon>k__BackingField: {fileID: 0}
+  m_ListModifier: []
+  <Passive>k__BackingField: {fileID: 11400000, guid: 74ebb3cbbab44e26b3dfe1f7b3b2d376, type: 2}
+  <Cost>k__BackingField: 300
+  m_ListRequire:
+  - {fileID: 11400000, guid: 036ac6e2bc565f643bbce9303426aa99, type: 2}
+  - {fileID: 11400000, guid: 903684a16da631f4fb81c09797776cbb, type: 2}
+  <Slot>k__BackingField: {x: 5, y: 0.5}

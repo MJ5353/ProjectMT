@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ccae28a467c6432bb64366f4bc59bb1b, type: 3}
+  m_Name: Passive_004_Barbarian
+  m_EditorClassIdentifier: Assembly-CSharp::PassiveDef
+  m_DisplayName: "\uBC14\uBC14\uB9AC\uC548"
+  <ID>k__BackingField: Passive_004_Barbarian
+  <Description>k__BackingField: "\uB9C9\uD0C0 \uB0B4\uB824\uCC0D\uAE30 \uD53C\uD574
+    x1.5, \uBC94\uC704 x1.3"
+  <Icon>k__BackingField: {fileID: 0}
+  m_ListRule:
+  - <Trigger>k__BackingField: 0
+    m_ListCondition:
+    - rid: 1000
+    m_ListEffect:
+    - rid: 1001
+  references:
+    version: 2
+    RefIds:
+    - rid: 1000
+      type: {class: PassiveCondition_Skill, ns: , asm: Assembly-CSharp}
+      data:
+        <Skill>k__BackingField: {fileID: 11400000, guid: edd3e605d75046e584006f2675a5d75a, type: 2}
+    - rid: 1001
+      type: {class: PassiveEffect_Stat, ns: , asm: Assembly-CSharp}
+      data:
+        m_ListModifier:
+        - <Stat>k__BackingField: 1
+          <Type>k__BackingField: 0
+          <Value>k__BackingField: 0.5
+        - <Stat>k__BackingField: 10
+          <Type>k__BackingField: 0
+          <Value>k__BackingField: 0.3

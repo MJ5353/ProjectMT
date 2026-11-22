@@ -56,7 +56,7 @@ public static class UISetup
         BuildAllPrefabs(true);
     }
 
-    // 순서가 중요하다: 공용 부품 → 로비 화면 → 시장(줄·팝업) → 전투(팝업·줄·화면). 뒤의 것이 앞의 프리팹을 품거나 참조한다
+    // 순서가 중요하다: 공용 부품 → 타이틀·로딩 화면 → 로비 화면 → 시장(줄·팝업) → 전투(팝업·줄·화면). 뒤의 것이 앞의 프리팹을 품거나 참조한다
     public static void BuildAllPrefabs(bool isOverwrite)
     {
         BuildPrefabs(GetPrefabs(), isOverwrite);
@@ -70,7 +70,9 @@ public static class UISetup
             (EditorPath.ButtonPrefab, () => UIBuilder.BuildButton(null).gameObject),
             (EditorPath.GaugePrefab, () => UIBuilder.BuildGauge(null).gameObject),
             (EditorPath.CommonSlotPrefab, () => UIBuilder.BuildCommonSlot(null).gameObject),
+            (EditorPath.CommonImagePrefab, () => UIBuilder.BuildCommonImage(null).gameObject),
         };
+        listPrefab.AddRange(TitleUISetup.Prefabs);
         listPrefab.AddRange(LobbyUISetup.Prefabs);
         listPrefab.AddRange(MarketUISetup.Prefabs);
         listPrefab.AddRange(BattleUISetup.Prefabs);

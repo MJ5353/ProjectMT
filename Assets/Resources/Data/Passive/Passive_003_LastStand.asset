@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ccae28a467c6432bb64366f4bc59bb1b, type: 3}
+  m_Name: Passive_003_LastStand
+  m_EditorClassIdentifier: Assembly-CSharp::PassiveDef
+  m_DisplayName: "\uB4E0\uB4E0\uD55C \uBFCC\uB9AC"
+  <ID>k__BackingField: Passive_003_LastStand
+  <Description>k__BackingField: "\uCCB4\uB825 30% \uC774\uD558\uC77C \uB54C \uBC1B\uB294
+    \uD53C\uD574 -30%"
+  <Icon>k__BackingField: {fileID: 0}
+  m_ListRule:
+  - <Trigger>k__BackingField: 1
+    m_ListCondition:
+    - rid: 1000
+    m_ListEffect:
+    - rid: 1001
+  references:
+    version: 2
+    RefIds:
+    - rid: 1000
+      type: {class: PassiveCondition_HpBelow, ns: , asm: Assembly-CSharp}
+      data:
+        <Ratio>k__BackingField: 0.3
+    - rid: 1001
+      type: {class: PassiveEffect_Stat, ns: , asm: Assembly-CSharp}
+      data:
+        m_ListModifier:
+        - <Stat>k__BackingField: 4
+          <Type>k__BackingField: 0
+          <Value>k__BackingField: 0.3

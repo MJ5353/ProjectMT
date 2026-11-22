@@ -10,6 +10,10 @@ public class DefineDef : DataDef
 {
     public const string DefineID = "Define";
 
+    // 씬 전환 ---
+    [field: SerializeField]
+    public float MinLoadingTime { get; private set; } = 1f;          // 씬 전환 때 로딩 화면(가짜 로딩)을 최소 이만큼(초) 보여 준다
+
     // 전투 진행 ---
     [field: SerializeField]
     public float RespawnBlockDistance { get; private set; } = 15f;  // 플레이어가 이보다 가까우면 리스폰을 미룬다(눈앞에 갑자기 생기지 않게)
@@ -123,6 +127,12 @@ public class DefineDef : DataDef
     public float MarketLowFreshRate { get; private set; } = 0.6f;   // [mj] todo) 가안. 덜 신선한 버섯 가격 배율
 
     [field: SerializeField]
+    public float MarketRareRate { get; private set; } = 2.5f;       // 희귀 버섯 가격 배율(일반 1)
+
+    [field: SerializeField]
+    public float MarketEpicRate { get; private set; } = 6f;         // 영웅 버섯 가격 배율(일반 1)
+
+    [field: SerializeField]
     public int TrustMax { get; private set; } = 100;                // 상인 신뢰도 상한
 
     [field: SerializeField]
@@ -133,4 +143,29 @@ public class DefineDef : DataDef
 
     [field: SerializeField]
     public float TrustVisitRate { get; private set; } = 0.02f;      // 신뢰도 1당 방문 가중치 가산(100이면 3배)
+
+    // 클릭 버섯 연출(타이틀·로딩·로비) ---
+    [field: SerializeField]
+    public Vector2Int ClickBurstCount { get; private set; } = new(3, 5);         // 한 번 누를 때 튀는 버섯 수(최소~최대)
+
+    [field: SerializeField]
+    public float ClickBurstTime { get; private set; } = 0.4f;                     // 튀어 퍼졌다 사라지기까지(초). 멈춘 시간에도 흐른다
+
+    [field: SerializeField]
+    public Vector2 ClickBurstSize { get; private set; } = new(24f, 40f);          // 버섯 크기(px, 최소~최대)
+
+    [field: SerializeField]
+    public Vector2 ClickBurstDistance { get; private set; } = new(50f, 100f);     // 퍼지는 거리(px, 최소~최대)
+
+    [field: SerializeField]
+    public float ClickBurstTilt { get; private set; } = 30f;                      // 처음 기울기(±도)
+
+    [field: SerializeField]
+    public float ClickBurstSpin { get; private set; } = 90f;                      // 사라질 때까지 더 도는 각도(±도)
+
+    [field: SerializeField]
+    public float ClickBurstEndScale { get; private set; } = 0.3f;                 // 끝날 때 크기 배율
+
+    [field: SerializeField]
+    public float ClickBurstFadeStart { get; private set; } = 0.5f;                // 이 진행도(0~1)부터 흐려진다
 }

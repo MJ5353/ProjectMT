@@ -10,21 +10,23 @@ using UnityEngine;
 
 public class PopupBase : MonoBehaviour
 {
-    [SerializeField] private CanvasGroup m_Group = null;      // 비어도 된다
-    [SerializeField] private RectTransform m_Window = null;   // 비어도 된다
-
     private const float OpenStartScale = 0.9f;
     private const float OpenTime = 0.25f;
     private const float CloseTime = 0.15f;
+
+    [SerializeField] private CanvasGroup m_Group = null;      // 비어도 된다
+    [SerializeField] private RectTransform m_Window = null;   // 비어도 된다
 
     private readonly UISequence m_OpenSequence = new();
     private readonly UISequence m_CloseSequence = new();
     
     private bool m_IsClosing;  // 닫는 연출 중
-    private bool m_IsFinished; // OnClose까지 끝나 꺼져 있다
+    private bool m_IsFinished = true; // OnClose까지 끝났다(아직 한 번도 안 열린 것도 포함). false면 OnOpen 뒤 OnClose가 남아 있다
 
     public virtual bool IsCloseOnBack => true;  // 뒤로 가기(Esc, 안드로이드 뒤로)로 닫을 수 있는지
     private bool HasTween => m_Group != null || m_Window != null;
+    protected bool IsOpening => m_OpenSequence.IsPlaying;      // 여는 연출(팝업별 연출 포함) 중
+    protected bool IsOpenWaiting => m_OpenSequence.IsWaiting;  // 여는 연출이 WaitUntil에서 기다리는 중
 
     // ------------------------------------------------
 
@@ -33,11 +35,16 @@ public class PopupBase : MonoBehaviour
     // 여는 연출(이어지는 팝업별 연출 포함)을 끝 모습으로 넘긴다
     public void SkipOpen() => m_OpenSequence.Skip();
 
-    // PopupService.Open만 부른다(켠 뒤). 다시 쓰는 경우 닫기 상태를 풀고, 자식 내용 채우기(OnOpen) 뒤 공용 여는 연출을 돌린다
+    // PopupService.Open만 부른다(켠 뒤). 다시 쓰는 경우 닫기 상태를 풀고, 자식 내용 채우기(OnOpen) 뒤 공용 여는 연출을 돌린다.
+    // !!) 열려 있거나 닫는 연출 중에 다시 열리면 앞의 OnClose(구독 해제 등)를 먼저 불러 OnOpen과 짝을 맞춘다
     public void Open()
     {
         m_OpenSequence.Stop();
         m_CloseSequence.Stop();
+
+        if (m_IsFinished == false)
+            OnClose();
+
         m_IsClosing = false;
         m_IsFinished = false;
         m_Group.E_SetBlocksRaycasts(true);
@@ -99,7 +106,7 @@ public class PopupBase : MonoBehaviour
         m_IsFinished = true;
         OnClose();
 
-        gameObject.E_SetActive(false);
+        gameObject.SetActive(false);
     }
 
     private void SetTween(float alpha, float scale)

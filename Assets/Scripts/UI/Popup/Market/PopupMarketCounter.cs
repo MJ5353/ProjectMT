@@ -22,7 +22,8 @@ public class PopupMarketCounter : PopupBase
     [SerializeField] private Button m_Minus1Button = null;
     [SerializeField] private Button m_Plus1Button = null;
     [SerializeField] private Button m_Plus10Button = null;
-    [SerializeField] private Button m_AllButton = null;
+    [SerializeField] private Button m_AllButton = null;   // 모두 넣기(가진 개수 전부)
+    [SerializeField] private Button m_ClearButton = null; // 모두 빼기(0개)
     [SerializeField] private Button m_CancelButton = null;
     [SerializeField] private Button m_ConfirmButton = null;
 
@@ -30,6 +31,7 @@ public class PopupMarketCounter : PopupBase
     private int m_Count;
     private int m_Price;
     private Action<int> m_OnConfirm;
+    private Action m_OnClosed; // 확인·취소·뒤로 가기 어느 쪽으로 닫혀도 부른다(여는 쪽이 참조를 비우게)
 
     // ------------------------------------------------
 
@@ -40,22 +42,34 @@ public class PopupMarketCounter : PopupBase
         m_Plus1Button.E_SetOnClick(() => AddCount(StepSmall));
         m_Plus10Button.E_SetOnClick(() => AddCount(StepLarge));
         m_AllButton.E_SetOnClick(() => SetCount(m_Have));
+        m_ClearButton.E_SetOnClick(() => SetCount(0));
         m_CancelButton.E_SetOnClick(Close);
         m_ConfirmButton.E_SetOnClick(OnClickConfirm);
     }
 
-    // price가 0 이하면 이 상인이 사지 않는 버섯이다
-    public void Setup(LootKey key, int have, int count, int price, Action<int> onConfirm)
+    // price가 0 이하면 이 상인이 사지 않는 버섯이다. onClosed는 어떻게 닫히든 닫힌 뒤 한 번 부른다
+    public void Setup(LootKey key, int have, int count, int price, Action<int> onConfirm, Action onClosed)
     {
         m_Have = Mathf.Max(0, have);
         m_Price = price;
         m_OnConfirm = onConfirm;
+        m_OnClosed = onClosed;
 
         GameDatabase.S_TryGet(key.ItemID, out MushroomDef def); // 없으면 def는 null
         m_NameText.E_SetText(def.E_Alive()?.DisplayName ?? key.ItemID);
         m_Slot.SetLoot(key, def, m_Have, string.Empty);
 
         SetCount(count);
+    }
+
+    // virtual ---
+
+    protected override void OnClose()
+    {
+        Action onClosed = m_OnClosed;
+        m_OnConfirm = null;
+        m_OnClosed = null;
+        onClosed?.Invoke();
     }
 
     // ---
@@ -69,9 +83,11 @@ public class PopupMarketCounter : PopupBase
     {
         m_Count = Mathf.Clamp(count, 0, m_Have);
 
-        m_CountText.E_SetText($"판매 {m_Count} / {m_Have}");
+        m_CountText.E_SetString(EStringKey.Market_Counter_CountFormat, m_Count, m_Have);
         m_ChangeText.E_SetText($"{m_Have}→{m_Have - m_Count}");
-        m_PriceText.E_SetText(m_Price > 0 ? $"한 개 {m_Price}G  ·  합계 {m_Price * m_Count:N0}G" : UIStyle.ColorTag(UIStyle.Negative, "이 상인은 사지 않는다"));
+        m_PriceText.E_SetText(m_Price > 0
+            ? StringDef.S_Format(EStringKey.Market_Counter_PriceFormat, m_Price, m_Price * m_Count)
+            : UIStyle.ColorTag(UIStyle.Negative, StringDef.S_Get(EStringKey.Market_Counter_NotBuying)));
 
         bool canMinus = m_Count > 0;
         bool canPlus = m_Count < m_Have;
@@ -80,6 +96,7 @@ public class PopupMarketCounter : PopupBase
         m_Plus1Button.E_SetInteractable(canPlus);
         m_Plus10Button.E_SetInteractable(canPlus);
         m_AllButton.E_SetInteractable(canPlus);
+        m_ClearButton.E_SetInteractable(canMinus);
     }
 
     private void OnClickConfirm()

@@ -9,12 +9,13 @@ using System.Collections.Generic;
 [Serializable]
 public class SaveData
 {
-    public const int CurrentVersion = 4;     // 3: 26.11.18 명명 규칙 적용. 이전 버전 세이브는 이전하지 않음(초기화), 4: 상인 신뢰도 추가
+    public const int CurrentVersion = 5;     // 3: 26.11.18 명명 규칙 적용. 이전 버전 세이브는 이전하지 않음(초기화), 4: 상인 신뢰도 추가, 5: 정비 강화 노드 추가
 
     public int version = CurrentVersion;
     public List<ItemStack> items = new();
     public List<string> flags = new();
     public List<MerchantTrust> merchants = new();
+    public List<string> gearNodes = new();   // 연 강화 노드 ID(GearNodeDef)
 }
 
 // ==================================================

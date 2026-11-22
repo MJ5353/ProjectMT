@@ -21,11 +21,10 @@ public sealed class BattleService : ServiceBase
 {
     public const float SpawnLift = 0.3f; // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
     private const string DefaultPlayerID = "Player";
-    private const string GoldID = "Currency_Gold";
-    private const string RottenItemID = "Item_Rotten"; // 밤이 끝나 썩은 버섯
 
     private readonly Dictionary<LootKey, int> m_DicLoot = new(); // 주운 버섯. 신선도별
     private readonly Dictionary<string, int> m_DicReward = new(); // 끝날 때 실제로 인벤토리에 넣은 것(결과 화면용)
+    private readonly Dictionary<string, int> m_DicPickedCurrency = new(); // 전투 중 주워 바로 인벤토리에 넣은 재화(골드 동전). 결과 화면에 더해 보여 준다
     private readonly List<SpawnState> m_ListSpawn = new();
     private readonly Dictionary<int, SpawnState> m_DicSpawnByUnitID = new();
     
@@ -61,7 +60,7 @@ public sealed class BattleService : ServiceBase
     public float RemainTime => Mathf.Max(0f, NightTime - ElapsedTime);
     public bool IsPlayerDown => m_Player != null && m_Player.IsDead;
     public int ReviveGold => Define.ReviveGold;
-    public bool CanRevive => IsPlayerDown && PlayerDataManager.Instance.Inventory.Has(GoldID, ReviveGold);
+    public bool CanRevive => IsPlayerDown && PlayerDataManager.Instance.Inventory.Has(CurrencyDef.GoldID, ReviveGold);
     
     // ------------------------------------------------
 
@@ -135,14 +134,16 @@ public sealed class BattleService : ServiceBase
         if (State == EBattleState.Market)
             TimeManager.Instance.SetPause(false);
 
-        HealthFeature health = m_Player.E_Alive()?.HealthF;
-        if (health != null)
-            health.Died -= OnPlayerDied;
+        UnitController player = m_Player.E_Alive();
+        if (player != null && player.HealthF != null)
+            player.HealthF.Died -= OnPlayerDied;
 
         m_DicSpawnByUnitID.Clear();
         m_ListSpawn.Clear();
         m_DicLoot.Clear();
         m_DicReward.Clear();
+        m_DicPickedCurrency.Clear();
+        
         m_Player = null;
         m_SpawnSlots = null; // 맵 오브젝트는 씬과 함께 사라진다
     }
@@ -183,7 +184,7 @@ public sealed class BattleService : ServiceBase
             return false;
 
         PlayerDataManager playerDataM = PlayerDataManager.Instance;
-        if (playerDataM.Inventory.TryRemove(GoldID, ReviveGold) == false)
+        if (playerDataM.Inventory.TryRemove(CurrencyDef.GoldID, ReviveGold) == false)
             return false;
 
         m_Player.Revive(Define.ReviveInvincibleTime);
@@ -242,6 +243,11 @@ public sealed class BattleService : ServiceBase
         }
 
         m_Player = GameManager.Instance.UnitS.Spawn(playerDef, position, rotation);
+        if (m_Player == null)
+            return;
+
+        // 정비 강화를 능력치·패시브 출처로 넣는다. 늘어난 최대 체력만큼 체력도 찬다(HealthFeature가 StatFeature.Changed로)
+        PlayerDataManager.Instance.Gear.ApplyTo(m_Player);
     }
 
     // 슬롯 번호(1부터) → 맵 지점
@@ -273,6 +279,7 @@ public sealed class BattleService : ServiceBase
         if (controller == null)
             return;
 
+        controller.StatF.AddSource(Map, Map.ListMonsterModifier); // 지역 난이도(체력·공격 배율)
         m_DicSpawnByUnitID.Add(controller.UnitID, spawn);
         spawn.IsAlive = true;
         spawn.RespawnTimer = 0f;
@@ -311,12 +318,27 @@ public sealed class BattleService : ServiceBase
 
     #region OnAction
     
+    // 재화(골드 동전)는 바로 인벤토리에 넣고(귀가해도 남는다), 버섯은 주운 목록에 넣는다. 그다음 플레이어 패시브(주웠을 때)
     private void OnLootPicked(LootPicked evt)
     {
-        LootKey key = new(evt.ItemID, evt.Freshness, evt.Rarity);
-        m_DicLoot.TryGetValue(key, out int count);
-        m_DicLoot[key] = count + evt.Amount;
-        SEventManager.Publish(new LootChanged());
+        if (GameDatabase.S_TryGet(evt.ItemID, out CurrencyDef _))
+        {
+            PlayerDataManager.Instance.Inventory.Add(evt.ItemID, evt.Amount);
+            
+            m_DicPickedCurrency.TryGetValue(evt.ItemID, out int picked);
+            m_DicPickedCurrency[evt.ItemID] = picked + evt.Amount;
+        }
+        else
+        {
+            LootKey key = new(evt.ItemID, evt.Freshness, evt.Rarity);
+            m_DicLoot.TryGetValue(key, out int count);
+            m_DicLoot[key] = count + evt.Amount;
+            
+            SEventManager.Publish(new LootChanged());
+        }
+
+        if (m_Player != null)
+            m_Player.PassiveF.OnPickup(evt);
     }
 
     // 바로 끝내지 않고 부활/귀가를 고르게 한다(ScreenBattle가 팝업을 띄운다)
@@ -378,10 +400,10 @@ public sealed class BattleService : ServiceBase
         m_DicReward.Clear();
         
         if (evt.Gold > 0)
-            m_DicReward[GoldID] = evt.Gold;
+            m_DicReward[CurrencyDef.GoldID] = evt.Gold;
         
         if (evt.RottenCount > 0)
-            m_DicReward[RottenItemID] = evt.RottenCount;
+            m_DicReward[ItemDef.RottenID] = evt.RottenCount;
 
         End(EBattleState.Exited);
     }
@@ -406,6 +428,13 @@ public sealed class BattleService : ServiceBase
             {
                 playerDataM.Inventory.Add(pair.Key, pair.Value);
             }
+        }
+
+        // 전투 중 주운 재화는 이미 인벤토리에 있다. 결과 화면에만 더한다(귀가·쓰러짐에도 남는다)
+        foreach (var pair in m_DicPickedCurrency)
+        {
+            m_DicReward.TryGetValue(pair.Key, out int count);
+            m_DicReward[pair.Key] = count + pair.Value;
         }
 
         // 스스로 나오면 지역을 깬 것으로 표시해 다음 지역을 연다(토벌 탭)
@@ -439,7 +468,7 @@ public sealed class BattleService : ServiceBase
         }
 
         if (result == EBattleState.TimedOut && total > 0)
-            m_DicReward[RottenItemID] = total;
+            m_DicReward[ItemDef.RottenID] = total;
     }
     
     #endregion

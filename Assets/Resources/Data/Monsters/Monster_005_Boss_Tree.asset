@@ -16,7 +16,7 @@ MonoBehaviour:
   <ID>k__BackingField: Monster_005_Boss_Tree
   <Description>k__BackingField: 
   <Icon>k__BackingField: {fileID: 0}
-  <MaxHp>k__BackingField: 45
+  <MaxHp>k__BackingField: 450
   <HitStunTime>k__BackingField: 0.1
   <BreakImmune>k__BackingField: 3
   <TurnSpeed>k__BackingField: 120
@@ -65,7 +65,7 @@ MonoBehaviour:
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.36, y: 1.36}
     <TiltMax>k__BackingField: 9.55
-    <Durability>k__BackingField: 4
+    <Durability>k__BackingField: 40
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
   - <BattlePart>k__BackingField: 6
@@ -76,7 +76,7 @@ MonoBehaviour:
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.27, y: 1.27}
     <TiltMax>k__BackingField: 5.94
-    <Durability>k__BackingField: 4
+    <Durability>k__BackingField: 40
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
   - <BattlePart>k__BackingField: 2
@@ -87,7 +87,7 @@ MonoBehaviour:
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.56, y: 1.56}
     <TiltMax>k__BackingField: 6.4
-    <Durability>k__BackingField: 6
+    <Durability>k__BackingField: 60
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
   - <BattlePart>k__BackingField: 1
@@ -98,7 +98,7 @@ MonoBehaviour:
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.36, y: 1.36}
     <TiltMax>k__BackingField: 10.640015
-    <Durability>k__BackingField: 5
+    <Durability>k__BackingField: 50
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
   - <BattlePart>k__BackingField: 7
@@ -109,7 +109,7 @@ MonoBehaviour:
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.34, y: 1.34}
     <TiltMax>k__BackingField: 10.350006
-    <Durability>k__BackingField: 4
+    <Durability>k__BackingField: 40
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
   - <BattlePart>k__BackingField: 0

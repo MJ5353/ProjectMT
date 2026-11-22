@@ -20,9 +20,12 @@ public static class EditorPath
     public const string PlayerDataDir = DataDir + "Player/";
     public const string MapDataDir = DataDir + "Maps/";
     public const string MushroomDataDir = DataDir + "Mushrooms/";
+    public const string CurrencyDataDir = DataDir + "Currencies/";
     public const string SkillDataDir = DataDir + "Skills/";
     public const string BalanceDataDir = DataDir + "Balance/";
     public const string UIDataDir = DataDir + "UI/";
+    public const string GearDataDir = DataDir + "Gear/";        // 정비 강화 노드(GearNode_*)·엠블렘(Emblem_*)
+    public const string PassiveDataDir = DataDir + "Passive/";  // 패시브(Passive_NNN_Key). 정비 스페셜 노드가 참조한다
 
     public const string PrefabDir = ResourcesRoot + "Prefabs/";
     public const string ActorPrefabDir = ResourcesRoot + CommonPath.ActorDir;
@@ -44,6 +47,7 @@ public static class EditorPath
     public const string GameDatabaseAsset = ResourcesRoot + CommonPath.GameDatabase + ".asset";
     public const string BattleScene = ScenesDir + SceneNames.Battle + ".unity";
     public const string LobbyScene = ScenesDir + SceneNames.Lobby + ".unity";
+    public const string TitleScene = ScenesDir + SceneNames.Title + ".unity";
     public const string PlayerDef = PlayerDataDir + "Player.asset";
     public const string DefaultMapDef = MapDataDir + "Map_001_Field.asset"; // Battle 씬을 만들 때 넣는 지역
     public const string MonsterBalance = BalanceDataDir + "MonsterBalance.asset";
@@ -52,6 +56,8 @@ public static class EditorPath
     public const string StringDefAsset = UIDataDir + StringDef.StringID + ".asset";
     public const string RarityDefAsset = UIDataDir + RarityDef.RarityID + ".asset";
     public const string PopupResultPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupResult) + PrefabExtension;
+    public const string ScreenTitlePrefab = ScreenUIPrefabDir + nameof(ScreenTitle) + PrefabExtension;
+    public const string ScreenLoadingPrefab = ScreenUIPrefabDir + nameof(ScreenLoading) + PrefabExtension;
     public const string ScreenLobbyPrefab = LobbyScreenUIPrefabDir + nameof(ScreenLobby) + PrefabExtension;
     public const string ScreenBattlePrefab = BattleScreenUIPrefabDir + nameof(ScreenBattle) + PrefabExtension;
     public const string PopupDeathPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupDeath) + PrefabExtension;
@@ -66,6 +72,7 @@ public static class EditorPath
     public const string BattleUnitHpBarPrefab = BattleScreenUIPrefabDir + nameof(EUIComponentType.ScreenBattle_UnitHpBar) + PrefabExtension; // UIGauge
     public const string GaugePrefab = ComponentUIPrefabDir + "UIGauge.prefab";
     public const string CommonSlotPrefab = ComponentUIPrefabDir + nameof(EUIComponentType.UICommonSlot) + PrefabExtension;
+    public const string CommonImagePrefab = ComponentUIPrefabDir + nameof(EUIComponentType.UICommonImage) + PrefabExtension;
     public const string ButtonPrefab = ComponentUIPrefabDir + "UIButton.prefab";
     public const string Font = FontDir + "Galmuri11.ttf";
     public const string FontAsset = FontDir + "Galmuri11 SDF.asset";

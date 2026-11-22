@@ -23,7 +23,8 @@ public static class MarketUISetup
     private const float RowHeight = 74f;      // 상인 5칸이 [기다리기] 위에 들어가는 높이
     private const float SlotSize = 120f;
     private const float SlotNameHeight = 40f; // UICommonSlot 이름(값) 줄
-    private const float SlotCaptionHeight = 34f; // UICommonSlot 위 글자("일괄판매(x17)") 줄
+    private const float SlotCaptionHeight = 34f; // UICommonSlot 위 글자 줄
+    private const float HintHeight = 34f;     // 남은 버섯 머리글 아래 조작 안내 줄
 
     // ------------------------------------------------
 
@@ -52,11 +53,11 @@ public static class MarketUISetup
         CanvasGroup bodyGroup = body.gameObject.AddComponent<CanvasGroup>();
 
         // 왼쪽: 상인 목록 + 아래 버튼 ---
-        Caption(body, "MerchantCaption", "오늘 온 상인", new Vector2(Margin, ContentTop));
+        UIBuilder.AddStringKey(Caption(body, "MerchantCaption", string.Empty, new Vector2(Margin, ContentTop)), EStringKey.Market_MerchantCaption);
         RectTransform left = UIBuilder.Rect("Merchants", body, Vector2.zero, new Vector2(0, 1), new Vector2(Margin, 280), new Vector2(Margin + LeftWidth, ContentTop - 50));
         UIBuilder.ListOption merchantList = new(left, EUIListAxis.Vertical, new Vector2(0, RowHeight), new Vector2(0, Gap), TextAnchor.UpperLeft, isStretch: true);
 
-        Button close = UIBuilder.Button(body, "CloseButton", "시장 닫기", new Vector2(LeftWidth, 100), UIStyle.AccentDark);
+        Button close = UIBuilder.Button(body, "CloseButton", EStringKey.Market_Close, new Vector2(LeftWidth, 100), UIStyle.AccentDark);
         PlaceCorner(close, Vector2.zero, new Vector2(Margin, Margin));
         Button wait = UIBuilder.Button(body, "WaitButton", "30분 기다리기", new Vector2(LeftWidth, 100), UIStyle.PanelLight);
         PlaceCorner(wait, Vector2.zero, new Vector2(Margin, Margin + 100 + Gap));
@@ -65,6 +66,7 @@ public static class MarketUISetup
         float centerLeft = Margin + LeftWidth + Column;
         RectTransform center = UIBuilder.Rect("Merchant", body, Vector2.zero, new Vector2(0, 1), new Vector2(centerLeft, Margin), new Vector2(centerLeft + CenterWidth, -Margin));
         UIBuilder.AddImage(center, UIStyle.Panel);
+        PopupMarket_MerchantInfo merchantInfo = center.gameObject.AddComponent<PopupMarket_MerchantInfo>();
         RectTransform iconRect = UIBuilder.Anchored("Icon", center, new Vector2(0.5f, 1f), new Vector2(0, -28), new Vector2(180, 180));
         Image icon = UIBuilder.AddImage(iconRect, Color.white);
         icon.preserveAspect = true;
@@ -79,13 +81,17 @@ public static class MarketUISetup
         TMP_Text info = UIBuilder.Label(infoRect, "신뢰도  0\n오늘 시세  보통\n희귀 이상  x2.0\n그 밖  x0.5", UIStyle.FontSmall, TextAlignmentOptions.TopLeft);
         info.richText = true;
         info.lineSpacing = 40f;
+        UIBuilder.SetRef(merchantInfo, "m_Icon", icon);
+        UIBuilder.SetRef(merchantInfo, "m_NameText", merchantName);
+        UIBuilder.SetRef(merchantInfo, "m_DescText", desc);
+        UIBuilder.SetRef(merchantInfo, "m_InfoText", info);
 
         // 오른쪽 위: 팔 버섯 + 합계 + [거래] ---
         float rightLeft = centerLeft + CenterWidth + Column;
         RectTransform right = UIBuilder.Rect("Trade", body, Vector2.zero, Vector2.one, new Vector2(rightLeft, Margin), new Vector2(-Margin, -Margin));
         RectTransform pickPanel = UIBuilder.Rect("Pick", right, new Vector2(0, 1), Vector2.one, new Vector2(0, -PickHeight), Vector2.zero);
         UIBuilder.AddImage(pickPanel, UIStyle.Panel);
-        Caption(pickPanel, "Caption", "팔 버섯  ·  눌러서 묶음 빼기", new Vector2(Pad, -12));
+        UIBuilder.AddStringKey(Caption(pickPanel, "Caption", string.Empty, new Vector2(Pad, -12)), EStringKey.Market_PickCaption);
         RectTransform soldRect = UIBuilder.Rect("Sold", pickPanel, new Vector2(0, 1), Vector2.one, new Vector2(Pad, -52), new Vector2(-Pad, -12));
         TMP_Text sold = UIBuilder.Label(soldRect, "판 골드 0G", UIStyle.FontSmall, TextAlignmentOptions.Right);
         sold.color = UIStyle.Gold;
@@ -95,7 +101,7 @@ public static class MarketUISetup
         RectTransform totalRect = UIBuilder.Rect("Total", pickPanel, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-TradeWidth - Pad, -110), new Vector2(-Pad, -60));
         TMP_Text total = UIBuilder.Label(totalRect, "합계 0G  (0/5묶음)", UIStyle.FontNormal, TextAlignmentOptions.Right);
         total.color = UIStyle.Gold;
-        Button trade = UIBuilder.Button(pickPanel, "TradeButton", "거래", new Vector2(TradeWidth, 96), UIStyle.Accent);
+        Button trade = UIBuilder.Button(pickPanel, "TradeButton", EStringKey.Market_Trade, new Vector2(TradeWidth, 96), UIStyle.Accent);
         PlaceCorner(trade, new Vector2(1, 1), new Vector2(-Pad, -124));
 
         RectTransform messageRect = UIBuilder.Rect("Message", pickPanel, Vector2.zero, new Vector2(1, 0), new Vector2(Pad, 10), new Vector2(-Pad, 44));
@@ -105,13 +111,23 @@ public static class MarketUISetup
         // 오른쪽 아래: 남은 버섯(스크롤 격자) ---
         RectTransform stockPanel = UIBuilder.Rect("Stock", right, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0, -PickHeight - Column));
         UIBuilder.AddImage(stockPanel, UIStyle.Panel);
-        Caption(stockPanel, "Caption", "남은 버섯  ·  눌러서 묶음 담기  ·  칸 아래는 이 상인의 한 개 값", new Vector2(Pad, -12));
-        UIBuilder.ListOption stockList = ScrollGrid(stockPanel);
+        UIBuilder.AddStringKey(Caption(stockPanel, "Caption", string.Empty, new Vector2(Pad, -12)), EStringKey.Market_StockCaption);
+        // 조작 안내(머리글 바로 아래 줄). 격자는 그만큼 내려서 시작한다
+        RectTransform hintRect = UIBuilder.Rect("Hint", stockPanel, new Vector2(0, 1), Vector2.one, new Vector2(Pad, -52 - HintHeight), new Vector2(-Pad, -52));
+        TMP_Text hint = UIBuilder.Label(hintRect, string.Empty, UIStyle.FontSmall, TextAlignmentOptions.Left);
+        hint.color = UIStyle.Gold;
+        hint.enableAutoSizing = true;
+        hint.fontSizeMin = UIStyle.FontSmall / 2;
+        hint.fontSizeMax = UIStyle.FontSmall;
+        UIBuilder.AddStringKey(hint, EStringKey.Market_StockHint);
+        UIBuilder.ListOption stockList = ScrollGrid(stockPanel, 60f + HintHeight);
 
         // 시작 연출(맨 위). 가운데 큰 남은 시간 + 아래 시장 시간 ---
         RectTransform intro = UIBuilder.Stretch("Intro", root);
         CanvasGroup introGroup = intro.gameObject.AddComponent<CanvasGroup>();
-        introGroup.blocksRaycasts = false;
+        UIBuilder.AddImage(intro, Color.clear, true); // 연출 중 화면 어디를 눌러도 넘기기(m_IntroButton)
+        Button introButton = intro.gameObject.AddComponent<Button>();
+        introButton.transition = Selectable.Transition.None;
         RectTransform timerRect = UIBuilder.Anchored("Timer", intro, new Vector2(0.5f, 0.5f), new Vector2(0, 90), new Vector2(600, 140));
         timerRect.pivot = new Vector2(0.5f, 0.5f);
         TMP_Text introTimer = UIBuilder.Label(timerRect, "05:00", UIStyle.FontHuge);
@@ -120,18 +136,18 @@ public static class MarketUISetup
         TMP_Text introMessage = UIBuilder.Label(introMessageRect, "지금 가면... 4시간 30분은 거래할 수 있겠어!", UIStyle.FontNormal);
         introMessage.richText = true;
         intro.gameObject.SetActive(false);
+        PopupMarket_Intro marketIntro = intro.gameObject.AddComponent<PopupMarket_Intro>();
+        UIBuilder.SetRef(marketIntro, "m_Group", introGroup);
+        UIBuilder.SetRef(marketIntro, "m_Button", introButton);
+        UIBuilder.SetRef(marketIntro, "m_TimerText", introTimer);
+        UIBuilder.SetRef(marketIntro, "m_MessageText", introMessage);
 
         PopupMarket popup = root.gameObject.AddComponent<PopupMarket>();
         UIBuilder.SetRef(popup, "m_Clock", clock);
         UIBuilder.SetRef(popup, "m_Body", bodyGroup);
-        UIBuilder.SetRef(popup, "m_Intro", introGroup);
-        UIBuilder.SetRef(popup, "m_IntroTimer", introTimer);
-        UIBuilder.SetRef(popup, "m_IntroMessage", introMessage);
+        UIBuilder.SetRef(popup, "m_Intro", marketIntro);
         UIBuilder.SetListView(popup, "m_RowPool", merchantList);
-        UIBuilder.SetRef(popup, "m_MerchantIcon", icon);
-        UIBuilder.SetRef(popup, "m_MerchantName", merchantName);
-        UIBuilder.SetRef(popup, "m_MerchantDesc", desc);
-        UIBuilder.SetRef(popup, "m_MerchantInfo", info);
+        UIBuilder.SetRef(popup, "m_MerchantInfo", merchantInfo);
         UIBuilder.SetListView(popup, "m_PickPool", pickLayout);
         UIBuilder.SetListView(popup, "m_StockPool", stockList);
         UIBuilder.SetRef(popup, "m_TotalText", total);
@@ -185,7 +201,7 @@ public static class MarketUISetup
         return merchantRow;
     }
 
-    // 개수 조절 팝업: 어두운 바탕 + 가운데 창. 칸·이름 / 판매 개수·변화 / 값 / [-10][-1][+1][+10][전부] / [취소][확인]
+    // 개수 조절 팝업: 어두운 바탕 + 가운데 창. 칸·이름 / 판매 개수·변화 / 값 / [모두 빼기][-10][-1][+1][+10][모두 넣기] / [취소][확인]
     private static PopupMarketCounter BuildCountPopup()
     {
         RectTransform root = new GameObject("PopupMarketCounter", typeof(RectTransform)).GetComponent<RectTransform>();
@@ -194,7 +210,7 @@ public static class MarketUISetup
         root.offsetMin = root.offsetMax = Vector2.zero;
         UIBuilder.AddImage(root, UIStyle.Dim, true); // 뒤 화면 터치를 막는다
 
-        RectTransform window = UIBuilder.Anchored("Window", root, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760, 560));
+        RectTransform window = UIBuilder.Anchored("Window", root, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900, 560));
         window.pivot = new Vector2(0.5f, 0.5f);
         UIBuilder.AddImage(window, UIStyle.Panel, true);
 
@@ -216,16 +232,21 @@ public static class MarketUISetup
         price.richText = true;
 
         // 개수 버튼 줄
-        Vector2 stepSize = new Vector2(120, 90);
-        Button minus10 = StepButton(window, "Minus10", "-10", stepSize, -260);
-        Button minus1 = StepButton(window, "Minus1", "-1", stepSize, -130);
-        Button plus1 = StepButton(window, "Plus1", "+1", stepSize, 0);
-        Button plus10 = StepButton(window, "Plus10", "+10", stepSize, 130);
-        Button all = StepButton(window, "All", "전부", stepSize, 260);
+        // 개수 버튼 줄: 양 끝은 넓은 [모두 빼기]·[모두 넣기]
+        Vector2 stepSize = new Vector2(110, 90);
+        Vector2 wideSize = new Vector2(170, 90);
+        Button clear = StepButton(window, "Clear", string.Empty, wideSize, -345);
+        UIBuilder.AddStringKey(clear.GetComponentInChildren<TMP_Text>(), EStringKey.Market_Counter_Clear);
+        Button minus10 = StepButton(window, "Minus10", "-10", stepSize, -180);
+        Button minus1 = StepButton(window, "Minus1", "-1", stepSize, -60);
+        Button plus1 = StepButton(window, "Plus1", "+1", stepSize, 60);
+        Button plus10 = StepButton(window, "Plus10", "+10", stepSize, 180);
+        Button all = StepButton(window, "All", string.Empty, wideSize, 345);
+        UIBuilder.AddStringKey(all.GetComponentInChildren<TMP_Text>(), EStringKey.Market_Counter_All);
 
-        Button cancel = UIBuilder.Button(window, "CancelButton", "취소", new Vector2(260, 100), UIStyle.PanelLight);
+        Button cancel = UIBuilder.Button(window, "CancelButton", EStringKey.Common_Cancel, new Vector2(260, 100), UIStyle.PanelLight);
         PlaceCorner(cancel, new Vector2(0.5f, 0f), new Vector2(-150, Pad * 2f));
-        Button confirm = UIBuilder.Button(window, "ConfirmButton", "확인", new Vector2(260, 100), UIStyle.Accent);
+        Button confirm = UIBuilder.Button(window, "ConfirmButton", EStringKey.Common_Confirm, new Vector2(260, 100), UIStyle.Accent);
         PlaceCorner(confirm, new Vector2(0.5f, 0f), new Vector2(150, Pad * 2f));
 
         PopupMarketCounter popup = root.gameObject.AddComponent<PopupMarketCounter>();
@@ -241,6 +262,7 @@ public static class MarketUISetup
         UIBuilder.SetRef(popup, "m_Plus1Button", plus1);
         UIBuilder.SetRef(popup, "m_Plus10Button", plus10);
         UIBuilder.SetRef(popup, "m_AllButton", all);
+        UIBuilder.SetRef(popup, "m_ClearButton", clear);
         UIBuilder.SetRef(popup, "m_CancelButton", cancel);
         UIBuilder.SetRef(popup, "m_ConfirmButton", confirm);
 
@@ -262,10 +284,10 @@ public static class MarketUISetup
         return button;
     }
 
-    // 세로 스크롤 + 격자. 칸이 늘면 아래로 길어진다(UIListView가 Content 높이를 맞춤). 격자 배치 옵션을 돌려준다
-    private static UIBuilder.ListOption ScrollGrid(RectTransform panel)
+    // 세로 스크롤 + 격자(패널 위에서 top만큼 내려와 시작). 칸이 늘면 아래로 길어진다(UIListView가 Content 높이를 맞춤). 격자 배치 옵션을 돌려준다
+    private static UIBuilder.ListOption ScrollGrid(RectTransform panel, float top)
     {
-        RectTransform viewport = UIBuilder.Rect("Viewport", panel, Vector2.zero, Vector2.one, new Vector2(Pad, Pad), new Vector2(-Pad, -60));
+        RectTransform viewport = UIBuilder.Rect("Viewport", panel, Vector2.zero, Vector2.one, new Vector2(Pad, Pad), new Vector2(-Pad, -top));
         viewport.gameObject.AddComponent<RectMask2D>();
         UIBuilder.AddImage(viewport, Color.clear, true); // 빈 곳을 끌어도 스크롤되게
 

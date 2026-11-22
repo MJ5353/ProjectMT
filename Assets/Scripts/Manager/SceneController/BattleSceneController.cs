@@ -2,7 +2,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 전투 씬. 지역(MapDef)을 골라 전투 Service(Unit·Effect·HitStop·Battle)를 등록한다
+// 전투 씬. 지역(MapDef)을 골라 전투 Service(Unit·HitStop·Battle)를 등록한다. 이펙트는 공용(GameManager)
 
 [DefaultExecutionOrder(-1100)]
 public sealed class BattleSceneController : SceneControllerBase
@@ -10,6 +10,7 @@ public sealed class BattleSceneController : SceneControllerBase
     [SerializeField] private MapDef m_DefaultMap = null;
 
     public override EGameState State => EGameState.Battle;
+    public override bool UseClickBurst => true; // 전투에서 나갈 때 로딩 화면에서 누르면 튀게. 전투 버튼은 부르지 않는다
 
     public ScreenBattle ScreenUI => GetScreen<ScreenBattle>();
 

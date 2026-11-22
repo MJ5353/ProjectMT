@@ -12,10 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b2e2bd1c912f934a9bb79cf51abd818, type: 3}
   m_Name: MonsterBalance
   m_EditorClassIdentifier: Assembly-CSharp::MonsterBalanceTable
-  <BaseHp>k__BackingField: 3
-  <BaseDamage>k__BackingField: 1
-  <MapHpRate>k__BackingField: 1.8
-  <MapDamageRate>k__BackingField: 1.4
+  <BaseHp>k__BackingField: 30
+  <BaseDamage>k__BackingField: 10
   <MapSpeedAdd>k__BackingField: 0.08
   <OrderStepRate>k__BackingField: 0.2
   <MushroomTilt>k__BackingField: 12

@@ -13,11 +13,12 @@ public static class CommonPath
     public const string EffectDir = "Prefabs/Effect/";
     public const string TelegraphCircle = EffectDir + "FX_TelegraphCircle";
     public const string TelegraphLine = EffectDir + "FX_TelegraphLine";
+    public const string ScreenLoading = "Prefabs/UI/Screen/ScreenLoading"; // 예외: 씬 밖에서 늘 사는 UI라 프리팹 표(PopupDef·UIComponentDef) 대신 경로로 읽는다
     
     // 콘텐츠 리소스는 폴더 + 이름(Def ID)으로 찾는다. Def는 프리팹을 참조하지 않는다
     public const string ActorDir = "Prefabs/Actor/";           // 플레이어 프리팹(Player)
     public const string MonsterDir = ActorDir + "Monster/";    // 몬스터 프리팹(Monster_NNN_Key)
-    public const string PickupDir = ActorDir + "Pickup/";      // 버섯 픽업 프리팹(Pickup_NNN_Key)
+    public const string PickupDir = ActorDir + "Pickup/";      // 버섯·재화 픽업 프리팹(Pickup_NNN_Key, Pickup_Gold)
     public const string MapDir = "Prefabs/Map/";               // 맵 프리팹(Map_NNN_Key)
     
     // else

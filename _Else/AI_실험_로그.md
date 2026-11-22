@@ -379,3 +379,133 @@
 
 - 직접 프로젝트 자료에서 중요하게 여기는 가치를 추론하도록 요청. AI가 이해·판단의 주도권, 읽기 쉬운 책임 분리, 반복 작업 자동화, 읽고 선택하는 플레이 경험, 결과를 보고 덜어내는 태도, 작업·미확인 범위의 정직한 기록을 핵심 후보로 해석함.
 - 현재 코드와 미구현 설계, 직접 내린 결정과 AI 제안을 구분했으며 해석의 사용자 채택은 미정. 스크립트·에셋 수정, 테스트·빌드·컴파일·Unity 실행은 하지 않음.
+
+## 팝업 검토 후 버그 3건 수정
+
+- 직접 마켓을 뺀 팝업(PopupBase·PopupDeath·PopupResult·PopupService) 검토를 요청하고, AI가 뽑은 6건 중 1~3번 수정을 지시함. AI가 닫는 연출 중 다시 열면 앞의 OnClose를 먼저 부르게 하고(구독 중복 방지), 결과 칸을 다시 쓸 때 크기를 0으로 맞추고, 신뢰도 문구는 상인 Def가 없으면 건너뛰지 않고 ID로 쓰게 고침. 컴파일·플레이 확인 안 함.
+- 이어서 4~6번(빈 BattleService일 때 지난 값 비우기, 칸 간격 const, 스타일 통일)을 지시받아 반영. 1번은 열려 있는 팝업을 다시 열 때도 OnClose를 먼저 부르게 넓힘(공용 확인 팝업 PopupConfirm의 아니오 콜백·시장 구독이 걸림). 2번은 UISequence.Join이 켜는 프레임에 0을 넣어 실제 버그는 아니었음을 확인. 컴파일·플레이 확인 안 함.
+
+# 26.11.22 - 기존 버섯 아이콘으로 클릭 UI 연출
+
+## 주요 작업
+
+- 기존 버섯 아이콘을 무작위로 흩뿌리는 클릭 효과를 로비·전투 공용 서비스에 연결.
+
+## 버섯 클릭 UI 연출
+
+- 직접 새 효과 이미지 대신 기존 버섯 아이콘을 랜덤으로 뿌리는 방향을 선택하고 로컬 적용을 요청. AI가 DB의 MushroomDef.Icon을 모아 클릭 위치에 표시하고, 공용 UITween 감속 곡선으로 이동·회전·축소·페이드하도록 구현함.
+- 효과 레이어는 런타임에 자동 생성하고 클릭을 가로막지 않으며, 일시정지 중에도 진행하고 씬 서비스 종료 때 정리함. 개수 3~5개·재생 0.4초·크기 24~40·이동 거리 50~100은 가안이며 직접 손맛 확인 전. 아이콘 누락 확인용 assert를 포함했으나 컴파일·테스트·플레이는 실행하지 않았고, 기존 이미지·프리팹은 변경하지 않음. 커밋·푸시하지 않음.
+
+## 클릭 연출 검토·규칙 맞춤
+
+- AI가 위 코드를 규칙 기준으로 검토해 9가지(전투에서도 켜짐, 별도 이펙트 Service, 런타임 GetComponent, 매번 new GameObject, 튜닝값 하드코딩, 강제 캐스트, 입력 직접 읽기, Debug.Assert, 공백)를 제시했고 대장이 전부 진행을 지시함.
+- UIClickEffectService를 없애고 EffectService 안의 일반 클래스 UIClickBurst로 옮김. EffectService는 모든 씬 공용으로 올리고, 씬 컨트롤러 UseClickBurst를 켠 씬(지금은 로비, 타이틀·로딩 씬은 아직 없음)에서만 돈다.
+- 조각은 새 공용 UI 요소 UICommonImage(PoolableMonoUI, 생성기 메뉴로 프리팹 생성)를 UIReuseService로 꺼내 재사용하고, UI 루트 맨 위에 띄움. 수치는 DefineDef ClickBurst*로, 입력은 InputManager.UI(Click·Point)로 옮김. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+# 26.11.22 - 시장 거래 흐름 정리
+
+## 주요 작업
+
+- 직접 시장 코드 재점검을 요청하고, AI가 뽑은 19건 중 1~4번(거래 흐름)만 진행을 지시함.
+
+## 시장 거래 흐름 1~4번
+
+- HuntData: 판정을 private Validate 하나로 모으고 CheckTrade·Trade가 그것을 부르게 함. Trade가 out gold로 받은 골드를 돌려줘 UI가 판정을 따로 부르지 않음. 숨은 공용 버퍼 m_DicPick은 m_DicTradeBuffer로 이름을 바꿈.
+- PopupMarket: 고른 상태를 m_DicPick 하나로 줄이고 표시 목록·요청 목록은 Refresh·BuildRequest 때 다시 만듦. 거래는 고른 목록을 비운 뒤 요청하고, 갱신은 Trade가 보내는 MarketChanged 한 번만 받음(실패하면 되돌리고 갱신). 거래 한 번 판정 3번→2번(미리보기 1·거래 1), Refresh 2번→1번, 닫힌 팝업 갱신 없앰. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## 시장 안내 글귀·규칙 정리(5번, 6~10번)
+
+- 직접 5번과 B(6~10번) 진행을 지시함. 안내 글귀는 EMarketResult→글귀 함수 하나로 모으고, Refresh가 지금 상태 글귀를 쓴 뒤 거래·기다리기 결과만 덮어쓰게 해 여기저기 있던 글귀 지우기를 없앰.
+- PopupMarket·HuntData·MarketData의 의미 없는 null 검사·?.(Hunt, PopupS, 상인·버섯 인자, DB, 목록)를 지움. 시계는 매 프레임 대신 Refresh(열 때·MarketChanged)에서만 갱신, 연출 넘기기는 입력 폴링 대신 시작 연출을 덮는 투명 버튼(m_IntroButton, MarketUISetup에 추가). 아이콘·켜기는 E_SetImage·E_SetActive로. UI 다시 만들기 전에는 버튼이 비어 연출이 안 넘어감. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## 시장 글귀 StringDef 이전·이름·중복 정리(15~19번)
+
+- 직접 15~19번 진행을 지시함. 시장 화면 글귀(상인 정보·합계·안내·시작 연출·개수 팝업·상인 줄, 생성기의 고정 글자)를 EStringKey Market_ 키 31개와 Common_Cancel·Common_Confirm으로 옮기고 UIDataSetup 초기값과 String.asset 값을 함께 넣음.
+- 희귀도 이름은 PopupMarket 자체 함수 대신 RarityDef 표 이름, BattleService의 골드·썩은 버섯 ID 상수는 CurrencyDef.GoldID·ItemDef.RottenID로 통일, _counterPopup은 m_CounterPopup으로, PopupResult 신뢰도 줄의 의미 없는 hunt null 검사 삭제. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## 시장 데이터 위치·파일 분리(11~14번)
+
+- 직접 11~14번 진행을 지시함. 판매가·방문 가중치 계산을 MarketData에서 HuntData로 옮겨 MarketData는 신뢰도 저장·증감·조회만 남김. 시세 굴림은 MerchantDef.RollSwingRate를 없애고 HuntData.Wait에서 CRandom.Range(새로 추가)로 함.
+- HuntData를 partial로 나눠 시장 부분(EMarketResult·LootKey·MarketItem 포함)을 HuntData.Market.cs로 옮김. 개수 팝업은 닫힐 때 onClosed 콜백으로 PopupMarket이 참조를 비우게 함. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## 정비 최소판 사전 정리
+
+- 직접 정비 탭 작업 전 정리를 요청함. AI가 기획서와 PlayerDef·InventoryData·SaveData·ScreenLobby·LobbyUISetup·플레이어 수치(체력 5, 공격 피해 1)를 읽고 최소판 범위·데이터·UI·정할 사안을 제시함.
+- 추천안: 장비 장착은 빼고 골드로 능력치(공격력·체력·회피) 올리기만. UpgradeDef + UpgradeData(PlayerDataBase) + 세이브 v5, 전투 반영은 플레이어 스폰 때 한 번, 정비 탭 화면은 LobbyUISetup이 만듦. 논의 단계라 코드는 고치지 않음.
+
+## PopupMarket 쪼개기 1·2
+
+- 직접 처음 의도가 데이터 위치가 아니라 길고 읽기 힘든 PopupMarket 정리와 UISequence 연출 정리였다고 정정함. AI가 고른 상태 분리·상인 카드 부품·여는 연출 합치기·#region 묶기를 제안했고 직접 1·2번만 진행을 지시함.
+- 고른 상태(개수 사전·표시 순서·요청 목록·맞추기·되돌리기)를 일반 클래스 PopupMarket_Pick으로, 가운데 상인 카드(그림·이름·설명·신뢰도·시세·선호 배율 글귀)를 부품 PopupMarket_MerchantInfo로 옮겨 PopupMarket이 550줄에서 483줄이 됨. 생성기가 카드 부품을 붙이고 참조를 연결해 UI 다시 만들기가 필요함. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## PopupMarket 시작 연출을 여는 연출로 합침
+- PopupMarket의 따로 돌던 m_IntroSequence를 없애고 OnBuildOpenSequence에 단계 함수(TweenIntroFly·TweenIntroCount·ShowIntroEnd·ShowBodyClock·TweenIntroFade·EndIntro)로 이어 붙임. 시작 값은 OnOpen의 ReadyIntro가 필드에 담음.
+- PopupBase에 IsOpening·IsOpenWaiting 추가. 연출 건너뛰기는 SkipOpen, 닫을 때 멈춤은 BeginClose가 맡음. 컴파일·플레이 미확인.
+
+## PopupMarket 시작 연출 부품 분리
+- 시작 연출(참조 4개·상수·시작 값·단계 함수·글귀 만들기)을 부품 PopupMarket_Intro로 옮김. PopupMarket은 Ready·Append·Continue·SetAlpha·Hide만 부르고, 누를 때 건너뛸지 넘길지만 판단해 약 500줄에서 436줄이 됨.
+- 생성기 MarketUISetup이 Intro에 부품을 붙이고 참조를 연결해 UI 다시 만들기가 필요함. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## 시장 슬롯 그림 3종
+- UI_Slot_Mold의 냄새 줄 세 가닥을 좌우 대칭으로 다시 그려 양옆 6px 여백을 두고, 바깥 두 줄이 위로 갈수록 가운데로 모이게 함. 크기(32x32)·임포트 설정은 그대로.
+- 새 그림 UI_Slot_MoldBack(32x32, 위 탁한 올리브 알파 0.45에서 아래로 투명, 위쪽에 얼룩 점 몇 개)과 UI_Badge_Prefer(12x12 진한 테두리 분홍·빨강 하트)를 Common에 추가. 파이썬으로 생성, 생성 스크립트는 저장소에 넣지 않음. 커밋하지 않음.
+
+## 시장 칸 표시·정렬·금액 연출·상인 밸런스
+- 대장 요청 6건: 고른 칸 딤+가운데 "전체"/"7 → 3", 정렬 등급→종류→신선도, 덜 신선 칸 상한 바탕(아이콘 아래)과 냄새 분리, 선호 하트 뱃지, 합계·판 골드 숫자 굴리기(UISequence), 상인 밸런스. 그림 3장은 리소스 스레드가 그림.
+- 밸런스 원인: 버섯 에셋에 Price가 저장돼 있지 않아 전부 10, 가격식에 등급 배율이 빠져 있었음. 등급 배율(희귀 2.5·영웅 6, DefineDef)과 버섯 기본가 8~20을 넣고, MerchantDef에 선호 희귀도 위 끝(PreferRarityMax)을 더해 상인 4명 역할을 나눔(대장 가안 승인).
+- 칸 위 작은 글자(Caption)가 부모 오브젝트를 꺼 둔 채 만들어져 켜도 안 보이던 생성기 버그를 함께 고침. UI 다시 만들기 필요, 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 정비 강화 노드 구현
+
+- 직접 정비 기획(능력치 5종 노드 트리, 연계·극의 노드 스페셜, 엠블렘 단계 보너스, 장비·코스튬 예정, 밸런스 재편)을 정해 진행을 지시함. AI가 설계서(_Else/Plan/정비_강화노드_설계.md)를 쓰고 바로 구현함.
+- 데이터: GearNodeDef·EmblemDef, GearData(PlayerDataBase, 세이브 v5 gearNodes), 에셋은 메뉴 "정비 노드·엠블렘 만들기"(GearDefSetup)가 34노드·5단계를 만듦. 스페셜 6개(버섯 사냥꾼·질주 베기·든든한 뿌리·질풍·강철 갓·포자 재생)는 AI 제안.
+- 전투: UnitController.Stat(UnitStat)을 BattleService가 플레이어 스폰 때 채움. 피해·부위 피해(HitParams), 방어·경직 저항(HitFeature), 공격 속도·범위(AttackAction), 대시 쿨·거리(DashAction), 이동(PlayerBrain), 최대 체력(HealthFeature), 상해보험·포자 재생(BattleService).
+- UI: ScreenLobby_GearView(엠블렘·노드 트리·정보)와 _Node를 LobbyUISetup이 만들고, 노드·선은 실행 중 템플릿 복제. 문구는 Lobby_Gear_ 키.
+- 밸런스: 피해·체력·부위 내구도 ×10(플레이어 체력 50), MonsterBalance 기준 30/10, 지역 배율 체력 2.0·공격 1.5로 올리고 몬스터 에셋도 같은 비율로 맞춤. 컴파일·플레이 확인 안 함. 커밋하지 않음.
+
+## 시장 칸 표시 다듬기(개수 뱃지)
+- 고른 칸 가운데 글자: "전체"는 빨간색, 일부는 "7→3"으로 공백 없이 "7→"만 회색. 칸 개수는 오른쪽 아래 모서리의 개수 뱃지(바탕 UI_Badge_Count, 9-slice, 그림은 리소스 스레드) 위에 표시하고 개수가 없으면 뱃지째 끔. 하트 뱃지 24로 축소. UI 다시 만들기 필요, 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 시장 슬롯 그림 수정·개수 뱃지
+- UI_Slot_Mold 냄새 줄을 더 작게(높이 11px) 칸 맨 위로 올림. 하트 크기는 그림이 아니라 코드 표시 크기로 줄이기로 함.
+- UI_Badge_Count(16x16 어두운 반투명 알약 + 밝은 테두리, 9-slice 6px)를 Common에 추가. 커밋하지 않음.
+
+## 시장 조작 안내·개수 조절 모두 빼기
+- 남은 버섯 패널 머리글 오른쪽에 "슬롯을 한 번 클릭하여 전체 넣기, 다시 클릭하여 개수 조절" 안내(Market_StockHint)를 넣고, 머리글에서 겹치던 "눌러서 묶음 담기"는 뺌. 개수 조절 팝업은 [모두 빼기][-10][-1][+1][+10][모두 넣기]로 바꾸고 창을 900으로 넓힘. PopupMarket·PopupMarketCounter 다시 만들기 필요, 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 정비 엠블렘 그림 5단계
+- Icon_Emblem_001~005(48x48, 투명 배경 원형 메달 + 가운데 큰 버섯)를 Icon에 추가. 단계별 동·은·금·백금·다이아 색, 2단계부터 테두리 못, 3단계부터 잎 장식, 4단계부터 붉은 보석, 5단계 왕관·반짝임.
+- Resources/Data/Gear/Emblem_001~005의 Icon을 새 그림으로 교체. 파이썬으로 생성, 커밋하지 않음.
+
+## 클릭 버섯 터짐을 버튼에서만
+- 대장 지시: 화면 아무 데나 누르면 터지던 것을 버튼에서만 터지게. UIClickBurst의 입력 감시를 없애고 EffectService.PlayClickBurst(누른 자리)로 바꿈. 로비는 하단 탭 4개(UITabBar)와 [입장]만 부름. 타이틀·로딩은 씬이 생기면 화면 전체 배경 버튼에서 부르면 됨. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 시장 조작 안내 위치
+- 대장 지시로 남은 버섯 조작 안내를 머리글 오른쪽에서 머리글 아래 줄로 옮기고, 격자 시작을 그만큼(34) 내림. PopupMarket 다시 만들기 필요, 커밋하지 않음.
+
+## 타이틀 그림 "버섯을 줍자!"
+- Galmuri11-Bold 글자를 비트맵으로 뽑아 두 줄로 배치하고 2배 키운 뒤 진갈색 외곽선·그림자, 노랑→주황 그라데이션을 입혀 UI_Title(78x57)을 Common에 추가.
+- ㅂ·ㅇ 구멍이 좁아 해당 행·열을 한 칸씩 늘려 빨간 버섯을 넣음. 느낌표는 30도 기울여 직접 그림. 커밋하지 않음.
+
+## 능력치 관리 구조(StatFeature)
+- 대장 요청: UnitStat이 관리 구조 없이 유닛에 들려 있는 점을 고치고, 구조로 정리할 곳도 같이 진행. AI가 제안한 안 중 1(StatFeature)과 3(정리 5건)을 대장이 골라 진행함. 스페셜 훅 구조(PassiveDef)는 보류.
+- UnitStat을 지우고 유닛 부품 StatFeature로 바꿈. 출처별 수정치(StatModifier: 능력치·Rate/Add·값)를 받아 최종값 = Def 기본값 × (1 + Rate 합) + Add 합. 최대 체력은 Changed로 다시 계산.
+- 정리: EGearStat → EStatType, 노드·엠블렘 수치를 StatModifier 목록으로(에셋 39개 YAML 변환), 피해 계산을 DamageCalculator 한곳으로, 대시 시간·쿨은 Def 기본값 + 능력치, 능력치 글은 Stat_ 문구 키로 자동 연결(능력치별 switch 삭제). 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 타이틀 씬·가짜 로딩 화면
+- 대장 요청: 로딩은 최소 1초 노출, 타이틀은 "클릭하여 시작하기"만 동동. AI가 처음엔 로딩을 별도 씬(전환마다 거쳐 감)으로 만들었으나, 대장이 "씬이면 다음 씬 로드 동안 쓸 수 없다"며 거절해 씬 전환 때 띄우는 상시 UI로 바꿈.
+- 로딩 화면은 맨 위 캔버스 프리팹을 GameManager가 [Managers] 아래에 하나 두고 전환 동안만 켬. 다음 씬 활성화를 최소 시간(Define.MinLoadingTime 1초)까지 붙잡음. 씬 밖 UI라 프리팹 표 대신 Resources 경로로 읽는 예외를 둠. 진행바는 실제 로드 정도와 경과 시간 비율 중 느린 쪽으로 채우고, 로딩 화면에서도 누르면 버섯이 튀게(떠나는 씬의 연출을 쓰므로 전투도 켬) 함. 대장이 프리팹을 실수로 지워 에디터 명령으로 다시 만듦.
+- 타이틀: 게임 상태 Title 추가, 화면 전체 배경 버튼으로 버섯 터짐 후 로비. 동동 연출은 UISequence 반복이고 대장 피드백으로 더 빠르고 낮게 고친 뒤, 한 번 튀고(0.4초) 1.5초 쉬기 반복으로 바꿈. 클릭하면 바로 로딩이 덮어 버섯이 안 보여, 버섯이 다 퍼진 뒤(ClickBurstTime) 넘어가게 함. 글자 뒤 띠 그림(UI_Title_StartBG)을 깔아 함께 뜨게 함. 그림 배율·흔들림 수치는 가안. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 스페셜 훅(PassiveDef)·골드 동전·지역 난이도
+- 대장이 AI 제안 중 훅 구조를 채택. 스페셜을 PassiveDef 에셋 5개로 빼고 훅 4곳(공격 피해·범위, 받는 피해, 맞은 뒤, 주운 뒤)을 PassiveFeature가 돌리게 함. StatFeature의 스페셜 칸과 BattleService의 골드·회복 처리를 지움.
+- 대장 요청으로 상해보험 골드를 바로 주지 않고 골드 동전 픽업(Pickup_Gold, 기존 MushroomPickup 재사용)으로 떨구게 함.
+- 지역 난이도는 몬스터 에셋에 굽던 배율을 MapDef 수정치 목록으로 옮겨 스폰 때 StatFeature 출처로 넣고, 얼음·공룡 몬스터 체력·스킬 피해를 기본값으로 되돌림. 에셋·meta는 YAML 직접 작성. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 패시브 조합형으로 일반화
+- 대장 지적: 패시브가 스페셜마다 클래스를 새로 만드는 식이라 일반화가 안 됨. AI가 "언제 + 조건 + 효과" 조합형을 제안했고 대장이 비용(드롭다운 에디터)까지 포함해 채택.
+- PassiveDef를 규칙 목록 하나로 바꾸고, 조건(스킬·체력 이하·버섯 주움·확률)·효과(순간 능력치·픽업 떨구기·회복)를 SerializeReference 작은 클래스로 분리. 하위 클래스를 고르는 SubclassSelector 드롭다운 드로어를 추가. 기존 스페셜 5개를 에셋 조합으로 다시 씀(YAML 직접 작성), 범위 능력치 AttackRadius 추가, 픽업 경로를 IPickupItem으로 통일. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 정비 마무리: 결과 창 골드·노드 저장·디버그
+- 대장 요청: 전투 중 주운 골드 동전도 결과 창에 합산. 동전은 주울 때 이미 인벤토리에 들어가므로 따로 모아 두었다가 결과 표시에만 더함(귀가·쓰러짐에도 남음).
+- 노드를 열면 바로 저장하게 하고, DebugPanel에 정비 칸(골드 +1000/+10000, 정비 초기화)을 추가. 비용 조정은 대장 판단으로 하지 않음. 컴파일·플레이 확인 안 함, 커밋하지 않음.

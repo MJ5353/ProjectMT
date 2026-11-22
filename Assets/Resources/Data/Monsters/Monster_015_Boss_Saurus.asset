@@ -16,7 +16,7 @@ MonoBehaviour:
   <ID>k__BackingField: Monster_015_Boss_Saurus
   <Description>k__BackingField: 
   <Icon>k__BackingField: {fileID: 0}
-  <MaxHp>k__BackingField: 146
+  <MaxHp>k__BackingField: 451
   <HitStunTime>k__BackingField: 0.1
   <BreakImmune>k__BackingField: 3
   <TurnSpeed>k__BackingField: 900
@@ -65,7 +65,7 @@ MonoBehaviour:
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.4, y: 1.4}
     <TiltMax>k__BackingField: 5.07
-    <Durability>k__BackingField: 4
+    <Durability>k__BackingField: 40
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
   - <BattlePart>k__BackingField: 6
@@ -76,7 +76,7 @@ MonoBehaviour:
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.34, y: 1.34}
     <TiltMax>k__BackingField: 6.3599854
-    <Durability>k__BackingField: 4
+    <Durability>k__BackingField: 40
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
   - <BattlePart>k__BackingField: 2
@@ -87,7 +87,7 @@ MonoBehaviour:
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.57, y: 1.57}
     <TiltMax>k__BackingField: 11.940002
-    <Durability>k__BackingField: 6
+    <Durability>k__BackingField: 60
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
   - <BattlePart>k__BackingField: 100
@@ -98,7 +98,7 @@ MonoBehaviour:
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.3, y: 1.3}
     <TiltMax>k__BackingField: 7.59
-    <Durability>k__BackingField: 4
+    <Durability>k__BackingField: 40
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
   - <BattlePart>k__BackingField: 1
@@ -109,7 +109,7 @@ MonoBehaviour:
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.38, y: 1.38}
     <TiltMax>k__BackingField: 7.22
-    <Durability>k__BackingField: 5
+    <Durability>k__BackingField: 50
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
   - <BattlePart>k__BackingField: 4
@@ -120,7 +120,7 @@ MonoBehaviour:
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 1.43, y: 1.43}
     <TiltMax>k__BackingField: 4.65
-    <Durability>k__BackingField: 4
+    <Durability>k__BackingField: 40
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 20
   - <BattlePart>k__BackingField: 0

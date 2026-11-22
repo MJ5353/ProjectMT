@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbdb4405bed4eb944858644a55c54a27, type: 3}
+  m_Name: GearNode_030_Barbarian
+  m_EditorClassIdentifier: Assembly-CSharp::GearNodeDef
+  m_DisplayName: "\uBC14\uBC14\uB9AC\uC548"
+  <ID>k__BackingField: GearNode_030_Barbarian
+  <Description>k__BackingField: "\uB9C9\uD0C0 \uB0B4\uB824\uCC0D\uAE30 \uD53C\uD574
+    x1.5, \uBC94\uC704 x1.3"
+  <Icon>k__BackingField: {fileID: 0}
+  m_ListModifier: []
+  <Passive>k__BackingField: {fileID: 11400000, guid: 45af1dfcadcb4e568ee7ce634d345aa8, type: 2}
+  <Cost>k__BackingField: 1500
+  m_ListRequire:
+  - {fileID: 11400000, guid: af813751cc8ba7245a2d5f2b7422847b, type: 2}
+  <Slot>k__BackingField: {x: 0, y: 5}

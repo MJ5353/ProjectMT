@@ -14,6 +14,12 @@ public enum EStringKey
     Common_GameTitle,
     Common_Yes,
     Common_No,
+    Common_Cancel,
+    Common_Confirm,
+
+    // title·loading (ScreenTitle·ScreenLoading)
+    Title_PressToStart,
+    Loading_Text,
 
     // lobby
     Lobby_Tab_Gear,
@@ -30,6 +36,35 @@ public enum EStringKey
     Lobby_Hunt_Unlocked,
     Lobby_Hunt_LockedFormat,    // {0} 먼저 토벌할 지역
 
+    // lobby · gear (ScreenLobby_GearView)
+    Lobby_Gear_TreeTitle,
+    Lobby_Gear_EmblemProgressFormat, // {0} 연 노드 {1} 전체
+    Lobby_Gear_EmblemNextFormat,    // {0} 남은 노드
+    Lobby_Gear_EmblemMax,
+    Lobby_Gear_EmblemBonusHeader,
+    Lobby_Gear_NoBonus,
+    Lobby_Gear_SelectHint,
+    Lobby_Gear_RequireFormat,       // {0} 앞 노드 이름들
+    Lobby_Gear_RequireNone,
+    Lobby_Gear_CostFormat,          // {0} 골드
+    Lobby_Gear_Open,
+    Lobby_Gear_Opened,
+    Lobby_Gear_Locked,
+    Lobby_Gear_NotEnoughGold,
+    Lobby_Gear_EquipComingSoon,
+
+    // stat (StatModifier.ToText). 이름은 Stat_ + EStatType 이름이어야 한다. {0}은 값(10% 또는 수치)
+    Stat_Attack,
+    Stat_MaxHp,
+    Stat_Dodge,
+    Stat_Defense,
+    Stat_AttackSpeed,
+    Stat_MoveSpeed,
+    Stat_PartDamage,
+    Stat_DashDistance,
+    Stat_BreakResist,
+    Stat_AttackRadius,
+
     // battle
     Battle_Exit,
     Battle_ExitConfirm,
@@ -42,6 +77,43 @@ public enum EStringKey
     // clock (UINightClock, 전투·시장 공용)
     Clock_MarketCloseFormat,    // {0} 시간 {1} 분
     Clock_ActionTimeFormat,     // {0} 행동당 분
+
+    // market (PopupMarket·PopupMarketCounter·PopupMarket_MerchantRow)
+    Market_MerchantCaption,
+    Market_Close,
+    Market_WaitFormat,               // {0} 분
+    Market_PickCaption,
+    Market_StockCaption,
+    Market_StockHint,
+    Market_Trade,
+    Market_SoldFormat,               // {0} 판 골드
+    Market_TotalFormat,              // {0} 합계 골드 {1} 고른 묶음 {2} 묶음 상한
+    Market_NoMerchant,
+    Market_MerchantInfoFormat,       // {0} 신뢰도 {1} 오른 신뢰도 {2} 시세 {3} 선호 희귀도 범위 {4} 선호 배율 {5} 그 밖 배율
+    Market_PreferOnlyFormat,         // {0} 희귀도
+    Market_PreferAboveFormat,        // {0} 희귀도
+    Market_SwingNormal,
+    Market_NotBuying,
+    Market_PriceFormat,              // {0} 한 개 값
+    Market_SellAll,
+    Market_TradeGoldFormat,          // {0} 받은 골드
+    Market_WaitDone,
+    Market_Result_Closed,
+    Market_Result_NoMerchant,
+    Market_Result_OverLimitFormat,   // {0} 묶음 상한
+    Market_Result_NotEnough,
+    Market_Result_NotBuying,
+    Market_IntroFormat,              // {0} 시간(꾸밈 포함)
+    Market_IntroContinue,
+    Market_HourFormat,               // {0} 시
+    Market_HourMinuteFormat,         // {0} 시 {1} 분
+    Market_MinuteFormat,             // {0} 분
+    Market_Counter_CountFormat,      // {0} 팔 개수 {1} 가진 개수
+    Market_Counter_PriceFormat,      // {0} 한 개 값 {1} 합계
+    Market_Counter_NotBuying,
+    Market_Counter_All,
+    Market_Counter_Clear,
+    Market_Row_TrustFormat,          // {0} 신뢰도
 
     // death
     Death_Title,

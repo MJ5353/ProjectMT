@@ -17,6 +17,12 @@ public static class CRandom
         return UnityEngine.Random.value < probability;
     }
 
+    // min 이상 max 이하 실수
+    public static float Range(float min, float max)
+    {
+        return UnityEngine.Random.Range(min, max);
+    }
+
     // 가중치 비율로 하나를 뽑아 인덱스를 돌려준다. 가중치가 0 이하인 항목은 뽑히지 않고, 모두 0이면 -1
     public static int PickIndex<T>(IReadOnlyList<T> list, Func<T, float> getWeight)
     {

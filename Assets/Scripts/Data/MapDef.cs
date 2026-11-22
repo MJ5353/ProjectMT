@@ -58,6 +58,7 @@ public class MapDef : DataDef
     public IReadOnlyList<SpawnEntry> ListSpawn => m_ListSpawn;
     public IReadOnlyList<MushroomDef> ListMushroom => m_ListMushroom;
     public IReadOnlyList<RarityWeight> ListRarityWeight => m_ListRarityWeight;
+    public IReadOnlyList<StatModifier> ListMonsterModifier => m_ListMonsterModifier;
     public string ClearFlag => $"Clear_{ID}";
     public string PrefabPath => CommonPath.MapDir + ID; // 전투 때 생성할 맵. MapPrefabBuilder가 ID와 같은 이름으로 굽는다
 
@@ -91,6 +92,9 @@ public class MapDef : DataDef
         new RarityWeight(ERarity.Rare, 17f),
         new RarityWeight(ERarity.Epic, 3f),
     };
+
+    [SerializeField, Tooltip("이 지역 몬스터 난이도. 스폰 때 능력치 출처로 들어간다(예: 최대 체력 Rate 1 = 체력 ×2)")]
+    private List<StatModifier> m_ListMonsterModifier = new();
 
     // ------------------------------------------------
 
