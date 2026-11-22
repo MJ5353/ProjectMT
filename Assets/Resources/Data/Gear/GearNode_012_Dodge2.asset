@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbdb4405bed4eb944858644a55c54a27, type: 3}
+  m_Name: GearNode_012_Dodge2
+  m_EditorClassIdentifier: Assembly-CSharp::GearNodeDef
+  m_DisplayName: "\uD68C\uD53C II"
+  <ID>k__BackingField: GearNode_012_Dodge2
+  <Description>k__BackingField: 
+  <Icon>k__BackingField: {fileID: 0}
+  <Stat>k__BackingField: 3
+  <StatValue>k__BackingField: 0.12
+  <Special>k__BackingField: 0
+  <SpecialValue>k__BackingField: 0
+  <SpecialValue2>k__BackingField: 0
+  <SpecialRange>k__BackingField: {x: 0, y: 0}
+  <TargetSkill>k__BackingField: {fileID: 0}
+  <Cost>k__BackingField: 100
+  m_ListRequire:
+  - {fileID: 11400000, guid: 036ac6e2bc565f643bbce9303426aa99, type: 2}
+  <Slot>k__BackingField: {x: 4, y: 1}

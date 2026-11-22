@@ -19,7 +19,7 @@ MonoBehaviour:
   <Kind>k__BackingField: 1
   <Attack>k__BackingField:
     <Clip>k__BackingField: Skill_02
-    <Damage>k__BackingField: 4
+    <Damage>k__BackingField: 43
     m_HitFrame: 26
     <HitEndFrame>k__BackingField: 0
     <Reach>k__BackingField: 2.5

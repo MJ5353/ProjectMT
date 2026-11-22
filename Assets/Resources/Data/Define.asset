@@ -51,6 +51,8 @@ MonoBehaviour:
   <MarketMerchantCount>k__BackingField: 3
   <MarketTradeLimit>k__BackingField: 5
   <MarketLowFreshRate>k__BackingField: 0.6
+  <MarketRareRate>k__BackingField: 2.5
+  <MarketEpicRate>k__BackingField: 6
   <TrustMax>k__BackingField: 100
   <TrustPerTrade>k__BackingField: 5
   <TrustPriceRate>k__BackingField: 0.005

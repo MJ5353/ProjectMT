@@ -16,7 +16,7 @@ MonoBehaviour:
   <ID>k__BackingField: Monster_003_Bear
   <Description>k__BackingField: 
   <Icon>k__BackingField: {fileID: 0}
-  <MaxHp>k__BackingField: 8
+  <MaxHp>k__BackingField: 80
   <HitStunTime>k__BackingField: 0.2
   <BreakImmune>k__BackingField: 1
   <TurnSpeed>k__BackingField: 900
@@ -38,7 +38,7 @@ MonoBehaviour:
     <CountMax>k__BackingField: 1
     <ScaleRange>k__BackingField: {x: 0.97, y: 0.97}
     <TiltMax>k__BackingField: 0.91
-    <Durability>k__BackingField: 3
+    <Durability>k__BackingField: 30
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 8
   - <BattlePart>k__BackingField: 0
