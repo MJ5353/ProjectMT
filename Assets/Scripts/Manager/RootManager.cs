@@ -1,15 +1,14 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 // ==================================================
 
+// [Managers] 루트 오브젝트. 씬이 바뀌어도 남도록 DontDestroyOnLoad를 걸고, 다른 매니저(MonoSingleton.Create)가 이 아래에 붙는다.
+// 씬 UI 루트는 UIManager가 맡는다
+
 public sealed class RootManager : MonoSingleton<RootManager>
 {
-    public RectTransform UIRoot { get; private set; }
-
     private const string RootName = "[Managers]";
-    private Scene m_UIScene;
-    
+
     public Transform ManagersRoot => transform;
 
     // ------------------------------------------------
@@ -26,20 +25,5 @@ public sealed class RootManager : MonoSingleton<RootManager>
         manager.Init();
         
         return manager;
-    }
-
-    public void SetUIRoot(Scene scene, RectTransform root)
-    {
-        m_UIScene = scene;
-        UIRoot = root;
-    }
-
-    public void ClearUIRoot(Scene scene)
-    {
-        if (m_UIScene != scene)
-            return;
-
-        UIRoot = null;
-        m_UIScene = default;
     }
 }

@@ -9,6 +9,7 @@ public enum EPopupType
     PopupMarket,
     PopupMarketCounter,
     PopupConfirm,
+    PopupHuntStart,
 }
 
 // ==================================================

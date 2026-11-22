@@ -5,12 +5,12 @@ using UnityEngine.UI;
 
 // ==================================================
 
-// 토벌 종료 뒤 현장 시장 팝업. 왼쪽 오늘 온 상인, 가운데 고른 상인, 오른쪽 위 고른 버섯·합계·[거래], 오른쪽 아래 남은 버섯.
-// 계산과 결과는 HuntData가 정하고 여기서는 요청(Trade·Wait·EndMarket)만 보낸다. 시장이 닫히면(MarketClosed) 스스로 닫힌다.
+// 토벌 종료 뒤 현장 시장 팝업(BattleFlow Market 상태가 Flow를 넘겨 띄운다). 왼쪽 오늘 온 상인, 가운데 고른 상인, 오른쪽 위 고른 버섯·합계·[거래], 오른쪽 아래 남은 버섯.
+// 계산과 결과는 HuntData가 정하고 여기서는 요청(Trade·Wait)만 보낸다. [시장 떠나기]는 BattleFlow.ExitMarket(확인 팝업 뒤 EndMarket). 시장이 닫히면(MarketClosed) 스스로 닫힌다.
 // 열릴 때 시작 연출(PopupMarket_Intro)이 이어진다. 연출 중에 누르면 끝 모습으로 건너뛰고, 끝 모습에서 한 번 더 누르면 연출을 닫고 본 화면이 나타난다.
-// 결과 화면 전환과 저장은 MarketClosed를 받은 쪽(BattleService)이 한다
+// 결과 화면 전환과 저장은 MarketClosed를 받은 쪽(BattleFlow Market 상태)이 한다
 
-public class PopupMarket : PopupBase
+public class PopupMarket : PopupFlowBase<BattleFlow>
 {
     [SerializeField] private UINightClock m_Clock = null;
     [SerializeField] private CanvasGroup m_Body = null; // 시계를 뺀 나머지. 시작 연출 뒤 서서히 나타난다(시계는 HUD 자리에 그대로 있는 것처럼)
@@ -33,6 +33,7 @@ public class PopupMarket : PopupBase
     [Header("목록")]
     [SerializeField] private UIListView<PopupMarket_MerchantRow> m_RowPool = new(); // 상인(세로)
     [SerializeField] private UIListView<UICommonSlot> m_StockPool = new();          // 남은 버섯(격자, 스크롤 내용 높이도 맞춘다)
+    [SerializeField] private GameObject m_SoldOut = null;                            // 팔 버섯이 없으면 남은 버섯 칸을 덮는 딤 + 글자
     [SerializeField] private UIListView<UICommonSlot> m_PickPool = new();           // 고른 버섯(가로)
 
     // ------------------------------------------------
@@ -49,7 +50,7 @@ public class PopupMarket : PopupBase
     private int m_ShownTotal; // 지금 보이는 합계(굴러가는 중간값)
     private int m_ShownSold;  // 지금 보이는 판 골드(굴러가는 중간값)
 
-    public override bool IsCloseOnBack => false; // [시장 닫기]로만 닫는다
+    public override bool IsCloseOnBack => false; // [시장 떠나기]로만 닫는다
     private static HuntData Hunt => PlayerDataManager.Instance.Hunt;
     private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
     private MerchantDef SelectedMerchant
@@ -169,6 +170,9 @@ public class PopupMarket : PopupBase
 
         m_ListStockKey.Sort(CompareLoot);
         m_StockPool.Refresh(m_ListStockKey, SetStockSlot);
+
+        // 다 팔았거나 빈손으로 들어왔으면 덮는다
+        m_SoldOut.E_SetActive(hunt.HasHarvest == false);
     }
 
     private void RefreshPick()
@@ -314,7 +318,7 @@ public class PopupMarket : PopupBase
         if (merchant != null)
             price = hunt.GetPrice(merchant, key);
 
-        m_CounterPopup = GameManager.Instance.PopupS.Open<PopupMarketCounter>(EPopupType.PopupMarketCounter);
+        m_CounterPopup = FlowManager.Instance.PopupS.Open<PopupMarketCounter>(EPopupType.PopupMarketCounter);
         m_CounterPopup.Setup(key, have, picked, price, count => OnCountConfirm(key, count), OnCountClosed);
     }
 
@@ -419,9 +423,10 @@ public class PopupMarket : PopupBase
         SetMessage(result == EMarketResult.Success ? StringDef.S_Get(EStringKey.Market_WaitDone) : GetResultText(result));
     }
 
+    // 하루가 끝난다는 확인은 BattleFlow가 묻고, 예면 시장을 닫는다(MarketClosed로 이 팝업도 닫힌다)
     private void OnClickClose()
     {
-        Hunt.EndMarket();
+        Flow.ExitMarket();
     }
     
     private void OnClickIntro()

@@ -26,7 +26,7 @@ public interface IPickupItem
 // ==================================================
 
 // 바닥에 떨어진 버섯(골드 동전도 같은 방식, ItemID만 재화). 튀어 올랐다 떨어진 뒤, 플레이어가 가까이 오면 빨려 들어가 주워진다.
-// ResourceManager 풀로 꺼내고 돌려준다. 여러 개를 흩뿌릴 때는 S_Drop
+// BattleService.SpawnPickup으로 꺼내고(움직임은 BattleService.Tick, 판이 끝나면 남은 것을 돌려받는다), 주우면 DespawnPickup으로 돌려준다. 여러 개를 흩뿌릴 때는 S_Drop
 public class MushroomPickup : PoolableMono
 {
     private const float Gravity = -20f;
@@ -49,12 +49,9 @@ public class MushroomPickup : PoolableMono
 
     // ------------------------------------------------
 
-    private void Update()
+    // BattleService.Tick이 매 프레임 부른다(픽업마다 Update를 두지 않는다)
+    public void Tick(float deltaTime)
     {
-        float deltaTime = Time.deltaTime;
-        if (deltaTime <= 0f)
-            return;
-
         m_Age += deltaTime;
 
         if (m_IsMagnet)
@@ -75,13 +72,20 @@ public class MushroomPickup : PoolableMono
         }
     }
 
-    // origin 위로 count개를 흩뿌린다(몬스터 드랍·골드 동전)
+    // origin 위로 count개를 흩뿌린다(몬스터 드랍·골드 동전). 전투 밖이면 떨구지 않는다
     public static void S_Drop(MushroomPickup prefab, Vector3 origin, int count, EFreshness freshness, ERarity rarity)
     {
+        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
+        if (battleS == null)
+            return;
+
         Vector3 position = origin + Vector3.up * Define.MonsterDropHeight;
         for (int i = 0; i < count; i++)
         {
-            MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, position, Quaternion.identity);
+            MushroomPickup pickup = battleS.SpawnPickup(prefab, position);
+            if (pickup == null)
+                return;
+
             Vector2 spread = Random.insideUnitCircle * Define.MonsterDropSpread;
             pickup.Launch(new Vector3(spread.x, Define.MonsterDropUpSpeed, spread.y), freshness, rarity);
         }
@@ -142,10 +146,13 @@ public class MushroomPickup : PoolableMono
 
     private void UpdateMagnet(float deltaTime)
     {
-        UnitController player = GameManager.Instance.UnitS?.Player;
-        if (player == null)
+        // 빨려 드는 중에 쓰러지면(떨군 버섯이 다시 주워지지 않게) 그 자리에서 다시 떨어진다
+        UnitController player = FlowManager.Instance.Battle?.UnitS.Player;
+        if (player == null || player.IsValid() == false)
         {
             m_IsMagnet = false;
+            m_IsLanded = false;
+            m_Velocity = Vector3.zero;
             return;
         }
 
@@ -160,7 +167,7 @@ public class MushroomPickup : PoolableMono
 
     private bool IsPlayerNear()
     {
-        UnitController player = GameManager.Instance.UnitS?.Player;
+        UnitController player = FlowManager.Instance.Battle?.UnitS.Player;
         if (player == null || player.IsValid() == false)
             return false;
 
@@ -178,19 +185,25 @@ public class MushroomPickup : PoolableMono
             default: return;
         }
 
-        m_Beam = GameManager.Instance.EffectS?.Show(type, groundPosition, Quaternion.identity);
+        m_Beam = FlowManager.Instance.EffectS?.Show(type, groundPosition, Quaternion.identity);
     }
 
     private void HideBeam()
     {
-        GameManager.Instance.EffectS?.Hide(m_Beam);
+        FlowManager.Instance.EffectS?.Hide(m_Beam);
         m_Beam = null;
     }
 
     private void Collect()
     {
         SEventManager.Publish(new LootPicked(m_ItemID, m_Amount, Freshness, Rarity));
-        GameManager.Instance.EffectS?.Play(ECommonEffectType.Pickup, transform.position, Quaternion.identity);
-        ResourceManager.S_Despawn(this);
+        FlowManager flowM = FlowManager.Instance;
+        flowM.EffectS?.Play(ECommonEffectType.Pickup, transform.position, Quaternion.identity);
+
+        BattleService battleS = flowM.Battle?.BattleS;
+        if (battleS != null)
+            battleS.DespawnPickup(this);
+        else
+            ResourceManager.S_Despawn(this);
     }
 }

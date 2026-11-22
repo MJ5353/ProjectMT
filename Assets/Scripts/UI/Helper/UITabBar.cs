@@ -55,10 +55,10 @@ public class UITabBar : MonoBehaviour
         Select(m_DefaultIndex);
     }
 
-    // 누르면 버섯이 튄다(연출을 켠 씬만, 로비)
+    // 누르면 버섯이 튄다
     private void OnClickTab(int index)
     {
-        GameManager.Instance.EffectS.PlayClickBurst();
+        UIManager.Instance.PlayClickBurst();
         Select(index);
     }
 

@@ -6,7 +6,7 @@ using TMPro;
 
 // 몬스터 체력바. 잡몹·엘리트는 맞으면 머리 위에 작은 바가 잠깐(Define.MonsterHpBarShowTime) 뜨고,
 // 보스는 어그로가 끌리면 화면 위에 큰 바가 뜬다(분노하면 분노 표시). 매 프레임 UnitService의 유닛을 읽어 그린다.
-// 머리 위 바는 UIReuseService로 꺼내고, 유닛이 지워지면(UnitService.UnitRemoved) 돌려준다(씬이 바뀌면 UIReuseService가 남은 바를 회수).
+// 머리 위 바는 UIReuseService로 꺼내고, 유닛이 지워지면(UnitService.UnitRemoved) 돌려준다. 새 판이 시작되면(FlowBegan, 다시 하기 포함) 남은 바를 모두 돌려주고 새 UnitService에 다시 붙는다.
 
 public class ScreenBattle_UnitHpBars : MonoBehaviour
 {
@@ -35,17 +35,19 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
         m_BossRoot.E_SetActive(false);
     }
 
-    // 서비스는 씬 컨트롤러 Start(-1100)에서 등록되므로 Start에서 구독한다. 해제는 따로 하지 않는다(씬이 닫힐 때 UnitService.Clear가 구독을 비운다)
-    private void Start()
+    private void OnEnable()
     {
-        UnitService units = GameManager.Instance.UnitS;
-        if (units != null)
-            units.UnitRemoved += OnUnitRemoved;
+        SEventManager.Subscribe<FlowBegan>(OnFlowBegan);
+    }
+
+    private void OnDisable()
+    {
+        SEventManager.Unsubscribe<FlowBegan>(OnFlowBegan);
     }
 
     private void LateUpdate()
     {
-        UnitService units = GameManager.Instance.UnitS;
+        UnitService units = FlowManager.Instance.Battle?.UnitS;
         Camera cam = CameraManager.Instance.Main;
         
         if (units == null || cam == null)
@@ -88,7 +90,7 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
             bar.Remain = define.MonsterHpBarShowTime;
             if (bar.Gauge == null)
             {
-                bar.Gauge = GameManager.Instance.UIReuseS?.Spawn<UIGauge>(EUIComponentType.ScreenBattle_UnitHpBar, m_Root);
+                bar.Gauge = FlowManager.Instance.UIReuseS?.Spawn<UIGauge>(EUIComponentType.ScreenBattle_UnitHpBar, m_Root);
                 bar.Gauge.E_Alive()?.SetValue(bar.LastHp, unit.HealthF.MaxHp, true); // 줄기 전 값에서 시작해야 잔상이 보인다
             }
 
@@ -124,6 +126,24 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
         return true;
     }
 
+    // 새 판의 UnitService에 붙는다. 유닛 번호가 1부터 다시 시작하므로 지난 판의 바는 모두 돌려준다.
+    // UnitRemoved 해제는 따로 하지 않는다(판이 끝날 때 UnitService.Clear가 구독을 비운다)
+    private void OnFlowBegan(FlowBegan evt)
+    {
+        if (evt.Flow is not BattleFlow battle)
+            return;
+
+        foreach (Bar bar in m_DicBar.Values)
+        {
+            Release(bar);
+        }
+
+        m_DicBar.Clear();
+        ReleaseBoss();
+
+        battle.UnitS.UnitRemoved += OnUnitRemoved;
+    }
+
     // 지워진 유닛의 바를 돌려놓고, 잡고 있던 보스면 놓는다
     private void OnUnitRemoved(int unitID)
     {
@@ -139,7 +159,7 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
         if (bar.Gauge == null)
             return;
 
-        GameManager.Instance.UIReuseS?.Despawn(bar.Gauge);
+        FlowManager.Instance.UIReuseS?.Despawn(bar.Gauge);
         bar.Gauge = null;
     }
 

@@ -3,11 +3,10 @@ using UnityEngine;
 
 // ==================================================
 
-// 이펙트 입구. 모든 씬의 공용 Service(GameManager가 넣는다).
+// 이펙트 입구. 모든 씬의 공용 Service(FlowManager가 한 번 만들어 두고 씬마다 연결·해제한다).
 // 파티클 이펙트(EffectController)는 풀에서 꺼내 살아 있는 동안 들고 있다가 끝나면 돌려놓고,
 // 피격 복셀 조각·타격 마크는 ChunkRenderer로 오브젝트 없이 그린다.
 // 공격 이펙트는 데이터(AttackSpec.Effect), 부위 파괴·사망·줍기처럼 정해진 연출은 ECommonEffectType으로 부른다(프리팹 FX_{타입 이름})
-// 버튼을 누르면 버섯이 튀는 UI 연출(UIClickBurst)은 씬 컨트롤러가 켠 씬(UseClickBurst)에서만 있다. 버튼이 PlayClickBurst를 부른다
 
 public sealed class EffectService : ServiceBase
 {
@@ -17,23 +16,14 @@ public sealed class EffectService : ServiceBase
     private readonly Dictionary<ECommonEffectType, EffectController> m_DicCommon = new();
     
     private readonly ChunkRenderer m_Chunk = new();
-    private readonly UIClickBurst m_ClickBurst; // 끈 씬에서는 null
 
     private TelegraphController m_TelegraphCircle;
     private TelegraphController m_TelegraphLine;
 
     // ------------------------------------------------
 
-    public EffectService(bool useClickBurst)
-    {
-        if (useClickBurst)
-            m_ClickBurst = new UIClickBurst();
-    }
-
     public override void Init()
     {
-        m_ClickBurst?.Init();
-
         m_DicCommon.Clear();
         foreach (ECommonEffectType type in System.Enum.GetValues(typeof(ECommonEffectType)))
         {
@@ -57,7 +47,6 @@ public sealed class EffectService : ServiceBase
         }
 
         m_Chunk.Tick(deltaTime);
-        m_ClickBurst?.Tick();
     }
 
     public override void Clear()
@@ -82,17 +71,10 @@ public sealed class EffectService : ServiceBase
             ResourceManager.Instance.Despawn(telegraph);
         }
         m_ListTelegraph.Clear();
-        m_ClickBurst?.Clear();
     }
 
     // ---
 
-    // 버튼 클릭 자리에서 버섯을 튀긴다. 연출을 끈 씬에서는 아무 일도 없다. root를 주면 그 아래(씬 밖 로딩 화면 등)에 띄운다
-    public void PlayClickBurst(RectTransform root = null)
-    {
-        m_ClickBurst?.Play(root);
-    }
-    
     // 풀에서 꺼내 재생한다. 크기는 프리팹 기준 배율
     public EffectController Play(EffectController prefab, Vector3 position, Quaternion rotation, float scale = 1f)
     {

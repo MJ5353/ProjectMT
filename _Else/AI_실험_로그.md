@@ -509,3 +509,93 @@
 ## 정비 마무리: 결과 창 골드·노드 저장·디버그
 - 대장 요청: 전투 중 주운 골드 동전도 결과 창에 합산. 동전은 주울 때 이미 인벤토리에 들어가므로 따로 모아 두었다가 결과 표시에만 더함(귀가·쓰러짐에도 남음).
 - 노드를 열면 바로 저장하게 하고, DebugPanel에 정비 칸(골드 +1000/+10000, 정비 초기화)을 추가. 비용 조정은 대장 판단으로 하지 않음. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+# 26.11.22 - 게임 흐름 Flow 재점검·일시정지 이유 플래그
+
+## 주요 작업
+
+- AI에 Flow 설계 이후 바뀐 코드 재점검과 작업 묶음·순서 제안을 맡김.
+- 일시정지를 이유 플래그로 바꾸는 첫 묶음을 반영함.
+
+## Flow 설계 재점검
+
+- 직접 일시정지 이유 플래그 채택, Retry 때 맵 재사용, 일시정지 메뉴 없음, 씬 이름은 SceneDef로 정함. Def와 Table 차이를 물어 Table은 편집기용 공식값으로 보고 이름을 바꾸기로 함.
+- AI가 Title 씬·로딩 화면·공용 EffectService·확인 팝업이 이미 들어온 것을 반영하고, 팝업 띄우기를 Flow 상태로 옮기기·Retry 가림막·맵 보관 위치를 추가 제안함. 다섯 묶음 순서를 설계 문서에 적음.
+
+## 일시정지 이유 플래그
+
+- AI가 `TimeManager.SetPause(bool)`를 `SetPause(EPauseReason, bool)`(App·Focus·Confirm·Market)로 바꾸고 확인 팝업·시장 호출부를 교체, 씬 컨트롤러가 앱 일시정지·포커스를 넘기게 함. 컴파일·플레이 확인 안 함.
+
+## UI 오버레이 정리(Flow 묶음 2 사전 정리)
+
+- 직접 클릭 버섯 연출을 EffectService가 맡는 것과 로딩 화면이 Screen으로 분류된 것을 문제로 짚음. AI가 "씬을 넘어 맨 위에 뜨는 UI" 분류가 없어서라고 보고 Screen·Popup·Overlay 셋으로 나누는 안을 냄. AI의 이펙트 수명 enum 안은 이 정리로 불필요해져 넣지 않음.
+- 직접 `OverlayLoading` 이름과 RootManager 분리(새 UIManager)를 정함. AI가 UIManager에 씬 UI 루트·로딩·클릭 연출을 옮기고, 조각은 ResourceManager 풀로 직접 꺼내 띄운 자리별로 회수하게 바꿈. `UseClickBurst` 삭제. 옛 `ScreenLoading`은 빈 파일로 남겨 삭제를 대장 몫으로 둠. 대장이 컴파일 오류 없음을 확인함.
+- 직접 오버레이도 기반으로 묶자고 함. AI가 `OverlayBase`(Show·Hide, 자식은 OnShow·OnHide)를 만들고 로딩 화면이 열릴 때 진행바를 비우게 함. 컴파일·플레이 확인 안 함.
+
+## Flow 뼈대와 씬 전환 분리(묶음 2)
+
+- AI가 FlowManager(공용 Service를 한 번 만들어 씬마다 연결·해제)와 FlowBase·FlowStateBase, Title·Lobby·BattleFlow(Play 하나)를 만들고, 전투 전용 Service를 BattleFlow로 옮김. GameManager는 SceneDef로 씬을 찾아 넘기는 일과 전역 데이터만 남기고 EGameState·전환 표·SceneNames·SceneUnloading을 없앰.
+- 호출부 약 30곳을 `FlowManager.Instance.EffectS`·`.Battle?.UnitS` 형태로 바꾸고, SceneDef 에셋 3개를 YAML로 직접 씀. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 토벌 종료 버튼 바탕
+- HUD_EndHunt_Button(16x16 붉은 주황 버튼, 아래 3px 두께)과 HUD_EndHunt_Button_Pressed(눌린 모양)를 HUD에 추가. 9-slice 테두리 좌우위 5·아래 6. 커밋하지 않음.
+- 대장 정정: 눌림 그림 없이 동그란 버튼+아이콘, 아래 반투명 검은 라벨에 글자만. HUD_EndHunt_Button을 32x32 붉은 원형으로 덮어쓰고 HUD_Label_BG(반투명 검정, 9-slice 4) 추가. _Pressed는 대장이 삭제.
+- 대장 추가: 버튼은 Tint로 색을 입히도록 흰 회색으로 다시 그림. 깃발은 반투명 음각 오버레이 HUD_EndHunt_Engrave(안쪽 검정 반투명, 아래·오른쪽 밝은 턱)로 새로 만듦.
+
+## 밤 시계 프레임 새김 느낌
+- HUD_NightClock_Frame(48x48, guid 유지)을 흰 단색 고리에서 회색 볼록 고리(위왼쪽 밝음)에 눈금 12개를 음각으로 새긴 그림으로 다시 그림. Tint로 색을 입힐 수 있음. 커밋하지 않음.
+- 대장 정정: 바탕 없이 음각만. 원래 흰 고리·눈금 모양을 반투명 음각 오버레이(안쪽 검정 반투명, 아래·오른쪽 밝은 턱)로 바꿔 HUD_NightClock_Frame에 덮어씀.
+- 대장 요청: 시계 프레임을 마스크와 같은 칸(바깥 2칸 + 눈금)의 반투명 검정으로 맞춤.
+
+## 전투 화면 프리팹 값 생성기 반영·시장 시계
+- 대장이 손본 ScreenBattle 모양을 BattleUISetup에 반영: 시계 140 정사각(테두리 크기 0으로 마스크와 일치), 아래 반투명 검은 띠 위 남은 시간, 토벌 종료는 시계 아래로 옮겨 바탕 없이 음각 아이콘 + 검은 띠 라벨.
+- 토벌 종료가 아이콘을 눌러도 반응하지 않던 원인(바탕을 꺼서 누름 영역이 라벨뿐)을 투명 누름 영역 + 아이콘 targetGraphic으로 고침.
+- 시장 시계는 BuildNightClock(isMarket)으로 시간 글자를 시계 오른쪽 두 줄로 옮기고 ContentTop -210, 문구는 "남은 시간 N시간 MM분"으로 바꿈. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 타이틀 로고 음각판
+- 로고 글자 모양으로 반투명 검정 음각판 UI_Title_Engrave(76x54, 구멍 속 버섯은 옅게)를 Common에 추가하고, TitleUISetup의 OverlayLoading이 이 그림을 쓰게 함. 커밋하지 않음.
+
+## 시장 팝업 글자 넘침·전투 시계 자리
+- UIBuilder.Fit(넘치면 자동으로 줄이고 말줄임)를 추가해 시장 팝업·상인 줄·개수 팝업 글자에 적용. 판 골드와 머리글, 상인 이름과 신뢰 숫자는 칸을 나눠 겹치지 않게 함.
+- 대장이 맞춘 시장 시계 자리(시계 오른쪽, 두 줄 "남은 시간 / N시간 MM분")를 생성기에 반영하고, 전투 시계도 같은 자리에 띠 없이 외곽선 글자로 옮김. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 대장이 다시 맞춘 전투 화면 값(시간은 시계 가운데 높이, 토벌 종료 y -200, 획득 목록 y -49)을 생성기에 반영하고, 시장 합계 문구에서 "합계"를 뺌. 버튼 반투명 바탕·계기판식 시간 시안 그림을 만들어 대장에게 전달.
+- 대장 선택 반영: 토벌 종료 아이콘 뒤에 흰 판(HUD_EndHunt_Button)을 반투명 Tint로 깔고, 전투 시간은 반투명 음각 창 HUD_Time_Window(12x12, 9-slice 4) 안에 숫자 + 위 "남은 밤"(Clock_NightLeft)으로 바꿈.
+
+# 26.11.22 - 퍼펙트 닷지 러시 애니
+
+## 주요 작업
+
+- AI에 퍼펙트 닷지 연출용 플레이어 애니 3종(좌·우 러시 베기, 점프 내려찍기 막타)을 Blender 생성 스크립트로 맡김.
+
+## 러시 애니 3종
+
+- `build_voxel_assets.py` 플레이어 클립에 Attack_RushL·RushR·RushFinish를 더하고 Player.fbx를 다시 뽑음(기존 메시·클립은 그대로임을 비교로 확인). 표준 이름 Attack_08·09·10을 AnimNameTable에 추가.
+- 좌·우 베기는 길이 10·판정 3이며, 한쪽의 끝 자세가 다른 쪽 시작 자세와 같아 번갈아 재생해도 끊기지 않음. 막타는 길이 50, 웅크림→한 바퀴 돌며 도약→정점 젖힘→21 내려찍기 판정→36까지 착지 자세 유지.
+- Unity 재임포트·플레이 확인 안 함, 커밋하지 않음.
+
+## 전투 화면 생성기 맞춤(버튼 판·계기판 시간)
+- 대장 선택대로 토벌 종료에 반투명 Tint 흰 판, 전투 시간에 음각 창 HUD_Time_Window + "남은 밤"을 넣고, 대장이 정리한 ScreenBattle(창 안 머리글, 판 안 아이콘, 토벌 종료 y -190·라벨 띠 -20)을 BattleUISetup에 반영. 컴파일 확인 안 함, 커밋하지 않음.
+
+## 전투 흐름 상태 나누기(Flow 묶음 3)
+- BattleFlow를 Start·Play·Down·Market·Result 상태로 나누고 EBattleState를 없앰. 끝난 이유는 EHuntResult(Exited·TimedOut·GaveUp) 값으로 Result에 넘김.
+- 사망·시장·결과 팝업은 각 상태 Enter가 띄우고, ScreenBattle은 표시와 토벌 종료 요청만 함. BattleService는 스폰·밤 시간·떨구기·보상 처리만 남기고 상태 검사를 뺌. PlayerDowned·BattleEnded 이벤트 삭제.
+- 로딩 화면에 지난 클릭 버섯 조각이 반투명하게 남던 원인(꺼진 조각을 풀에 돌려주지 않고 목록에서만 뺌)을 고치고, 로딩을 닫을 때 그 위 조각을 먼저 회수하게 함. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 씬을 다시 읽지 않는 다시 하기(Flow 묶음 4)
+- 다시 하기를 씬 재로드 대신 GameManager.RestartFlow → FlowManager.Restart로 바꿈. 로딩 화면을 덮고 지금 BattleFlow를 끝낸 뒤 같은 지역으로 새 BattleFlow를 시작하며, 공용 팝업·UI 요소는 유지하고 월드 이펙트만 비움.
+- 맵은 BattleSceneController가 한 번 만들어 재사용하고, 유닛은 UnitService.Clear에서 풀로, 땅의 픽업은 BattleService가 기억했다가 Clear에서 돌려받음. HUD(체력·주운 목록·머리 위 체력바)와 추적 카메라는 FlowBegan으로 새 판에 다시 붙음. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 몬스터 공식 이름 정리(Flow 묶음 5)
+- 편집기 자동 배정 공식값 MonsterBalanceTable을 Def와 헷갈리지 않게 MonsterFormula로 바꾸고, 옛 에셋(MonsterBalance.asset)은 처음 불러올 때 MonsterFormula.asset으로 옮기게 함. 스크립트 파일 이름은 대장이 Unity에서 바꿈. 컴파일 확인 안 함, 커밋하지 않음.
+
+## Flow 정리(다시 하기 재사용·상태 알림)
+- 대장 지적대로 다시 하기 때 Flow·Service를 새로 만들지 않고 같은 인스턴스를 End → Begin으로 다시 씀(Clear가 되돌림, 할당 없음).
+- 정리안 1~4: Title·Lobby Flow는 상태 없는 FlowBase로, GameManager의 씬 전환·다시 하기 로딩을 Loading(work) 하나로(SceneLoader.Wait 추가), FlowManager 시작·알림을 StartCurrent로, 몬스터 판단 정지와 종료 버튼을 매 프레임 검사 대신 상태가 바뀔 때(UnitService.StopBrains, BattleStateChanged) 처리. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 정리안 6~8: 땅에 떨어진 버섯을 픽업마다 Update로 돌리지 않고 BattleService.Tick이 한 번에 돌림, 토벌 종료는 늘 시장을 거치게 하고 시장 없이 끝내던 개발용 갈래 삭제, BattleFlow 상태 클래스를 BattleFlow.States.cs로 나눔. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- Flow 추가 검토: 쓰러진 뒤에도 빨려 들던 버섯이 다시 주워지던 문제 수정, 토벌 종료 확인 팝업을 화면에서 BattleFlow로 옮기고 프리팹 없을 때 갈래 삭제, 사망·결과 팝업의 Flow 없음 처리 삭제, 낡은 주석 정리. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 팝업 Flow 귀속: 대장 지적(팝업이 어디에 붙는지 쓰는 쪽이 알아야 하는 구조)으로 PopupFlowBase<TFlow>와 PopupService.Open<T, TFlow>(type, flow)를 추가해 Flow를 열기 전에 넣고, 사망·결과·시장 팝업을 BattleFlow 귀속으로 바꿈. 확인·개수 조절 팝업은 공용으로 유지. 컴파일 확인 안 함, 커밋하지 않음.
+
+## 시장·맵 진입 플레이 다듬기
+- 시장 닫기 버튼(문구는 "시장 떠나기"로 바꿈)에 확인 팝업을 붙임(BattleFlow.ExitMarket). 남은 버섯이 있으면 "남은 버섯은 썩습니다"까지, 없으면 "오늘이 종료됩니다"만 묻고, 두 줄 문구가 들어가게 확인 팝업 글자 칸을 늘림.
+- 팔 버섯이 없으면(다 팔았거나 빈손으로 들어옴) 남은 버섯 칸을 딤 + 회색 "판매할 버섯이 없습니다."로 덮음. 시장 첫 화면부터 상인별 시세 배율을 굴리게 해 모든 상인이 기본값으로 시작하던 문제를 없앰.
+- 맵 진입 시 BattleFlow Start 상태가 판단을 멈추고 PopupHuntStart(화면 딤 + 맵 이름 + 깜빡이는 "클릭하여 시작")를 띄우며, 누르면 Play로 넘어가 판단을 다시 켬(UnitService.ResumeBrains·BrainBase.Resume 추가). 다시 하기에서도 뜨고, 프리팹이 없으면 예전처럼 바로 시작. 컴파일·플레이 확인 안 함, 커밋하지 않음.

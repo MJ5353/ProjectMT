@@ -6,10 +6,10 @@ using UnityEngine.UI;
 
 // ==================================================
 
-// 전투 결과 팝업. BattleEnded를 받은 ScreenBattle이 PopupService로 띄우고, BattleService에서 끝난 방식·시간·받은 보상(DicReward)을 읽어 보여 준다.
+// 전투 결과 팝업. BattleFlow Result 상태가 Flow를 넘겨 띄우고 닫는다. 끝난 이유(BattleFlow.HuntResult)와 BattleService의 시간·받은 보상(DicReward)을 읽어 보여 준다.
 // [mj] todo) 신선 등급은 전투 쪽 데이터(ListLootGrade 가안)가 확정되면 칸 뱃지로 붙인다
 
-public class PopupResult : PopupBase
+public class PopupResult : PopupFlowBase<BattleFlow>
 {
     private const float SlotPopTime = 0.18f;  // 칸 하나가 튀어나오는 시간
     private const float SlotInterval = 0.08f; // 다음 칸이 나오기까지 간격
@@ -38,57 +38,40 @@ public class PopupResult : PopupBase
 
     protected override void OnOpen()
     {
-        BattleService battleS = GameManager.Instance.BattleS;
-        if (battleS == null)
+        BattleService battleS = Flow.BattleS;
+        EHuntResult result = Flow.HuntResult;
+        EStringKey title = result switch
         {
-            // 다시 쓰는 팝업이라 지난번 결과가 남지 않게 비운다(버튼도 BattleService가 있어야 동작한다)
-            m_Title.E_SetText(string.Empty);
-            m_Summary.E_SetText(string.Empty);
-            
-            FillLoot(null);
-            SetButtonsInteractable(false);
-
-            return;
-        }
-
-        EStringKey title = battleS.State switch
-        {
-            EBattleState.Exited => EStringKey.Result_TitleExited,
-            EBattleState.TimedOut => EStringKey.Result_TitleTimedOut,
+            EHuntResult.Exited => EStringKey.Result_TitleExited,
+            EHuntResult.TimedOut => EStringKey.Result_TitleTimedOut,
             _ => EStringKey.Result_TitleEmpty,
         };
         
         m_Title.E_SetString(title);
-        m_Title.E_SetColor(battleS.State == EBattleState.Exited ? UIStyle.Gold : UIStyle.Accent);
-        m_Summary.E_SetString(EStringKey.Result_SummaryFormat, UINightClock.FormatRealTime(Mathf.FloorToInt(battleS.ElapsedTime)), FormatTrust(battleS.State));
+        m_Title.E_SetColor(result == EHuntResult.Exited ? UIStyle.Gold : UIStyle.Accent);
+        m_Summary.E_SetString(EStringKey.Result_SummaryFormat, UINightClock.FormatRealTime(Mathf.FloorToInt(battleS.ElapsedTime)), FormatTrust(result));
 
         FillLoot(battleS.DicReward);
-        m_LobbyButton.E_SetActive(Application.CanStreamedLevelBeLoaded(SceneNames.Lobby));
+        m_LobbyButton.E_SetActive(GameManager.Instance.CanLoad(ESceneType.Lobby));
         SetButtonsInteractable(true);
     }
 
     #region OnClick
     
+    // 로딩 화면이 덮고 정리하는 동안 두 번 눌리지 않게 먼저 막는다(다시 하기·로비 공통)
     private void OnClickRetry()
     {
-        BattleService battleS = GameManager.Instance.BattleS;
-        if (battleS == null)
-            return;
-
-        // 씬 로드 중 두 번 눌리지 않게 막는다
         SetButtonsInteractable(false);
-        battleS.Retry();
+        
+        if (Flow.Retry() == false)
+            SetButtonsInteractable(true);
     }
 
     private void OnClickLobby()
     {
-        BattleService battleS = GameManager.Instance.BattleS;
-        if (battleS == null)
-            return;
-
         SetButtonsInteractable(false);
         
-        if (battleS.TryGoLobby() == false)
+        if (Flow.TryGoLobby() == false)
             SetButtonsInteractable(true);
     }
 
@@ -96,16 +79,12 @@ public class PopupResult : PopupBase
     
     // ---
 
-    // dicLoot가 null이면 빈 결과로 보인다
     private void FillLoot(IReadOnlyDictionary<string, int> dicLoot)
     {
         m_ListLoot.Clear();
-        if (dicLoot != null)
+        foreach (var pair in dicLoot)
         {
-            foreach (var pair in dicLoot)
-            {
-                m_ListLoot.Add(pair);
-            }
+            m_ListLoot.Add(pair);
         }
 
         // 칸은 꺼 둔 채 준비하고, 여는 연출 뒤에 하나씩 켠다(그래서 Refresh 대신 Get)
@@ -151,10 +130,10 @@ public class PopupResult : PopupBase
     // static ---
 
     // 시장에서 오른 상인 신뢰도. "  ·  신뢰도 약재상 +10, 요리사 +5"
-    private static string FormatTrust(EBattleState state)
+    private static string FormatTrust(EHuntResult result)
     {
         HuntData hunt = PlayerDataManager.Instance.Hunt;
-        if (state != EBattleState.Exited || hunt.DicTrustGain.Count == 0)
+        if (result != EHuntResult.Exited || hunt.DicTrustGain.Count == 0)
             return string.Empty;
 
         StringBuilder builder = new(StringDef.S_Get(EStringKey.Result_TrustPrefix));

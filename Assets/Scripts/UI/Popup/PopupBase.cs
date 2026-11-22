@@ -3,6 +3,7 @@ using UnityEngine;
 // ==================================================
 
 // 팝업 기반. 팝업 ID(EPopupType)에 같은 이름의 프리팹을 만들면 PopupDef에 자동 등록되고, PopupService.Open<T>(EPopupType)로 띄운다.
+// 특정 Flow에 붙는 팝업은 PopupFlowBase<TFlow>를 상속하고 PopupService.Open<T, TFlow>(type, flow)로 띄운다.
 // 가운데 창 팝업은 m_Group(전체 페이드)·m_Window(창 튕김)를 연결하면 열고 닫을 때 공용 연출이 돈다. 비워 두면 연출 없이 바로 보이고 사라진다.
 // 진입은 PopupService만 부른다: Open(열기) / BeginClose(닫기 시작, 끝나면 EndClose). 팝업별 처리는 OnOpen·OnClose를 override한다.
 // 연출은 UISequence. 창이 열린 뒤 이어지는 팝업별 연출은 OnBuildOpenSequence에 단계를 덧붙이고, SkipOpen으로 끝 모습으로 넘길 수 있다.
@@ -30,7 +31,7 @@ public class PopupBase : MonoBehaviour
 
     // ------------------------------------------------
 
-    public void Close() => GameManager.Instance.PopupS?.Close(this);
+    public void Close() => FlowManager.Instance.PopupS?.Close(this);
 
     // 여는 연출(이어지는 팝업별 연출 포함)을 끝 모습으로 넘긴다
     public void SkipOpen() => m_OpenSequence.Skip();

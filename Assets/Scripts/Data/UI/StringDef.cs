@@ -68,6 +68,7 @@ public enum EStringKey
     // battle
     Battle_Exit,
     Battle_ExitConfirm,
+    Battle_TapToStart,          // 맵 진입 팝업(PopupHuntStart)
     Battle_Enrage,
     Battle_RoarEnragedFormat,   // {0} 보스 이름
     Battle_LootBothFormat,      // {0} 버섯 {1} 신선 {2} 덜 신선
@@ -77,10 +78,14 @@ public enum EStringKey
     // clock (UINightClock, 전투·시장 공용)
     Clock_MarketCloseFormat,    // {0} 시간 {1} 분
     Clock_ActionTimeFormat,     // {0} 행동당 분
+    Clock_NightLeft,            // 전투 시계 창 위 머리글
 
     // market (PopupMarket·PopupMarketCounter·PopupMarket_MerchantRow)
     Market_MerchantCaption,
     Market_Close,
+    Market_ExitConfirm,              // 시장 닫기 확인(남은 버섯 있음)
+    Market_ExitConfirmEmpty,         // 시장 닫기 확인(남은 버섯 없음)
+    Market_SoldOut,                  // 남은 버섯 칸 딤 위 글자
     Market_WaitFormat,               // {0} 분
     Market_PickCaption,
     Market_StockCaption,

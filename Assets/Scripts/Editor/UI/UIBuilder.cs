@@ -198,6 +198,16 @@ public static class UIBuilder
         return t;
     }
 
+    // 칸을 넘지 않게: 넘치면 minRatio 크기까지 줄이고, 그래도 넘치면 말줄임(…)
+    public static TMP_Text Fit(TMP_Text text, float minRatio = 0.6f)
+    {
+        text.enableAutoSizing = true;
+        text.fontSizeMax = text.fontSize;
+        text.fontSizeMin = Mathf.Floor(text.fontSize * minRatio);
+        text.overflowMode = TextOverflowModes.Ellipsis;
+        return text;
+    }
+
     // 고정 문구 라벨. UILabel을 붙여 켜질 때 StringDef 문구로 채운다(에디터에서는 지금 표 값을 미리 넣어 둔다)
     public static TMP_Text Label(Transform parent, EStringKey key, int size, TextAlignmentOptions align = TextAlignmentOptions.Center, string name = "Label")
     {

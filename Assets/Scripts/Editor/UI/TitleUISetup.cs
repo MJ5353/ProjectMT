@@ -9,14 +9,15 @@ using UnityEngine.UI;
 
 // ==================================================
 
-// 타이틀(ScreenTitle)·로딩(ScreenLoading) 화면 프리팹을 만들고, 타이틀 씬을 재생성한다. 로딩은 씬이 아니라 GameManager가 들고 있는 상시 UI다.
+// 타이틀(ScreenTitle)·로딩(OverlayLoading) 화면 프리팹을 만들고, 타이틀 씬을 재생성한다. 로딩은 씬이 아니라 UIManager가 들고 있는 오버레이다.
 // 프리팹은 UISetup의 "모든 UI 다시 만들기"가 Prefabs 표로 만들고, 씬은 로비 씬과 같은 구성(카메라·EventSystem·캔버스·PopupRoot)이다
 
 public static class TitleUISetup
 {
     private const string TitleSprite = "UI_Title"; // 78x57 도트
     private const float TitleScale = 8f;           // 도트 한 칸 = 8px(기준 해상도 1080 높이)
-    private const float LoadingTitleScale = 4f;
+    private const string LoadingTitleSprite = "UI_Title_Engrave"; // 76x54 반투명 검정 음각판. 로딩 화면은 이걸 쓴다
+    private const float LoadingTitleScale = 8f;    // 타이틀 화면과 같은 크기(26.11.22 대장: 두 배로)
     private const string StartBGSprite = "UI_Title_StartBG"; // 64x12. "클릭하여 시작하기" 뒤 좌우로 연해지는 띠
     private const string TitleBackgroundSprite = "UI_Title_Background";
     private static readonly Color TitleBackgroundTint = new Color(0.65f, 0.65f, 0.65f); // 그림을 어둡게 눌러 글자가 뜨게(26.11.22 대장 프리팹 값)
@@ -50,7 +51,7 @@ public static class TitleUISetup
     public static readonly (string Path, System.Func<GameObject> Build)[] Prefabs =
     {
         (EditorPath.ScreenTitlePrefab, () => BuildTitleScreen().gameObject),
-        (EditorPath.ScreenLoadingPrefab, () => BuildLoadingScreen().gameObject),
+        (EditorPath.OverlayLoadingPrefab, () => BuildOverlayLoading().gameObject),
     };
 
     // ==================================================
@@ -111,13 +112,13 @@ public static class TitleUISetup
     }
 
     // 루트가 맨 위 정렬 캔버스(씬 밖 [Managers] 아래에 놓인다) → 바탕 버튼(클릭을 막고 버섯을 튀긴다) → SafeArea → 작은 타이틀 그림·"불러오는 중..."·진행바
-    private static ScreenLoading BuildLoadingScreen()
+    private static OverlayLoading BuildOverlayLoading()
     {
-        RectTransform root = UIBuilder.CreateCanvas(nameof(ScreenLoading), LoadingSortingOrder);
+        RectTransform root = UIBuilder.CreateCanvas(nameof(OverlayLoading), LoadingSortingOrder);
         Button burstButton = AddBackgroundButton(UIBuilder.Stretch("Background", root), UIStyle.Background);
         RectTransform safe = UIBuilder.CreateSafeArea(root);
 
-        AddTitleImage(safe, new Vector2(0.5f, 0.6f), LoadingTitleScale);
+        AddTitleImage(safe, new Vector2(0.5f, 0.6f), LoadingTitleScale, LoadingTitleSprite);
 
         RectTransform text = UIBuilder.Anchored("Text", safe, new Vector2(0.5f, 0.3f), Vector2.zero, new Vector2(800, 80));
         UIBuilder.SetOutline(UIBuilder.Label(text, EStringKey.Loading_Text, UIStyle.FontNormal));
@@ -128,9 +129,9 @@ public static class TitleUISetup
         progressRt.anchoredPosition = Vector2.zero;
         progress.SetRatio(0f, true);
 
-        ScreenLoading screen = root.gameObject.AddComponent<ScreenLoading>();
-        screen.EditorSetup(burstButton, progress);
-        return screen;
+        OverlayLoading overlay = root.gameObject.AddComponent<OverlayLoading>();
+        overlay.EditorSetup(burstButton, progress);
+        return overlay;
     }
 
     // 노치까지 덮는 바탕이 곧 버튼(색 변화 없음)
@@ -145,9 +146,9 @@ public static class TitleUISetup
     }
 
     // 타이틀 도트 그림을 scale배로 anchor 가운데에 놓는다. 그림이 없으면 빈 칸(LoadSprite가 경고)
-    private static RectTransform AddTitleImage(Transform parent, Vector2 anchor, float scale)
+    private static RectTransform AddTitleImage(Transform parent, Vector2 anchor, float scale, string spriteName = TitleSprite)
     {
-        Sprite sprite = UIBuilder.LoadSprite(TitleSprite);
+        Sprite sprite = UIBuilder.LoadSprite(spriteName);
         Vector2 size = sprite != null ? sprite.rect.size * scale : Vector2.zero;
 
         RectTransform rt = UIBuilder.Anchored("Title", parent, anchor, Vector2.zero, size);

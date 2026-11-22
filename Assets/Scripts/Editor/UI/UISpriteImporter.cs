@@ -45,6 +45,8 @@ public class UISpriteImporter : AssetPostprocessor
                 return new Vector4(3, 3, 3, 3);
             case "UI_GaugeFill":
                 return new Vector4(0, 2, 0, 0);
+            case "HUD_Time_Window":
+                return new Vector4(4, 4, 4, 4);
             case "UI_SpeechBubble":
                 // 꼬리가 왼쪽 아래 모서리(7x6) 안에 있어 늘려도 찌그러지지 않는다
                 return new Vector4(7, 6, 3, 3);

@@ -50,7 +50,7 @@ public class UIListView<T> : UIListViewBase where T : PoolableMonoUI
             if (m_Root == null)
                 return null;
 
-            T item = GameManager.Instance.UIReuseS?.Spawn<T>(m_Type, m_Root);
+            T item = FlowManager.Instance.UIReuseS?.Spawn<T>(m_Type, m_Root);
             if (item == null)
                 return null;
 
@@ -79,7 +79,7 @@ public class UIListView<T> : UIListViewBase where T : PoolableMonoUI
     // 씬 전환 전에 일부러 돌려줄 때만 쓴다(보통은 UIReuseService가 씬 전환 때 회수한다)
     public void Clear()
     {
-        UIReuseService reuseService = GameManager.Instance.UIReuseS;
+        UIReuseService reuseService = FlowManager.Instance.UIReuseS;
         foreach (T item in m_List)
         {
             if (reuseService != null)

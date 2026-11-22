@@ -17,10 +17,11 @@ public enum EMonsterTier
 // 순서: 등급, 같은 등급 안 번호로 수치를 키운다. 지역 난이도(체력·공격 배율)는 굽지 않고 MapDef.ListMonsterModifier가 스폰 때 능력치 출처로 넣는다.
 //   체력 = 기본 체력 × 등급 배율 × (1 + 번호 가산 × 등급 안 순번)
 //   공격 = 기본 공격 × 등급 배율 × (1 + 번호 가산 × 등급 안 순번)
-// 에셋: Assets/Resources/Data/Balance/MonsterBalance.asset (없으면 자동 배정 때 기본값으로 만든다)
+// 데이터 하나(Def)가 아니라 편집기 자동 배정이 쓰는 공식값이라 Def와 헷갈리지 않게 Formula로 부른다(26.11.22 이름 변경).
+// 에셋: Assets/Resources/Data/Balance/MonsterFormula.asset (없으면 자동 배정 때 기본값으로 만든다)
 
-[CreateAssetMenu(menuName = "MushTaker/Data/Monster Balance", fileName = "MonsterBalance")]
-public class MonsterBalanceTable : ScriptableObject
+[CreateAssetMenu(menuName = "MushTaker/Data/Monster Formula", fileName = "MonsterFormula")]
+public class MonsterFormula : ScriptableObject
 {
     // 등급 하나의 수치
     [Serializable]

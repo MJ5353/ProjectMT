@@ -13,7 +13,7 @@ public static class CommonPath
     public const string EffectDir = "Prefabs/Effect/";
     public const string TelegraphCircle = EffectDir + "FX_TelegraphCircle";
     public const string TelegraphLine = EffectDir + "FX_TelegraphLine";
-    public const string ScreenLoading = "Prefabs/UI/Screen/ScreenLoading"; // 예외: 씬 밖에서 늘 사는 UI라 프리팹 표(PopupDef·UIComponentDef) 대신 경로로 읽는다
+    public const string OverlayLoading = "Prefabs/UI/Overlay/OverlayLoading"; // 예외: 씬 밖에서 늘 사는 UI(오버레이)라 프리팹 표(PopupDef·UIComponentDef) 대신 경로로 읽는다
     
     // 콘텐츠 리소스는 폴더 + 이름(Def ID)으로 찾는다. Def는 프리팹을 참조하지 않는다
     public const string ActorDir = "Prefabs/Actor/";           // 플레이어 프리팹(Player)

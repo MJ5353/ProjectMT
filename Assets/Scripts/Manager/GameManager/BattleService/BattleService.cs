@@ -1,22 +1,12 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 // ==================================================
 
-public enum EBattleState
-{
-    Playing,
-    Market,     // 토벌 종료 뒤 현장 시장. 밤과 전투가 멈추고, 시장이 닫히면 Exited로 끝난다
-    Exited,     // 토벌 종료. 시장에서 판 골드와 못 판 버섯(썩은 버섯)을 받는다
-    TimedOut,   // 밤이 끝나 쫓겨남. 주운 버섯은 썩은 버섯이 된다
-    GaveUp,     // 쓰러진 뒤 귀가. 아무것도 못 받는다
-}
-
-// ==================================================
-
-// 전투 한 판(하룻밤) 진행. 몬스터 스폰·리스폰, 밤 카운트다운, 주운 버섯, 쓰러짐·부활, 끝내는 방식을 맡는다.
-// 끝나면 끝난 방식에 따라 보상을 인벤토리에 넣고 게임 흐름을 결과(Result)로 넘긴다.
-// 토벌 종료는 바로 끝내지 않고 현장 시장(HuntData)을 연다. 시장이 열린 동안은 시간을 멈추고(TimeManager), MarketClosed를 받으면 끝낸다
+// 전투 한 판(하룻밤)의 데이터와 처리. 스폰·리스폰, 밤 시간, 주운 버섯, 떨구기·부활, 끝난 이유별 보상을 맡는다.
+// 언제 무엇을 할지(단계 전환, 팝업)는 BattleFlow 상태가 정하고 여기 함수를 부른다. 스스로 "지금 진행 중인가"를 검사하지 않는다
 public sealed class BattleService : ServiceBase
 {
     public const float SpawnLift = 0.3f; // !!) 캐릭터 컨트롤러가 바닥에 걸친 채 생기면 한 겹짜리 지형 면을 뚫고 떨어진다. 살짝 띄워서 놓는다
@@ -27,15 +17,17 @@ public sealed class BattleService : ServiceBase
     private readonly Dictionary<string, int> m_DicPickedCurrency = new(); // 전투 중 주워 바로 인벤토리에 넣은 재화(골드 동전). 결과 화면에 더해 보여 준다
     private readonly List<SpawnState> m_ListSpawn = new();
     private readonly Dictionary<int, SpawnState> m_DicSpawnByUnitID = new();
+    private readonly List<MushroomPickup> m_ListPickup = new(); // 땅에 떨어져 있는 픽업. 판이 끝나면(Clear) 남은 것을 돌려받는다
     
-    private Transform[] m_SpawnSlots; // [i] = SpawnSlot_{i+1}. 생성한 맵에서 받는다
+    private readonly MapRoot m_MapRoot; // 씬 컨트롤러가 만들어 넘긴 맵. 다시 하기에도 같은 맵을 쓴다
     private UnitController m_Player;
     private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
-    private float m_DownRemain; // 쓰러진 뒤 팝업까지 남은 시간. 0보다 작으면 이미 띄웠다
+    private bool m_IsMarketRewarded; // 시장이 보상을 이미 인벤토리에 넣었다(SetMarketReward)
 
     public MapDef Map { get; }
-    public EBattleState State { get; private set; } = EBattleState.Playing;
-    public float ElapsedTime { get; private set; } // 쓰러져 있는 동안은 흐르지 않는다
+    public float ElapsedTime { get; private set; } // Play 상태에서만 흐른다(AdvanceNight)
+
+    public event Action PlayerDied; // BattleFlow가 받아 Down으로 넘어간다
 
     // 슬롯 하나의 플레이 중 상태
     private class SpawnState
@@ -58,48 +50,54 @@ public sealed class BattleService : ServiceBase
     
     public float NightTime => Map.E_Alive()?.NightTime ?? 0f;
     public float RemainTime => Mathf.Max(0f, NightTime - ElapsedTime);
+    public bool IsNightOver => NightTime > 0f && ElapsedTime >= NightTime;
     public bool IsPlayerDown => m_Player != null && m_Player.IsDead;
     public int ReviveGold => Define.ReviveGold;
     public bool CanRevive => IsPlayerDown && PlayerDataManager.Instance.Inventory.Has(CurrencyDef.GoldID, ReviveGold);
     
     // ------------------------------------------------
 
-    public BattleService(MapDef mapDef)
+    public BattleService(MapDef mapDef, MapRoot map)
     {
         Map = mapDef;
+        m_MapRoot = map;
     }
 
-    public override void Tick(float deltaTime)
+    // 밤을 흘리고 비어 있는 슬롯을 다시 채운다. Play 상태만 부른다(쓰러짐·시장·결과 동안은 밤이 멈춘다)
+    public void AdvanceNight(float deltaTime)
     {
-        if (State != EBattleState.Playing)
-            return;
-
-        // 쓰러져 있는 동안은 밤도 리스폰도 멈춘다. 버섯을 떨구는 걸 잠깐 보여 준 뒤 부활/귀가 팝업
-        if (IsPlayerDown)
-        {
-            UpdateDown(deltaTime);
-            return;
-        }
-
         ElapsedTime += deltaTime;
         UpdateRespawn(deltaTime);
-
-        if (NightTime > 0f && ElapsedTime >= NightTime)
-            End(EBattleState.TimedOut);
     }
 
     // virtual ---
 
+    // 땅에 떨어진 픽업을 움직인다(낙하·제자리·빨려 듦). 시장에서 시간이 멈추면 같이 멈춘다
+    public override void Tick(float deltaTime)
+    {
+        if (deltaTime <= 0f)
+            return;
+
+        // 주우면 목록에서 빠지므로 뒤에서부터 돈다
+        for (int i = m_ListPickup.Count - 1; i >= 0; i--)
+        {
+            m_ListPickup[i].Tick(deltaTime);
+        }
+    }
+
     public override void Init()
     {
-        SpawnMap();
+        FlowManager.Instance.Battle.UnitS.UnitRemoved += ReleaseSpawnSlot;
+        SEventManager.Subscribe<LootPicked>(OnLootPicked);
+    }
+
+    // 플레이어·몬스터를 만든다(맵은 씬 컨트롤러가 이미 만들었다). BattleFlow Start 상태가 부른다
+    public void StartHunt()
+    {
         SpawnPlayer();
         
         if (m_Player != null && m_Player.HealthF != null)
             m_Player.HealthF.Died += OnPlayerDied;
-
-        GameManager.Instance.UnitS.UnitRemoved += ReleaseSpawnSlot;
-        SEventManager.Subscribe<LootPicked>(OnLootPicked);
 
         if (Map == null)
         {
@@ -126,17 +124,20 @@ public sealed class BattleService : ServiceBase
 
     public override void Clear()
     {
-        GameManager.Instance.UnitS.UnitRemoved -= ReleaseSpawnSlot;
+        FlowManager.Instance.Battle.UnitS.UnitRemoved -= ReleaseSpawnSlot;
         SEventManager.Unsubscribe<LootPicked>(OnLootPicked);
-        SEventManager.Unsubscribe<MarketClosed>(OnMarketClosed);
-
-        // 시장 도중 씬이 바뀌어도 멈춘 시간이 남지 않게 한다
-        if (State == EBattleState.Market)
-            TimeManager.Instance.SetPause(false);
 
         UnitController player = m_Player.E_Alive();
         if (player != null && player.HealthF != null)
             player.HealthF.Died -= OnPlayerDied;
+
+        // 다시 하기에 떨어진 버섯이 남지 않게 돌려받는다(빛기둥은 픽업이 돌아갈 때 끈다). 씬과 함께 지워진 것은 건너뛴다
+        foreach (MushroomPickup pickup in m_ListPickup)
+        {
+            ResourceManager.S_Despawn(pickup);
+        }
+
+        m_ListPickup.Clear();
 
         m_DicSpawnByUnitID.Clear();
         m_ListSpawn.Clear();
@@ -144,43 +145,22 @@ public sealed class BattleService : ServiceBase
         m_DicReward.Clear();
         m_DicPickedCurrency.Clear();
         
+        m_IsMarketRewarded = false;
+        ElapsedTime = 0f;
         m_Player = null;
-        m_SpawnSlots = null; // 맵 오브젝트는 씬과 함께 사라진다
     }
-
-    public void Retry() => GameManager.Instance.RetryBattle();
 
     // 떨어지는 버섯 하나의 희귀도. 지금 지역(MapDef)의 가중치로 굴린다. 전투 밖이면 Common
     public static ERarity RollRarity()
     {
-        MapDef map = GameManager.Instance.BattleS?.Map;
+        MapDef map = FlowManager.Instance.Battle?.BattleS.Map;
         return map.E_Alive()?.RollRarity() ?? ERarity.Common;
     }
 
-    // 토벌 종료 버튼. isMarket이면 시장을 열고(팝업은 ScreenBattle가 띄운다), 아니면 주운 버섯을 그대로 받고 끝낸다
-    public void ExitHunt(bool isMarket = true)
-    {
-        if (State != EBattleState.Playing || IsPlayerDown)
-            return;
-
-        HuntData hunt = PlayerDataManager.Instance.Hunt;
-        if (isMarket == false || hunt == null)
-        {
-            End(EBattleState.Exited);
-            return;
-        }
-
-        State = EBattleState.Market;
-        TimeManager.Instance.SetPause(true);
-        SEventManager.Subscribe<MarketClosed>(OnMarketClosed);
-        hunt.BeginMarket(m_DicLoot, RemainTime, NightTime);
-    }
-
-    public void GiveUp() => End(EBattleState.GaveUp);
-
+    // 골드를 내고 일으킨다. 쓰러져 있지 않거나 골드가 모자라면 false
     public bool TryRevive()
     {
-        if (State != EBattleState.Playing || IsPlayerDown == false)
+        if (IsPlayerDown == false)
             return false;
 
         PlayerDataManager playerDataM = PlayerDataManager.Instance;
@@ -191,33 +171,26 @@ public sealed class BattleService : ServiceBase
         return true;
     }
 
-    public bool TryGoLobby()
-    {
-        GameManager gameM = GameManager.Instance;
-        if (Application.CanStreamedLevelBeLoaded(SceneNames.Lobby) == false)
-            return false;
+    // 픽업 ---
 
-        return gameM.ChangeState(EGameState.Lobby);
+    // 땅에 떨어지는 픽업(버섯·골드 동전)을 꺼낸다. 움직임은 Tick이 돌리고, 판이 끝나면 남은 것을 돌려받는다
+    public MushroomPickup SpawnPickup(MushroomPickup prefab, Vector3 position)
+    {
+        MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, position, Quaternion.identity);
+        if (pickup != null)
+            m_ListPickup.Add(pickup);
+
+        return pickup;
+    }
+
+    // 주운 픽업을 돌려준다
+    public void DespawnPickup(MushroomPickup pickup)
+    {
+        m_ListPickup.Remove(pickup);
+        ResourceManager.S_Despawn(pickup);
     }
 
     #region Spawn
-
-    // 지역 맵을 만든다. 씬은 Single로 불러서 지금 씬에 들어간다
-    private void SpawnMap()
-    {
-        if (Map == null)
-            return;
-
-        MapRoot prefab = ResourceManager.Instance.Load<MapRoot>(Map.PrefabPath, "프리팹 이름이 MapDef ID와 같은지, 누락 전투 에셋 복구를 했는지 확인하세요.");
-        if (prefab == null)
-            return;
-
-        MapRoot map = ResourceManager.S_Create(prefab);
-        if (map == null)
-            return;
-
-        m_SpawnSlots = map.SpawnSlots;
-    }
 
     private void SpawnPlayer()
     {
@@ -242,7 +215,7 @@ public sealed class BattleService : ServiceBase
             CLogger.Warning("BattleService", $"플레이어 슬롯 {MapDef.GetSlotName(playerSlot)}이 맵에 없어 원점에서 시작합니다.");
         }
 
-        m_Player = GameManager.Instance.UnitS.Spawn(playerDef, position, rotation);
+        m_Player = FlowManager.Instance.Battle.UnitS.Spawn(playerDef, position, rotation);
         if (m_Player == null)
             return;
 
@@ -253,11 +226,12 @@ public sealed class BattleService : ServiceBase
     // 슬롯 번호(1부터) → 맵 지점
     private Transform GetSlot(int slot)
     {
+        Transform[] slots = m_MapRoot.E_Alive()?.SpawnSlots;
         int index = slot - 1;
-        if (m_SpawnSlots == null || index < 0 || index >= m_SpawnSlots.Length)
+        if (slots == null || index < 0 || index >= slots.Length)
             return null;
 
-        return m_SpawnSlots[index];
+        return slots[index];
     }
 
     // 지점의 수평 방향(yaw)만 쓴다
@@ -275,7 +249,7 @@ public sealed class BattleService : ServiceBase
 
     private void Spawn(SpawnState spawn)
     {
-        UnitController controller = GameManager.Instance.UnitS.Spawn(spawn.Entry.Monster, spawn.Point.position + Vector3.up * SpawnLift, GetSpawnRotation(spawn.Point));
+        UnitController controller = FlowManager.Instance.Battle.UnitS.Spawn(spawn.Entry.Monster, spawn.Point.position + Vector3.up * SpawnLift, GetSpawnRotation(spawn.Point));
         if (controller == null)
             return;
 
@@ -341,29 +315,15 @@ public sealed class BattleService : ServiceBase
             m_Player.PassiveF.OnPickup(evt);
     }
 
-    // 바로 끝내지 않고 부활/귀가를 고르게 한다(ScreenBattle가 팝업을 띄운다)
-    // 바로 끝내지 않는다. 주운 버섯을 땅에 떨구고, 잠깐 뒤 부활/귀가를 고르게 한다(ScreenBattle가 팝업을 띄운다)
-    private void OnPlayerDied()
-    {
-        if (State != EBattleState.Playing)
-            return;
+    // 끝내지 않고 BattleFlow에 알린다(Down 상태가 버섯을 떨구고 팝업을 띄운다)
+    private void OnPlayerDied() => PlayerDied?.Invoke();
 
-        DropLoot();
-        m_DownRemain = Define.DownPopupDelay;
-    }
+    #endregion
 
-    private void UpdateDown(float deltaTime)
-    {
-        if (m_DownRemain < 0f)
-            return;
+    #region Result
 
-        m_DownRemain -= deltaTime;
-        if (m_DownRemain < 0f)
-            SEventManager.Publish(new PlayerDowned());
-    }
-
-    // 주운 버섯을 진짜 픽업으로 흩뿌린다. 부활하면 다시 주울 수 있고, 귀가하면 그대로 잃는다
-    private void DropLoot()
+    // 주운 버섯을 진짜 픽업으로 흩뿌린다. 부활하면 다시 주울 수 있고, 귀가하면 그대로 잃는다. Down 상태가 부른다
+    public void DropLoot()
     {
         if (m_Player == null)
             return;
@@ -381,7 +341,7 @@ public sealed class BattleService : ServiceBase
             // shortcut: 픽업 하나를 1개로 본다(MushroomPickup.m_Amount 기본값), 묶음 픽업이 생기면 개수를 나눈다
             for (int i = 0; i < pair.Value; i++)
             {
-                MushroomPickup pickup = ResourceManager.Instance.Spawn(prefab, origin, Quaternion.identity);
+                MushroomPickup pickup = SpawnPickup(prefab, origin);
                 Vector2 spread = Random.insideUnitCircle * Define.DownDropSpread;
                 pickup.Launch(new Vector3(spread.x, Define.DownDropUpSpeed, spread.y), pair.Key.Freshness, pair.Key.Rarity);
             }
@@ -392,11 +352,8 @@ public sealed class BattleService : ServiceBase
     }
     
     // 시장이 닫혔다(시장 닫기 또는 밤이 다 감). 골드·썩은 버섯·신뢰도는 HuntData가 이미 넣었다. 결과 화면용으로만 남긴다
-    private void OnMarketClosed(MarketClosed evt)
+    public void SetMarketReward(MarketClosed evt)
     {
-        SEventManager.Unsubscribe<MarketClosed>(OnMarketClosed);
-        TimeManager.Instance.SetPause(false);
-
         m_DicReward.Clear();
         
         if (evt.Gold > 0)
@@ -405,25 +362,16 @@ public sealed class BattleService : ServiceBase
         if (evt.RottenCount > 0)
             m_DicReward[ItemDef.RottenID] = evt.RottenCount;
 
-        End(EBattleState.Exited);
+        m_IsMarketRewarded = true;
     }
 
-    private void End(EBattleState result)
+    // 끝난 이유대로 보상을 넣고 저장한다. BattleFlow Result 상태가 한 번 부른다
+    public void Finish(EHuntResult result)
     {
-        if (State != EBattleState.Playing && State != EBattleState.Market)
-            return;
-
-        bool isFromMarket = State == EBattleState.Market;
-        State = result;
-        if (m_Player != null)
-            m_Player.HealthF.Died -= OnPlayerDied;
-
         PlayerDataManager playerDataM = PlayerDataManager.Instance;
-        if (isFromMarket == false)
-            FillReward(result);
-
-        if (isFromMarket == false)
+        if (m_IsMarketRewarded == false)
         {
+            FillReward(result);
             foreach (var pair in m_DicReward)
             {
                 playerDataM.Inventory.Add(pair.Key, pair.Value);
@@ -438,36 +386,26 @@ public sealed class BattleService : ServiceBase
         }
 
         // 스스로 나오면 지역을 깬 것으로 표시해 다음 지역을 연다(토벌 탭)
-        if (result == EBattleState.Exited)
+        if (result == EHuntResult.Exited)
             playerDataM.Hunt.MarkCleared(Map);
 
         playerDataM.RunSave();
-
-        if (GameManager.Instance.Current == EGameState.Battle)
-            GameManager.Instance.ChangeState(EGameState.Result);
-        
-        SEventManager.Publish(new BattleEnded(result == EBattleState.Exited));
     }
 
-    // 시장 없이 끝낼 때. 토벌 종료(시장 팝업이 없을 때)는 주운 그대로, 밤이 끝나면 주운 개수만큼 썩은 버섯, 귀가는 빈손
-    private void FillReward(EBattleState result)
+    // 시장을 거치지 않고 끝날 때. 밤이 끝나면 주운 개수만큼 썩은 버섯, 귀가는 빈손(토벌 종료는 늘 시장을 거친다)
+    private void FillReward(EHuntResult result)
     {
         m_DicReward.Clear();
+        if (result != EHuntResult.TimedOut)
+            return;
 
         int total = 0;
         foreach (var pair in m_DicLoot)
         {
             total += pair.Value;
-            
-            // [mj] todo) 인벤토리는 아직 신선도를 모른다. 시장이 들어오면 신선도별로 넘긴다
-            if (result == EBattleState.Exited)
-            {
-                m_DicReward.TryGetValue(pair.Key.ItemID, out int count);
-                m_DicReward[pair.Key.ItemID] = count + pair.Value;
-            }
         }
 
-        if (result == EBattleState.TimedOut && total > 0)
+        if (total > 0)
             m_DicReward[ItemDef.RottenID] = total;
     }
     

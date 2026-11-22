@@ -15,12 +15,13 @@ public static class MarketUISetup
     private const float Pad = 24f;            // 패널 안쪽 여백
     private const float Gap = 16f;            // 칸 사이
     private const float Column = 24f;         // 세 칸 사이
-    private const float ContentTop = -300f;   // 왼쪽 칸은 시계(+시장 시간 두 줄) 아래부터 쓴다
+    private const float ContentTop = -210f;   // 왼쪽 칸은 시계(지름 140, 시간 글자는 시계 오른쪽) 아래부터 쓴다
     private const float LeftWidth = 380f;
     private const float CenterWidth = 440f;
     private const float PickHeight = 280f;
     private const float TradeWidth = 240f;
     private const float RowHeight = 74f;      // 상인 5칸이 [기다리기] 위에 들어가는 높이
+    private const float RowTrustWidth = 110f; // 상인 줄 오른쪽 "신뢰 0" 칸
     private const float SlotSize = 120f;
     private const float SlotNameHeight = 40f; // UICommonSlot 이름(값) 줄
     private const float SlotCaptionHeight = 34f; // UICommonSlot 위 글자 줄
@@ -47,13 +48,13 @@ public static class MarketUISetup
         root.offsetMin = root.offsetMax = Vector2.zero;
         UIBuilder.AddImage(root, new Color(UIStyle.Background.r, UIStyle.Background.g, UIStyle.Background.b, 0.96f), true); // 뒤 화면 터치를 막는다
 
-        UINightClock clock = BattleUISetup.BuildNightClock(root, false);
+        UINightClock clock = BattleUISetup.BuildNightClock(root, true);
 
         RectTransform body = UIBuilder.Stretch("Body", root);
         CanvasGroup bodyGroup = body.gameObject.AddComponent<CanvasGroup>();
 
         // 왼쪽: 상인 목록 + 아래 버튼 ---
-        UIBuilder.AddStringKey(Caption(body, "MerchantCaption", string.Empty, new Vector2(Margin, ContentTop)), EStringKey.Market_MerchantCaption);
+        UIBuilder.AddStringKey(Caption(body, "MerchantCaption", new Vector2(Margin, ContentTop), LeftWidth), EStringKey.Market_MerchantCaption);
         RectTransform left = UIBuilder.Rect("Merchants", body, Vector2.zero, new Vector2(0, 1), new Vector2(Margin, 280), new Vector2(Margin + LeftWidth, ContentTop - 50));
         UIBuilder.ListOption merchantList = new(left, EUIListAxis.Vertical, new Vector2(0, RowHeight), new Vector2(0, Gap), TextAnchor.UpperLeft, isStretch: true);
 
@@ -70,10 +71,11 @@ public static class MarketUISetup
         RectTransform iconRect = UIBuilder.Anchored("Icon", center, new Vector2(0.5f, 1f), new Vector2(0, -28), new Vector2(180, 180));
         Image icon = UIBuilder.AddImage(iconRect, Color.white);
         icon.preserveAspect = true;
-        TMP_Text merchantName = TopLabel(center, "Name", "상인", UIStyle.FontLarge, -224, 56, TextAlignmentOptions.Center);
+        TMP_Text merchantName = UIBuilder.Fit(TopLabel(center, "Name", "상인", UIStyle.FontLarge, -224, 56, TextAlignmentOptions.Center));
         merchantName.color = UIStyle.Gold;
         TMP_Text desc = TopLabel(center, "Desc", "설명", UIStyle.FontSmall, -288, 72, TextAlignmentOptions.Top);
         desc.textWrappingMode = TextWrappingModes.Normal;
+        UIBuilder.Fit(desc, 0.7f); // 두 줄을 넘으면 줄인다
         desc.color = UIStyle.TextDim;
         RectTransform line = UIBuilder.Rect("Line", center, new Vector2(0, 1), Vector2.one, new Vector2(Pad, -376), new Vector2(-Pad, -374));
         UIBuilder.AddImage(line, UIStyle.PanelLight);
@@ -81,6 +83,7 @@ public static class MarketUISetup
         TMP_Text info = UIBuilder.Label(infoRect, "신뢰도  0\n오늘 시세  보통\n희귀 이상  x2.0\n그 밖  x0.5", UIStyle.FontSmall, TextAlignmentOptions.TopLeft);
         info.richText = true;
         info.lineSpacing = 40f;
+        UIBuilder.Fit(info);
         UIBuilder.SetRef(merchantInfo, "m_Icon", icon);
         UIBuilder.SetRef(merchantInfo, "m_NameText", merchantName);
         UIBuilder.SetRef(merchantInfo, "m_DescText", desc);
@@ -91,36 +94,42 @@ public static class MarketUISetup
         RectTransform right = UIBuilder.Rect("Trade", body, Vector2.zero, Vector2.one, new Vector2(rightLeft, Margin), new Vector2(-Margin, -Margin));
         RectTransform pickPanel = UIBuilder.Rect("Pick", right, new Vector2(0, 1), Vector2.one, new Vector2(0, -PickHeight), Vector2.zero);
         UIBuilder.AddImage(pickPanel, UIStyle.Panel);
-        UIBuilder.AddStringKey(Caption(pickPanel, "Caption", string.Empty, new Vector2(Pad, -12)), EStringKey.Market_PickCaption);
-        RectTransform soldRect = UIBuilder.Rect("Sold", pickPanel, new Vector2(0, 1), Vector2.one, new Vector2(Pad, -52), new Vector2(-Pad, -12));
-        TMP_Text sold = UIBuilder.Label(soldRect, "판 골드 0G", UIStyle.FontSmall, TextAlignmentOptions.Right);
+        // 같은 줄: 왼쪽 머리글은 [거래] 칸 앞까지, 오른쪽 판 골드는 [거래] 칸 너비
+        UIBuilder.AddStringKey(PanelCaption(pickPanel, "Caption", -TradeWidth - Pad * 2f), EStringKey.Market_PickCaption);
+        RectTransform soldRect = UIBuilder.Rect("Sold", pickPanel, Vector2.one, Vector2.one, new Vector2(-TradeWidth - Pad, -52), new Vector2(-Pad, -12));
+        TMP_Text sold = UIBuilder.Fit(UIBuilder.Label(soldRect, "판 골드 0G", UIStyle.FontSmall, TextAlignmentOptions.Right));
         sold.color = UIStyle.Gold;
         RectTransform pickList = UIBuilder.Rect("List", pickPanel, new Vector2(0, 1), new Vector2(1, 1), new Vector2(Pad, -60 - SlotSize - SlotNameHeight), new Vector2(-TradeWidth - Pad, -60));
         UIBuilder.ListOption pickLayout = new(pickList, EUIListAxis.Horizontal, Vector2.zero, new Vector2(Gap, 0), TextAnchor.UpperLeft);
 
         RectTransform totalRect = UIBuilder.Rect("Total", pickPanel, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-TradeWidth - Pad, -110), new Vector2(-Pad, -60));
-        TMP_Text total = UIBuilder.Label(totalRect, "합계 0G  (0/5묶음)", UIStyle.FontNormal, TextAlignmentOptions.Right);
+        TMP_Text total = UIBuilder.Fit(UIBuilder.Label(totalRect, "0G  (0/5묶음)", UIStyle.FontNormal, TextAlignmentOptions.Right), 0.5f);
         total.color = UIStyle.Gold;
         Button trade = UIBuilder.Button(pickPanel, "TradeButton", EStringKey.Market_Trade, new Vector2(TradeWidth, 96), UIStyle.Accent);
         PlaceCorner(trade, new Vector2(1, 1), new Vector2(-Pad, -124));
 
         RectTransform messageRect = UIBuilder.Rect("Message", pickPanel, Vector2.zero, new Vector2(1, 0), new Vector2(Pad, 10), new Vector2(-Pad, 44));
-        TMP_Text message = UIBuilder.Label(messageRect, string.Empty, UIStyle.FontSmall, TextAlignmentOptions.Left);
+        TMP_Text message = UIBuilder.Fit(UIBuilder.Label(messageRect, string.Empty, UIStyle.FontSmall, TextAlignmentOptions.Left));
         message.color = UIStyle.Accent;
 
         // 오른쪽 아래: 남은 버섯(스크롤 격자) ---
         RectTransform stockPanel = UIBuilder.Rect("Stock", right, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0, -PickHeight - Column));
         UIBuilder.AddImage(stockPanel, UIStyle.Panel);
-        UIBuilder.AddStringKey(Caption(stockPanel, "Caption", string.Empty, new Vector2(Pad, -12)), EStringKey.Market_StockCaption);
+        UIBuilder.AddStringKey(PanelCaption(stockPanel, "Caption", -Pad), EStringKey.Market_StockCaption);
         // 조작 안내(머리글 바로 아래 줄). 격자는 그만큼 내려서 시작한다
         RectTransform hintRect = UIBuilder.Rect("Hint", stockPanel, new Vector2(0, 1), Vector2.one, new Vector2(Pad, -52 - HintHeight), new Vector2(-Pad, -52));
         TMP_Text hint = UIBuilder.Label(hintRect, string.Empty, UIStyle.FontSmall, TextAlignmentOptions.Left);
         hint.color = UIStyle.Gold;
-        hint.enableAutoSizing = true;
-        hint.fontSizeMin = UIStyle.FontSmall / 2;
-        hint.fontSizeMax = UIStyle.FontSmall;
+        UIBuilder.Fit(hint, 0.5f);
         UIBuilder.AddStringKey(hint, EStringKey.Market_StockHint);
         UIBuilder.ListOption stockList = ScrollGrid(stockPanel, 60f + HintHeight);
+        // 팔 버섯이 없으면 남은 버섯 칸 전체를 덮는 딤(머리글 아래부터, 격자 위). 처음엔 꺼 둔다
+        RectTransform soldOut = UIBuilder.Rect("SoldOut", stockPanel, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0, -52));
+        UIBuilder.AddImage(soldOut, UIStyle.Dim, true); // 아래 칸을 누르지 못하게 막는다
+        TMP_Text soldOutText = UIBuilder.Label(soldOut, string.Empty, UIStyle.FontLarge);
+        soldOutText.color = UIStyle.TextDim;
+        UIBuilder.AddStringKey(soldOutText, EStringKey.Market_SoldOut);
+        soldOut.gameObject.SetActive(false);
 
         // 시작 연출(맨 위). 가운데 큰 남은 시간 + 아래 시장 시간 ---
         RectTransform intro = UIBuilder.Stretch("Intro", root);
@@ -133,7 +142,7 @@ public static class MarketUISetup
         TMP_Text introTimer = UIBuilder.Label(timerRect, "05:00", UIStyle.FontHuge);
         RectTransform introMessageRect = UIBuilder.Anchored("Message", intro, new Vector2(0.5f, 0.5f), new Vector2(0, -60), new Vector2(1400, 110));
         introMessageRect.pivot = new Vector2(0.5f, 0.5f);
-        TMP_Text introMessage = UIBuilder.Label(introMessageRect, "지금 가면... 4시간 30분은 거래할 수 있겠어!", UIStyle.FontNormal);
+        TMP_Text introMessage = UIBuilder.Fit(UIBuilder.Label(introMessageRect, "지금 가면... 4시간 30분은 거래할 수 있겠어!", UIStyle.FontNormal));
         introMessage.richText = true;
         intro.gameObject.SetActive(false);
         PopupMarket_Intro marketIntro = intro.gameObject.AddComponent<PopupMarket_Intro>();
@@ -150,6 +159,7 @@ public static class MarketUISetup
         UIBuilder.SetRef(popup, "m_MerchantInfo", merchantInfo);
         UIBuilder.SetListView(popup, "m_PickPool", pickLayout);
         UIBuilder.SetListView(popup, "m_StockPool", stockList);
+        UIBuilder.SetRef(popup, "m_SoldOut", soldOut.gameObject);
         UIBuilder.SetRef(popup, "m_TotalText", total);
         UIBuilder.SetRef(popup, "m_MessageText", message);
         UIBuilder.SetRef(popup, "m_SoldText", sold);
@@ -174,10 +184,12 @@ public static class MarketUISetup
         Button button = row.gameObject.AddComponent<Button>();
         button.targetGraphic = back;
 
-        RectTransform nameRect = UIBuilder.Rect("Name", row, new Vector2(0, 1), Vector2.one, new Vector2(Pad, -48), new Vector2(-Pad, -8));
-        TMP_Text nameText = UIBuilder.Label(nameRect, "상인", UIStyle.FontNormal, TextAlignmentOptions.Left);
+        // 이름(왼쪽)과 신뢰 숫자(오른쪽 RowTrustWidth)는 칸을 나눠 겹치지 않게 한다
+        RectTransform nameRect = UIBuilder.Rect("Name", row, new Vector2(0, 1), Vector2.one, new Vector2(Pad, -48), new Vector2(-Pad - RowTrustWidth, -8));
+        TMP_Text nameText = UIBuilder.Fit(UIBuilder.Label(nameRect, "상인", UIStyle.FontNormal, TextAlignmentOptions.Left));
 
-        TMP_Text trustText = UIBuilder.Label(nameRect, "신뢰 0", UIStyle.FontSmall, TextAlignmentOptions.Right, "Trust");
+        RectTransform trustTextRect = UIBuilder.Rect("Trust", row, Vector2.one, Vector2.one, new Vector2(-Pad - RowTrustWidth, -48), new Vector2(-Pad, -8));
+        TMP_Text trustText = UIBuilder.Fit(UIBuilder.Label(trustTextRect, "신뢰 0", UIStyle.FontSmall, TextAlignmentOptions.Right));
         trustText.color = UIStyle.TextDim;
 
         UIGauge trust = UIBuilder.Gauge(row, "TrustGauge", new Vector2(LeftWidth - Pad * 2f, 18), UIStyle.Gold, false);
@@ -273,7 +285,7 @@ public static class MarketUISetup
     private static TMP_Text WindowLabel(Transform window, string name, string text, int size, float left, float top, float height)
     {
         RectTransform rt = UIBuilder.Rect(name, window, new Vector2(0, 1), Vector2.one, new Vector2(left, top - height), new Vector2(-Pad * 2f, top));
-        return UIBuilder.Label(rt, text, size, TextAlignmentOptions.Left);
+        return UIBuilder.Fit(UIBuilder.Label(rt, text, size, TextAlignmentOptions.Left));
     }
 
     // 창 가운데 기준 x에 놓는 개수 버튼(창 아래에서 위로 190)
@@ -309,13 +321,24 @@ public static class MarketUISetup
 
     // ---
 
-    // 패널 머리글(작고 흐린 글자)
-    private static TMP_Text Caption(Transform parent, string name, string text, Vector2 topLeft)
+    // 머리글(작고 흐린 글자). 좌상단 topLeft에서 width만큼
+    private static TMP_Text Caption(Transform parent, string name, Vector2 topLeft, float width)
     {
-        RectTransform rt = UIBuilder.Anchored(name, parent, new Vector2(0, 1), topLeft, new Vector2(900, 40));
-        TMP_Text label = UIBuilder.Label(rt, text, UIStyle.FontSmall, TextAlignmentOptions.Left);
-        label.color = UIStyle.TextDim;
+        RectTransform rt = UIBuilder.Anchored(name, parent, new Vector2(0, 1), topLeft, new Vector2(width, 40));
+        return CaptionLabel(rt);
+    }
 
+    // 패널 맨 위 머리글. 왼쪽 Pad부터 오른쪽 끝 right(음수, 패널 오른쪽 기준)까지 늘어난다
+    private static TMP_Text PanelCaption(RectTransform panel, string name, float right)
+    {
+        RectTransform rt = UIBuilder.Rect(name, panel, new Vector2(0, 1), Vector2.one, new Vector2(Pad, -52), new Vector2(right, -12));
+        return CaptionLabel(rt);
+    }
+
+    private static TMP_Text CaptionLabel(RectTransform rt)
+    {
+        TMP_Text label = UIBuilder.Fit(UIBuilder.Label(rt, string.Empty, UIStyle.FontSmall, TextAlignmentOptions.Left));
+        label.color = UIStyle.TextDim;
         return label;
     }
 

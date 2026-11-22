@@ -60,7 +60,7 @@ public partial class HuntData
     private readonly Dictionary<LootKey, int> m_DicHarvest = new();   // 아직 못 판 버섯
     private readonly List<MerchantDef> m_ListMerchant = new();        // 오늘 와 있는 상인
     private readonly Dictionary<string, int> m_DicTrustGain = new();  // 이번 시장에서 오른 신뢰도. 닫힐 때 반영하고, 결과 화면이 읽도록 다음 시장까지 남긴다
-    private readonly Dictionary<string, float> m_DicSwingRate = new(); // 상인별 오늘 시세 배율. 기다릴 때마다 MerchantDef.PriceSwing 폭으로 바뀐다
+    private readonly Dictionary<string, float> m_DicSwingRate = new(); // 상인별 오늘 시세 배율. 상인을 뽑을 때와 기다릴 때마다 MerchantDef.PriceSwing 폭으로 굴린다
     private readonly Dictionary<LootKey, int> m_DicTradeBuffer = new(); // Validate가 채우는 거래 묶음. 같은 버섯을 나눠 골라도 합쳐 센다
     private readonly List<MerchantDef> m_ListCandidate = new();       // 상인 뽑기용
 
@@ -74,6 +74,7 @@ public partial class HuntData
     public IReadOnlyList<MerchantDef> ListMerchant => m_ListMerchant;
     public IReadOnlyDictionary<string, int> DicTrustGain => m_DicTrustGain;
     public bool CanAct => IsMarketOpen && RemainTime > 0f;
+    public bool HasHarvest => m_DicHarvest.Count > 0; // 팔 버섯이 남았다(다 판 묶음은 Trade가 뺀다)
     private static DefineDef Define => GameManager.Instance.Define; // 조절값(Define.asset)
 
     // ------------------------------------------------
@@ -178,11 +179,7 @@ public partial class HuntData
         if (CanAct == false)
             return EMarketResult.Closed;
 
-        foreach (MerchantDef merchant in m_ListMerchant)
-        {
-            m_DicSwingRate[merchant.ID] = 1f + CRandom.Range(-merchant.PriceSwing, merchant.PriceSwing);
-        }
-
+        RollSwingRates();
         SpendTime();
         return EMarketResult.Success;
     }
@@ -244,7 +241,7 @@ public partial class HuntData
         return m_DicTrustGain.TryGetValue(merchantID, out int gain) ? gain : 0;
     }
 
-    // 상인의 오늘 시세 배율. 시장을 연 직후는 1
+    // 상인의 오늘 시세 배율. 굴린 적이 없으면 1
     public float GetSwingRate(MerchantDef merchant)
     {
         return m_DicSwingRate.TryGetValue(merchant.ID, out float rate) ? rate : 1f;
@@ -279,6 +276,16 @@ public partial class HuntData
         }
 
         m_ListCandidate.Clear();
+        RollSwingRates(); // 처음 온 상인도 시세가 다르다
+    }
+
+    // 와 있는 상인마다 시세 배율을 PriceSwing 폭 안에서 새로 굴린다(시장을 열 때·기다릴 때)
+    private void RollSwingRates()
+    {
+        foreach (MerchantDef merchant in m_ListMerchant)
+        {
+            m_DicSwingRate[merchant.ID] = 1f + CRandom.Range(-merchant.PriceSwing, merchant.PriceSwing);
+        }
     }
 
     // 밤마다 상인을 뽑을 때 쓰는 가중치. 신뢰도가 오를수록 커진다

@@ -36,23 +36,19 @@ public readonly struct LootPicked
     }
 }
 
-// 주운 버섯 목록(BattleService.DicLoot)이 바뀜. 줍거나, 쓰러져 떨궜을 때
-public readonly struct LootChanged
+// 전투 흐름 상태가 바뀜(BattleFlow). 종료 버튼처럼 상태에 따라 켜고 끄는 화면이 받는다
+public readonly struct BattleStateChanged
 {
-}
+    public readonly EBattleFlowState State;
 
-public readonly struct BattleEnded
-{
-    public readonly bool IsWin;
-
-    public BattleEnded(bool isWin)
+    public BattleStateChanged(EBattleFlowState state)
     {
-        IsWin = isWin;
+        State = state;
     }
 }
 
-// 플레이어가 쓰러짐. 전투는 끝나지 않고 부활/귀가를 고르게 한다(ScreenBattle가 팝업을 띄운다)
-public readonly struct PlayerDowned
+// 주운 버섯 목록(BattleService.DicLoot)이 바뀜. 줍거나, 쓰러져 떨궜을 때
+public readonly struct LootChanged
 {
 }
 
