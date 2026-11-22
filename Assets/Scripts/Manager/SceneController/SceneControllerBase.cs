@@ -50,6 +50,24 @@ public abstract class SceneControllerBase : MonoBehaviour
         CameraManager.Instance.ClearMain(m_MainCamera);
     }
 
+    // 앱이 내려가거나 포커스를 잃으면 게임 시간을 멈춘다. 다른 이유(확인 팝업·시장)와 따로 걸고 푼다
+    // FlowManager가 생기면 그쪽으로 넘긴다(Flow 묶음 2)
+    private void OnApplicationPause(bool isPaused)
+    {
+        if (s_IsQuitting)
+            return;
+
+        TimeManager.Instance.SetPause(EPauseReason.App, isPaused);
+    }
+
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (s_IsQuitting)
+            return;
+
+        TimeManager.Instance.SetPause(EPauseReason.Focus, hasFocus == false);
+    }
+
     // 이 씬 전용 Service를 GameManager에 등록한다. 공용(팝업)은 GameManager가 넣는다
     public virtual void RegisterServices(GameManager gameM) { }
 

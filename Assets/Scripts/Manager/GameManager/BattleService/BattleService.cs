@@ -131,8 +131,7 @@ public sealed class BattleService : ServiceBase
         SEventManager.Unsubscribe<MarketClosed>(OnMarketClosed);
 
         // 시장 도중 씬이 바뀌어도 멈춘 시간이 남지 않게 한다
-        if (State == EBattleState.Market)
-            TimeManager.Instance.SetPause(false);
+        TimeManager.Instance.SetPause(EPauseReason.Market, false);
 
         UnitController player = m_Player.E_Alive();
         if (player != null && player.HealthF != null)
@@ -171,8 +170,10 @@ public sealed class BattleService : ServiceBase
         }
 
         State = EBattleState.Market;
-        TimeManager.Instance.SetPause(true);
+        
+        TimeManager.Instance.SetPause(EPauseReason.Market, true);
         SEventManager.Subscribe<MarketClosed>(OnMarketClosed);
+        
         hunt.BeginMarket(m_DicLoot, RemainTime, NightTime);
     }
 
@@ -395,7 +396,7 @@ public sealed class BattleService : ServiceBase
     private void OnMarketClosed(MarketClosed evt)
     {
         SEventManager.Unsubscribe<MarketClosed>(OnMarketClosed);
-        TimeManager.Instance.SetPause(false);
+        TimeManager.Instance.SetPause(EPauseReason.Market, false);
 
         m_DicReward.Clear();
         

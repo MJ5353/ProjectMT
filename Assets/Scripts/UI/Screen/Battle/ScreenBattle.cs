@@ -140,20 +140,21 @@ public class ScreenBattle : ScreenBase
             return;
         }
 
-        TimeManager.Instance.SetPause(true);
+        TimeManager.Instance.SetPause(EPauseReason.Confirm, true);
         confirm.Set(EStringKey.Battle_ExitConfirm, OnConfirmExit, OnCancelExit);
     }
 
-    // 멈춤을 먼저 풀고 나간다(시장이 열리면 BattleService가 다시 멈춘다)
+    // 확인 멈춤을 풀고 나간다(시장이 열리면 BattleService가 시장 이유로 다시 멈춘다)
     private void OnConfirmExit()
     {
-        TimeManager.Instance.SetPause(false);
+        TimeManager.Instance.SetPause(EPauseReason.Confirm, false);
         ExitHunt();
     }
 
+    // 아니오·뒤로 가기, 씬 전환으로 팝업이 정리될 때도 불린다
     private void OnCancelExit()
     {
-        TimeManager.Instance.SetPause(false);
+        TimeManager.Instance.SetPause(EPauseReason.Confirm, false);
     }
 
     // 시장을 열고 팝업(PopupMarket)을 띄운다. 시장 프리팹이 없으면 시장 없이 끝낸다
