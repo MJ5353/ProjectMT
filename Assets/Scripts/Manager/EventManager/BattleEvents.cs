@@ -52,6 +52,34 @@ public readonly struct LootChanged
 {
 }
 
+// 퍼펙트 닷지로 러시가 시작됨. HUD가 어둡게·빈틈 타이머를 띄운다. 남은 시간·단계는 PlayerBrain.Rush에서 읽는다
+public readonly struct RushStarted
+{
+    public readonly UnitController Unit;
+    public readonly float Time;          // 빈틈 타이머 전체 길이
+    public readonly float FinishWindow;  // 막타로 치는 마지막 구간
+
+    public RushStarted(UnitController unit, float time, float finishWindow)
+    {
+        Unit = unit;
+        Time = time;
+        FinishWindow = finishWindow;
+    }
+}
+
+// 러시가 끝남(막타 착지, 마지막 구간에 안 누름, 전투 정지 등). 슬로우는 이미 풀려 있다
+public readonly struct RushEnded
+{
+    public readonly UnitController Unit;
+    public readonly bool IsFinisher; // 막타까지 했는지
+
+    public RushEnded(UnitController unit, bool isFinisher)
+    {
+        Unit = unit;
+        IsFinisher = isFinisher;
+    }
+}
+
 // 보스가 포효함(첫 발견·분노). HUD가 붉은 가장자리·이름 배너를 띄운다
 public readonly struct BossRoared
 {

@@ -9,7 +9,6 @@
 public abstract class BrainBase
 {
     protected UnitController Owner { get; }
-
     public TargetSelector TargetSelector { get; }     // 감지: 노리는 적·가장 가까운 적·거리·조준
     public bool IsStopped { get; private set; }
 
@@ -86,10 +85,13 @@ public abstract class BrainBase
     // virtual ---
 
     protected abstract void Think(float deltaTime);                      // 매 프레임 판단. 실행기에 요청만
+    
     public virtual void OnHit(HitParams hit) { }                         // 맞았을 때(살아 있을 때만). 피격 행동 요청은 주인이 한다
     public virtual void OnDied() { }                                     // 죽었을 때. 사망 행동 요청은 주인이 한다
+    public virtual void OnPerfectDodge(HitParams hit) { }                // 대시 무적 중 공격이 닿았을 때(퍼펙트 닷지)
+    public virtual bool CanFlinch => true;                               // false면 맞아도 경직(피격 행동·넉백) 없이 데미지만
+
     protected virtual void OnActionEnded(EActionType action, bool isFinished) { } // 행동이 끝났을 때 다음 판단
     protected virtual void OnStop() { }                                  // 멈출 때(시작 팝업·시장·결과)
     protected virtual void OnResume() { }                                // 다시 켤 때(시작 팝업을 누름)
-    public virtual bool CanFlinch => true;                               // false면 맞아도 경직(피격 행동·넉백) 없이 데미지만
 }

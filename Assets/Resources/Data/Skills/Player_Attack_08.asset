@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c30f063eebc4d8b44992c73572b58eb1, type: 3}
+  m_Name: Player_Attack_08
+  m_EditorClassIdentifier: Assembly-CSharp::SkillDef
+  m_DisplayName: "\uB7EC\uC2DC \uBCA0\uAE30(\uC88C)"
+  <ID>k__BackingField: Player_Attack_08
+  <Description>k__BackingField: 
+  <Icon>k__BackingField: {fileID: 0}
+  <Kind>k__BackingField: 0
+  <Attack>k__BackingField:
+    <Clip>k__BackingField: Attack_08
+    <Damage>k__BackingField: 6
+    m_HitFrame: 3
+    <HitEndFrame>k__BackingField: 0
+    <Reach>k__BackingField: 1.1
+    <Radius>k__BackingField: 1.1
+    <Height>k__BackingField: 0.7
+    <Knockback>k__BackingField: 1
+    <HitStop>k__BackingField: 0
+    <Shake>k__BackingField: 0.01
+    <Break>k__BackingField: 0.5
+    <Lunge>k__BackingField: 0.5
+    <ActiveMoveSpeed>k__BackingField: 0
+    <RehitFrame>k__BackingField: 0
+    <HitPart>k__BackingField: 0
+    <Effect>k__BackingField: {fileID: 8226906484477910167, guid: b571e8786a335df40bb7af2196fdb879, type: 3}
+    <MinRange>k__BackingField: 0
+    <MaxRange>k__BackingField: 1.4
+    <Cooldown>k__BackingField: 0
+    <Weight>k__BackingField: 1
+    <WindupTime>k__BackingField: 0
+    <Next>k__BackingField: {fileID: 0}

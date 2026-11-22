@@ -29,7 +29,7 @@ public class AttackAction : UnitAction
     public override EActionType Type => EActionType.Attack;
     public override bool IsFinished => m_IsStarted && AttackTime >= m_Length;
     public bool CanBufferNext => m_IsStarted && AttackTime >= Spec.HitTime; // 판정 시작 뒤에 누른 것만 다음 타로 받는다(너무 이른 연타는 무시)
-    private float AttackTime => (Time - Spec.WindupTime) * Owner.StatF.GetRate(EStatType.AttackSpeed); // 예고가 끝나고 클립이 시작된 뒤 지난 시간(공격 속도만큼 빠르게 흐른다)
+    public float AttackTime => (Time - Spec.WindupTime) * Owner.StatF.GetRate(EStatType.AttackSpeed); // 예고가 끝나고 클립이 시작된 뒤 지난 시간(공격 속도만큼 빠르게 흐른다)
     private float Radius => DamageCalculator.GetRadius(Owner, Spec); // 판정 반지름(공격 강화 반영)
     private Transform VisualRoot => Owner.Property.Animator.transform;
 

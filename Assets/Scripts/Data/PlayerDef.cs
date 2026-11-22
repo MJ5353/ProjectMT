@@ -37,6 +37,25 @@ public class PlayerDef : UnitDef
     [field: SerializeField]
     public float PerfectDodgeWindow { get; private set; } = 0f; // [mj] todo) 임시값. 대시 시작부터 이 시간 안에 공격이 닿으면 퍼펙트 닷지. 0이면 대시 무적 전체
 
+    // 러시(퍼펙트 닷지 반격) --- 시간은 실제 시간(플레이어 시간) 기준
+    [field: SerializeField]
+    public float RushSlowRate { get; private set; } = 0.05f;     // [mj] todo) 임시값. 러시 중 전체 시간 배율. 몬스터가 이만큼 느려진다(플레이어는 제 속도)
+
+    [field: SerializeField]
+    public float RushTime { get; private set; } = 3f;            // [mj] todo) 임시값. 빈틈 타이머 전체 길이
+
+    [field: SerializeField]
+    public float RushFinishWindow { get; private set; } = 1f;    // 빈틈 타이머 마지막 이 시간 안의 첫 클릭이 막타
+
+    [field: SerializeField]
+    public SkillDef RushLeft { get; private set; } = null;       // 러시 좌 베기. 클릭마다 좌·우를 번갈아 낸다. 비면 러시 없음
+
+    [field: SerializeField]
+    public SkillDef RushRight { get; private set; } = null;      // 러시 우 베기
+
+    [field: SerializeField]
+    public SkillDef RushFinisher { get; private set; } = null;   // 러시 막타(점프 내려찍기)
+
     // 콤보 ---
     // 연타 순서는 첫 타의 AttackSpec.Next로 이어진다(좌 → 우 → 막타). 막타(Next 없음) 다음은 다시 첫 타
     [field: SerializeField]

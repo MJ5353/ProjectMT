@@ -12,24 +12,50 @@ using UnityEngine.InputSystem;
 public class PlayerBrain : BrainBase
 {
     private readonly PlayerDef m_Def;
+    private readonly PerfectDodgeRush m_Rush; // 퍼펙트 닷지 반격
     private AttackSpec m_QueuedAttack; // 다음에 낼 공격. null이면 입력 없음
     private float m_AttackHoldTime;    // 공격 버튼을 누르고 있는 시간
 
     // Think에서 InputManager가 있는지 본 뒤에만 쓴다
     private static InputSystem_Actions.PlayerActions Actions => InputManager.Instance.Player;
 
+    public PerfectDodgeRush Rush => m_Rush; // HUD가 빈틈 타이머·단계를 읽는다
+
     // ------------------------------------------------
 
     public PlayerBrain(UnitController owner, PlayerDef def) : base(owner)
     {
         m_Def = def;
+        m_Rush = new PerfectDodgeRush(owner, def);
     }
 
     public override void Reset()
     {
         base.Reset();
+        m_Rush.Cancel();
         m_QueuedAttack = null;
         m_AttackHoldTime = 0f;
+    }
+
+    public override void Clear()
+    {
+        m_Rush.Cancel();
+        base.Clear();
+    }
+
+    // 러시 중엔 다시 터질 일이 없다(러시 무적엔 판정 창이 없음)
+    public override void OnPerfectDodge(HitParams hit)
+    {
+        if (IsStopped)
+            return;
+
+        m_Rush.TryStart();
+    }
+
+    protected override void OnStop()
+    {
+        m_Rush.Cancel();
+        m_QueuedAttack = null;
     }
 
     // 히트스톱 중(deltaTime 0)에는 입력을 받지 않는다
@@ -38,8 +64,15 @@ public class PlayerBrain : BrainBase
         if (deltaTime <= 0f)
             return;
 
-        AttackSpec pressedAttack = GetPressedAttack(deltaTime);
-        if (Actions.Dash.WasPressedThisFrame() && Owner.UnitExecutor.RequestDash(GetDashDirection()))
+        // 러시가 끝난 프레임에는 남은 러시 예약을 버린다
+        bool wasRush = m_Rush.IsActive;
+        m_Rush.Tick(deltaTime);
+        if (wasRush && m_Rush.IsActive == false)
+            m_QueuedAttack = null;
+
+        // 러시 중에는 대시·길게 누르기 없이 클릭만 받는다
+        AttackSpec pressedAttack = m_Rush.IsActive ? GetRushAttack() : GetPressedAttack(deltaTime);
+        if (m_Rush.IsActive == false && Actions.Dash.WasPressedThisFrame() && Owner.UnitExecutor.RequestDash(GetDashDirection()))
             return;
 
         UpdateAttackInput(pressedAttack);
@@ -54,7 +87,10 @@ public class PlayerBrain : BrainBase
         UnitExecutor action = Owner.UnitExecutor;
         bool canBuffer = action.IsIdle || (action.Current == EActionType.Attack && action.Attack.CanBufferNext);
         if (pressedAttack != null && canBuffer)
+        {
             m_QueuedAttack = pressedAttack;
+            m_Rush.OnQueued(pressedAttack);
+        }
 
         if (m_QueuedAttack == null || action.CanRequest(EActionType.Attack) == false)
             return;
@@ -89,6 +125,17 @@ public class PlayerBrain : BrainBase
             return GetNextAttack();
 
         return null;
+    }
+
+    // 러시 중 이번 프레임 클릭(공격·위로 치기 어느 쪽이든). 길게 누르기는 재지 않는다
+    private AttackSpec GetRushAttack()
+    {
+        m_AttackHoldTime = 0f;
+
+        bool isPressed = (Actions.Attack.WasPressedThisFrame() && IsClickOnUI(Actions.Attack) == false)
+                      || (Actions.AttackUp.WasPressedThisFrame() && IsClickOnUI(Actions.AttackUp) == false);
+
+        return isPressed ? m_Rush.GetAttack() : null;
     }
 
     // 달리는 중이면 달리다 베기, 아니면 콤보 다음 타. 콤보가 없으면 기본 공격

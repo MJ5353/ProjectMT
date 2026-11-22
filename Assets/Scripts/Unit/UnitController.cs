@@ -190,14 +190,14 @@ public class UnitController : PoolableMono
             UnitExecutor.RequestHit();
     }
 
-    // 대시 무적 중 공격이 닿음. 반격(러시)은 판단 쪽이 이어받는다(묶음 3)
+    // 대시 무적 중 공격이 닿음. 반격(러시)은 판단 쪽이 이어받는다
     private void OnPerfectDodged(HitParams hit)
     {
         if (IsDead)
             return;
 
-        CLogger.Log(nameof(UnitController), $"퍼펙트 닷지: {name}");
         PassiveF.OnPerfectDodge(hit);
+        BrainBase.OnPerfectDodge(hit);
     }
 
     private void OnDied()
