@@ -5,7 +5,7 @@ using UnityEngine.UI;
 // ==================================================
 
 // 전투 화면(HUD). 좌상단 밤 시계, 중앙 하단 체력, 공격·대시 아이콘(사용 중, 연계는 ScreenBattle_SkillChain), 우상단 주운 버섯 목록(신선도별), 토벌 종료 버튼(현장 시장 팝업).
-// 매 프레임 BattleService·플레이어를 읽어 그린다. 플레이어가 쓰러지면 부활/귀가 팝업을 띄운다
+// 매 프레임 BattleService·플레이어를 읽어 그린다. 사망·시장·결과 팝업은 BattleFlow 상태가 띄우고, 여기서는 토벌 종료 요청만 보낸다
 
 public class ScreenBattle : ScreenBase
 {
@@ -32,26 +32,23 @@ public class ScreenBattle : ScreenBase
 
     private void OnEnable()
     {
-        SEventManager.Subscribe<PlayerDowned>(OnPlayerDowned);
-        SEventManager.Subscribe<BattleEnded>(OnBattleEnded);
         SEventManager.Subscribe<LootChanged>(OnLootChanged);
     }
 
     private void OnDisable()
     {
-        SEventManager.Unsubscribe<PlayerDowned>(OnPlayerDowned);
-        SEventManager.Unsubscribe<BattleEnded>(OnBattleEnded);
         SEventManager.Unsubscribe<LootChanged>(OnLootChanged);
     }
 
     private void Update()
     {
-        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
-        if (battleS == null)
+        BattleFlow battle = FlowManager.Instance.Battle;
+        if (battle == null)
             return;
 
+        BattleService battleS = battle.BattleS;
         m_Clock.SetTime(battleS.RemainTime, battleS.NightTime);
-        m_ExitButton.E_SetInteractable(battleS.State == EBattleState.Playing && battleS.IsPlayerDown == false);
+        m_ExitButton.E_SetInteractable(battle.State == EBattleFlowState.Play);
 
         UpdatePlayer(battleS.Player);
     }
@@ -136,7 +133,7 @@ public class ScreenBattle : ScreenBase
         PopupConfirm confirm = FlowManager.Instance.PopupS?.Open<PopupConfirm>(EPopupType.PopupConfirm);
         if (confirm == null)
         {
-            ExitHunt();
+            FlowManager.Instance.Battle?.ExitHunt();
             return;
         }
 
@@ -144,11 +141,11 @@ public class ScreenBattle : ScreenBase
         confirm.Set(EStringKey.Battle_ExitConfirm, OnConfirmExit, OnCancelExit);
     }
 
-    // 확인 멈춤을 풀고 나간다(시장이 열리면 BattleService가 시장 이유로 다시 멈춘다)
+    // 확인 멈춤을 풀고 나간다(시장이 열리면 BattleFlow Market 상태가 시장 이유로 다시 멈춘다)
     private void OnConfirmExit()
     {
         TimeManager.Instance.SetPause(EPauseReason.Confirm, false);
-        ExitHunt();
+        FlowManager.Instance.Battle?.ExitHunt();
     }
 
     // 아니오·뒤로 가기, 씬 전환으로 팝업이 정리될 때도 불린다
@@ -157,36 +154,8 @@ public class ScreenBattle : ScreenBase
         TimeManager.Instance.SetPause(EPauseReason.Confirm, false);
     }
 
-    // 시장을 열고 팝업(PopupMarket)을 띄운다. 시장 프리팹이 없으면 시장 없이 끝낸다
-    private void ExitHunt()
-    {
-        FlowManager flowM = FlowManager.Instance;
-        BattleService battleS = flowM.Battle?.BattleS;
-        
-        if (battleS == null)
-            return;
-
-        PopupService popupS = flowM.PopupS;
-        bool isMarket = popupS != null && popupS.HasPrefab(EPopupType.PopupMarket);
-        battleS.ExitHunt(isMarket);
-        
-        if (battleS.State == EBattleState.Market)
-            popupS?.Open<PopupMarket>(EPopupType.PopupMarket);
-    }
-
     private void OnLootChanged(LootChanged evt)
     {
         RefreshLootList(FlowManager.Instance.Battle.BattleS.DicLoot);
-    }
-
-    private void OnPlayerDowned(PlayerDowned evt)
-    {
-        FlowManager.Instance.PopupS?.Open<PopupDeath>(EPopupType.PopupDeath);
-    }
-
-    // 시장 팝업은 MarketClosed로, 사망 팝업은 귀가(GiveUp) 전에 스스로 닫힌다
-    private void OnBattleEnded(BattleEnded evt)
-    {
-        FlowManager.Instance.PopupS?.Open<PopupResult>(EPopupType.PopupResult);
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 // ==================================================
 
-// 쓰러졌을 때 뜨는 팝업. 골드를 내고 부활하거나 빈손으로 귀가한다. 떠 있는 동안 밤 시계는 멈춘다(BattleService)
+// 쓰러졌을 때 뜨는 팝업(BattleFlow Down 상태가 띄운다). 골드를 내고 부활하거나 빈손으로 귀가한다. Down 동안 밤 시계는 멈춘다
 
 public class PopupDeath : PopupBase
 {
@@ -43,15 +43,16 @@ public class PopupDeath : PopupBase
 
     private void OnClickRevive()
     {
-        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
-        if (battleS != null && battleS.TryRevive())
+        BattleFlow battle = FlowManager.Instance.Battle;
+        if (battle != null && battle.TryRevive())
             Close();
     }
 
+    // 먼저 닫고 귀가한다(결과 팝업이 이 위에 뜬다)
     private void OnClickHome()
     {
-        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
+        BattleFlow battle = FlowManager.Instance.Battle;
         Close();
-        battleS?.GiveUp();
+        battle?.GiveUp();
     }
 }

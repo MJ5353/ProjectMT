@@ -136,10 +136,10 @@ public class DebugPanel : MonoBehaviour
             return;
 
         GUILayout.Label("시장");
-        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
+        BattleFlow battle = FlowManager.Instance.Battle;
         HuntData hunt = playerDataM.Hunt;
 
-        if (battleS != null && battleS.State == EBattleState.Playing && GUILayout.Button($"버섯 {DebugLootCount}개 줍기(신선도·희귀도 랜덤)"))
+        if (battle != null && battle.State == EBattleFlowState.Play && GUILayout.Button($"버섯 {DebugLootCount}개 줍기(신선도·희귀도 랜덤)"))
             PickRandomLoot(gameM.Database);
 
         if (hunt.IsMarketOpen)

@@ -2,7 +2,7 @@
 
 최종 수정: 26.11.22
 
-씬 전환과 씬 안의 진행 단계를 어떻게 나누는지 적는다. 지금 코드(`EGameState`·`BattleService.EBattleState`)를 이 구조로 바꾸기 위한 설계다. 26.11.22 기준 일시정지 이유 플래그(묶음 1), UI 오버레이 정리, Flow 뼈대와 씬 전환 분리(묶음 2)가 코드에 반영됐다. 아래 "지금 구조와 문제"는 묶음 2 이전 기준이다.
+씬 전환과 씬 안의 진행 단계를 어떻게 나누는지 적는다. 지금 코드(`EGameState`·`BattleService.EBattleState`)를 이 구조로 바꾸기 위한 설계다. 26.11.22 기준 일시정지 이유 플래그(묶음 1), UI 오버레이 정리, Flow 뼈대와 씬 전환 분리(묶음 2), BattleFlow 상태 나누기(묶음 3)가 코드에 반영됐다. 아래 "지금 구조와 문제"는 묶음 2 이전 기준이다.
 
 ## 1. 상세 정보
 
@@ -45,7 +45,7 @@
 - **`FlowBase`**(26.11.22 반영): 생성자에서 `Register<T>`로 전용 Service를 넣고, 수명은 `Begin → Tick → End`. `Begin`은 등록 순서로 Init 후 `OnBegin`, `End`는 상태 머신을 멈추고 `OnEnd` 뒤 등록 역순으로 `Clear`. 자식은 `OnBegin`·`OnEnd`만 덮어쓴다. `FlowManager`는 이 타입으로만 다룬다.
 - **`FlowBase<TState>`**: 기존 `StateMachine<TState>`(Common/Util)를 들고 `AddState`(생성자)·`ChangeState`·`State`·`TimeInState`를 제공한다.
 - **`FlowStateBase<TFlow>`**: `IState` 구현. 주인 Flow를 받고 `Enter`·`Update`·`Exit`를 덮어쓴다.
-- 묶음 3 예정: 상태의 Update가 이번 프레임에 어떤 Service를 Tick할지 정한다(지금은 Flow가 전용 Service를 모두 Tick). Service가 스스로 "지금 진행 중인가"를 검사하지 않게 한다. 앱 일시정지를 Flow에 알리는 `OnPause`는 필요해지면 넣는다.
+- (묶음 3 반영) Flow는 전용 Service를 늘 Tick하고(유닛·히트스톱은 모든 상태에서 돈다), 단계에 묶인 일(밤 흐르기·리스폰)은 상태 Update가 `BattleService.AdvanceNight`처럼 직접 부른다. Service는 스스로 "지금 진행 중인가"를 검사하지 않는다. 앱 일시정지를 Flow에 알리는 `OnPause`는 필요해지면 넣는다.
 
 ### TitleFlow · LobbyFlow
 
@@ -61,10 +61,11 @@
 | Market | 현장 시장 팝업. 닫히면 Result | 멈춤 |
 | Result | 끝난 이유에 따라 보상 반영, 결과 팝업. 다시 하기=Retry, 로비=씬 전환 | 멈춤 |
 
-- 사망·시장·결과 팝업은 각 상태의 `Enter`가 연다. 지금은 `ScreenBattle`이 `PlayerDowned`·`BattleEnded` 이벤트를 받아 여는데, 흐름을 한 곳에서 읽히게 하고 화면은 표시만 하게 한다. 종료 버튼 활성 조건도 "Play 상태"로 바뀐다.
-- 끝난 이유(나가기·시간 초과·귀가)는 상태가 아니라 Result에 넘기는 값(`EHuntResult` 가칭)이다. `EBattleState`는 없앤다.
-- `BattleService`는 스폰·리스폰, 밤 시간, 주운 버섯, 보상 계산 같은 데이터와 처리만 남고, 단계 전환은 BattleFlow 상태가 한다.
-- 전용 Service: Unit·HitStop·Battle(이펙트는 공용). 지역(`MapDef`)은 `BattleSceneController`가 Flow를 만들 때 넘긴다(26.11.22 반영, 지금 상태는 `EBattleFlowState.Play` 하나).
+- (묶음 3 반영) 사망(Down, `DownPopupDelay` 뒤)·시장(Market)·결과(Result) 팝업은 각 상태가 연다. 결과 팝업은 Result `Exit`가 닫는다. `ScreenBattle`은 표시와 토벌 종료 요청(`BattleFlow.ExitHunt`)만 하고, 종료 버튼은 Play 상태에서만 눌린다. `PlayerDowned`·`BattleEnded` 이벤트는 없앴다.
+- 끝난 이유는 `EHuntResult`(Exited·TimedOut·GaveUp)로 `BattleFlow.HuntResult`에 두고 Result가 읽는다. `EBattleState`는 없앴다.
+- 요청 입구는 `BattleFlow`(ExitHunt·TryRevive·GiveUp·Retry·TryGoLobby)이고, 현재 상태가 맞지 않으면 무시한다. 몬스터 판단은 `BattleFlow.IsHuntOver`(Market·Result)면 멈춘다.
+- `BattleService`는 스폰(`StartHunt`, Start 상태)·리스폰·밤 시간(`AdvanceNight`, Play 상태)·떨구기(`DropLoot`, Down 상태)·보상(`SetMarketReward`·`Finish`, Result 상태)만 남았다. 쓰러짐은 C# 이벤트 `PlayerDied`로 Flow에 알린다.
+- 전용 Service: Unit·HitStop·Battle(이펙트는 공용). 지역(`MapDef`)은 `BattleSceneController`가 Flow를 만들 때 넘긴다.
 
 ### 일시정지
 
@@ -100,7 +101,7 @@
 
 1. 일시정지 이유 플래그(26.11.22 반영)
 2. (26.11.22 반영) Flow 뼈대 + 씬 전환 분리(UI 오버레이 정리는 먼저 반영): FlowManager·Flow 기반, Title·Lobby·BattleFlow(Play 하나), 공용·전용 Service 이전, `SceneDef`, GameManager 씬 전환 전용, 정리 입구 하나, 호출부 교체
-3. BattleFlow 상태 나누기: `EBattleState` 폐지, 팝업을 상태 Enter로
+3. (26.11.22 반영) BattleFlow 상태 나누기: `EBattleState` 폐지, 팝업을 상태 Enter로
 4. 씬 재로드 없는 Retry
 5. 이름 정리(`MonsterBalanceTable`)
 
@@ -120,6 +121,7 @@
 - 26.11.21 대장: 토벌 종료 버튼은 확인 팝업("토벌을 종료할까요?" 예/아니오)을 거친다.
 - 26.11.21 대장: 씬 이름은 `SceneDef`(DataDef)로 데이터에 연결한다. `SceneNames` 상수와 `[mj] todo)`는 이걸로 대체한다.
 - 26.11.21 대장: Table은 편집기용 공식값이라 Def와 헷갈리지 않게 이름을 바꾼다(`MonsterBalanceTable`). `PopupTable`은 `PopupDef`로 대체돼 삭제.
+- 26.11.22 묶음 3 반영: BattleFlow 상태 Start·Play·Down·Market·Result, 끝난 이유 `EHuntResult`, 팝업은 상태가 열고 화면은 요청만. Start→Play는 스폰 다음 프레임(상태 Enter 안에서 상태를 바꾸지 않는다).
 - 26.11.22: 토벌 종료 확인 팝업이 떠 있는 동안 게임 시간 전체를 멈춘다(구현 기준, Confirm 이유).
 - 26.11.22 대장: 위 적용 순서로 진행. 묶음 1 반영.
 - 26.11.22 대장: 공용 Service는 FlowManager가 한 번만 만들어 계속 들고 씬마다 연결·해제만 한다.

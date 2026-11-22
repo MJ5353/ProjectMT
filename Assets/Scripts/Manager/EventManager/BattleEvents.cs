@@ -41,21 +41,6 @@ public readonly struct LootChanged
 {
 }
 
-public readonly struct BattleEnded
-{
-    public readonly bool IsWin;
-
-    public BattleEnded(bool isWin)
-    {
-        IsWin = isWin;
-    }
-}
-
-// 플레이어가 쓰러짐. 전투는 끝나지 않고 부활/귀가를 고르게 한다(ScreenBattle가 팝업을 띄운다)
-public readonly struct PlayerDowned
-{
-}
-
 // 보스가 포효함(첫 발견·분노). HUD가 붉은 가장자리·이름 배너를 띄운다
 public readonly struct BossRoared
 {

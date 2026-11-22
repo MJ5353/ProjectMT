@@ -92,8 +92,17 @@ public sealed class UIClickBurst
             Piece piece = m_ListPiece[i];
 
             // 씬과 함께 지워졌으면 버린다
-            if (piece.Item == null || piece.Item.isActiveAndEnabled == false)
+            if (piece.Item == null)
             {
+                m_ListPiece.RemoveAt(i);
+                continue;
+            }
+
+            // 띄운 자리가 꺼졌으면(로딩 화면이 닫힘) 풀로 돌려보낸다
+            // !!) 목록에서만 빼면 조각이 꺼진 자리 아래에 반투명한 채 남아, 그 자리가 다시 켜질 때 보인다
+            if (piece.Item.isActiveAndEnabled == false)
+            {
+                ResourceManager.S_Despawn(piece.Item);
                 m_ListPiece.RemoveAt(i);
                 continue;
             }

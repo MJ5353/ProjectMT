@@ -37,14 +37,14 @@ public abstract class BrainBase
         TargetSelector.Clear();
     }
 
-    // 전투 중일 때만 판단한다. 승패가 난 프레임에 한 번 멈춘다
+    // 전투 중일 때만 판단한다. 시장·결과로 넘어간 프레임에 한 번 멈춘다
     public void Tick(float deltaTime)
     {
         if (IsStopped)
             return;
 
-        BattleService battle = FlowManager.Instance.Battle?.BattleS;
-        if (battle != null && battle.State != EBattleState.Playing)
+        BattleFlow battle = FlowManager.Instance.Battle;
+        if (battle != null && battle.IsHuntOver)
         {
             Stop();
             return;

@@ -54,9 +54,14 @@ public sealed class UIManager : MonoSingleton<UIManager>
             return;
 
         if (isShow)
+        {
             m_Loading.Show();
-        else
-            m_Loading.Hide();
+            return;
+        }
+
+        // 로딩 화면 위에 터진 조각을 먼저 돌려받는다. 남기면 다음 로딩 때 멈춘 채 다시 보인다
+        m_ClickBurst.Clear(m_Loading.RectTransform);
+        m_Loading.Hide();
     }
 
     public void SetLoadingProgress(float ratio)

@@ -575,3 +575,8 @@
 
 ## 전투 화면 생성기 맞춤(버튼 판·계기판 시간)
 - 대장 선택대로 토벌 종료에 반투명 Tint 흰 판, 전투 시간에 음각 창 HUD_Time_Window + "남은 밤"을 넣고, 대장이 정리한 ScreenBattle(창 안 머리글, 판 안 아이콘, 토벌 종료 y -190·라벨 띠 -20)을 BattleUISetup에 반영. 컴파일 확인 안 함, 커밋하지 않음.
+
+## 전투 흐름 상태 나누기(Flow 묶음 3)
+- BattleFlow를 Start·Play·Down·Market·Result 상태로 나누고 EBattleState를 없앰. 끝난 이유는 EHuntResult(Exited·TimedOut·GaveUp) 값으로 Result에 넘김.
+- 사망·시장·결과 팝업은 각 상태 Enter가 띄우고, ScreenBattle은 표시와 토벌 종료 요청만 함. BattleService는 스폰·밤 시간·떨구기·보상 처리만 남기고 상태 검사를 뺌. PlayerDowned·BattleEnded 이벤트 삭제.
+- 로딩 화면에 지난 클릭 버섯 조각이 반투명하게 남던 원인(꺼진 조각을 풀에 돌려주지 않고 목록에서만 뺌)을 고치고, 로딩을 닫을 때 그 위 조각을 먼저 회수하게 함. 컴파일·플레이 확인 안 함, 커밋하지 않음.
