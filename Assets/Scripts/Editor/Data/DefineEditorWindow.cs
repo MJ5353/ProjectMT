@@ -8,10 +8,10 @@ using UnityEngine.UIElements;
 
 // ==================================================
 
-// Define 도구. 전역 조절값(Define.asset)을 스펙(DefineSpecBase) 단위로 보고 고친다.
-// 왼쪽 스펙 목록은 DefineDef에서 DefineSpecBase 타입 프로퍼티를 찾아 자동으로 채우므로, 스펙을 더해도 도구는 고치지 않는다
+// Define 편집기. 전역 조절값(Define.asset)을 스펙(DefineSpecBase) 단위로 보고 고친다.
+// 왼쪽 스펙 목록은 DefineDef에서 DefineSpecBase 타입 프로퍼티를 찾아 자동으로 채우므로, 스펙을 더해도 편집기는 고치지 않는다
 
-public sealed class DefineToolWindow : EditorWindow
+public sealed class DefineEditorWindow : EditorWindow
 {
     private const string BackingFieldFormat = "<{0}>k__BackingField";
     private const float SpecListWidth = 180f;
@@ -39,10 +39,10 @@ public sealed class DefineToolWindow : EditorWindow
 
     // ------------------------------------------------
 
-    [MenuItem("MushTaker/Define 도구", false, 1)]
+    [MenuItem("MushTaker/Define 편집기", false, 1)]
     public static void Open()
     {
-        DefineToolWindow window = GetWindow<DefineToolWindow>("Define 도구");
+        DefineEditorWindow window = GetWindow<DefineEditorWindow>("Define 편집기");
         window.minSize = new Vector2(560f, 360f);
     }
 

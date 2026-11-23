@@ -383,13 +383,6 @@ public sealed class DataEditorWindow : EditorWindow
         m_Related = new VisualElement { name = "related" };
         m_Details.Add(m_Related);
         RefreshRelations();
-        // Define은 스펙 단위로 Define 도구에서 고친다
-        if (def is DefineDef)
-        {
-            m_Details.Add(new Button(DefineToolWindow.Open) { text = "Define 도구 열기" });
-            return;
-        }
-
         m_Details.Add(new Label("속성") { name = "properties-title" });
         AddProperties(m_Details, m_DicSerializedDef[def], false);
     }
