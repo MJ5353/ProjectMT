@@ -88,7 +88,8 @@ public class PlayerBrain : BrainBase
     private void UpdateAttackInput(AttackSpec pressedAttack)
     {
         StateFeature state = Owner.StateF;
-        bool canBuffer = state.IsIdle || (state.Current == ECoreState.Attack && state.Attack.CanBufferNext);
+        // 러시 막타 구간의 클릭은 베기 초반이라도 막타로 예약한다(한 번 누른 막타가 버려지지 않게)
+        bool canBuffer = state.IsIdle || m_Rush.IsFinishWindow || (state.Current == ECoreState.Attack && state.Attack.CanBufferNext);
         if (pressedAttack != null && canBuffer)
         {
             m_QueuedAttack = pressedAttack;

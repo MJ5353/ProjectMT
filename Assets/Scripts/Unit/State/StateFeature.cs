@@ -161,8 +161,10 @@ public class StateFeature : UnitFeature
         if (spec == null || CanRequest(ECoreState.Attack) == false)
             return false;
 
+        // 끊기 판단은 위에서 지금 공격 기준으로 끝냈다. Setup 뒤에 다시 물으면 새 Spec의 판정 시간으로 재서 거절되고, 도는 공격의 Spec만 바뀐 채 남는다
         m_Attack.Setup(spec, direction, faceTarget);
-        return RequestCore(m_Attack);
+        Change(m_Attack);
+        return true;
     }
 
     public bool RequestDash(Vector3 direction)
