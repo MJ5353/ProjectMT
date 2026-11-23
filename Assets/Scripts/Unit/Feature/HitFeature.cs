@@ -7,7 +7,7 @@ using UnityEngine;
 // 맞는 쪽 전부. 어디를 맞을 수 있나(몸 판정 모양)와 맞았을 때 처리(팀·무적·사망 거르기 → 체력 → HitDef 반응)를 맡는다.
 // 판정 모양: 뼈마다 구·캡슐. 목록이 비면 HurtBody 캡슐로 맞는다(플레이어·잡몹). 버섯 부위가 걸린 뼈는 부위 번호를 달아 부위 판정이 된다
 // 순서: 부위 → 체력 → 넉백 → 번쩍 → 히트스톱 → 조각·타격 마크
-// 경직: 맞을 때마다 Break를 쌓아 UnitDef.BreakImmune(+ 능력치 경직 저항)을 넘고 판단이 허락(CanFlinch)하면 경직(넉백·피격 행동). 아니면 넉백 없이 데미지·번쩍만
+// 경직: 맞을 때마다 Break를 쌓아 UnitDef.BreakImmune(+ 능력치 경직 저항)을 넘고 지금 코어가 피격에 끊길 수 있으면(쓰러짐·포효는 못 끊긴다) 경직(넉백·피격 행동). 아니면 넉백 없이 데미지·번쩍만
 // 번쩍이 히트스톱 중에도 끝나야 해서 실제 시간(unscaled)으로 돌고, 무적 시간만 게임 시간으로 바꿔 깎는다
 
 public class HitFeature : UnitFeature
@@ -122,7 +122,7 @@ public class HitFeature : UnitFeature
         m_InvincibleRemain = Mathf.Max(m_InvincibleRemain, duration);
     }
 
-    // 숨기(AIHideState). 무적과 달리 대상 찾기·조준(UnitService)에서도 빠진다
+    // 숨기(BurrowCore). 무적과 달리 대상 찾기·조준(UnitService)에서도 빠진다
     public void SetHidden(bool isHidden)
     {
         IsHidden = isHidden;
@@ -153,7 +153,7 @@ public class HitFeature : UnitFeature
             bodyRate = bodyDamageRate;
         }
 
-        int bodyDamage = DamageCalculator.GetTaken(Owner, hit.Damage, bodyRate);
+        int bodyDamage = DamageCalculator.GetTaken(Owner, hit, bodyRate);
 
         bool isFlinch = AddBreak(hit.Break);
         Owner.HealthF.TakeDamage(bodyDamage);
@@ -167,10 +167,10 @@ public class HitFeature : UnitFeature
         return true;
     }
 
-    // 경직 판단이 막으면(쓰러짐·포효) 쌓지도 않는다. 넘으면 비운다
+    // 지금 코어가 피격에 끊기지 않으면(쓰러짐·포효) 쌓지도 않는다. 넘으면 비운다
     private bool AddBreak(float breakPower)
     {
-        if (Owner.BrainBase != null && Owner.BrainBase.CanFlinch == false)
+        if (Owner.StateF.CanRequest(Owner.StateF.Hit) == false)
             return false;
 
         m_BreakStack += breakPower;

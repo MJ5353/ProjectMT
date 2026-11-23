@@ -200,6 +200,18 @@ public static class CommonExtensions
         return list[index];
     }
 
+    public static T E_GetOrDefault<T>(this IReadOnlyList<T> list, int index, T defaultValue = default)
+    {
+        if (list == null || index < 0 || index >= list.Count)
+            return defaultValue;
+
+        return list[index];
+    }
+
+    // List·배열은 IList·IReadOnlyList 둘 다라 어느 쪽인지 모호해서 따로 받는다
+    public static T E_GetOrDefault<T>(this List<T> list, int index, T defaultValue = default) => E_GetOrDefault((IList<T>)list, index, defaultValue);
+    public static T E_GetOrDefault<T>(this T[] list, int index, T defaultValue = default) => E_GetOrDefault((IList<T>)list, index, defaultValue);
+
     public static T E_GetOrDefault<T>(this IEnumerable<T> list, int index, T defaultValue = default)
     {
         if (list == null || index < 0)

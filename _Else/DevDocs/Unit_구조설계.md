@@ -1,112 +1,140 @@
 # 유닛 구조 설계
 
-최종 수정: 26.11.19
+최종 수정: 26.11.23
 
 전투 유닛(플레이어·몬스터·보스·동료)을 어떻게 나누는지와 그 이유를 적는다. 코드를 읽기 전에 이 문서로 큰 그림을 잡는다.
 
-## 1. 다음 단위 작업
+## 1. 상세 정보
 
-Unity에서 컴파일 확인 후 플레이 확인: 프리팹 16개의 컨트롤러가 `UnitController`로 붙어 Property 참조가 유지되는지, PlayerDef·MonsterDef의 `Prefab`이 `UnitDef`로 옮겨진 뒤에도 연결돼 있는지, 플레이어 대시·몬스터 부위·드롭·보스 포효/다운이 그대로 도는지.
+### 층 구분
 
-## 2. 전체 작업 TODO 및 진행상황
+| 층 | 뜻 | 구성 |
+|---|---|---|
+| UnitController | 유닛 하나. 조립·수명·Tick 순서·피격/사망 연결 | 플레이어·몬스터 공통 클래스 하나 |
+| Feature | 몸이 **가진 것**. 남이 읽는 데이터·자원. 스스로 결정하지 않고 이벤트로만 알린다 | Stat·Passive·Health·Move·Anim·Hit·Part·Drop·PerfectDodge |
+| StateFeature | **지금 무엇을 하는지**(행동·판단). Feature 목록 밖에서 컨트롤러가 직접 Tick | CoreState 하나 + SubState 여러 개 |
 
-### 진행
+- 매 프레임 순서(`UnitController.Tick`): Feature Tick → StateFeature(코어 Step → 서브 Timed → 서브 Unit → 요청 정리 → 코어 Think) → Feature LateTick(이동).
+- 히트스톱(deltaTime 0)·멈춤 중에는 서브·요청 정리·Think를 쉰다.
+- Feature끼리, 코어·서브에서 Feature로는 `Owner.MoveF`·`Owner.AnimF` 등으로만 찾는다.
 
-- [x] 프리팹 참조 `UnitProperty`, 갱신 `UnitService.Tick`, 부위 `PartFeature`, Feature끼리는 `Owner`로만(26.11.18)
-- [x] 부품·실행기·판단 3층 정리: 행동·판단을 Feature에서 빼고 Tick 순서를 컨트롤러 한 곳에(26.11.19)
-- [x] AI를 `AIBrain` 하나 + `AIStateBase` 하나 + `AIDef` 프리셋으로(몬스터·보스·동료 공통)(26.11.19)
-- [x] 사망 보상 `DropFeature`(`HealthF.Died`), 숨기 `HitF.IsHidden`(26.11.19)
-- [x] 명명 정리: `UnitExecutor`·`UnitBrain`·`TargetSelector`·`AttackSelector`·`UnitService`·`UnitFactory`·`UnitID`(26.11.19)
-- [x] 컨트롤러 합치기: `PlayerController`·`MonsterController` 삭제, `UnitController` 하나 + Def 가상 함수(26.11.19, 컴파일 전)
-- [x] Def 런타임 할당: 프리팹의 `m_Def` 제거, `UnitFactory.Create(def, …)`가 `OnSpawn(unitID, def)`로 넘김(26.11.19, 컴파일 전)
+### StateFeature: 코어 하나 + 서브 여러 개
 
-### 보류
+- **CoreState**: 몸을 차지하는 일 하나. 자기 시간·끝(`IsFinished`)·끊기 규칙만 안다. AI 코어는 판단을 `Think`에서 한다.
+- **SubState**: 코어와 겹쳐 도는 일(입력·대상 감지·공격 선택 등). 수명은 `Unit`(Def가 등록, 유닛과 함께) / `Timed`(끝나면 스스로 빠짐). 상태 알림은 가상 훅 `OnHit`·`OnDied`·`OnPerfectDodge`·`OnCoreChanged`로 받는다. 상태 밖 알림(부위 파괴 `PartF.Broken`, 대상 잡음 `TargetSelector.Acquired`)은 서브가 생성 때 구독한다(BossWatchSub).
+- **즉시 API**: `RequestAttack`·`RequestDash`·`RequestHit`·`RequestDead`·`Interrupt`(기본 코어로)·`Revive`(사망 → 기본 코어). 끊기 규칙을 통과하면 바로 바꾼다.
+- **미룬 요청** `Request(core)`: 서브가 쓴다. 코어 Step 뒤 요청 정리에서 처리하고, 같은 프레임에 둘이면 `pending.CanInterruptBy(new)`일 때만 새 요청으로 바꾼다.
+- **예약 공격** `ReserveAttack`: 다음 타 하나(덮어씀). 미룬 요청 다음, 공격으로 끊을 수 있게 되면 그 프레임에 낸다.
+- **설정**: `SetDefaultCore`(스폰·멈춤 때 들어갈 코어), `SetAfterHitCore`(피격이 끝나면 갈 코어, 없으면 복귀점), `ChangeCore`(AI 코어 사이 이동·보스 끼우기, **끊기 규칙을 보지 않는다**. 프리셋에 없는 코어면 오류 로그 뒤 무시), `Stop`/`Resume`(전투 정지: 기본 코어로 두고 서브 Exit), `TryGetSub<T>`.
+- 코어가 끝나면 피격은 피격 뒤 코어로, 나머지는 복귀점(마지막 Mode 코어)으로 간다.
 
-- [ ] 대시를 스킬(SkillDef)로 통합: `DashAction`·`EnableDash` 경로 정리는 이때 같이(26.11.19 대장)
-- [ ] 판정 모양에 부위 번호 대신 부위 종류(`EBattlePartType`)를 달고 `PartFeature`가 칸을 찾게 하기. 이펙트 작업 뒤 진행
-- [ ] 동료 팀: 지금 `MonsterDef.Team`은 Monster라 펫도 몬스터 팀이다. 동료가 실제로 싸울 때 Def에서 팀을 정한다
+### ECoreKind와 끊기 규칙
 
-## 3. 상세 정보
+기준은 "**몸을 묶는 동작인가**"다. 코어는 Kind 하나를 갖고, 자기를 끊을 수 있는 Kind를 `InterruptedBy`에 모은다.
 
-### 세 층: 부품 · 실행기 · 판단
+- **Mode**: 몸을 묶지 않고 이동 애니만 쓰며 다음 행동을 고르는 자리. 행동이 끝나면 돌아오는 복귀점.
+- **Action**: 전용 클립이나 정해진 움직임으로 몸을 묶는 동작.
+- **Dash / Hit / Dead**: 각 하나.
 
-| 층 | 뜻 | 구성 | 컨트롤러 프로퍼티 |
+| 코어 | Kind | InterruptedBy |
+|---|---|---|
+| Free·Idle·Wander·Chase·Flee·Follow | Mode | Action·Dash·Hit·Dead |
+| Attack | Action | Hit·Dead (+ 다음 공격: 판정 뒤 캔슬 지연 지나면, 대시: 판정 뒤) |
+| RushApproach(러시 돌진) | Action | Hit·Dead |
+| Burrow | Action | Hit·Dead |
+| Roar·Down | Action | Dead (요청 기준. 보스 감시가 `ChangeCore`로 끼우는 쓰러짐은 포효를 끊고, 쓰러진 중 또 깨지면 쓰러짐을 처음부터) |
+| Dash | Dash | Hit·Dead |
+| Hit | Hit | Hit·Dead |
+| Dead | Dead | 없음 |
+
+- `ECoreState`는 이름표다. 값을 명시하고 AIDef 에셋에 숫자로 저장되므로 새 값은 맨 뒤에만 붙인다(Free 0 · Idle 1 · Wander 2 · Chase 3 · Flee 4 · Follow 5 · Burrow 6 · Roar 7 · Down 8 · RushApproach 9 · Attack 10 · Dash 11 · Hit 12 · Dead 13).
+
+### 코어 · 서브 목록
+
+| 구분 | 이름 | 역할 |
+|---|---|---|
+| 공통 코어 | AttackCore | 예고 → 클립·돌진·판정. 판정·바닥 예고·퍼펙트 닷지 알림은 보조 클래스(AttackHitter·AttackTelegraph·AttackDodgeNotifier) |
+| | HitCore | 피격 경직. 경직 중 또 맞으면 처음부터 |
+| | DeadCore | 사망. AI 유닛은 먼지·충돌 끄기 뒤 사라짐 |
+| | MoveCore | 걷는 Mode 코어의 바탕(FreeCore·AI 코어) |
+| 플레이어 코어 | FreeCore | 기본 코어. 입력을 속도·걷기/달리기로 |
+| | DashCore | 대시와 쿨(쿨은 코어 밖에서도 돈다). 대시를 쓰는 유닛만 |
+| | RushApproachCore | 러시 때 대상 앞까지 돌진 |
+| AI 코어(AICore) | Idle | 대기. 대상이 보이면 추적, 잠시 뒤 배회 |
+| | Wander | 스폰 자리 근처 배회 |
+| | Chase | 추적. 고른 공격을 요청, 놓치면 대기 |
+| | Flee | 맞은 뒤 대상 반대로 달아났다가 추적 |
+| | Follow | 주인 따라가기(펫) |
+| | Burrow | 파고들기 → 땅속 이동(맞지 않음·조준 제외) → 튀어나오기 → 추적 |
+| | Roar | 포효(보스 첫 발견·분노) 뒤 추적 |
+| | Down | 부위가 깨지면 쓰러져 있다가 추적 |
+| 서브 | PlayerInputSub (Unit) | 입력을 읽어 요청·예약만. 퍼펙트 닷지면 RushSub 시작 |
+| | RushSub (Timed) | 퍼펙트 닷지 뒤 반격: 슬로우·돌진·연타·막타 |
+| | TargetSenseSub (Unit) | 대상 감지·기억, 스폰 자리. `TargetSelector`를 든다 |
+| | AttackPickerSub (Unit) | 공격 후보·개별/공용 쿨·가중치 선택, 콤보 다음 타 예약, 분노 |
+| | BossWatchSub (Unit) | 보스 어그로·분노 판정, 행동이 없을 때 쓰러짐 > 포효를 끼움 |
+
+### AI 조립
+
+- `AIDef` 프리셋(SO)을 여러 몬스터가 같이 쓴다(`UnitDef.AI`). 조립 칸은 `ListCore`(붙일 AI 코어)·`DefaultCore`·`AfterHitCore`다. 공격·피격·사망은 적지 않는다.
+- **서브는 데이터에 없다.** 코어마다 `const EAISub Needs`를 두고 `AICore.GetSubs`가 목록 코어들의 Needs를 합친 뒤 의존을 더한다(공격 선택 → 대상 감지, 보스 감시 → 대상 감지·공격 선택).
+- `MonsterDef.SetAI` 순서: 서브 등록(공격 선택 → 대상 감지 → 보스 감시, 이 순서가 Tick 순서) → 코어 생성(생성자에서 `TryGetSub`로 서브를 찾으므로 서브가 먼저) → `SetDefaultCore` → `SetAfterHitCore`. 프리셋이 비면 오류 로그 뒤 기본값(Normal 묶음)으로 돈다.
+- 데이터 검사(`DataTools.CheckAI`): AI 코어만·중복 없이, 기본 코어가 목록에 있는지, 피격 뒤 코어가 목록에 있는지(Move면 생략: 피격 전 코어로 복귀).
+- 펫 판정은 `DefaultCore == Follow`(플레이어 팀·노려지지 않음·드롭 없음), 보스 판정은 BossWatch 서브 유무(보스 체력바·Occluder 레이어).
+
+| 프리셋 | ListCore | Default | AfterHit |
 |---|---|---|---|
-| 부품(Feature) | 몸이 **가진 것**. 스스로 결정하지 않고 위로는 이벤트로만 알린다 | Move·Anim·Health·Hit·Part·Drop | `MoveF`·`AnimF`·`HealthF`·`HitF`·`PartF` |
-| 실행기(UnitExecutor) | **지금 하는 행동 하나**(시간·끝·끊기). 부품을 도구로 쓴다 | Move·Attack·Dash·Hit·Dead Action | `UnitExecutor` |
-| 판단(UnitBrain) | **무엇을 할지.** 대상을 고르고 실행기에 요청만 한다 | `PlayerBrain`(입력), `AIBrain`(AI 상태·공격 고르기) | `UnitBrain` |
+| AI_Normal | Idle·Wander·Chase·Flee | Idle | Chase |
+| AI_Elite | Idle·Wander·Chase·Flee | Idle | Chase |
+| AI_Flee | Idle·Wander·Chase·Flee | Idle | Flee |
+| AI_Burrow | Idle·Wander·Chase·Burrow | Idle | Burrow |
+| AI_Boss | Idle·Wander·Chase·Roar·Down | Idle | Chase |
+| AI_Pet | Follow | Follow | Free(없음) |
 
-- 호출은 판단 → 실행기 → 부품 방향으로만. 아래는 위를 이벤트(`Hit`·`Died`·`Ended`·`Broken`)로만 알린다.
-- 매 프레임 순서는 `UnitController.Tick` 한 곳: 부품 Tick → 실행기 → 판단 → 부품 LateTick(이동).
-- 행동 우선순위: 사망 > 피격 > 대시 > 공격 > 이동. 지금 행동의 `CanInterruptBy`가 허락할 때만 끊는다.
+### 새 코어 · 서브 추가
+
+- 코어: `ECoreState` 맨 뒤에 값 추가 → `CoreState`(AI면 `AICore`) 상속, `Type`·필요하면 `Kind`·`InterruptedBy` 지정 → AI 코어면 `const Needs`를 두고 `AICore.TryGetNeeds`·`MonsterDef.CreateCore`에 한 줄씩.
+- 서브: `SubState` 상속, `Lifetime` 지정, 필요한 훅만 덮어쓴다. AI 서브면 `EAISub`에 비트 추가 → `MonsterDef.SetAI` 등록, 의존이 있으면 `AICore.GetSubs`에 더한다.
 
 ### 컨트롤러 하나 + Def 가상 함수
 
-- `UnitController`는 하나다. 조립·수명·Tick 순서·피격/사망 연결만 하고, **무엇을 붙일지·팀·판단 종류는 Def가 정한다.**
-- `UnitDef.Team`: 기본 Monster, `PlayerDef`는 Player.
-- `UnitDef.SetFeatures(unit)`: `PlayerDef`는 대시·공격 끊기 시간, `MonsterDef`는 `PartFeature`(`SetPartFeature`)·판정 모양(`HitF.SetShapes`)·`DropFeature`.
-- `UnitDef.CreateBrain(unit)`: 기본 `AIBrain`(AI 프리셋), `PlayerDef`는 `PlayerBrain`. AI가 비면 `AIBrain`이 오류 로그 후 기본값으로 돈다.
-- `UnitDef.DrawGizmos(unit)`(에디터 전용): `MonsterDef`가 몸 판정 모양·부위 내구도를 그린다. 스폰 전(Def 없음)에는 그리지 않는다.
-- **Def는 스폰 때 `UnitFactory`가 넘긴다.** 프리팹은 몸(`UnitProperty`)만 갖는다.
-- **프리팹은 Def ID로 Resources에서 찾는다**(`UnitDef.PrefabPath` = `CommonPath` 폴더 + ID, 예: `Prefabs/Actor/Monster/Monster_001_Rabbit`). Def는 프리팹을 참조하지 않아 Def↔프리팹 순환 참조가 없다. 이름이 어긋나면 런타임(`UnitFactory` 오류 로그)과 데이터 검사(데이터 편집기 프리팹 열·`DataEditorChecks`)에서 잡는다. 맵(`MapDef.PrefabPath`)·버섯 픽업(`MushroomDef.PickupPath`, `Pickup_` + 키)도 같은 방식. 몬스터 드랍(`DropEntry`·`PartEntry`)은 픽업이 아니라 `MushroomDef`(`Mushroom`)를 참조하고, `DropFeature`·`PartFeature`가 스폰 때 `PickupPath`로 픽업을 로드한다.
-- 풀 재사용 시 Def가 같으면 Reset만, 바뀌면(또는 처음이면) 부품·실행기·판단을 버리고 다시 조립한다. Def가 없거나 조립에 실패하면 오류 로그 후 등록하지 않는다.
+- **무엇을 붙일지·팀은 Def가 정한다.** `UnitDef.Team`(기본 Monster, `PlayerDef`는 Player, 펫은 Player).
+- `UnitDef.SetFeatures(unit)`: `PlayerDef`는 대시·퍼펙트 닷지·FreeCore·PlayerInputSub, `MonsterDef`는 부위·판정 모양·드롭·AI(`SetAI`).
+- **Def는 스폰 때 `UnitFactory`가 넘긴다.** 프리팹은 몸(`UnitProperty`)만 갖고, Def ID로 Resources에서 찾는다(`UnitDef.PrefabPath`). 이름이 어긋나면 런타임 오류 로그와 데이터 검사에서 잡는다.
+- 풀 재사용 시 Def가 같으면 Reset만, 바뀌면 다시 조립한다.
 
-### AI: AIBrain + AIDef 프리셋
+### 규칙
 
-- `AIBrain` 하나가 몬스터·보스·동료를 모두 돌린다. 상태는 `AIStateBase`를 이은 State/ 파일 하나씩이다.
-- 수치·종류는 `AIDef`(SO 프리셋 `AI_Normal`·`AI_Burrow`·`AI_Elite`·`AI_Boss`·`AI_Pet`)에 두고, 여러 몬스터가 같은 프리셋을 쓴다(`UnitDef.AI`).
-- `EAIType`이 상태 묶음을 고른다: 공통 Idle·Wander·Chase·Dead + Normal/Elite는 Flee, Burrow는 Hide, Boss는 Roar·Down, Pet은 Follow만.
-- 보스: 부위가 깨지면 다운, 체력이 `EnrageHpRate` 이하면 광폭화(공용 쿨 감소·분노 스킬 추가) 뒤 포효.
-- 숨기(Hide): `HitF.IsHidden`이 켜지면 맞지 않고 대상 찾기·조준(`UnitService`)에서도 빠진다.
-
-### 구성 요소와 역할
-
-| 구성 | 역할 |
-|---|---|
-| UnitController | 조립·수명 주기, Tick 순서, 피격/사망 → 실행기 요청과 판단 훅 연결, `IsValid` |
-| UnitDef·UnitProperty | 읽기 전용 수치와 조립 규칙(가상 함수)·프리팹 경로(ID) |
-| UnitService | 유닛 목록과 수명. 생성·삭제·매 프레임 Tick·주변 적 검색(`UnitID`로 관리) |
-| UnitFactory | `Def.PrefabPath`로 프리팹을 찾아(`ResourceManager.Load`) 풀에서 꺼내 Def를 넘기고(OnSpawn) 돌려보낸다(OnDespawn). `UnitService`만 쓴다 |
-| TargetSelector | 판단의 대상 찾기·기억·거리·자동 조준(`UnitBrain.TargetSelector`) |
-| AttackSelector | AI의 공격 고르기: 후보·거리·쿨·가중치(`AIBrain.AttackSelector`) |
-| DropFeature | 몬스터가 죽으면(`HealthF.Died`) 버섯 드롭·처치 알림 |
+1. **서브·AI 코어는 요청만, 몸은 코어와 Feature가 움직인다.**
+2. **Feature끼리는 `Owner`로만 찾는다.** 다른 Feature나 프리팹 참조를 필드로 들지 않는다.
+3. **위로는 이벤트·훅으로만 알린다.**
+4. **Def·UnitProperty는 읽기 전용.** 런타임 상태는 Feature·코어·서브가 갖는다.
+5. **갱신은 `UnitService.Tick` 한 줄.** 순회 중 스폰은 다음 프레임부터, 삭제는 순회 뒤에 처리한다.
 
 ### 폴더
 
 | 폴더 | 내용 |
 |---|---|
 | Scripts/Unit | `UnitController`, `UnitFeature`, `UnitProperty` |
-| Unit/Data | `AttackSpec`·`HitShape`·`HitParams`·`EBattlePartType` |
-| Unit/Feature | 부품: Move·Anim·Health·Hit·Part·Drop |
-| Unit/Action | 실행기: `UnitExecutor` + `UnitAction`과 Move·Attack·Dash·Hit·Dead |
-| Unit/Brain | 판단: `UnitBrain`, `TargetSelector`, `PlayerBrain`, `AIBrain`, AI/(`AIStateBase`·`AttackSelector`·State/) |
+| Unit/Data | `AttackSpec`·`HitShape`·`HitParams`·`EBattlePartType`·`DamageCalculator`·`StatModifier` |
+| Unit/Feature | Feature들 |
+| Unit/State | `StateFeature`·`CoreState`·`SubState`, Core/(공통·플레이어), Core/Attack/, Core/AI/, Sub/ |
 | Scripts/Data | Def(SO): `UnitDef`·`PlayerDef`·`MonsterDef`·`AIDef`·`SkillDef`·`HitDef` |
-| Core/GameManager/UnitService | `UnitService`·`UnitFactory` |
+| Manager/GameManager/UnitService | `UnitService`·`UnitFactory` |
 
-### 규칙
-
-1. **판단은 요청만, 실행은 실행기·부품이.** 판단은 "언제 무엇을"만 정한다.
-2. **부품끼리는 `Owner`로만 찾는다.** 다른 부품이나 프리팹 참조를 필드로 들지 않는다.
-3. **위로는 이벤트로만 알린다.** 부품·실행기는 컨트롤러나 판단을 부르지 않는다.
-4. **Def·UnitProperty는 읽기 전용.** 런타임 상태는 부품·실행기·판단이 갖는다.
-5. **갱신은 `UnitService.Tick` 한 줄.** 순회 중 스폰은 다음 프레임부터, 삭제는 순회 뒤에 처리한다.
-
-### 흐름 예: 몬스터가 공격한다
-
-1. `AIChaseStateBase`가 `AttackSelector.TryPick`으로 공격을 고르고 `UnitExecutor.RequestAttack`으로 요청한다.
-2. `AttackAction`이 예고·클립·돌진·판정을 하고, 맞은 쪽 `HitFeature`가 체력·부위·반응을 처리한다.
-3. 맞은 쪽 컨트롤러가 `UnitExecutor.RequestHit`로 피격 행동에 넣고 판단 훅(`OnHit`)을 부른다.
-   - 경직: `HitFeature`가 `AttackSpec.Break`를 쌓아 `UnitDef.BreakImmune`을 넘고 판단의 `CanFlinch`가 true일 때만 넉백·피격 행동(공격 끊김 포함). 아니면 데미지·번쩍·히트스톱만. `BreakResetTime` 동안 안 맞으면 누적이 사라진다. AIBrain은 쓰러짐·포효 중 `CanFlinch` false.
-4. 공격이 끝나면 `UnitExecutor.Ended` → `AIBrain`이 쿨을 걸고, `ComboNext`가 있으면 다음 타를 요청한다.
-
-## 4. 결정된 사안
+## 2. 결정된 사안
 
 | 날짜 | 결정 | 이유 |
 |---|---|---|
 | 26.11.18 | 데이터 주도·ECS형은 쓰지 않는다 | 이 규모에 과하고 코드를 따라 읽기 어렵다 |
-| 26.11.19 | 부품·실행기·판단 3층으로 나누고 실행기·판단은 Feature에서 뺀다 | `UnitFeature` 하나가 능력·상태·층을 다 담아 산만했다(대장 지적) |
-| 26.11.19 | 몬스터 종류별 상속 계층을 버리고 `AIBrain` 하나 + `AIDef` 프리셋으로 | 상태는 어느 종류에나 끼울 수 있어 클래스가 늘지 않고, 프리셋을 여러 몬스터가 재사용한다 |
-| 26.11.19 | 명명을 역할 기준으로(`UnitExecutor`·`UnitBrain`·`TargetSelector`·`AttackSelector`·`Unit*`) | "층"·"액터"가 섞여 읽기 어려웠다(대장 지시) |
-| 26.11.19 | `PlayerController`·`MonsterController`를 `UnitController` 하나로 합치고 차이는 Def 가상 함수로 | 두 컨트롤러가 조립 함수 두 개뿐이라 Def에 두는 편이 짧고, 타입 분기 없이 "아무 유닛"을 하나로 다룬다(대장 지시). 이전(26.11.18)의 "상속 유지" 결정을 대체 |
-| 26.11.19 | 프리팹은 Def에 직렬화하지 않고 Def ID로 Resources에서 찾는다(`UnitDef.Prefab` 제거) | Def↔프리팹 순환 참조를 없앤다(대장 선택). 이름이 어긋나면 런타임·데이터 검사에서 잡는다 |
-| 26.11.19 | Def를 프리팹에 고정하지 않고 스폰 때 넘긴다. 몸은 `UnitDef.Prefab` | Def는 런타임에 할당돼야 하고(대장 지적), 같은 몸을 여러 Def가 재사용할 수 있다 |
+| 26.11.19 | `UnitController` 하나로 합치고 차이는 Def 가상 함수로 | 타입 분기 없이 "아무 유닛"을 하나로 다룬다(대장 지시) |
+| 26.11.19 | 프리팹은 Def에 직렬화하지 않고 Def ID로 찾는다. Def는 스폰 때 넘긴다 | Def↔프리팹 순환 참조 제거, 같은 몸을 여러 Def가 재사용(대장 선택) |
+| 26.11.19 | (대체됨) 부품·실행기(UnitExecutor)·판단(UnitBrain/AIBrain) 3층 | 아래 26.11.23 결정으로 대체 |
+| 26.11.23 | Executor + Brain을 StateFeature(코어 하나 + 서브 여러 개)로 합친다 | 계층이 많아 헷갈리고, 판단과 실행이 한 흐름이다 |
+| 26.11.23 | 숫자 우선순위 대신 코어별 `InterruptedBy` | 숫자 순서는 중간 삽입 시 에셋 값과 순서가 밀린다 |
+| 26.11.23 | AI 서브는 데이터 대신 코어의 `Needs`로 | 코어가 필요로 하는 것은 알아서 생겨야 한다 |
+| 26.11.23 | Roar·Down·Burrow는 Action | 몸을 묶는 동작이라 복귀점(Mode)이 아니다 |
+
+## 3. 미정
+
+- 대시를 스킬(SkillDef)로 통합할지(`EnableDash`·`DashSpec` 경로 정리는 이때 같이).

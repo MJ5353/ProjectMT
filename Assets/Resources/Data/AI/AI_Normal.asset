@@ -16,7 +16,13 @@ MonoBehaviour:
   <ID>k__BackingField: AI_Normal
   <Description>k__BackingField: "\uC77C\uBC18 \uBAAC\uC2A4\uD130: \uB300\uAE30\u00B7\uBC30\uD68C\u00B7\uCD94\uC801, \uB9DE\uC73C\uBA74 \uBC14\uB85C \uBC18\uACA9"
   <Icon>k__BackingField: {fileID: 0}
-  <Type>k__BackingField: 0
+  m_ListCore:
+  - 1
+  - 2
+  - 3
+  - 4
+  <DefaultCore>k__BackingField: 1
+  <AfterHitCore>k__BackingField: 3
   <WanderSpeedRate>k__BackingField: 0.4
   <FleeSpeed>k__BackingField: 4
   <SightRange>k__BackingField: 7

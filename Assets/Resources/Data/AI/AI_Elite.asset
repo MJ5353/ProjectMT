@@ -16,7 +16,13 @@ MonoBehaviour:
   <ID>k__BackingField: AI_Elite
   <Description>k__BackingField: "\uC5D8\uB9AC\uD2B8: \uC2DC\uC57C\uAC00 \uC870\uAE08 \uB113\uACE0 \uACF5\uACA9 \uD15C\uD3EC\uAC00 \uB290\uB9AC\uB2E4"
   <Icon>k__BackingField: {fileID: 0}
-  <Type>k__BackingField: 0
+  m_ListCore:
+  - 1
+  - 2
+  - 3
+  - 4
+  <DefaultCore>k__BackingField: 1
+  <AfterHitCore>k__BackingField: 3
   <WanderSpeedRate>k__BackingField: 0.4
   <FleeSpeed>k__BackingField: 4
   <SightRange>k__BackingField: 8

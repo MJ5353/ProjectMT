@@ -3,7 +3,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 러시(퍼펙트 닷지 반격) 수치 한 벌. PlayerDef.Rush가 들고 PerfectDodgeRush가 읽는다. 시간은 실제 시간(플레이어 시간) 기준.
+// 러시(퍼펙트 닷지 반격) 수치 한 벌. PlayerDef.Rush가 들고 RushSub·RushApproachCore가 읽는다. 시간은 실제 시간(플레이어 시간) 기준.
 // 화면 연출 값은 Define.Hud(Rush*)
 
 [Serializable]

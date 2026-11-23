@@ -116,7 +116,33 @@ public static class DataTools
             .ToHashSet();
     }
 
-    // ID 비어 있음, ID 중복을 잡는다. 문제가 없으면 true
+    // AI 프리셋 조립(MonsterDef.SetAI): AI 코어만·중복 없이, 기본·피격 뒤 코어가 목록에 있는지. 서브는 코어가 정한다(AICore.GetSubs). 문제 수를 돌려준다
+    private static int CheckAI(AIDef ai)
+    {
+        List<string> listError = new();
+        HashSet<ECoreState> setCore = new();
+        foreach (ECoreState type in ai.ListCore)
+        {
+            if (AICore.TryGetNeeds(type, out _) == false)
+                listError.Add($"AI 코어가 아닌 {type}");
+            else if (setCore.Add(type) == false)
+                listError.Add($"코어 {type} 중복");
+        }
+
+        if (setCore.Contains(ai.DefaultCore) == false)
+            listError.Add($"기본 코어 {ai.DefaultCore}가 목록에 없음");
+
+        // 피격 뒤 코어는 없어도 된다(Free): 피격 전 코어로 돌아간다
+        if (ai.AfterHitCore != ECoreState.Free && setCore.Contains(ai.AfterHitCore) == false)
+            listError.Add($"피격 뒤 코어 {ai.AfterHitCore}가 목록에 없음");
+
+        foreach (string error in listError)
+            CLogger.Error("DataTools", $"AI 프리셋 {ai.name}: {error}", ai);
+
+        return listError.Count;
+    }
+
+    // ID 비어 있음, ID 중복, AI 프리셋 조립을 잡는다. 문제가 없으면 true
     private static bool Validate(List<DataDef> listDef, bool isVerbose)
     {
         int errorCount = 0;
@@ -138,6 +164,9 @@ public static class DataTools
             CLogger.Error("DataTools", $"ID 중복 '{group.Key}': {paths}", group.First());
             errorCount++;
         }
+
+        foreach (AIDef ai in listDef.OfType<AIDef>())
+            errorCount += CheckAI(ai);
 
         if (isVerbose && errorCount == 0)
             CLogger.Log("DataTools", $"검사 통과: {listDef.Count}개");

@@ -16,7 +16,13 @@ MonoBehaviour:
   <ID>k__BackingField: AI_Burrow
   <Description>k__BackingField: "\uB9DE\uC73C\uBA74 \uB545\uC18D\uC5D0 \uC228\uC5C8\uB2E4\uAC00 \uB300\uC0C1 \uADFC\uCC98\uC5D0\uC11C \uB098\uC628\uB2E4"
   <Icon>k__BackingField: {fileID: 0}
-  <Type>k__BackingField: 1
+  m_ListCore:
+  - 1
+  - 2
+  - 3
+  - 6
+  <DefaultCore>k__BackingField: 1
+  <AfterHitCore>k__BackingField: 6
   <WanderSpeedRate>k__BackingField: 0.4
   <FleeSpeed>k__BackingField: 4
   <SightRange>k__BackingField: 7

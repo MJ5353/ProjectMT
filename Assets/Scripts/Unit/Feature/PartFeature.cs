@@ -270,23 +270,23 @@ public class PartFeature : UnitFeature
         if (part.Entry.Mushroom == null)
             return;
 
-        BattleService battleS = FlowManager.Instance.Battle?.BattleS;
+        LootService lootS = FlowManager.Instance.Battle?.LootS;
         MushroomPickup prefab = ResourceManager.Instance.Load<MushroomPickup>(part.Entry.Mushroom.PickupPath, "데이터 편집기 > 버섯 > 픽업 빌드");
         
-        if (battleS == null || prefab == null)
+        if (lootS == null || prefab == null)
             return;
 
         EFreshness freshness = Owner.IsDead ? EFreshness.Low : EFreshness.High;
         for (int i = 0; i < part.PlacedCount; i++)
         {
             Vector3 position = part.ListMushroom[i].Socket.position;
-            MushroomPickup pickup = battleS.SpawnPickup(prefab, position + Vector3.up * Define.Drop.PartDrop.Height);
+            MushroomPickup pickup = lootS.SpawnPickup(prefab, position + Vector3.up * Define.Drop.PartDrop.Height);
             
             if (pickup == null)
                 return;
 
             Vector2 spread = Random.insideUnitCircle * Define.Drop.PartDrop.Spread;
-            pickup.Launch(new Vector3(spread.x, Define.Drop.PartDrop.UpSpeed, spread.y), freshness, BattleService.RollRarity());
+            pickup.Launch(new Vector3(spread.x, Define.Drop.PartDrop.UpSpeed, spread.y), freshness, LootService.RollRarity());
         }
     }
 

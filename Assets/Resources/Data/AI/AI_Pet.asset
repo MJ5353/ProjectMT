@@ -16,7 +16,10 @@ MonoBehaviour:
   <ID>k__BackingField: AI_Pet
   <Description>k__BackingField: "\uC8FC\uC778(\uD50C\uB808\uC774\uC5B4)\uC744 \uB530\uB77C\uB2E4\uB2C8\uAE30\uB9CC \uD55C\uB2E4"
   <Icon>k__BackingField: {fileID: 0}
-  <Type>k__BackingField: 3
+  m_ListCore:
+  - 5
+  <DefaultCore>k__BackingField: 5
+  <AfterHitCore>k__BackingField: 0
   <WanderSpeedRate>k__BackingField: 0.4
   <FleeSpeed>k__BackingField: 4
   <SightRange>k__BackingField: 7

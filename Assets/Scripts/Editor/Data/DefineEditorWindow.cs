@@ -42,7 +42,7 @@ public sealed class DefineEditorWindow : EditorWindow
 
     // ------------------------------------------------
 
-    [MenuItem("MushTaker/Define 편집기", false, 1)]
+    [MenuItem("MushTaker/Define 편집기", false, -19)] // 데이터 편집기 바로 아래
     public static void Open()
     {
         DefineEditorWindow window = GetWindow<DefineEditorWindow>("Define 편집기");

@@ -39,7 +39,7 @@ public class DropFeature : UnitFeature
             int count = Random.Range(drop.Min, drop.Max + 1);
             for (int i = 0; i < count; i++)
             {
-                MushroomPickup.S_Drop(prefab, Owner.transform.position, 1, EFreshness.Low, BattleService.RollRarity()); // 희귀도는 한 개씩 굴린다
+                MushroomPickup.S_Drop(prefab, Owner.transform.position, 1, EFreshness.Low, LootService.RollRarity()); // 희귀도는 한 개씩 굴린다
             }
         }
     }

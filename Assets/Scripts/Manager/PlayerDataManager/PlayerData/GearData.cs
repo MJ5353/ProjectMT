@@ -13,7 +13,7 @@ public enum EGearOpenResult
 
 // ==================================================
 
-// 정비 탭 강화 노드. 연 노드 ID를 저장하고, 열기 요청·엠블렘 단계·플레이어 능력치·패시브 출처를 맡는다.
+// 정비 탭 강화 노드. 연 노드 ID를 저장하고, 열기 요청·엠블렘 단계 조회를 맡는다(플레이어에 넣는 건 SpawnService).
 // UI는 TryOpen만 부르고 GearChanged를 받아 다시 그린다. 노드·엠블렘 목록은 DB(GearNodeDef·EmblemDef)에서 처음 쓸 때 모은다
 
 public class GearData : PlayerDataBase
@@ -78,27 +78,6 @@ public class GearData : PlayerDataBase
         return EGearOpenResult.Ok;
     }
 
-    // 플레이어에 출처를 넣는다. 연 노드(능력치·패시브)와 지금 단계까지 엠블렘(능력치)이 각각 출처 하나
-    public void ApplyTo(UnitController player)
-    {
-        foreach (GearNodeDef node in ListNode)
-        {
-            if (IsOpened(node) == false)
-                continue;
-
-            player.StatF.AddSource(node, node.ListModifier);
-            player.PassiveF.AddSource(node, node.Passive);
-        }
-
-        foreach (EmblemDef emblem in m_ListEmblem)
-        {
-            if (emblem.NeedCount > OpenedCount)
-                break;
-
-            player.StatF.AddSource(emblem, emblem.ListModifier);
-        }
-    }
-
     // 지금 단계까지 엠블렘 보너스를 능력치·방식별로 합친다(정비 탭 표시용)
     public void CollectEmblemBonus(List<StatModifier> result)
     {
@@ -132,6 +111,13 @@ public class GearData : PlayerDataBase
     // get ---
 
     public bool IsOpened(GearNodeDef node) => m_SetOpened.Contains(node.ID);
+
+    // 지금 단계까지 엠블렘(NeedCount 오름차순)
+    public IEnumerable<EmblemDef> GetReachedEmblems()
+    {
+        CollectDefs();
+        return m_ListEmblem.TakeWhile(emblem => emblem.NeedCount <= OpenedCount);
+    }
 
     // 앞 노드가 모두 열렸는지
     public bool IsReachable(GearNodeDef node)

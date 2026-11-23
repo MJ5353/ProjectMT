@@ -47,21 +47,36 @@ public readonly struct BattleStateChanged
     }
 }
 
-// 주운 버섯 목록(BattleService.DicLoot)이 바뀜. 줍거나, 쓰러져 떨궜을 때
+// 유닛 체력이 바뀜(피해·회복·Reset·능력치, HealthFeature). 지금 값은 Unit.HealthF에서 읽는다
+public readonly struct UnitHpChanged
+{
+    public readonly UnitController Unit;
+    public readonly int Previous; // 바뀌기 전 체력(체력바 잔상 시작점)
+
+    public UnitHpChanged(UnitController unit, int previous)
+    {
+        Unit = unit;
+        Previous = previous;
+    }
+}
+
+// 주운 버섯 목록(LootService.DicLoot)이 바뀜. 줍거나, 쓰러져 떨궜을 때
 public readonly struct LootChanged
 {
 }
 
-// 퍼펙트 닷지로 러시가 시작됨. HUD가 어둡게·빈틈 타이머를 띄운다. 남은 시간·단계는 PlayerBrain.Rush에서 읽는다
+// 퍼펙트 닷지로 러시가 시작됨. HUD가 어둡게·빈틈 타이머를 띄운다. 남은 시간·단계는 Rush에서 읽는다(RushEnded까지 유효)
 public readonly struct RushStarted
 {
     public readonly UnitController Unit;
+    public readonly RushSub Rush;        // 도는 러시(단계·남은 시간·막타 구간)
     public readonly float Time;          // 빈틈 타이머 전체 길이
     public readonly float FinishWindow;  // 막타로 치는 마지막 구간
 
-    public RushStarted(UnitController unit, float time, float finishWindow)
+    public RushStarted(UnitController unit, RushSub rush, float time, float finishWindow)
     {
         Unit = unit;
+        Rush = rush;
         Time = time;
         FinishWindow = finishWindow;
     }
@@ -77,6 +92,17 @@ public readonly struct RushEnded
     {
         Unit = unit;
         IsFinisher = isFinisher;
+    }
+}
+
+// 보스가 대상을 잡음(없다가 생길 때마다, BossWatchSub). 화면 위 보스 체력바가 처음 한 번 잡는다
+public readonly struct BossAggroed
+{
+    public readonly UnitController Unit;
+
+    public BossAggroed(UnitController unit)
+    {
+        Unit = unit;
     }
 }
 

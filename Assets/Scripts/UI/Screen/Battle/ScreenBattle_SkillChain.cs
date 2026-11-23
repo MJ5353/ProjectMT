@@ -7,6 +7,8 @@ using UnityEngine.UI;
 // 공격 아이콘 칸. 큰 아이콘은 지금 쓰는 공격(쉬고 있으면 콤보 첫 타), 위 작은 아이콘들은 지금 이어 쓸 수 있는 스킬
 // (콤보 다음 타·위로 치기·꾹 누르기). 이을 수 있는 구간(판정 뒤·콤보 리셋 전)엔 진하게, 아니면 흐리게 보인다.
 // 작은 아이콘은 UIListView로 꺼내 쓴다(씬이 바뀌면 UIReuseService가 회수)
+// 갱신: 코어가 바뀔 때(StateFeature.Started) 다시 그리고, 시간이 지나야 바뀌는 구간(공격 판정 전 → 후, 콤보 리셋 시간)에만 Update를 켠다.
+// 그래서 구독은 Awake·OnDestroy에서 한다(enabled를 껐다 켠다)
 
 public class ScreenBattle_SkillChain : MonoBehaviour
 {
@@ -20,6 +22,7 @@ public class ScreenBattle_SkillChain : MonoBehaviour
     private readonly List<SkillDef> m_ListShown = new(); // 지금 줄에 보이는 스킬. m_ChainPool 순서
     
     private PlayerDef m_Def;
+    private StateFeature m_State;   // 그리고 있는 플레이어 상태. Started를 구독한다
     private SkillDef m_MainSkill;
     private float m_ShownAlpha = -1f;
 
@@ -28,21 +31,65 @@ public class ScreenBattle_SkillChain : MonoBehaviour
     private void Awake()
     {
         m_ChainPool.Init(EUIComponentType.ScreenBattle_SkillIcon);
+        SEventManager.Subscribe<FlowBegan>(OnFlowBegan);
+
+        // 판이 이미 시작된 뒤 만들어졌으면 지금 플레이어를 바로 잡는다
+        BindPlayer(FlowManager.Instance.Battle?.UnitS.Player);
     }
 
+    private void OnDestroy()
+    {
+        SEventManager.Unsubscribe<FlowBegan>(OnFlowBegan);
+        BindPlayer(null);
+    }
+
+    // 시간이 지나야 바뀌는 구간에서만 돈다(Refresh가 켜고 끈다)
     private void Update()
     {
-        UnitController player = FlowManager.Instance.Battle?.BattleS.Player;
+        Refresh();
+    }
+
+    // ---
+
+    // 새 판 시작(씬 진입·다시 하기). 플레이어를 다시 잡는다
+    private void OnFlowBegan(FlowBegan evt)
+    {
+        if (evt.Flow is BattleFlow battle)
+            BindPlayer(battle.UnitS.Player);
+    }
+
+    private void BindPlayer(UnitController player)
+    {
+        if (m_State != null)
+            m_State.Started -= OnCoreStarted;
+
+        m_State = null;
         if (player == null || player.Def is not PlayerDef def)
+        {
+            enabled = false;
             return;
+        }
 
         if (m_Def != def)
             BuildLookup(def);
 
-        UnitExecutor executor = player.UnitExecutor;
-        bool isAttack = executor.Current == EActionType.Attack;
+        m_State = player.StateF;
+        m_State.Started += OnCoreStarted;
+        Refresh();
+    }
 
-        SkillDef main = isAttack ? Find(executor.Attack.Spec) : def.ComboStart;
+    private void OnCoreStarted(ECoreState core)
+    {
+        Refresh();
+    }
+
+    private void Refresh()
+    {
+        StateFeature state = m_State;
+        PlayerDef def = m_Def;
+        bool isAttack = state.Current == ECoreState.Attack;
+
+        SkillDef main = isAttack ? Find(state.Attack.Spec) : def.ComboStart;
         if (main != m_MainSkill)
         {
             m_MainSkill = main;
@@ -50,18 +97,22 @@ public class ScreenBattle_SkillChain : MonoBehaviour
         }
 
         // 공격 중이거나, 공격이 끝나고 콤보 리셋 시간 안이면 이어 쓸 수 있다
-        bool isCombo = isAttack || (executor.IsIdle && executor.Attack.Spec != null && executor.TimeInAction <= def.ComboResetTime);
+        bool isComboWindow = state.IsIdle && state.Attack.Spec != null && state.TimeInAction <= def.ComboResetTime;
+        bool isCombo = isAttack || isComboWindow;
         m_ListNext.Clear();
         
         if (isCombo)
         {
-            AddNext(Find(executor.ComboNext), main);
+            AddNext(Find(state.ComboNext), main);
             AddNext(Find(def.UpAttack), main);
             AddNext(def.HoldAttack, main);
         }
 
-        bool canChain = isAttack ? executor.Attack.CanBufferNext : isCombo;
+        bool canChain = isAttack ? state.Attack.CanBufferNext : isCombo;
         RefreshChain(canChain ? 1f : DimAlpha);
+
+        // 공격 판정 전(곧 진해진다)·콤보 리셋 시간 안(곧 사라진다)만 시간을 본다. 나머지는 다음 코어 변경까지 그대로다
+        enabled = (isAttack && canChain == false) || isComboWindow;
     }
 
     // ---

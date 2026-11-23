@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // ==================================================
@@ -11,6 +12,12 @@ public enum EPauseReason
     Focus = 1 << 1,     // 창 포커스를 잃음(PC)
     Confirm = 1 << 2,   // 확인 팝업이 묻는 중(토벌 종료 등)
     Market = 1 << 3,    // 현장 시장이 열려 있음
+}
+
+// 전체 슬로우를 거는 이유. 이유마다 배율을 따로 들고, 여러 개면 가장 느린(작은) 배율을 쓴다
+public enum ESlowReason
+{
+    Rush,   // 퍼펙트 닷지 러시
 }
 
 // ==================================================
@@ -29,7 +36,8 @@ public class TimeManager : MonoSingleton<TimeManager>
 
     private EPauseReason m_PauseReason;
     private bool m_IsHitStop;
-    private float m_SlowRate = 1f; // 1이면 슬로우 없음
+    private readonly Dictionary<ESlowReason, float> m_DictSlowRate = new(); // 건 이유별 배율
+    private float m_SlowRate = 1f; // 건 이유 중 가장 작은 배율. 1이면 슬로우 없음
 
     public bool IsPaused => m_PauseReason != EPauseReason.None;
     public EPauseReason PauseReason => m_PauseReason;
@@ -56,10 +64,27 @@ public class TimeManager : MonoSingleton<TimeManager>
         Apply();
     }
 
-    // 전체 슬로우(퍼펙트 닷지 러시). 1이면 푼다. 0 이하는 멈춤과 섞이므로 받지 않는다
-    public void SetSlow(float rate)
+    // 전체 슬로우를 이유째 건다. 0 이하는 멈춤과 섞이므로 받지 않는다
+    public void SetSlow(ESlowReason reason, float rate)
     {
-        m_SlowRate = Mathf.Clamp(rate, MinSlowRate, 1f);
+        m_DictSlowRate[reason] = Mathf.Clamp(rate, MinSlowRate, 1f);
+        RefreshSlowRate();
+    }
+
+    public void ClearSlow(ESlowReason reason)
+    {
+        m_DictSlowRate.Remove(reason);
+        RefreshSlowRate();
+    }
+
+    private void RefreshSlowRate()
+    {
+        m_SlowRate = 1f;
+        foreach (float rate in m_DictSlowRate.Values)
+        {
+            m_SlowRate = Mathf.Min(m_SlowRate, rate);
+        }
+
         Apply();
     }
 
@@ -74,6 +99,7 @@ public class TimeManager : MonoSingleton<TimeManager>
     {
         m_PauseReason = EPauseReason.None;
         m_IsHitStop = false;
+        m_DictSlowRate.Clear();
         m_SlowRate = 1f;
         Apply();
     }
@@ -82,6 +108,7 @@ public class TimeManager : MonoSingleton<TimeManager>
     {
         m_PauseReason = EPauseReason.None;
         m_IsHitStop = false;
+        m_DictSlowRate.Clear();
         m_SlowRate = 1f;
         Apply();
     }

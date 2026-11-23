@@ -114,8 +114,10 @@ public class VoxelImportSettings : AssetPostprocessor
         {
             if (meshFilter.name == "Map_Terrain" || meshFilter.name == "Map_Props" || meshFilter.name == "Map_Bounds")
                 meshFilter.gameObject.AddComponent<MeshCollider>().sharedMesh = meshFilter.sharedMesh;
+            
             if (meshFilter.name == "Map_Terrain" && terrainLayer >= 0)
                 meshFilter.gameObject.layer = terrainLayer;
+
             if (meshFilter.name == "Map_Bounds" && meshFilter.TryGetComponent<MeshRenderer>(out MeshRenderer renderer))
                 renderer.enabled = false;
         }
@@ -124,7 +126,7 @@ public class VoxelImportSettings : AssetPostprocessor
         foreach (Transform child in model.GetComponentsInChildren<Transform>())
         {
             if (child.name.StartsWith(MapDef.SpawnSlotPrefix))
-                child.rotation = BattleService.GetSpawnRotation(child);
+                child.rotation = SpawnService.GetSpawnRotation(child);
         }
     }
 
