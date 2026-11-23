@@ -74,8 +74,8 @@ public class PerfectDodgeRush
         m_TargetSelector.SetTarget(attacker);
         m_HasTarget = m_TargetSelector.HasTarget;
 
-        TimeManager.Instance.SetSlow(m_Def.Rush.SlowRate);
-        m_Owner.UnitExecutor.Attack.CancelDelay = 0f; // 판정이 끝나자마자 다음 타로 끊는다
+        TimeManager.Instance.SetSlow(ESlowReason.Rush, m_Def.Rush.SlowRate);
+        m_Owner.UnitExecutor.SetQuickCancel(true); // 판정이 끝나자마자 다음 타로 끊는다
         m_Owner.HitF.SetInvincible(InvincibleKeep);
 
         SEventManager.Publish(new RushStarted(m_Owner, m_Def.Rush.Time, m_Def.Rush.FinishWindow));
@@ -192,7 +192,7 @@ public class PerfectDodgeRush
         if (offset.magnitude <= stopDistance || m_ApproachTime >= m_Def.Rush.ApproachMaxTime)
         {
             executor.SetMove(Vector3.zero, 0f);
-            m_Owner.MoveF.FaceTo(offset, true);
+            m_Owner.MoveF.FaceToInstant(offset);
             BeginRush();
             return;
         }
@@ -225,7 +225,7 @@ public class PerfectDodgeRush
         }
 
         if (TimeManager.Instance.IsSlow && executor.Attack.AttackTime >= finisher.HitTime - FinisherRestoreLead)
-            TimeManager.Instance.SetSlow(1f);
+            TimeManager.Instance.ClearSlow(ESlowReason.Rush);
     }
 
     private void End(bool isFinisher)
@@ -235,8 +235,8 @@ public class PerfectDodgeRush
         m_HasTarget = false;
         m_TargetSelector.Clear();
 
-        TimeManager.Instance.SetSlow(1f);
-        m_Owner.UnitExecutor.Attack.CancelDelay = m_Def.CancelDelay;
+        TimeManager.Instance.ClearSlow(ESlowReason.Rush);
+        m_Owner.UnitExecutor.SetQuickCancel(false);
 
         SEventManager.Publish(new RushEnded(m_Owner, isFinisher));
     }

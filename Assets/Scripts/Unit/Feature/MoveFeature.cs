@@ -107,14 +107,23 @@ public class MoveFeature : UnitFeature
         m_VerticalSpeed = Mathf.Max(m_VerticalSpeed, 0f) + speed;
     }
 
-    public void FaceTo(Vector3 direction, bool instant = false)
+    // deltaTime: 부르는 쪽의 유닛 시간(슬로우 무시 배율이 이미 곱해진 것). TurnSpeed로 이만큼만 돈다
+    public void FaceTo(Vector3 direction, float deltaTime)
     {
         direction.y = 0f;
         if (direction.sqrMagnitude < 0.0001f)
             return;
 
-        Quaternion target = Quaternion.LookRotation(direction);
-        m_Transform.rotation = instant ? target : Quaternion.RotateTowards(m_Transform.rotation, target, m_TurnSpeed * Time.deltaTime * Owner.TimeRate);
+        m_Transform.rotation = Quaternion.RotateTowards(m_Transform.rotation, Quaternion.LookRotation(direction), m_TurnSpeed * deltaTime);
+    }
+
+    public void FaceToInstant(Vector3 direction)
+    {
+        direction.y = 0f;
+        if (direction.sqrMagnitude < 0.0001f)
+            return;
+
+        m_Transform.rotation = Quaternion.LookRotation(direction);
     }
 
     public void SetCollision(bool isOn)

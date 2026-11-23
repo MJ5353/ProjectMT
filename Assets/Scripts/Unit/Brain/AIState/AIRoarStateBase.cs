@@ -27,7 +27,7 @@ public class AIRoarStateBase : AIStateBase
 
     public override void Update(float deltaTime)
     {
-        m_Controller.MoveF.FaceTo(TargetSelector.GetDirection());
+        m_Controller.MoveF.FaceTo(TargetSelector.GetDirection(), deltaTime);
         if (TimeInState >= m_Length)
             m_AI.Change(EAIState.Chase);
     }

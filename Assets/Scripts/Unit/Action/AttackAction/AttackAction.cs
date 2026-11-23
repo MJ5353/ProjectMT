@@ -25,6 +25,7 @@ public class AttackAction : UnitAction
     
     public AttackSpec Spec { get; private set; }  // 지금(끝난 뒤엔 마지막) 공격. 콤보 다음 타를 여기서 읽는다
     public float CancelDelay { get; set; }  // 판정 뒤 이 시간이 지나면 다음 공격으로 끊을 수 있다. 0이면 판정 끝나자마자
+    public bool IsQuickCancel { get; set; } // 켜져 있으면 CancelDelay를 무시하고 판정 끝나자마자 끊는다(UnitExecutor.SetQuickCancel)
 
     public override EActionType Type => EActionType.Attack;
     public override bool IsFinished => m_IsStarted && AttackTime >= m_Length;
@@ -90,7 +91,7 @@ public class AttackAction : UnitAction
         switch (next)
         {
             case EActionType.Attack:
-                return IsHitDone && AttackTime >= Spec.HitEndTime + CancelDelay;
+                return IsHitDone && AttackTime >= Spec.HitEndTime + (IsQuickCancel ? 0f : CancelDelay);
             case EActionType.Dash:
                 return IsHitDone;
             default:
@@ -104,7 +105,7 @@ public class AttackAction : UnitAction
         m_DodgeNotifier.Begin();
         
         if (m_Direction.sqrMagnitude > 0.0001f)
-            Owner.MoveF.FaceTo(m_Direction, true);
+            Owner.MoveF.FaceToInstant(m_Direction);
 
         if (IsMonsterAttack)
             m_Telegraph.Show(IsCharge);
@@ -138,7 +139,7 @@ public class AttackAction : UnitAction
         }
 
         if (m_FaceTarget != null)
-            Owner.MoveF.FaceTo(m_FaceTarget.position - Owner.transform.position);
+            Owner.MoveF.FaceTo(m_FaceTarget.position - Owner.transform.position, deltaTime);
 
         float t = Mathf.Clamp01(Time / Spec.WindupTime);
         VisualRoot.localScale = Vector3.Scale(m_BaseScale, Vector3.Lerp(Vector3.one, s_SquashScale, t));

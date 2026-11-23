@@ -47,7 +47,7 @@ public class DashAction : UnitAction
         m_CurrentDuration = stat.Get(EStatType.DashDistance, m_Spec.Time);
         m_CooldownRemain = m_Spec.Cooldown * stat.GetReduceRate(EStatType.Dodge, m_Spec.MinCooldownRate) + m_CurrentDuration;
 
-        Owner.MoveF.FaceTo(m_Direction, true);
+        Owner.MoveF.FaceToInstant(m_Direction);
         Owner.MoveF.SetVelocity(m_Direction * m_Spec.Speed);
         Owner.AnimF.SetSpeed(m_Spec.AnimSpeed);
         Owner.AnimF.Play(AnimKey.Run, true);

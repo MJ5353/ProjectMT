@@ -22,8 +22,6 @@ public sealed class UnitService : ServiceBase
     public event Action<int> UnitRemoved;
     public UnitController Player { get; private set; }
 
-    public IReadOnlyList<UnitController> ListUnit => m_ListUnit; // 살아 있는 유닛 전부(HUD 체력바 등 읽기 전용)
-
     // ------------------------------------------------
 
     // Def의 프리팹(몸)으로 만들고 Def를 넘긴다

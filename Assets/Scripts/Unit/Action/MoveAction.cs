@@ -8,25 +8,40 @@ public class MoveAction : UnitAction
 {
     private const float StopSpeed = 0.01f;
 
+    private Vector3 m_FaceDirection; // 걷는 쪽. 0이면 돌지 않는다(대기)
+
     public override EActionType Type => EActionType.Move;
 
     // ------------------------------------------------
 
     public MoveAction(UnitController owner) : base(owner) { }
 
-    // 속도가 거의 0이면 멈추고 Idle, 아니면 그쪽을 보며 걷기·달리기
+    // 속도가 거의 0이면 멈추고 Idle, 아니면 그쪽을 보며 걷기·달리기(도는 건 Update에서 유닛 시간으로)
     public void SetMove(Vector3 velocity, bool isRun)
     {
         velocity.y = 0f;
         if (velocity.sqrMagnitude < StopSpeed)
         {
+            m_FaceDirection = Vector3.zero;
             Owner.MoveF.Stop();
             Owner.AnimF.Play(AnimKey.Idle);
             return;
         }
 
+        m_FaceDirection = velocity;
         Owner.MoveF.SetVelocity(velocity);
-        Owner.MoveF.FaceTo(velocity);
         Owner.AnimF.Play(isRun ? AnimKey.Run : AnimKey.Walk);
+    }
+
+    // virtual ---
+
+    protected override void Enter()
+    {
+        m_FaceDirection = Vector3.zero;
+    }
+
+    protected override void Update(float deltaTime)
+    {
+        Owner.MoveF.FaceTo(m_FaceDirection, deltaTime);
     }
 }

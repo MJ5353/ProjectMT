@@ -28,7 +28,7 @@ public class AIChaseStateBase : AIStateBase
         if (distance <= Def.AttackRange)
         {
             m_Controller.UnitExecutor.SetMove(Vector3.zero, 0f);
-            m_Controller.MoveF.FaceTo(TargetSelector.GetDirection());
+            m_Controller.MoveF.FaceTo(TargetSelector.GetDirection(), deltaTime);
             return;
         }
 

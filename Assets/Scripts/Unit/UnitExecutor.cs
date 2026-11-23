@@ -153,4 +153,10 @@ public class UnitExecutor
     {
         m_Dash = new DashAction(m_Owner, spec);
     }
+
+    // 켜면 공격 판정이 끝나자마자 다음 공격으로 끊는다(캔슬 지연 무시). 퍼펙트 닷지 러시가 켜고 끈다
+    public void SetQuickCancel(bool isOn)
+    {
+        m_Attack.IsQuickCancel = isOn;
+    }
 }

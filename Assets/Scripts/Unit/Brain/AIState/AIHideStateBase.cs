@@ -62,14 +62,14 @@ public class AIHideStateBase : AIStateBase
                 {
                     Vector3 direction = TargetSelector.GetDirection();
                     m_Controller.MoveF.SetVelocity(direction * m_AI.MoveSpeed);
-                    m_Controller.MoveF.FaceTo(direction);
+                    m_Controller.MoveF.FaceTo(direction, deltaTime);
                 }
 
                 break;
             }
             case EPhase.Emerge:
             {
-                m_Controller.MoveF.FaceTo(TargetSelector.GetDirection());
+                m_Controller.MoveF.FaceTo(TargetSelector.GetDirection(), deltaTime);
                 if (m_PhaseTime >= m_PhaseLength)
                     m_AI.Change(EAIState.Chase);
 
