@@ -106,6 +106,7 @@ public static class BattleUISetup
             isStretch: true, isFitContent: true);
 
         ScreenBattle screen = root.gameObject.AddComponent<ScreenBattle>();
+        AddBossBar(safe);
         AddUnitHpBars(safe);
         AddRoarEffect(safe, screen);
         AddRushEffect(safe);
@@ -138,24 +139,36 @@ public static class BattleUISetup
         return bar;
     }
 
-    // 화면 위 보스 체력바 + 머리 위 바 자리. HUD 맨 뒤에 깔아 다른 HUD를 가리지 않는다
+    // 머리 위 바 자리. HUD 맨 뒤에 깔아 다른 HUD를 가리지 않는다(보스 바보다도 뒤)
     private static ScreenBattle_UnitHpBars AddUnitHpBars(RectTransform safe)
     {
         RectTransform root = UIBuilder.Stretch("UnitHpBars", safe);
         root.SetAsFirstSibling();
 
-        RectTransform boss = UIBuilder.Anchored("Boss", root, new Vector2(0.5f, 1f), new Vector2(0, -36), new Vector2(900, 90));
-        boss.pivot = new Vector2(0.5f, 1f);
-        RectTransform nameRect = UIBuilder.Rect("Name", boss, new Vector2(0, 1), Vector2.one, new Vector2(0, -44), Vector2.zero);
+        ScreenBattle_UnitHpBars bars = root.gameObject.AddComponent<ScreenBattle_UnitHpBars>();
+        UIBuilder.SetRef(bars, "m_Root", root);
+
+        return bars;
+    }
+
+    // 화면 위 보스 체력바. 컴포넌트는 늘 켜진 BossBar에 붙고, 어그로 전엔 Panel만 꺼 둔다. 머리 위 바 바로 앞(AddUnitHpBars가 맨 뒤로 깐다)
+    private static ScreenBattle_BossBar AddBossBar(RectTransform safe)
+    {
+        RectTransform root = UIBuilder.Stretch("BossBar", safe);
+        root.SetAsFirstSibling();
+
+        RectTransform panel = UIBuilder.Anchored("Panel", root, new Vector2(0.5f, 1f), new Vector2(0, -36), new Vector2(900, 90));
+        panel.pivot = new Vector2(0.5f, 1f);
+        RectTransform nameRect = UIBuilder.Rect("Name", panel, new Vector2(0, 1), Vector2.one, new Vector2(0, -44), Vector2.zero);
         TMP_Text bossName = UIBuilder.Label(nameRect, "보스", UIStyle.FontNormal);
         UIBuilder.SetOutline(bossName);
 
-        RectTransform enrageRect = UIBuilder.Rect("Enrage", boss, new Vector2(1, 1), Vector2.one, new Vector2(-140, -44), Vector2.zero);
+        RectTransform enrageRect = UIBuilder.Rect("Enrage", panel, new Vector2(1, 1), Vector2.one, new Vector2(-140, -44), Vector2.zero);
         TMP_Text enrage = UIBuilder.Label(enrageRect, EStringKey.Battle_Enrage, UIStyle.FontNormal, TextAlignmentOptions.Right);
         UIBuilder.SetOutline(enrage);
         enrage.gameObject.SetActive(false);
 
-        UIGauge bossBar = UIBuilder.Gauge(boss, "Bar", new Vector2(900, 32), UIStyle.HpBoss, false);
+        UIGauge bossBar = UIBuilder.Gauge(panel, "Bar", new Vector2(900, 32), UIStyle.HpBoss, false);
         RectTransform barRect = bossBar.RectTransform;
         if (barRect != null)
         {
@@ -163,15 +176,14 @@ public static class BattleUISetup
             barRect.anchoredPosition = new Vector2(0, 8);
         }
 
-        ScreenBattle_UnitHpBars bars = root.gameObject.AddComponent<ScreenBattle_UnitHpBars>();
-        UIBuilder.SetRef(bars, "m_Root", root);
-        UIBuilder.SetRef(bars, "m_BossRoot", boss.gameObject);
-        UIBuilder.SetRef(bars, "m_BossBar", bossBar);
-        UIBuilder.SetRef(bars, "m_BossName", bossName);
-        UIBuilder.SetRef(bars, "m_EnrageIcon", enrage.gameObject);
-        boss.gameObject.SetActive(false);
+        ScreenBattle_BossBar boss = root.gameObject.AddComponent<ScreenBattle_BossBar>();
+        UIBuilder.SetRef(boss, "m_Panel", panel.gameObject);
+        UIBuilder.SetRef(boss, "m_Bar", bossBar);
+        UIBuilder.SetRef(boss, "m_BossName", bossName);
+        UIBuilder.SetRef(boss, "m_EnrageIcon", enrage.gameObject);
+        panel.gameObject.SetActive(false);
 
-        return bars;
+        return boss;
     }
 
     // 보스 포효 연출: 노치까지 덮는 붉은 가장자리(맨 뒤) + 가운데 위 이름 띠(맨 앞). 재생은 ScreenBattle

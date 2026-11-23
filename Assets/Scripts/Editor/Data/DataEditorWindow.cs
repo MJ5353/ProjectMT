@@ -175,7 +175,8 @@ public sealed class DataEditorWindow : EditorWindow
 
     // ------------------------------------------------
 
-    [MenuItem("MushTaker/데이터 편집기", false, 0)]
+    // 메뉴 맨 위. 다른 항목(UI 1~·초기 설정 7~)과 10 넘게 벌려 구분선이 생기게 한다
+    [MenuItem("MushTaker/데이터 편집기", false, -20)]
     public static void Open()
     {
         bool isOpen = HasOpenInstances<DataEditorWindow>();
