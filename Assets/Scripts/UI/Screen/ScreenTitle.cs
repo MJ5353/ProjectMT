@@ -49,7 +49,7 @@ public class ScreenTitle : ScreenBase
         if (m_StartSequence.IsPlaying || gameM.CanChangeScene(ESceneType.Lobby) == false)
             return;
 
-        m_StartSequence.Clear().Wait(gameM.Define.ClickBurstTime).Call(() => GameManager.Instance.ChangeScene(ESceneType.Lobby)).Play(this);
+        m_StartSequence.Clear().Wait(gameM.Define.ClickBurst.Time).Call(() => GameManager.Instance.ChangeScene(ESceneType.Lobby)).Play(this);
     }
 
 #if UNITY_EDITOR

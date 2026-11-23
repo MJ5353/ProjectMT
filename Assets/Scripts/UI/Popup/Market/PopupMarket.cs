@@ -91,7 +91,7 @@ public class PopupMarket : PopupFlowBase<BattleFlow>
         m_Clock.SetMarket(false);
         m_SelectedIndex = 0;
         m_Pick.Clear();
-        m_WaitLabel.E_SetString(EStringKey.Market_WaitFormat, Define.MarketActionMinutes);
+        m_WaitLabel.E_SetString(EStringKey.Market_WaitFormat, Define.Market.ActionMinutes);
         m_GoldSequence.Stop();
         m_ShownTotal = 0;
         m_ShownSold = Hunt.SoldGold;
@@ -210,7 +210,7 @@ public class PopupMarket : PopupFlowBase<BattleFlow>
         m_ShownTotal = total;
         m_ShownSold = sold;
 
-        m_TotalText.E_SetString(EStringKey.Market_TotalFormat, total, m_Pick.Count, Define.MarketTradeLimit);
+        m_TotalText.E_SetString(EStringKey.Market_TotalFormat, total, m_Pick.Count, Define.Market.TradeLimit);
         m_SoldText.E_SetString(EStringKey.Market_SoldFormat, sold);
     }
 
@@ -219,7 +219,7 @@ public class PopupMarket : PopupFlowBase<BattleFlow>
     private void SetMerchantRow(PopupMarket_MerchantRow row, MerchantDef merchant)
     {
         int trust = PlayerDataManager.Instance.Market.GetTrust(merchant.ID);
-        row.Set(merchant, trust, Define.TrustMax, merchant == SelectedMerchant);
+        row.Set(merchant, trust, Define.Market.TrustMax, merchant == SelectedMerchant);
     }
 
     private void SetStockSlot(UICommonSlot slot, LootKey key)
@@ -375,7 +375,7 @@ public class PopupMarket : PopupFlowBase<BattleFlow>
             return;
         }
 
-        if (m_Pick.Count >= Define.MarketTradeLimit)
+        if (m_Pick.Count >= Define.Market.TradeLimit)
         {
             SetMessage(GetResultText(EMarketResult.OverLimit));
             return;
@@ -482,7 +482,7 @@ public class PopupMarket : PopupFlowBase<BattleFlow>
         {
             EMarketResult.Closed => StringDef.S_Get(EStringKey.Market_Result_Closed),
             EMarketResult.NoMerchant => StringDef.S_Get(EStringKey.Market_Result_NoMerchant),
-            EMarketResult.OverLimit => StringDef.S_Format(EStringKey.Market_Result_OverLimitFormat, Define.MarketTradeLimit),
+            EMarketResult.OverLimit => StringDef.S_Format(EStringKey.Market_Result_OverLimitFormat, Define.Market.TradeLimit),
             EMarketResult.NotEnough => StringDef.S_Get(EStringKey.Market_Result_NotEnough),
             EMarketResult.NotBuying => StringDef.S_Get(EStringKey.Market_Result_NotBuying),
             _ => string.Empty,

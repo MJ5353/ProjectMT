@@ -108,7 +108,7 @@ public sealed class UIClickBurst
             }
 
             piece.Time += deltaTime;
-            float t = piece.Time / define.ClickBurstTime;
+            float t = piece.Time / define.ClickBurst.Time;
             
             if (t >= 1f)
             {
@@ -121,8 +121,8 @@ public sealed class UIClickBurst
             RectTransform rt = image.rectTransform;
             rt.localPosition = piece.Start + piece.Offset * UITween.EaseOutCubic(t);
             rt.localRotation = Quaternion.Euler(0f, 0f, piece.Tilt + piece.Spin * t);
-            rt.localScale = Vector3.one * Mathf.Lerp(1f, define.ClickBurstEndScale, t);
-            image.color = new Color(1f, 1f, 1f, 1f - Mathf.InverseLerp(define.ClickBurstFadeStart, 1f, t));
+            rt.localScale = Vector3.one * Mathf.Lerp(1f, define.ClickBurst.EndScale, t);
+            image.color = new Color(1f, 1f, 1f, 1f - Mathf.InverseLerp(define.ClickBurst.FadeStart, 1f, t));
 
             m_ListPiece[i] = piece;
         }
@@ -137,7 +137,7 @@ public sealed class UIClickBurst
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(root, screenPosition, null, out Vector2 start) == false)
             return;
 
-        int count = Random.Range(define.ClickBurstCount.x, define.ClickBurstCount.y + 1);
+        int count = Random.Range(define.ClickBurst.Count.x, define.ClickBurst.Count.y + 1);
         for (int i = 0; i < count; ++i)
         {
             UICommonImage item = ResourceManager.Instance.Spawn(m_Prefab, root);
@@ -150,11 +150,11 @@ public sealed class UIClickBurst
 
             RectTransform rt = image.rectTransform;
             rt.SetAsLastSibling(); // 팝업보다 위에 그린다
-            rt.sizeDelta = Vector2.one * Random.Range(define.ClickBurstSize.x, define.ClickBurstSize.y);
+            rt.sizeDelta = Vector2.one * Random.Range(define.ClickBurst.Size.x, define.ClickBurst.Size.y);
             rt.localPosition = start;
 
             float direction = Random.Range(0f, Mathf.PI * 2f);
-            float tilt = Random.Range(-define.ClickBurstTilt, define.ClickBurstTilt);
+            float tilt = Random.Range(-define.ClickBurst.Tilt, define.ClickBurst.Tilt);
             rt.localRotation = Quaternion.Euler(0f, 0f, tilt);
 
             m_ListPiece.Add(new Piece
@@ -162,9 +162,9 @@ public sealed class UIClickBurst
                 Item = item,
                 Root = root,
                 Start = start,
-                Offset = new Vector3(Mathf.Cos(direction), Mathf.Sin(direction), 0f) * Random.Range(define.ClickBurstDistance.x, define.ClickBurstDistance.y),
+                Offset = new Vector3(Mathf.Cos(direction), Mathf.Sin(direction), 0f) * Random.Range(define.ClickBurst.Distance.x, define.ClickBurst.Distance.y),
                 Tilt = tilt,
-                Spin = Random.Range(-define.ClickBurstSpin, define.ClickBurstSpin),
+                Spin = Random.Range(-define.ClickBurst.Spin, define.ClickBurst.Spin),
             });
         }
     }

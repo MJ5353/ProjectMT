@@ -22,8 +22,8 @@ MonoBehaviour:
     <Damage>k__BackingField: 20
     m_HitFrame: 9
     <HitEndFrame>k__BackingField: 0
-    <Reach>k__BackingField: 1
-    <Radius>k__BackingField: 0.9
+    <Reach>k__BackingField: 1.2
+    <Radius>k__BackingField: 1.4
     <Height>k__BackingField: 0.6
     <Knockback>k__BackingField: 6
     <HitStop>k__BackingField: 0.06

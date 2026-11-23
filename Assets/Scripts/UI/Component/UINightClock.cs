@@ -7,7 +7,7 @@ using UnityEngine;
 // 밤 카운트다운 시계. 둥근 마스크 안에서 하늘 띠(해 → 노을 → 밤 → 동틀녘)가 밤이 지난 만큼 내려간다. 전투·시장 공용.
 // 전투: 남은 실제 시간을 mm:ss로 쓴다.
 // 시장: 같은 자리에 인게임 시간("시장이 닫기까지, 4h 30m"), 아래에 "행동당 30분". 시간이 줄면 글자가 잠깐 붉게 튄다.
-// 환산은 Define.MarketActionTime(초) = Define.MarketActionMinutes(분). 시장이 열릴 때의 연출은 PopupMarket이 한다.
+// 환산은 Define.Market.ActionTime(초) = Define.Market.ActionMinutes(분). 시장이 열릴 때의 연출은 PopupMarket이 한다.
 // !!) 시장 중에는 시간이 멈춰 있으므로(TimeManager) 연출은 unscaled 시간으로 돈다
 
 public class UINightClock : MonoBehaviour
@@ -75,7 +75,7 @@ public class UINightClock : MonoBehaviour
         m_Text.alignment = isMarket ? TextAlignmentOptions.Left : m_BattleAlign;
         m_Text.fontSize = isMarket ? m_MarketFontSize : m_BattleFontSize;
 
-        m_SubText.E_SetStringWithActive(EStringKey.Clock_ActionTimeFormat, isMarket, Define.MarketActionMinutes);
+        m_SubText.E_SetStringWithActive(EStringKey.Clock_ActionTimeFormat, isMarket, Define.Market.ActionMinutes);
 
         if (isMarket)
             WriteMarketTime();
@@ -93,8 +93,8 @@ public class UINightClock : MonoBehaviour
     // 실제 초 → 인게임 분. 기본값이면 15초 = 30분(300초 = 10시간)
     public static int ToGameMinutes(float seconds)
     {
-        float actionTime = Mathf.Max(0.01f, Define.MarketActionTime);
-        return Mathf.FloorToInt(seconds / actionTime * Define.MarketActionMinutes + 0.001f);
+        float actionTime = Mathf.Max(0.01f, Define.Market.ActionTime);
+        return Mathf.FloorToInt(seconds / actionTime * Define.Market.ActionMinutes + 0.001f);
     }
 
     // ---

@@ -41,3 +41,6 @@ Player|Attack_Whirlwind|Attack_07
 Mon_005_Boss_Tree|RootPrison|Skill_04
 Mon_010_Boss_PolarBear|Frenzy|Skill_04
 Mon_015_Boss_Saurus|Leap|Skill_04
+Player|Attack_RushL|Attack_08
+Player|Attack_RushR|Attack_09
+Player|Attack_RushFinish|Attack_10

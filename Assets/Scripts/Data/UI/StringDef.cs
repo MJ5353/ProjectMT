@@ -74,6 +74,8 @@ public enum EStringKey
     Battle_LootBothFormat,      // {0} 버섯 {1} 신선 {2} 덜 신선
     Battle_LootFreshFormat,     // {0} 버섯 {1} 신선
     Battle_LootStaleFormat,     // {0} 버섯 {1} 덜 신선
+    Battle_PerfectDodge,        // 러시 시작 문구(ScreenBattle_RushEffect)
+    Battle_RushFinish,          // 빈틈 타이머 마지막 구간(막타)
 
     // clock (UINightClock, 전투·시장 공용)
     Clock_MarketCloseFormat,    // {0} 시간 {1} 분

@@ -10,7 +10,6 @@ public static class DataEditorUtility
     // 좌측 목록 순서이자 표시 이름. 여기 없는 타입은 뒤에 영문 이름순으로 붙는다
     private static readonly (Type Type, string Label)[] s_TypeOrder =
     {
-        (typeof(DefineDef), "기본 설정"),
         (typeof(PlayerDef), "플레이어"),
         (typeof(MonsterDef), "몬스터"),
         (typeof(SkillDef), "스킬"),
@@ -31,6 +30,7 @@ public static class DataEditorUtility
     {
         return TypeCache.GetTypesDerivedFrom<DataDef>()
             .Where(type => type.IsAbstract == false && type.ContainsGenericParameters == false)
+            .Where(type => type != typeof(DefineDef)) // Define은 MushTaker/Define 편집기에서 스펙 단위로 고친다
             .OrderBy(GetTypeOrder)
             .ThenBy(type => type.Name, StringComparer.Ordinal)
             .ToList();

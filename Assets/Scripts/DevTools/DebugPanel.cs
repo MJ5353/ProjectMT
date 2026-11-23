@@ -144,15 +144,15 @@ public class DebugPanel : MonoBehaviour
 
         if (hunt.IsMarketOpen)
         {
-            float actionTime = gameM.Define.MarketActionTime;
+            float actionTime = gameM.Define.Market.ActionTime;
             
             GUILayout.Label($"남은 밤 {hunt.RemainTime:0.0}초");
             GUILayout.BeginHorizontal();
 
-            if (GUILayout.Button($"+{gameM.Define.MarketActionMinutes}분"))
+            if (GUILayout.Button($"+{gameM.Define.Market.ActionMinutes}분"))
                 hunt.DebugAddTime(actionTime);
 
-            if (GUILayout.Button($"-{gameM.Define.MarketActionMinutes}분"))
+            if (GUILayout.Button($"-{gameM.Define.Market.ActionMinutes}분"))
                 hunt.DebugAddTime(-actionTime);
 
             if (GUILayout.Button("상인 다시"))

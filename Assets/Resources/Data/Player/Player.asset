@@ -33,11 +33,23 @@ MonoBehaviour:
   <RunThreshold>k__BackingField: 0.6
   <AutoAimRange>k__BackingField: 3.5
   <CancelDelay>k__BackingField: 0.12
-  <DashSpeed>k__BackingField: 16
-  <DashTime>k__BackingField: 0.18
-  <DashCooldown>k__BackingField: 0.5
-  <IsDashInvincible>k__BackingField: 1
-  <DashAnimSpeed>k__BackingField: 1.6
+  <Dash>k__BackingField:
+    <Speed>k__BackingField: 16
+    <Time>k__BackingField: 0.18
+    <Cooldown>k__BackingField: 0.5
+    <MinCooldownRate>k__BackingField: 0.2
+    <IsInvincible>k__BackingField: 1
+    <AnimSpeed>k__BackingField: 1.6
+    <PerfectDodgeWindow>k__BackingField: 0.8
+  <Rush>k__BackingField:
+    <SlowRate>k__BackingField: 0.05
+    <Time>k__BackingField: 3
+    <FinishWindow>k__BackingField: 1
+    <ApproachSpeed>k__BackingField: 25
+    <ApproachMaxTime>k__BackingField: 0.5
+    <Left>k__BackingField: {fileID: 11400000, guid: b0ff956230e34e21b542e3f97e6192b5, type: 2}
+    <Right>k__BackingField: {fileID: 11400000, guid: f9aa20ad8d744a63bc948f8afc43c264, type: 2}
+    <Finisher>k__BackingField: {fileID: 11400000, guid: 2469ba86862147ebb93df35b1fe66982, type: 2}
   <ComboStart>k__BackingField: {fileID: 11400000, guid: 980fca3413c941579e01cfbaa9f27899, type: 2}
   <ComboResetTime>k__BackingField: 0.4
   <RunAttack>k__BackingField: {fileID: 11400000, guid: f131cb9420ac4d3da261483a93e6988a, type: 2}

@@ -43,7 +43,7 @@ public class MarketData : PlayerDataBase
         if (amount == 0)
             return;
 
-        int trust = Mathf.Clamp(GetTrust(merchantID) + amount, 0, Define.TrustMax);
+        int trust = Mathf.Clamp(GetTrust(merchantID) + amount, 0, Define.Market.TrustMax);
         if (trust == 0)
             m_DicTrustByID.Remove(merchantID);
         else

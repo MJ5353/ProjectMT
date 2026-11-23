@@ -7,31 +7,21 @@ using UnityEngine;
 
 public class DashAction : UnitAction
 {
-    private const float MinCooldownRate = 0.2f; // 회피를 아무리 올려도 쿨은 이 비율 밑으로 내려가지 않는다
-
-    private readonly float m_Speed;
-    private readonly float m_Duration;      // 대시 지속 시간(초). 기본값
-    private readonly float m_Cooldown;      // 대시가 끝난 뒤 다시 쓰기까지. 기본값
-    private readonly bool m_IsInvincible;   // 대시 중 무적
-    private readonly float m_AnimSpeed;     // 대시 중 달리기 애니 배속
-
-    public override EActionType Type => EActionType.Dash;
-    public override bool IsFinished => Time >= m_CurrentDuration;
-    public bool IsReady => m_CooldownRemain <= 0f;
+    private readonly DashSpec m_Spec; // Def 기본값(PlayerDef.Dash)
 
     private Vector3 m_Direction;
     private float m_CooldownRemain;
     private float m_CurrentDuration;   // 이번 대시 시간(대시 거리 반영)
 
+    public override EActionType Type => EActionType.Dash;
+    public override bool IsFinished => Time >= m_CurrentDuration;
+    public bool IsReady => m_CooldownRemain <= 0f;
+
     // ------------------------------------------------
 
-    public DashAction(UnitController owner, float speed, float duration, float cooldown, bool isInvincible, float animSpeed) : base(owner)
+    public DashAction(UnitController owner, DashSpec spec) : base(owner)
     {
-        m_Speed = speed;
-        m_Duration = duration;
-        m_Cooldown = cooldown;
-        m_IsInvincible = isInvincible;
-        m_AnimSpeed = animSpeed;
+        m_Spec = spec;
     }
 
     public void Setup(Vector3 direction)
@@ -54,16 +44,19 @@ public class DashAction : UnitAction
     protected override void Enter()
     {
         StatFeature stat = Owner.StatF;
-        m_CurrentDuration = stat.Get(EStatType.DashDistance, m_Duration);
-        m_CooldownRemain = m_Cooldown * stat.GetReduceRate(EStatType.Dodge, MinCooldownRate) + m_CurrentDuration;
+        m_CurrentDuration = stat.Get(EStatType.DashDistance, m_Spec.Time);
+        m_CooldownRemain = m_Spec.Cooldown * stat.GetReduceRate(EStatType.Dodge, m_Spec.MinCooldownRate) + m_CurrentDuration;
 
         Owner.MoveF.FaceTo(m_Direction, true);
-        Owner.MoveF.SetVelocity(m_Direction * m_Speed);
-        Owner.AnimF.SetSpeed(m_AnimSpeed);
+        Owner.MoveF.SetVelocity(m_Direction * m_Spec.Speed);
+        Owner.AnimF.SetSpeed(m_Spec.AnimSpeed);
         Owner.AnimF.Play(AnimKey.Run, true);
 
-        if (m_IsInvincible)
+        if (m_Spec.IsInvincible)
             Owner.HitF.SetInvincible(m_CurrentDuration);
+
+        // 무적으로 버티든 범위 밖으로 빠지든, 대시 뒤 창 안에 판정을 안 맞으면 퍼펙트 닷지
+        Owner.PerfectDodgeF?.OnDash();
     }
 
     public override void Exit()

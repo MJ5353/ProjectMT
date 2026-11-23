@@ -1,6 +1,6 @@
 # 복셀 에셋 생성기
 
-최종 수정: 26.11.19
+최종 수정: 26.11.22
 
 Blender 스크립트로 전투 시제품용 복셀 에셋을 만든다. 결과물은 `Assets/Art/Voxel/Models/`에 둔다.
 
@@ -105,7 +105,7 @@ blender -b -P tools/voxel/build_voxel_assets.py -- <출력폴더> [--preview]
 | Buggi | Idle, Walk(깡충), Attack(박치기), Hit, Death | Attack 13 |
 | Bugom | Idle, Walk, Attack(일어서서 내려찍기), Hit, Death | Attack 19 |
 | Bursus | Idle, Walk, Attack(꼬리치기), Stomp(내려찍기·포자), Hit, Death | Attack 18, Stomp 20 |
-| Player | Idle, Walk, Run, Attack(내려치기), Attack_Up(위로베기), Attack_SlashL(좌로베기), Attack_SlashR(우로베기), Attack_Finish(막타 내려찍기), Attack_Whirlwind(두 바퀴), Attack_RunSlash(달리다가 베기), Hit, Death | Attack 9, Up 7, SlashL 8, SlashR 8, Finish 17, Whirlwind 8~26, RunSlash 7 |
+| Player | Idle, Walk, Run, Attack(내려치기), Attack_Up(위로베기), Attack_SlashL(좌로베기), Attack_SlashR(우로베기), Attack_Finish(막타 내려찍기), Attack_Whirlwind(두 바퀴), Attack_RunSlash(달리다가 베기), Attack_RushL·RushR(퍼펙트 닷지 러시 좌·우 베기, 번갈아 이어짐), Attack_RushFinish(러시 막타: 돌며 도약 후 내려찍기), Hit, Death | Attack 9, Up 7, SlashL 8, SlashR 8, Finish 17, Whirlwind 8~26, RunSlash 7, RushL·RushR 3(길이 10), RushFinish 21(36까지 착지 자세 유지, 길이 50) |
 
 Death는 마지막 자세를 유지하고, 나머지 단발 클립은 끝에서 기본 자세로 돌아온다. 이동은 제자리 애니(루트 모션 없음).
 

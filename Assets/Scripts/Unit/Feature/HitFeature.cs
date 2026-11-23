@@ -64,13 +64,14 @@ public class HitFeature : UnitFeature
 
     public override void Tick(float unscaledDeltaTime)
     {
-        // 무적은 게임 시간 기준. 히트스톱(timeScale 0) 중에는 같이 멈춘다
+        // 무적은 게임 시간 기준(슬로우 무시 유닛은 제 시간). 히트스톱(timeScale 0) 중에는 같이 멈춘다
+        float deltaTime = unscaledDeltaTime * Time.timeScale * Owner.TimeRate;
         if (m_InvincibleRemain > 0f)
-            m_InvincibleRemain -= unscaledDeltaTime * Time.timeScale;
+            m_InvincibleRemain -= deltaTime;
 
         if (m_BreakStack > 0f)
         {
-            m_BreakIdleTime += unscaledDeltaTime * Time.timeScale;
+            m_BreakIdleTime += deltaTime;
             if (m_BreakIdleTime >= Owner.Def.BreakResetTime)
                 m_BreakStack = 0f;
         }
@@ -133,7 +134,10 @@ public class HitFeature : UnitFeature
         if (hit.Team == Owner.Team)
             return false;
 
-        if (Owner.IsDead || IsInvincible || IsHidden || Owner.Def.IsUntargetable)
+        if (Owner.IsDead || IsHidden || Owner.Def.IsUntargetable)
+            return false;
+
+        if (IsInvincible)
             return false;
 
         // 부위를 맞으면 부위 내구도와 본체 체력이 함께 깎인다. 본체 쪽은 부위의 몸 피해 배율을 곱한다(DamageCalculator)

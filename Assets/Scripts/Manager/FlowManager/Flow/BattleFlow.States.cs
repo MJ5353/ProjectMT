@@ -67,7 +67,7 @@ public sealed partial class BattleFlow
 
         public override void Update(float deltaTime)
         {
-            if (m_IsPopupOpened || Flow.TimeInState < GameManager.Instance.Define.DownPopupDelay)
+            if (m_IsPopupOpened || Flow.TimeInState < GameManager.Instance.Define.Battle.DownPopupDelay)
                 return;
 
             m_IsPopupOpened = true;

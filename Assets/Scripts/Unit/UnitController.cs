@@ -30,6 +30,7 @@ public class UnitController : PoolableMono
     public AnimFeature AnimF { get; private set; }
     public HitFeature HitF { get; private set; }
     public PartFeature PartF { get; private set; }    // 버섯 부위. 없으면 null(SetPartFeature로 붙인다)
+    public PerfectDodgeFeature PerfectDodgeF { get; private set; }    // 퍼펙트 닷지. 플레이어만, 없으면 null(SetPerfectDodgeFeature로 붙인다)
 
     // get
     public ETeam Team => Def.Team;
@@ -37,6 +38,7 @@ public class UnitController : PoolableMono
     public UnitProperty Property => m_Property;
     public Transform VisualRoot => m_Property.Animator.transform;
     public CharacterController HurtBody => m_Property.CharacterController;
+    public float TimeRate { get; private set; } = 1f;       // 이 유닛만 게임 시간에 더 곱하는 배율. 슬로우를 무시하는 유닛(Def.IsSlowImmune)만 1이 아니다
 
     // ------------------------------------------------
 
@@ -67,6 +69,9 @@ public class UnitController : PoolableMono
 
         HitF.Hit += OnHit;
         HealthF.Died += OnDied;
+        
+        if (PerfectDodgeF != null)
+            PerfectDodgeF.PerfectDodged += OnPerfectDodged;
     }
 
     // 수명 주기를 함께 돌릴 부품 등록. 등록 순서대로 실행. Def.SetFeatures가 부른다
@@ -82,10 +87,21 @@ public class UnitController : PoolableMono
         PartF = AddFeature(part);
     }
 
+    // 퍼펙트 닷지 등록(PlayerDef.SetFeatures). PerfectDodgeF는 여기서만 채운다
+    public void SetPerfectDodgeFeature(PerfectDodgeFeature perfectDodge)
+    {
+        PerfectDodgeF = AddFeature(perfectDodge);
+    }
+
     public void Tick(float deltaTime, float unscaledDeltaTime)
     {
         if (enabled == false)
             return;
+
+        // 슬로우 무시: 게임 시간(deltaTime)과 애니 속도에만 곱한다. unscaled로 도는 부품은 그대로
+        TimeRate = Def.IsSlowImmune ? TimeManager.Instance.PlayerTimeRate : 1f;
+        deltaTime *= TimeRate;
+        AnimF.SetTimeRate(TimeRate);
 
         for (int i = 0; i < m_ListFeature.Count; ++i)
         {
@@ -108,6 +124,9 @@ public class UnitController : PoolableMono
         if (HitF != null)
             HitF.Hit -= OnHit;
 
+        if (PerfectDodgeF != null)
+            PerfectDodgeF.PerfectDodged -= OnPerfectDodged;
+
         if (HealthF != null)
             HealthF.Died -= OnDied;
 
@@ -119,6 +138,7 @@ public class UnitController : PoolableMono
         AnimF = null;
         HitF = null;
         PartF = null;
+        PerfectDodgeF = null;
         UnitExecutor = null;
         BrainBase = null;
     }
@@ -178,6 +198,16 @@ public class UnitController : PoolableMono
         BrainBase.OnHit(hit);
         if (isFlinch)
             UnitExecutor.RequestHit();
+    }
+
+    // 퍼펙트 닷지(PerfectDodgeFeature). 반격(러시)은 판단 쪽이 이어받는다
+    private void OnPerfectDodged(HitParams hit)
+    {
+        if (IsDead)
+            return;
+
+        PassiveF.OnPerfectDodge(hit);
+        BrainBase.OnPerfectDodge(hit);
     }
 
     private void OnDied()

@@ -108,7 +108,7 @@ public class MoveFeature : UnitFeature
             return;
 
         Quaternion target = Quaternion.LookRotation(direction);
-        m_Transform.rotation = instant ? target : Quaternion.RotateTowards(m_Transform.rotation, target, m_TurnSpeed * Time.deltaTime);
+        m_Transform.rotation = instant ? target : Quaternion.RotateTowards(m_Transform.rotation, target, m_TurnSpeed * Time.deltaTime * Owner.TimeRate);
     }
 
     public void SetCollision(bool isOn)

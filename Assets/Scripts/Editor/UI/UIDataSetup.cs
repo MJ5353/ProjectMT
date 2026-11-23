@@ -72,6 +72,8 @@ public static class UIDataSetup
         { EStringKey.Battle_LootBothFormat, "{0} 신선 x{1} / 덜 신선 x{2}" },
         { EStringKey.Battle_LootFreshFormat, "{0} 신선 x{1}" },
         { EStringKey.Battle_LootStaleFormat, "{0} 덜 신선 x{1}" },
+        { EStringKey.Battle_PerfectDodge, "퍼펙트 닷지!" },
+        { EStringKey.Battle_RushFinish, "막타!" },
 
         { EStringKey.Clock_MarketCloseFormat, "시장이 닫기까지, {0}h {1:00}m" },
         { EStringKey.Clock_ActionTimeFormat, "행동당 {0}분" },

@@ -599,3 +599,23 @@
 - 시장 닫기 버튼(문구는 "시장 떠나기"로 바꿈)에 확인 팝업을 붙임(BattleFlow.ExitMarket). 남은 버섯이 있으면 "남은 버섯은 썩습니다"까지, 없으면 "오늘이 종료됩니다"만 묻고, 두 줄 문구가 들어가게 확인 팝업 글자 칸을 늘림.
 - 팔 버섯이 없으면(다 팔았거나 빈손으로 들어옴) 남은 버섯 칸을 딤 + 회색 "판매할 버섯이 없습니다."로 덮음. 시장 첫 화면부터 상인별 시세 배율을 굴리게 해 모든 상인이 기본값으로 시작하던 문제를 없앰.
 - 맵 진입 시 BattleFlow Start 상태가 판단을 멈추고 PopupHuntStart(화면 딤 + 맵 이름 + 깜빡이는 "클릭하여 시작")를 띄우며, 누르면 Play로 넘어가 판단을 다시 켬(UnitService.ResumeBrains·BrainBase.Resume 추가). 다시 하기에서도 뜨고, 프리팹이 없으면 예전처럼 바로 시작. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## 퍼펙트 닷지 묶음 1(판정)
+- 대시 무적 중 공격이 닿으면 퍼펙트 닷지로 판정. 맞은 뒤·부활 무적과 섞이지 않게 HitFeature에 판정 창을 따로 두고(대시가 켬, PlayerDef.PerfectDodgeWindow, 0이면 대시 무적 전체), 대시 한 번에 한 번만 PerfectDodged 이벤트를 쏨. 패시브 훅 EPassiveTrigger.PerfectDodge 추가, 확인용 로그 한 줄. 슬로우·러시·UI는 다음 묶음. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 묶음 2(시간): TimeManager에 슬로우 배율(SetSlow)을 넣어 일시정지·히트스톱과 한 곳에서 timeScale을 정하고, 슬로우를 무시하는 유닛(UnitDef.IsSlowImmune, 플레이어)은 PlayerTimeRate(1/슬로우)를 Tick·애니 속도·무적 시간·회전에 곱해 제 속도로 움직이게 함. 슬로우 중에는 히트스톱 요청을 받지 않음. 슬로우를 켜는 쪽(러시)은 묶음 3. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 묶음 3(러시 흐름): 퍼펙트 닷지 뒤 반격을 PerfectDodgeRush(PlayerBrain 보유)로 만듦. 전체 슬로우 + 빈틈 타이머 + 무적, 클릭마다 좌·우 베기(러시 중 공격 끊기 지연 0, 대시·길게 누르기 막음), 마지막 1초 첫 클릭이 막타이고 판정 4프레임 전(도약 정점)에 시간을 되돌림, 안 누르면 막타 없이 끝. 전투 정지·풀 반환 때 접음. HUD·튜토리얼용 RushStarted·RushEnded 이벤트. PlayerDef 러시 값과 SkillDef Player_Attack_08~10(러시 좌·우·막타) 에셋 추가. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 묶음 4(러시 대상·돌진): 러시는 퍼닷을 일으킨 공격자만 노림(PlayerBrain TargetSelector에 넣고 조준), 대시가 끝나면 대상 앞(베기 사거리)까지 돌진한 뒤 빈틈 타이머 시작(막히면 0.5초 뒤 그 자리에서), 돌진 중 클릭은 예약. 대상이 죽으면 남은 시간을 마지막 1초로 당겨 다음 클릭이 막타. PlayerDef.RushApproachSpeed 추가. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 묶음 5(러시 UI): ScreenBattle_RushEffect 추가. 러시 중 슬로우 동안 화면을 어둡게 덮고 플레이어 화면 위치에 밝은 원을 뚫음(구멍 텍스처는 실행 중 코드로 생성), 중앙 하단 빈틈 타이머 바(막타 구간 붉게, 그 구간에서 금색 깜빡임 + "막타!"), 가운데 "퍼펙트 닷지!" 띠. 수치는 DefineDef Rush*, 문구 키 Battle_PerfectDodge·Battle_RushFinish, BattleUISetup에 생성 추가. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 정리·리뷰: 러시 공격 SkillDef가 비면 조용히 무시하던 것을 경고 로그로 바꿈, 클릭 받는 단계 검사를 한 곳(IsTakingClick)으로 모음, "막타!" 문구를 막타 구간 자식으로 옮겨 구간 너비를 따라가게 함, DashAction 판정 창 계산을 한 줄씩 풀어 씀. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 대장 피드백 반영: 예고 시간(WindupTime)이 0인 보스 공격도 바닥 예고가 뜨게 몬스터 공격은 시작부터 판정까지 항상 예고를 그림(판정 시점은 공격 속도 반영). 토끼·두더지 공격 범위가 작아 퍼닷이 어렵다는 피드백에 처음엔 스침 판정을 넣었다가 대장 지시로 되돌리고, 몬스터 공격 범위를 전체적으로 키움(잡몹·엘리트 기본형 Reach 1→1.2·Radius 0.9→1.4, 보스 3종은 Radius ×1.2). 공격 시작 거리(MaxRange)는 그대로. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 퍼펙트 닷지 판정 변경(대장 기준): 판정 전 0.8초(PlayerDef.PerfectDodgeWindow) 안에 몬스터 공격 범위에 들어와 있었고, 대시를 쓴 뒤 0.8초 안에 첫 판정을 안 맞으면 퍼닷(무적으로 버티든 범위 밖으로 빠지든). 몬스터 AttackAction이 판정 전 범위에 든 적을 적어 두고 첫 판정 뒤 안 맞은 적에게 HitFeature.TryPerfectDodge로 묻는 방식. 무적 피격 즉시 퍼닷은 없앰. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 돌진 공격 퍼닷 수정: 돌진은 판정 구가 아니라 남은 돌진 경로(바닥 예고 사각형)로 범위를 보고, 첫 판정이 아니라 돌진이 그 대상 자리를 지나갈 때(못 지나가면 판정 구간 끝) 대상마다 퍼닷을 확인. 맞은 대상은 바로 제외. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 퍼닷 판정 구조 정리(개념 유지): AttackAction에 붙어 있던 퍼닷 기록·확인을 PerfectDodgeTracker(Unit/Action/Helper)로 분리, 바닥 예고·판정 효과·퍼닷 범위가 같이 쓰는 이번 프레임 범위를 AttackArea(Unit/Data) 하나로 계산(예고 사각형과 판정 길이 어긋남 해소), 공격 속도 시간 변환을 ToRealTime으로 모음, BrainBase 옛 주석 수정. AttackAction 19KB→15KB. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- 대장 지적(퍼닷은 피하는 쪽 일)으로 구조 변경: 기록·판단을 플레이어 전용 PerfectDodgeFeature(대시 창, 공격별 범위 기록, PerfectDodged 이벤트)로 옮기고 HitFeature의 퍼닷 창 제거. AttackAction은 범위 안(OnThreatened)·맞음/끊김(OnAttackEnded)·안 맞고 지나감(OnAttackMissed) 알림만 함. PerfectDodgeTracker는 빈 파일로 남김(대장 삭제 요청). 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- AttackAction 쪼개기(대장 선택 1안): AttackAction은 흐름(예고→클립→끝)·끊기 규칙만 남기고 판정 AttackHitter(회차·맞은 대상·이펙트·TargetHit 이벤트), 바닥 예고 AttackTelegraph, 퍼닷 알림 AttackDodgeNotifier로 분리(Unit/Action/Helper). 동작 변경 없음. AttackAction 17.7KB→10KB. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## DefineDef 스펙 나누기·Define 도구
+- 대장 방향: 전역 조절값을 성격별 스펙(DefineSpecBase 상속 일반 클래스)으로 쪼개고 DefineDef가 스펙을 하나씩 들게 함. Loading·Battle·Drop·Part·Camera·Hud·Market·ClickBurst 8개(Data/Define/), 드롭 튀는 값은 DropSpec(Height·Spread·UpSpeed) 세 벌로 통일하고 부위 드롭도 높이를 받게 함.
+- 스펙 이름과 겹치는 접두어를 빼고(Define.Camera.Distance, Define.Market.ActionTime) 사용처 18곳 교체, Define.asset은 기존 값 그대로 새 구조로 옮겨 적음(러시 연출·최소 로딩은 코드 기본값).
+- MushTaker/Define 편집기 추가(DefineEditorWindow): 왼쪽 스펙 목록(DefineDef의 스펙 프로퍼티를 자동 수집), 오른쪽 고른 스펙 값 편집. 대장 지시로 데이터 편집기 목록에서는 Define을 뺌. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- PlayerDef 대시·러시 묶기: 대시 값을 DashSpec(속도·시간·쿨·쿨 하한·무적·애니 배속·퍼닷 판정 창), 러시 값을 RushSpec(슬로우·시간·막타 구간·돌진 속도·돌진 최대 시간·좌/우/막타 스킬)으로 묶어 PlayerDef.Dash·Rush로 둠. EnableDash(DashSpec) 하나로 넘기고, 코드 상수였던 쿨 하한 0.2·돌진 최대 0.5초를 Def로 옮김. Player.asset은 기존 값 그대로 옮김. 컴파일·플레이 확인 안 함, 커밋하지 않음.

@@ -28,7 +28,7 @@ public class CameraManager : MonoSingleton<CameraManager>
             if (t >= 1f)
                 return 0f;
 
-            float curve = t < Define.ShakeInRatio ? t / Define.ShakeInRatio : Mathf.SmoothStep(0f, 1f, (1f - t) / (1f - Define.ShakeInRatio));
+            float curve = t < Define.Camera.ShakeInRatio ? t / Define.Camera.ShakeInRatio : Mathf.SmoothStep(0f, 1f, (1f - t) / (1f - Define.Camera.ShakeInRatio));
             return m_ShakeStrength * curve;
         }
     }
