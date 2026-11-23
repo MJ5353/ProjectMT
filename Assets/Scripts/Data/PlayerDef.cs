@@ -35,7 +35,7 @@ public class PlayerDef : UnitDef
     public float DashAnimSpeed { get; private set; } = 1.6f;   // 대시 중 Run 애니 배속
 
     [field: SerializeField]
-    public float PerfectDodgeWindow { get; private set; } = 0f; // [mj] todo) 임시값. 대시 시작부터 이 시간 안에 공격이 닿으면 퍼펙트 닷지. 0이면 대시 무적 전체
+    public float PerfectDodgeWindow { get; private set; } = 0.8f; // [mj] todo) 임시값. 판정 전 이 시간(초) 안에 공격 범위에 들어와 있다가, 대시를 쓴 뒤 이 시간 안에 판정을 안 맞으면 퍼펙트 닷지. 0이면 끔
 
     // 러시(퍼펙트 닷지 반격) --- 시간은 실제 시간(플레이어 시간) 기준
     [field: SerializeField]

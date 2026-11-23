@@ -38,7 +38,7 @@ MonoBehaviour:
   <DashCooldown>k__BackingField: 0.5
   <IsDashInvincible>k__BackingField: 1
   <DashAnimSpeed>k__BackingField: 1.6
-  <PerfectDodgeWindow>k__BackingField: 0
+  <PerfectDodgeWindow>k__BackingField: 0.8
   <RushSlowRate>k__BackingField: 0.05
   <RushTime>k__BackingField: 3
   <RushFinishWindow>k__BackingField: 1
