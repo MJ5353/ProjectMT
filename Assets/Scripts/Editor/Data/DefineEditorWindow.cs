@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 
 // Define 편집기. 전역 조절값(Define.asset)을 스펙(DefineSpecBase) 단위로 보고 고친다.
 // 왼쪽 스펙 목록은 DefineDef에서 DefineSpecBase 타입 프로퍼티를 찾아 자동으로 채우므로, 스펙을 더해도 편집기는 고치지 않는다.
-// 오른쪽 값 칸은 이름 폭을 고정해 줄을 맞추고, 필드에 마우스를 올리면 Tooltip 설명이 뜬다
+// 오른쪽 값 칸은 이름 폭을 고정해 줄을 맞추고(벡터 값도 이름 옆 한 줄), 필드에 마우스를 올리면 Tooltip 설명이 뜬다
 
 public sealed class DefineEditorWindow : EditorWindow
 {
@@ -144,7 +144,9 @@ public sealed class DefineEditorWindow : EditorWindow
 
         m_SerializedDefine.Update();
         float labelWidth = EditorGUIUtility.labelWidth;
+        bool wideMode = EditorGUIUtility.wideMode;
         EditorGUIUtility.labelWidth = LabelWidth;
+        EditorGUIUtility.wideMode = true; // Vector2·Vector2Int 값을 이름 옆 한 줄에 둔다(좁으면 다음 줄로 내려가는 것 방지)
 
         GUILayout.BeginHorizontal();
         GUILayout.Space(DetailPadding);
@@ -177,6 +179,7 @@ public sealed class DefineEditorWindow : EditorWindow
         GUILayout.EndHorizontal();
 
         EditorGUIUtility.labelWidth = labelWidth;
+        EditorGUIUtility.wideMode = wideMode;
         m_SerializedDefine.ApplyModifiedProperties();
     }
 
