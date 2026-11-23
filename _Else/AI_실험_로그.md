@@ -185,14 +185,14 @@
 
 ## 주요 작업
 
-- AI가 성능·구조 리뷰를 반영하고 직접 피드백으로 카메라 동작을 조정.
+- AI가 성능·구조 리뷰를 반영하고, 유닛 판단·실행을 StateFeature 하나로 재구성. 직접 피드백으로 카메라 동작을 조정.
 - 검증 상태 추정과 불필요한 리소스·디자인 개선 기록을 줄이도록 문서 기준을 정리.
 
 ## 성능·책임 정리
 
 - AI가 빌드 직전 DB 갱신, 정비 조회/전투 적용 책임 분리, HUD·보스 어그로 이벤트화, 포효·러시 UI 연출 통합을 반영. 시간 기준인 스킬 연계 표시는 폴링을 유지함.
 - 픽업 지형 판정·유닛 순회·능력치 출처 재사용·조각 회수·세이브 교체를 정리. 직접 슬로우 중 뒤처지는 손맛을 선택해 카메라는 scaled time으로 되돌리고 낙하 레이는 Terrain만 보게 함.
-- 슬로우는 이유별 최솟값으로 합산하고 러시의 빠른 캔슬은 실행기 요청으로 변경. 회전은 전달받은 유닛 시간을 쓰고 Taken 패시브에도 피격 정보를 넘기며, 당시 Unity 컴파일 오류 없음 기록을 보존함.
+- 슬로우는 이유별 최솟값으로 합산하고 러시의 빠른 캔슬은 실행기 요청으로 변경. 회전은 전달받은 유닛 시간을 쓰고 Taken 패시브에도 피격 정보를 넘김.
 
 ## 문서 기록 기준
 
@@ -204,26 +204,17 @@
 - 대장 지시로 AI가 기획서 세 개를 현재 시장·정비·전투 흐름에 맞추고 상세 중복·UI 디자인 설명을 줄임. 경쟁·담합·개량·파견·장비 등 후속 기획은 현재 범위와 구분함.
 - 지역 해금은 보스 첫 처치 원안을 유지하라는 직접 판단을 반영. 현재 구현의 시장 종료 클리어 처리와 차이를 전체 기획서에 명시함.
 
-## 상태 구조 1단계(StateFeature 뼈대·실행기 교체)
+## 유닛 상태 구조(StateFeature)
 
-- 대장과 합의한 코어·서브 상태 설계의 1단계로, AI가 UnitExecutor·UnitAction을 StateFeature·CoreState로 바꾸고 SubState 뼈대를 추가함. 동작은 그대로 두려고 코어 요청은 즉시 적용하고, 프레임 단위 모아 고르기는 2단계로 미룸.
-- 퍼닷 막타 안 들어감 추적(AI 작성): PlayerBrain → PerfectDodgeRush → StateFeature → AttackCore → AttackHitter 흐름을 d9e4762(리팩터 전)과 줄 단위로 비교. 110d900·f6ab0b9·eb12520·34e3c8d 모두 막타 경로의 동작은 같음(CancelDelay=0 ↔ IsQuickCancel, SetSlow(1) ↔ ClearSlow, Started·Ended 순서 동일, 서브 없음). 리팩터 회귀는 아니고, 막타 구간에서 베기 판정 전(0.1초)에 누른 클릭이 버려지던 것을 원인 후보로 보고 PlayerBrain.UpdateAttackInput에서 막타 구간(IsFinishWindow)이면 CanBufferNext와 상관없이 막타를 예약하도록 수정. 슬로우가 풀릴 때 넉백이 한꺼번에 나가는 문제는 대장 확인 뒤로 미룸.
-- 막타 모션 없이 러시 종료 추적(AI 작성): 원인은 110d900의 StateFeature.RequestAttack이 Setup(새 Spec) 뒤에 RequestCore로 끊기 판단을 한 번 더 하던 것. 베기 → 막타일 때 두 번째 판단이 막타 Spec의 판정 시간으로 재져 거절되고, 도는 베기의 Spec만 막타로 바뀐 채 예약이 버려짐 → PerfectDodgeRush가 막타가 돈다고 보고 베기가 끝나자 러시 종료. 리팩터 전 UnitExecutor처럼 확인 뒤 바로 Change하도록 수정. 앞 줄의 '리팩터 회귀 아님' 판단은 틀렸음.
+- 계층이 많아 헷갈리고 판단과 실행이 한 흐름이라는 판단으로, 대장과 합의해 AI가 UnitExecutor·Brain을 StateFeature(몸을 차지하는 코어 하나 + 겹쳐 도는 서브 여러 개)로 바꿈. 플레이어 입력·러시와 AIBrain의 상태를 코어·서브로 옮기고, 서브·요청 정리를 코어 다음에 두어 예전 프레임 순서를 유지함.
+- AI 조립을 EAIType 분기에서 AIDef의 코어 목록·기본·피격 뒤 코어로 옮김. 서브는 데이터 대신 코어의 Needs 합으로 자동으로 붙게 하고(코어가 필요로 하는 것은 알아서 생겨야 함), 펫·보스 판별은 기본 코어 Follow·보스 감시 서브로 함.
+- 숫자 우선순위는 중간 삽입 시 에셋 값·순서가 밀려 코어별 Kind·InterruptedBy로 대체. ‘몸을 묶는 동작인가’를 기준으로 Mode(복귀점)와 Action을 나눠 포효·쓰러짐·숨기를 Action으로 옮김.
+
+## 퍼펙트 닷지·러시 수정
+
+- 러시가 막타 없이 끝나던 원인은 공격 요청이 새 Spec을 넣은 뒤 끊기 판단을 다시 해 거절되던 것. 확인 뒤 바로 바꾸도록 고쳤고, AI가 처음 내린 ‘리팩터 회귀 아님’ 판단은 틀렸음. 막타 구간에서는 판정 전 클릭도 막타로 예약하게 함.
+- 퍼펙트 닷지 알림 중 러시 서브가 추가되며 나던 컬렉션 변경 예외는 서브 순회를 인덱스 반복으로 바꿔 해결. 슬로우가 풀릴 때 넉백이 몰리는 문제는 대장 확인 뒤로 미룸.
 
 ## 도구 문서·폴더 안내 정리
 
 - 대장 지시로 AI가 복셀 README를 실행·출력·임포트 절차 중심으로 줄이고, 세 맵의 스폰 의도를 한 표로 통합함. Resources·DevDocs·도구 문서 위치를 실제 구성에 맞춰 안내하고 불필요한 진행 구획을 제거함.
-
-
-## 상태 묶음 2: 플레이어 판단 → 서브·코어
-
-- AI가 PlayerBrain을 PlayerInputSub(입력 서브)+FreeCore(기본 코어)로, PerfectDodgeRush를 RushSub(Timed 서브)+RushApproachCore(돌진 코어)로 옮기고 StateFeature에 공격 예약·서브 미룬 요청·기본 코어·Resume을 더함. 프레임 순서를 예전 판단 위치(코어 다음)에 맞춰 서브·요청 정리를 코어 Step 뒤에 두어 콤보·러시 막타·빠른 캔슬 타이밍을 유지함. 컴파일만 확인, 플레이 확인은 대장.
-
-## 상태 묶음 3+4: AI 판단 → 코어·서브
-
-- AI가 AIBrain·AI 상태를 AI 코어(Idle·Wander·Chase·Flee·Follow·Burrow·Roar·Down, 판단은 서브 뒤 Think)와 서브(TargetSense·AttackPicker·BossWatch)로 옮기고 BrainBase·EAIState를 지움. 행동이 끝나면 마지막 기본 층 코어로, 피격 뒤는 종류별 코어로 가게 해 예전 프레임 순서를 맞춤. 히트스톱 중 판단을 쉬는 것만 다름(1프레임). 컴파일만 확인, 플레이 확인은 대장.
-- 퍼펙트 닷지 때 `Collection was modified` 예외: StateFeature 알림 foreach(OnPerfectDodge) 안에서 PlayerInputSub가 RushSub를 AddSub해서 터짐(brain → sub 커밋에서 생긴 문제, 대장 수정분과 무관). AI가 서브 목록을 도는 foreach(Reset·Resume·OnHit·OnDied·OnPerfectDodge)를 Change와 같은 인덱스 for로 바꿈. 할당 없음, 러시는 예전처럼 그 자리에서 Begin하고 다음 프레임부터 Tick. 컴파일 0 오류, 플레이 확인은 대장.
-- AI 조립을 코드(EAIType switch)에서 데이터(AIDef.ListCore·DefaultCore·AfterHitCore·Subs)로 옮기고 EAIType를 지움. 코어·보스 감시는 생성자에서 StateF.TryGetSub로 서브를 찾고, 데이터 검사(DataTools)가 프리셋 조립을 잡음. 펫·보스 판별은 기본 코어 Follow·BossWatch 서브로. 프리셋 5개 YAML을 예전 묶음대로 채움. 컴파일 0 오류·데이터 검사 통과, 플레이 확인은 대장.
-- 서브를 데이터(AIDef.Subs)에서 코어로 옮김: 코어마다 `const Needs`, AICore.GetSubs가 프리셋 코어들의 Needs를 모으고 서브끼리 쓰는 서브(공격 선택 → 대상 감지, 보스 감시 → 대상 감지·공격 선택)를 더함. 쓰러짐도 보스 감시를 씀. 프리셋 YAML의 Subs 칸과 DataTools 서브 검사를 지움. 5개 프리셋·기본값의 계산 결과가 예전 값(7·3·3·3·0, 3)과 같음을 에디터에서 확인. 컴파일 0 오류, 플레이 확인은 대장.
-- 코어 끊기 규칙에서 ECoreState 숫자 순서를 없앰: 코어마다 Kind(Base·Action·Dash·Hit·Dead)와 자기를 끊을 수 있는 종류(InterruptedBy)를 두고, ECoreState는 숫자를 명시해 이름표로만 씀(AIDef 에셋 값 유지). 기본 층 판별은 Kind == Base, 같은 프레임 미룬 요청은 먼저 든 요청을 새 요청이 끊을 수 있을 때만 바꿈, AI 코어 배열은 Dictionary로. 실제로 요청되는 코어(돌진·공격·대시·피격·사망) × 모든 코어 조합의 끊기 결과가 예전과 같음을 표로 대조. 컴파일 0 오류, 플레이 확인은 대장.
-- ECoreKind Base를 Mode로 이름을 바꾸고(몸을 묶지 않고 이동 애니만 쓰며 다음 행동을 고르는 자리, 행동이 끝나면 돌아오는 곳), 포효·쓰러짐·숨기(Roar·Down·Burrow)의 Kind를 Action으로 옮김. 기준은 전용 클립·정해진 움직임으로 몸을 묶는 동작인지. InterruptedBy는 그대로라 끊기 결과는 같고, 복귀점(m_Return)이 이 셋을 기록하지 않게 된 것만 다름: 셋 다 끝나면 스스로 추적으로 가서 평소 흐름은 같음. 숨기 중 예약 공격이 끼어든 드문 경우만 공격 뒤 숨기 대신 피격 전 모드 코어로 돌아감. 컴파일 0 오류, 플레이 확인은 대장. Burrow InterruptedBy Hit|Dead
