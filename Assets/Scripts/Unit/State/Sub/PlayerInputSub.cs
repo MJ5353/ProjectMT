@@ -70,22 +70,22 @@ public class PlayerInputSub : SubState
     // 대기 중엔 바로, 공격 중엔 판정 시작 뒤 누른 것만 다음 타로 예약한다. 내는 건 서브 Tick 뒤 StateFeature가 한다
     private void UpdateAttackInput(AttackSpec pressedAttack)
     {
-        StateFeature state = Owner.StateF;
+        StateFeature stateF = Owner.StateF;
+        bool canBuffer = stateF.IsIdle || m_Rush.IsApproaching || m_Rush.IsFinishWindow || 
+                         (stateF.Current == ECoreState.Attack && stateF.Attack.CanBufferNext);
         
-        // 러시 막타 구간의 클릭은 베기 초반이라도 막타로 예약한다(한 번 누른 막타가 버려지지 않게)
-        bool canBuffer = state.IsIdle || m_Rush.IsFinishWindow || (state.Current == ECoreState.Attack && state.Attack.CanBufferNext);
         if (pressedAttack != null && canBuffer)
         {
-            state.ReserveAttack(pressedAttack, Vector3.zero);
+            stateF.ReserveAttack(pressedAttack, Vector3.zero);
             m_Rush.OnQueued(pressedAttack);
         }
 
         // 이번 프레임에 나갈 수 있을 때만 조준을 잰다(낼 때 한 번). 러시 돌진 중에는 예약만 해 두고 도착한 뒤 낸다
-        AttackSpec reserved = state.ReservedAttack;
-        if (reserved == null || m_Rush.IsApproaching || state.CanRequest(state.Attack) == false)
+        AttackSpec reserved = stateF.ReservedAttack;
+        if (reserved == null || m_Rush.IsApproaching || stateF.CanRequest(stateF.Attack) == false)
             return;
 
-        state.ReserveAttack(reserved, FindAimDirection());
+        stateF.ReserveAttack(reserved, FindAimDirection());
     }
 
     // get ---
