@@ -6,7 +6,7 @@ using UnityEngine;
 // 플레이어와 몬스터가 같이 쓰는 유닛 하나. 부품(Feature 목록) · 상태(StateFeature: 코어·서브) · 판단(UnitBrain)으로 이뤄진다.
 // 무엇을 붙일지·팀·판단 종류는 Def가 정한다(UnitDef.SetFeatures·CreateBrain·Team). 그래서 컨트롤러는 이 클래스 하나다.
 // 조립 순서: 공통 부품 → 상태 → Def별 부품(Def.SetFeatures) → 판단(Def.CreateBrain).
-// 매 프레임 순서는 Tick 한 곳에 적는다: 부품 Tick → 상태(서브 → 코어) → 판단 → 부품 LateTick(이동). 호출은 판단 → 상태 → 부품 방향으로만
+// 매 프레임 순서는 Tick 한 곳에 적는다: 부품 Tick → 상태(코어 → 서브 → 요청 정리) → 판단 → 부품 LateTick(이동). 호출은 판단 → 상태 → 부품 방향으로만
 // 피격·사망은 여기서 상태(RequestHit·RequestDead)에 바로 넘기고, 그 뒤 할 일은 판단 쪽 훅이 정한다.
 // 프리팹은 몸(UnitProperty)만 갖고, Def는 스폰 때 UnitFactory가 OnSpawn으로 넘긴다(같은 몸에 다른 Def 가능).
 // UnitProperty 참조는 에디터 메뉴(BattleSetup)가 프리팹을 만들 때 채운다
@@ -17,7 +17,7 @@ public class UnitController : PoolableMono
 
     // core
     private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
-    public BrainBase BrainBase { get; private set; }            // 판단(플레이어 입력·AI)
+    public BrainBase BrainBase { get; private set; }            // 판단(AI). 플레이어는 null(입력은 서브 PlayerInputSub). BrainBase는 묶음 5에서 사라진다
     public int UnitID { get; private set; }                     // UnitService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
     public UnitDef Def { get; private set; }                    // 수치 데이터(PlayerDef·MonsterDef). OnSpawn에서 받는다
 
@@ -110,7 +110,7 @@ public class UnitController : PoolableMono
         }
 
         StateF.Tick(deltaTime);
-        BrainBase.Tick(deltaTime);
+        BrainBase?.Tick(deltaTime);
 
         foreach (var feature in m_ListFeature)
         {
@@ -173,7 +173,7 @@ public class UnitController : PoolableMono
         }
 
         StateF.Reset();
-        BrainBase.Reset();
+        BrainBase?.Reset();
     }
 
     public void OnDespawn()
@@ -196,12 +196,12 @@ public class UnitController : PoolableMono
 
         PassiveF.OnHit(hit);
         StateF.OnHit(hit);
-        BrainBase.OnHit(hit);
+        BrainBase?.OnHit(hit);
         if (isFlinch)
             StateF.RequestHit();
     }
 
-    // 퍼펙트 닷지(PerfectDodgeFeature). 반격(러시)은 판단 쪽이 이어받는다
+    // 퍼펙트 닷지(PerfectDodgeFeature). 반격(러시)은 서브(PlayerInputSub)가 이어받는다
     private void OnPerfectDodged(HitParams hit)
     {
         if (IsDead)
@@ -209,14 +209,14 @@ public class UnitController : PoolableMono
 
         PassiveF.OnPerfectDodge(hit);
         StateF.OnPerfectDodge(hit);
-        BrainBase.OnPerfectDodge(hit);
+        BrainBase?.OnPerfectDodge(hit);
     }
 
     private void OnDied()
     {
         StateF.RequestDead();
         StateF.OnDied();
-        BrainBase.OnDied();
+        BrainBase?.OnDied();
     }
 
     // 체력을 채우고 사망에서 일으킨다. 잠깐 무적을 줘서 일어나자마자 맞지 않게 한다

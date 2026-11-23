@@ -214,3 +214,7 @@
 
 - 대장 지시로 AI가 복셀 README를 실행·출력·임포트 절차 중심으로 줄이고, 세 맵의 스폰 의도를 한 표로 통합함. Resources·DevDocs·도구 문서 위치를 실제 구성에 맞춰 안내하고 불필요한 진행 구획을 제거함.
 
+
+## 상태 묶음 2: 플레이어 판단 → 서브·코어
+
+- AI가 PlayerBrain을 PlayerInputSub(입력 서브)+FreeCore(기본 코어)로, PerfectDodgeRush를 RushSub(Timed 서브)+RushApproachCore(돌진 코어)로 옮기고 StateFeature에 공격 예약·서브 미룬 요청·기본 코어·Resume을 더함. 프레임 순서를 예전 판단 위치(코어 다음)에 맞춰 서브·요청 정리를 코어 Step 뒤에 두어 콤보·러시 막타·빠른 캔슬 타이밍을 유지함. 컴파일만 확인, 플레이 확인은 대장.

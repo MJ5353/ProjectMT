@@ -4,72 +4,55 @@ using UnityEngine.InputSystem;
 
 // ==================================================
 
-// 플레이어 판단(UnitBrain). 입력을 읽어 상태(StateFeature)에 요청만 한다.
+// 플레이어 입력(유닛 수명 서브, 플레이어만). 입력을 읽어 상태(StateFeature)에 요청·예약만 한다. 이동은 기본 코어(FreeCore)에 넘긴다.
 // 입력은 InputManager가 들고 있는 생성 클래스(InputSystem_Actions)의 Player 맵 Move·Attack·AttackUp·Dash를 쓴다.
 // 키 배치는 에셋에서 바꾼다(기본: 이동 WASD·방향키·왼스틱, 공격 클릭·스페이스·J·패드 A/X, 대시 Shift·패드 B).
 // 공격 버튼을 누르면 가까운 적 쪽으로 자동으로 돌아서 벤다(모바일 대비). 연타하면 Def.ComboStart부터 AttackSpec.Next 순서, 달리는 중이면 Def.RunAttack. 수치는 PlayerDef
+// 퍼펙트 닷지가 오면 러시(RushSub)를 시작하고, 러시 중엔 클릭을 러시 공격으로 바꾼다. 히트스톱(deltaTime 0)·멈춤 중엔 StateFeature가 Tick하지 않는다
 
-public class PlayerBrain : BrainBase
+public class PlayerInputSub : SubState
 {
-    private readonly PlayerDef m_Def;
-    private readonly PerfectDodgeRush m_Rush; // 퍼펙트 닷지 반격
-    private AttackSpec m_QueuedAttack; // 다음에 낼 공격. null이면 입력 없음
-    private float m_AttackHoldTime;    // 공격 버튼을 누르고 있는 시간
+    private const float AimInputMin = 0.01f;   // 이보다 작은 입력(제곱)은 방향 없음으로 본다
 
-    // Think에서 InputManager가 있는지 본 뒤에만 쓴다
+    private readonly PlayerDef m_Def;
+    private readonly FreeCore m_Free;           // 기본 코어. 이동 입력을 넘긴다
+    private readonly RushSub m_Rush;            // 퍼펙트 닷지 반격. 한 벌을 돌려 쓴다
+    private readonly TargetSelector m_TargetSelector; // 가까운 적 조준
+    private float m_AttackHoldTime;             // 공격 버튼을 누르고 있는 시간
+
     private static InputSystem_Actions.PlayerActions Actions => InputManager.Instance.Player;
 
-    public PerfectDodgeRush Rush => m_Rush; // HUD가 빈틈 타이머·단계를 읽는다
+    public override ESubLifetime Lifetime => ESubLifetime.Unit;
 
     // ------------------------------------------------
 
-    public PlayerBrain(UnitController owner, PlayerDef def) : base(owner)
+    public PlayerInputSub(UnitController owner, PlayerDef def, FreeCore free, RushSub rush) : base(owner)
     {
         m_Def = def;
-        m_Rush = new PerfectDodgeRush(owner, def, TargetSelector);
+        m_Free = free;
+        m_Rush = rush;
+        m_TargetSelector = new TargetSelector(owner);
     }
 
-    public override void Reset()
+    protected override void Enter()
     {
-        base.Reset();
-        m_Rush.Cancel();
-        m_QueuedAttack = null;
         m_AttackHoldTime = 0f;
     }
 
-    public override void Clear()
+    public override void Exit()
     {
-        m_Rush.Cancel();
-        base.Clear();
+        m_AttackHoldTime = 0f;
     }
 
     // 러시 중엔 다시 터질 일이 없다(러시 무적엔 판정 창이 없음)
-    public override void OnPerfectDodge(HitParams hit)
+    public override void OnPerfectDodge(in HitParams hit)
     {
-        if (IsStopped)
-            return;
-
         m_Rush.TryStart(hit.Attacker);
     }
 
-    protected override void OnStop()
+    // 러시(Timed 서브)는 이미 이번 프레임 Tick을 마쳤다
+    protected override void Tick(float deltaTime)
     {
-        m_Rush.Cancel();
-        m_QueuedAttack = null;
-    }
-
-    // 히트스톱 중(deltaTime 0)에는 입력을 받지 않는다
-    protected override void Think(float deltaTime)
-    {
-        if (deltaTime <= 0f)
-            return;
-
-        // 러시가 끝난 프레임에는 남은 러시 예약을 버린다
-        bool wasRush = m_Rush.IsActive;
-        m_Rush.Tick(deltaTime);
-        if (wasRush && m_Rush.IsActive == false)
-            m_QueuedAttack = null;
-
         // 러시 중에는 대시·길게 누르기 없이 클릭만 받는다
         AttackSpec pressedAttack = m_Rush.IsActive ? GetRushAttack() : GetPressedAttack(deltaTime);
         if (m_Rush.IsActive == false && Actions.Dash.WasPressedThisFrame() && Owner.StateF.RequestDash(GetDashDirection()))
@@ -78,40 +61,31 @@ public class PlayerBrain : BrainBase
         UpdateAttackInput(pressedAttack);
 
         // 러시 돌진 중에는 러시가 이동을 정한다
-        if (m_Rush.IsApproaching == false)
-            UpdateMoveInput();
+        if (m_Rush.IsApproaching == false && Owner.StateF.IsIdle)
+            m_Free.SetInput(GetMoveInput());
     }
 
     // ==================================================
 
-    // 대기 중엔 바로, 공격 중엔 판정 시작 뒤 누른 것만 다음 타로 예약한다. StateF가 끊기를 허락해도 보낸다
+    // 대기 중엔 바로, 공격 중엔 판정 시작 뒤 누른 것만 다음 타로 예약한다. 내는 건 서브 Tick 뒤 StateFeature가 한다
     private void UpdateAttackInput(AttackSpec pressedAttack)
     {
         StateFeature state = Owner.StateF;
+        
         // 러시 막타 구간의 클릭은 베기 초반이라도 막타로 예약한다(한 번 누른 막타가 버려지지 않게)
         bool canBuffer = state.IsIdle || m_Rush.IsFinishWindow || (state.Current == ECoreState.Attack && state.Attack.CanBufferNext);
         if (pressedAttack != null && canBuffer)
         {
-            m_QueuedAttack = pressedAttack;
+            state.ReserveAttack(pressedAttack, Vector3.zero);
             m_Rush.OnQueued(pressedAttack);
         }
 
-        // 러시 돌진 중에는 예약만 해 두고 도착한 뒤 낸다
-        if (m_QueuedAttack == null || m_Rush.IsApproaching || state.CanRequest(ECoreState.Attack) == false)
+        // 이번 프레임에 나갈 수 있을 때만 조준을 잰다(낼 때 한 번). 러시 돌진 중에는 예약만 해 두고 도착한 뒤 낸다
+        AttackSpec reserved = state.ReservedAttack;
+        if (reserved == null || m_Rush.IsApproaching || state.CanRequest(ECoreState.Attack) == false)
             return;
 
-        AttackSpec attack = m_QueuedAttack;
-        m_QueuedAttack = null;
-        state.RequestAttack(attack, FindAimDirection());
-    }
-
-    private void UpdateMoveInput()
-    {
-        Vector3 input = GetMoveInput();
-        float strength = Mathf.Clamp01(input.magnitude);
-        float speed = strength < 0.1f ? 0f : Owner.StatF.Get(EStatType.MoveSpeed, m_Def.MoveSpeed) * strength;
-        
-        Owner.StateF.SetMove(input, speed, strength >= m_Def.RunThreshold);
+        state.ReserveAttack(reserved, FindAimDirection());
     }
 
     // get ---
@@ -165,18 +139,18 @@ public class PlayerBrain : BrainBase
     {
         Vector2 raw = Actions.Move.ReadValue<Vector2>();
         Transform cameraTransform = CameraManager.Instance.MainTransform;
-        
+
         if (cameraTransform == null)
             return new Vector3(raw.x, 0f, raw.y);
 
         Vector3 forward = cameraTransform.forward;
         forward.y = 0f;
         forward.Normalize();
-        
+
         Vector3 right = cameraTransform.right;
         right.y = 0f;
         right.Normalize();
-        
+
         return forward * raw.y + right * raw.x;
     }
 
@@ -187,15 +161,15 @@ public class PlayerBrain : BrainBase
             return rushDirection;
 
         Vector3 input = GetMoveInput();
-        Vector3 fallback = input.sqrMagnitude > 0.01f ? input : Owner.transform.forward;
-        return TargetSelector.GetAimDirection(m_Def.AutoAimRange, fallback);
+        Vector3 fallback = input.sqrMagnitude > AimInputMin ? input : Owner.transform.forward;
+        return m_TargetSelector.GetAimDirection(m_Def.AutoAimRange, fallback);
     }
 
     // 입력 방향으로, 입력이 없으면 지금 앞으로
     private Vector3 GetDashDirection()
     {
         Vector3 input = GetMoveInput();
-        return input.sqrMagnitude > 0.01f ? input.normalized : Owner.transform.forward;
+        return input.sqrMagnitude > AimInputMin ? input.normalized : Owner.transform.forward;
     }
 
     // 누른 시간이 HoldTime을 넘은 그 프레임만 true. 떼면 다시 잰다
@@ -209,7 +183,7 @@ public class PlayerBrain : BrainBase
 
         float before = m_AttackHoldTime;
         m_AttackHoldTime += deltaTime;
-        
+
         return before < m_Def.HoldTime && m_AttackHoldTime >= m_Def.HoldTime;
     }
 

@@ -1,6 +1,6 @@
 // ==================================================
 
-// 입력 에셋(InputSystem_Actions)에서 생성한 C# 클래스 인스턴스를 하나만 들고 있다. 판단(PlayerBrain)·UI는 여기서 맵을 꺼내 쓴다.
+// 입력 에셋(InputSystem_Actions)에서 생성한 C# 클래스 인스턴스를 하나만 들고 있다. 플레이어 입력(PlayerInputSub)·UI는 여기서 맵을 꺼내 쓴다.
 // [Managers] 루트 아래에 있어 씬이 바뀌어도 남는다(SceneControllerBase가 Create).
 // !!) 프로젝트 전역 액션(InputSystem.actions)과는 별개의 사본이다. UI 입력 모듈은 전역 액션을 그대로 쓴다
 

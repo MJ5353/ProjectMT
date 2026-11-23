@@ -65,16 +65,18 @@ public readonly struct LootChanged
 {
 }
 
-// 퍼펙트 닷지로 러시가 시작됨. HUD가 어둡게·빈틈 타이머를 띄운다. 남은 시간·단계는 PlayerBrain.Rush에서 읽는다
+// 퍼펙트 닷지로 러시가 시작됨. HUD가 어둡게·빈틈 타이머를 띄운다. 남은 시간·단계는 Rush에서 읽는다(RushEnded까지 유효)
 public readonly struct RushStarted
 {
     public readonly UnitController Unit;
+    public readonly RushSub Rush;        // 도는 러시(단계·남은 시간·막타 구간)
     public readonly float Time;          // 빈틈 타이머 전체 길이
     public readonly float FinishWindow;  // 막타로 치는 마지막 구간
 
-    public RushStarted(UnitController unit, float time, float finishWindow)
+    public RushStarted(UnitController unit, RushSub rush, float time, float finishWindow)
     {
         Unit = unit;
+        Rush = rush;
         Time = time;
         FinishWindow = finishWindow;
     }

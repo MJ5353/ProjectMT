@@ -49,12 +49,18 @@ public class PlayerDef : UnitDef
 
     // ------------------------------------------------
 
-    // 대시·퍼펙트 닷지를 켜고 공격 끊기 시간을 넣는다. 몸 렌더러는 Player 레이어로 옮겨 가려지면 실루엣이 보이게 한다
+    // 대시·퍼펙트 닷지를 켜고 공격 끊기 시간을 넣는다. 입력은 서브(PlayerInputSub), 기본 코어는 FreeCore, 러시는 입력 서브가 들고 시작한다.
+    // 몸 렌더러는 Player 레이어로 옮겨 가려지면 실루엣이 보이게 한다
     public override void SetFeatures(UnitController unit)
     {
-        unit.StateF.EnableDash(Dash);
+        StateFeature state = unit.StateF;
+        state.EnableDash(Dash);
         unit.SetPerfectDodgeFeature(new PerfectDodgeFeature(unit, Dash.PerfectDodgeWindow));
-        unit.StateF.Attack.CancelDelay = CancelDelay;
+        state.Attack.CancelDelay = CancelDelay;
+
+        FreeCore free = new(unit, this);
+        state.SetDefaultCore(free);
+        state.AddSub(new PlayerInputSub(unit, this, free, new RushSub(unit, this, new RushApproachCore(unit))));
 
         int playerLayer = LayerMask.NameToLayer(GameLayers.Player);
         if (playerLayer < 0)
@@ -70,9 +76,9 @@ public class PlayerDef : UnitDef
         }
     }
 
-    // 판단은 입력
+    // 판단 없음: 입력은 서브(PlayerInputSub)가 맡는다. UnitController·UnitService는 null 판단을 건너뛴다(BrainBase는 묶음 5에서 사라진다)
     public override BrainBase CreateBrain(UnitController unit)
     {
-        return new PlayerBrain(unit, this);
+        return null;
     }
 }

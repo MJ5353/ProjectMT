@@ -74,7 +74,9 @@ public sealed class UnitService : ServiceBase
     {
         foreach (UnitController unit in m_ListUnit)
         {
-            unit.BrainBase.Stop();
+            // 판단이 없는 유닛(플레이어: 입력은 PlayerInputSub)은 상태만 멈춘다. 판단이 있으면 Stop 안에서 이미 멈췄다
+            unit.BrainBase?.Stop();
+            unit.StateF.Stop();
         }
     }
 
@@ -83,7 +85,8 @@ public sealed class UnitService : ServiceBase
     {
         foreach (UnitController unit in m_ListUnit)
         {
-            unit.BrainBase.Resume();
+            unit.BrainBase?.Resume();
+            unit.StateF.Resume();
         }
     }
 

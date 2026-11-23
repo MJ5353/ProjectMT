@@ -27,7 +27,7 @@ public class ScreenBattle_RushEffect : MonoBehaviour
     [SerializeField] private CanvasGroup m_FinishLabel = null;   // "막타!"
     [SerializeField] private CanvasGroup m_Banner = null;        // "퍼펙트 닷지!"
 
-    private PerfectDodgeRush m_Rush;   // 러시 중인 플레이어 것. 끝나면 null
+    private RushSub m_Rush;            // 러시 중인 플레이어 것(RushStarted.Rush). 끝나면 null
     private Transform m_Player;
     private float m_TotalTime;
     private float m_DimAlpha;          // 어둠 진하기 0~1(Define.Hud.RushDimAlpha를 곱하기 전)
@@ -165,10 +165,7 @@ public class ScreenBattle_RushEffect : MonoBehaviour
 
     private void OnRushStarted(RushStarted evt)
     {
-        if (evt.Unit.BrainBase is not PlayerBrain brain)
-            return;
-
-        m_Rush = brain.Rush;
+        m_Rush = evt.Rush;
         m_Player = evt.Unit.transform;
         m_TotalTime = Mathf.Max(evt.Time, 0.01f);
         m_FinishZone.anchorMax = new Vector2(Mathf.Clamp01(evt.FinishWindow / m_TotalTime), 1f);

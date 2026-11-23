@@ -64,6 +64,8 @@ public abstract class BrainBase
             return;
 
         IsStopped = false;
+        Owner.StateF.Resume();
+        
         OnResume();
     }
 

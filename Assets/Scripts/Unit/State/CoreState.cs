@@ -4,10 +4,11 @@
 public enum ECoreState
 {
     Move = 0,
-    Attack = 1,
-    Dash = 2,
-    Hit = 3,
-    Dead = 4,
+    Approach = 1,   // 러시 돌진(플레이어). 공격 예약을 막고 피격·사망에만 끊긴다
+    Attack = 2,
+    Dash = 3,
+    Hit = 4,
+    Dead = 5,
 }
 
 // ==================================================
@@ -22,7 +23,7 @@ public abstract class CoreState
 
     public abstract ECoreState Type { get; }
     public float Time { get; private set; }         // 코어를 시작하고 지난 시간
-    public virtual bool IsFinished => false;        // 끝나면 StateFeature가 이동(대기)으로 돌린다
+    public virtual bool IsFinished => false;        // 끝나면 StateFeature가 기본 코어로 돌린다
 
     // ------------------------------------------------
 
