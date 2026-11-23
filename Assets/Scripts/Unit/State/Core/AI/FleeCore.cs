@@ -12,7 +12,9 @@ public class FleeCore : AICore
 
     // ------------------------------------------------
 
-    public FleeCore(UnitController owner, AIDef def, TargetSenseSub sense) : base(owner, def, sense) { }
+    public const EAISub Needs = EAISub.TargetSense;   // 이 코어가 쓰는 서브. 조립(MonsterDef.SetAI)이 프리셋 코어들의 Needs를 모아 서브를 붙인다(AICore.TryGetNeeds)
+
+    public FleeCore(UnitController owner, AIDef def) : base(owner, def) { }
 
     protected override void Enter()
     {

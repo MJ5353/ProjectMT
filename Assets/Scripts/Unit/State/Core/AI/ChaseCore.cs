@@ -6,16 +6,14 @@ using UnityEngine;
 
 public class ChaseCore : AICore
 {
-    private readonly AttackPickerSub m_Picker;
 
     public override ECoreState Type => ECoreState.Chase;
 
     // ------------------------------------------------
 
-    public ChaseCore(UnitController owner, AIDef def, TargetSenseSub sense, AttackPickerSub picker) : base(owner, def, sense)
-    {
-        m_Picker = picker;
-    }
+    public const EAISub Needs = EAISub.TargetSense | EAISub.AttackPicker;   // 이 코어가 쓰는 서브. 조립(MonsterDef.SetAI)이 프리셋 코어들의 Needs를 모아 서브를 붙인다(AICore.TryGetNeeds)
+
+    public ChaseCore(UnitController owner, AIDef def) : base(owner, def) { }
 
     protected override void Decide(float deltaTime)
     {
@@ -29,8 +27,8 @@ public class ChaseCore : AICore
         }
 
         // 예고가 있으면 공격 코어가 움츠리며 대상 쪽으로 돈다
-        if (m_Picker.TryPick(distance) &&
-            Owner.StateF.RequestAttack(m_Picker.Current, Vector3.zero, Target.TargetTransform))
+        if (Picker.TryPick(distance) &&
+            Owner.StateF.RequestAttack(Picker.Current, Vector3.zero, Target.TargetTransform))
             return;
 
         // 정지 거리 안: 마주 보고 대기

@@ -15,6 +15,7 @@ public class RushApproachCore : CoreState
     private bool m_IsDone;
 
     public override ECoreState Type => ECoreState.Approach;
+    public override ECoreKind Kind => ECoreKind.Action;
     public override bool IsFinished => m_IsDone;
 
     // ------------------------------------------------
@@ -44,10 +45,7 @@ public class RushApproachCore : CoreState
         m_MaxTime = maxTime;
     }
 
-    public override bool CanInterruptBy(ECoreState next)
-    {
-        return next >= ECoreState.Hit;
-    }
+    public override ECoreKind InterruptedBy => ECoreKind.Hit | ECoreKind.Dead;
 
     // 요청한 프레임부터 달린다
     protected override void Enter()

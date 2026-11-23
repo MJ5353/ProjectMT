@@ -174,8 +174,7 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
 
     private static bool IsBoss(UnitController unit)
     {
-        AIDef ai = unit.Def.AI;
-        return ai != null && ai.Type == EAIType.Boss;
+        return unit.StateF.TryGetSub(out BossWatchSub _);
     }
 
     // 어그로가 끌린 첫 보스를 잡고, 죽거나 사라질 때까지 놓지 않는다

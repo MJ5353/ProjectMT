@@ -13,7 +13,9 @@ public class FollowCore : AICore
 
     // ------------------------------------------------
 
-    public FollowCore(UnitController owner, AIDef def) : base(owner, def, null) { }
+    public const EAISub Needs = EAISub.None;   // 이 코어가 쓰는 서브. 조립(MonsterDef.SetAI)이 프리셋 코어들의 Needs를 모아 서브를 붙인다(AICore.TryGetNeeds)
+
+    public FollowCore(UnitController owner, AIDef def) : base(owner, def) { }
 
     public void SetLeader(UnitController leader)
     {

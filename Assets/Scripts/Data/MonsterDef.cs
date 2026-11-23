@@ -11,6 +11,16 @@ using UnityEngine.Serialization;
 [CreateAssetMenu(menuName = "MushTaker/Data/Monster", fileName = "Monster_")]
 public class MonsterDef : UnitDef
 {
+    // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽는다. 구운 프리팹은 PrefabPath(ID와 같은 이름)에 둔다
+    public override string PrefabPath => CommonPath.MonsterDir + ID;
+    public bool IsPet => AI != null && AI.DefaultCore == ECoreState.Follow;
+    public override ETeam Team => IsPet ? ETeam.Player : ETeam.Monster;
+    public override bool IsUntargetable => IsPet;
+    
+    public IReadOnlyList<PartEntry> ListPart => m_ListPart;
+    public IReadOnlyList<DropEntry> ListDrop => m_ListDrop;
+    public IReadOnlyList<SkillDef> ListEnrageSkill => m_ListEnrageSkill;
+    
     // 몸 부위 하나에 나는 버섯. 스폰할 때마다 그 부위 소켓(UnitProperty.BonePart) 중 몇 개를 골라 꽂는다.
     // 내구도는 부위 단위라 꽂힌 버섯이 같이 깨진다. BattlePart None은 몸 어디든 나는 장식(소켓이 남는 곳)
     [Serializable]
@@ -105,14 +115,6 @@ public class MonsterDef : UnitDef
     }
 
     // ------------------------------------------------
-    
-    // 몸(프리팹)---  MonsterPrefabBuilder가 프리팹을 구울 때 읽는다. 구운 프리팹은 PrefabPath(ID와 같은 이름)에 둔다
-    public override string PrefabPath => CommonPath.MonsterDir + ID;
-
-    // 펫(AI 프리셋 Pet)은 플레이어 편이고, 노려지지도 맞지도 않는다
-    public bool IsPet => AI != null && AI.Type == EAIType.Pet;
-    public override ETeam Team => IsPet ? ETeam.Player : ETeam.Monster;
-    public override bool IsUntargetable => IsPet;
 
     [field: SerializeField, FormerlySerializedAs("m_ModelName")]
     public string ModelName { get; private set; } = null;    // Art/Voxel/Models 아래 FBX 이름. 비면 에셋 이름(Monster_Xxx)의 Xxx
@@ -133,13 +135,8 @@ public class MonsterDef : UnitDef
 
     [SerializeField] private List<DropEntry> m_ListDrop = new();
 
-    // 분노 --- 보스(AI 프리셋 Boss)가 분노(AIDef.EnrageHpRate)한 뒤에만 후보에 드는 공격. ListSkill에 없는 것을 둔다(애니메이터에 상태가 있어야 함)
+    // 분노 --- 보스(보스 감시 서브가 있는 AI 프리셋)가 분노(AIDef.EnrageHpRate)한 뒤에만 후보에 드는 공격. ListSkill에 없는 것을 둔다(애니메이터에 상태가 있어야 함)
     [SerializeField] private List<SkillDef> m_ListEnrageSkill = new();
-
-    // get ---
-    public IReadOnlyList<PartEntry> ListPart => m_ListPart;
-    public IReadOnlyList<DropEntry> ListDrop => m_ListDrop;
-    public IReadOnlyList<SkillDef> ListEnrageSkill => m_ListEnrageSkill;
 
     // ------------------------------------------------
 
@@ -157,14 +154,13 @@ public class MonsterDef : UnitDef
             unit.AddFeature(new DropFeature(unit, this));
 
         // 보스 몸은 Occluder 레이어로 옮긴다. 보스 뒤에 가려진 플레이어만 실루엣이 보인다
-        if (AI != null && AI.Type == EAIType.Boss)
+        if (AI != null && AI.HasSub(EAISub.BossWatch))
             SetBodyLayer(unit, GameLayers.Occluder);
 
         SetAI(unit);
     }
 
-    // AI 종류(AIDef.Type)별 코어·서브 묶음. 코어는 어느 종류에나 끼울 수 있다.
-    // 공통 대기(기본)·배회·추적 | Normal +도망 | Burrow +숨기 | Boss +포효·쓰러짐·보스 감시 | Pet은 따라가기(기본)만.
+    // AI 프리셋(AIDef)의 코어와, 그 코어들이 쓰는 서브(AIDef.Subs)를 붙인다. 코어가 생성자에서 서브를 찾으므로(StateF.TryGetSub) 서브가 먼저다.
     // 서브 등록 순서가 Tick 순서다: 공격 쿨 → 대상 감지 → 보스 감시(예전 AIBrain.Think 순서)
     private void SetAI(UnitController unit)
     {
@@ -178,45 +174,45 @@ public class MonsterDef : UnitDef
         StateFeature state = unit.StateF;
         state.EnableDespawnOnDead();
 
-        if (ai.Type == EAIType.Pet)
+        EAISub subs = ai.Subs;
+        TargetSenseSub sense = (subs & EAISub.TargetSense) != 0 ? new TargetSenseSub(unit, ai) : null;
+        
+        if ((subs & EAISub.AttackPicker) != 0)
+            state.AddSub(new AttackPickerSub(unit, this, ai.AttackCooldown, sense));
+
+        if (sense != null)
+            state.AddSub(sense);
+        
+        if ((subs & EAISub.BossWatch) != 0)
+            state.AddSub(new BossWatchSub(unit, ai, ListEnrageSkill));
+
+        foreach (ECoreState type in ai.ListCore)
         {
-            state.SetDefaultCore(state.AddCore(new FollowCore(unit, ai)));
-            return;
+            AICore core = CreateCore(type, unit, ai);
+            if (core != null)
+                state.AddCore(core);
         }
 
-        TargetSenseSub sense = new(unit, ai);
-        AttackPickerSub picker = new(unit, this, ai.AttackCooldown, sense);
-        state.AddSub(picker);
-        state.AddSub(sense);
+        state.SetDefaultCore(ai.DefaultCore);
+        state.SetAfterHitCore(ai.AfterHitCore);
+    }
 
-        state.SetDefaultCore(state.AddCore(new IdleCore(unit, ai, sense)));
-        state.AddCore(new WanderCore(unit, ai, sense));
-        state.AddCore(new ChaseCore(unit, ai, sense, picker));
-
-        switch (ai.Type)
+    private AICore CreateCore(ECoreState type, UnitController unit, AIDef ai)
+    {
+        switch (type)
         {
-            case EAIType.Burrow:
-            {
-                state.AddCore(new BurrowCore(unit, ai, sense));
-                state.SetAfterHitCore(ECoreState.Burrow);
-                break;
-            }
-            case EAIType.Boss:
-            {
-                BossWatchSub watch = new(unit, ai, ListEnrageSkill, picker, sense);
-                state.AddSub(watch);
-                state.AddCore(new RoarCore(unit, ai, sense, watch));
-                state.AddCore(new DownCore(unit, ai, sense));
-                state.SetAfterHitCore(ECoreState.Chase);
-                break;
-            }
-            default:
-            {
-                state.AddCore(new FleeCore(unit, ai, sense));
-                state.SetAfterHitCore(ai.FleeTime > 0f ? ECoreState.Flee : ECoreState.Chase);
-                break;
-            }
+            case ECoreState.Idle: return new IdleCore(unit, ai);
+            case ECoreState.Wander: return new WanderCore(unit, ai);
+            case ECoreState.Chase: return new ChaseCore(unit, ai);
+            case ECoreState.Flee: return new FleeCore(unit, ai);
+            case ECoreState.Follow: return new FollowCore(unit, ai);
+            case ECoreState.Burrow: return new BurrowCore(unit, ai);
+            case ECoreState.Roar: return new RoarCore(unit, ai);
+            case ECoreState.Down: return new DownCore(unit, ai);
         }
+
+        CLogger.Error(nameof(MonsterDef), $"{name}의 AI 프리셋 {ai.name}에 AI 코어가 아닌 {type}이 있어 건너뜁니다", unit);
+        return null;
     }
 
     private static void SetBodyLayer(UnitController unit, string layerName)
@@ -291,9 +287,7 @@ public class MonsterDef : UnitDef
             UnityEditor.Handles.Label(end + Vector3.up * shapeDef.Radius, $"{i}:{entry.BattlePart} {durability}");
         }
     }
-#endif
 
-#if UNITY_EDITOR
     // BattleSetup 메뉴가 만들 때만 쓴다
     public void EditorSetup(List<DropEntry> listDrop)
     {

@@ -4,10 +4,10 @@ using UnityEngine;
 
 // ==================================================
 
-// 상태(StateFeature). 코어 하나(CoreState: 몸을 차지하는 일, 끊기 우선순위)와 서브 여러 개(SubState: 함께 도는 일)를 든다.
+// 상태(StateFeature). 코어 하나(CoreState: 몸을 차지하는 일, 끊기 규칙)와 서브 여러 개(SubState: 함께 도는 일)를 든다.
 // 부품 목록이 아니라 주인이 직접 Tick한다(부품 Tick → 상태[코어 Step → 서브(Timed → Unit) → 요청 정리 → 코어 Think] → 부품 LateTick). Def.SetFeatures보다 먼저 만들어져 조건부 코어(대시)·기본 코어·AI 코어를 받는다.
 // 코어는 요청으로만 바뀌고, 행동(공격·대시 등)이 끝나면 마지막 기본 층 코어(플레이어 FreeCore, AI는 추적 등)로, 피격이 끝나면 피격 뒤 코어(SetAfterHitCore)로 간다.
-// 요청 정리: 서브가 미뤄 둔 요청(Request, 프레임에 가장 높은 우선순위 하나) → 예약 공격(ReserveAttack, 끊을 수 있게 되면 바로).
+// 요청 정리: 서브가 미뤄 둔 요청(Request, 프레임에 하나) → 예약 공격(ReserveAttack, 끊을 수 있게 되면 바로).
 // 서브·요청·Think를 코어 Step 다음에 두는 건 판단(AI·입력)이 코어 다음에 돌던 예전 순서 그대로라서다(새 코어는 그 프레임 Begin, 다음 프레임부터 Step)
 
 public class StateFeature : UnitFeature
@@ -21,16 +21,16 @@ public class StateFeature : UnitFeature
     private DashCore m_Dash;        // 대시를 쓰는 유닛만(EnableDash)
     private CoreState m_Default;    // 꺼낼 때·멈출 때 들어가는 코어. 플레이어 FreeCore, AI 대기(펫 따라가기). Def.SetFeatures가 정한다(SetDefaultCore)
     private CoreState m_Return;     // 행동이 끝나면 돌아갈 코어: 마지막 기본 층 코어(공격을 낸 추적 등)
-    private CoreState m_AfterHit;   // 피격이 끝나면 갈 코어(AI 종류별). 없으면 m_Return
+    private CoreState m_AfterHit;   // 피격이 끝나면 갈 코어(AIDef.AfterHitCore). 없으면 m_Return
     private CoreState m_Current;
-    private readonly CoreState[] m_ArrCore = new CoreState[Enum.GetValues(typeof(ECoreState)).Length]; // ChangeCore로 바꿀 AI 코어(AddCore)
+    private readonly Dictionary<ECoreState, CoreState> m_DicCore = new(); // ChangeCore로 바꿀 AI 코어(AddCore)
 
     // sub
     private readonly List<SubState> m_ListSub = new();
     private bool m_IsStopped;       // Stop ~ Resume. 서브가 빠져 있고 요청을 정리하지 않는다
 
     // request
-    private CoreState m_Deferred;           // 서브가 이번 프레임 미뤄 둔 요청(Z가장 높은 우선순위 하나)
+    private CoreState m_Deferred;           // 서브가 이번 프레임 미뤄 둔 요청 하나
     private AttackSpec m_ReservedAttack;    // 끊을 수 있게 되면 낼 공격 하나(다음 타 버퍼)
     private Vector3 m_ReservedDirection;
     private Transform m_ReservedFaceTarget;
@@ -42,6 +42,7 @@ public class StateFeature : UnitFeature
     public float TimeInAction => m_Current.Time;
     public bool IsIdle => m_Current == m_Default;           // 기본 코어에 있을 때
     public AttackCore Attack => m_Attack;     // 지금 공격(Spec)·다음 타 버퍼 가능 여부를 볼 때
+    public HitCore Hit => m_Hit;              // 피격 요청 가능 여부를 볼 때(CanRequest)
     public AttackSpec ComboNext => m_Attack.Spec?.NextAttack; // 마지막 공격의 콤보 다음 타(AttackSpec.Next). 없으면 null
     public AttackSpec ReservedAttack => m_ReservedAttack;  // 예약된 공격. 없으면 null
 
@@ -113,7 +114,7 @@ public class StateFeature : UnitFeature
     // 코어는 여기로만 바뀐다. 끊기 규칙(CanInterruptBy)을 통과해야 한다. 즉시 바꾼다(AI·피격·사망은 바로 결과가 필요하다)
     private bool RequestCore(CoreState next)
     {
-        if (m_Current.CanInterruptBy(next.Type) == false)
+        if (m_Current.CanInterruptBy(next) == false)
             return false;
 
         Change(next);
@@ -128,7 +129,7 @@ public class StateFeature : UnitFeature
         m_Current = next;
         m_Current.Begin();
 
-        if (next.Type < ECoreState.Approach)
+        if (next.Kind == ECoreKind.Base)
             m_Return = next;
 
         for (int i = 0; i < m_ListSub.Count; ++i)
@@ -142,7 +143,7 @@ public class StateFeature : UnitFeature
     // AI 코어 사이 이동(판단 코어가 스스로, 보스 감시가 행동이 없을 때). 끊기 규칙 없이 바로 바꾼다. 같은 코어면 다시 시작한다
     public void ChangeCore(ECoreState type)
     {
-        Change(m_ArrCore[(int)type]);
+        Change(GetCore(type));
     }
 
     // 하던 코어를 정리하고 기본 코어로. 사망은 그대로 둔다
@@ -187,15 +188,15 @@ public class StateFeature : UnitFeature
 
     // request ---
 
-    public bool CanRequest(ECoreState type)
+    public bool CanRequest(CoreState core)
     {
-        return m_Current.CanInterruptBy(type);
+        return m_Current.CanInterruptBy(core);
     }
 
     // direction이 0이면 지금 보는 방향 그대로. faceTarget이 있으면 예고(WindupTime) 동안 그쪽으로 돈다
     public bool RequestAttack(AttackSpec spec, Vector3 direction, Transform faceTarget = null)
     {
-        if (spec == null || CanRequest(ECoreState.Attack) == false)
+        if (spec == null || CanRequest(m_Attack) == false)
             return false;
 
         // 끊기 판단은 위에서 지금 공격 기준으로 끝냈다. Setup 뒤에 다시 물으면 새 Spec의 판정 시간으로 재서 거절되고, 도는 공격의 Spec만 바뀐 채 남는다
@@ -207,7 +208,7 @@ public class StateFeature : UnitFeature
 
     public bool RequestDash(Vector3 direction)
     {
-        if (m_Dash == null || m_Dash.IsReady == false || CanRequest(ECoreState.Dash) == false)
+        if (m_Dash == null || m_Dash.IsReady == false || CanRequest(m_Dash) == false)
             return false;
 
         m_Dash.Setup(direction);
@@ -224,11 +225,11 @@ public class StateFeature : UnitFeature
         RequestCore(m_Dead);
     }
 
-    // 서브용: 이번 프레임 요청을 미뤄 둔다. 같은 프레임엔 우선순위(ECoreState)가 가장 높은 것 하나만 남고, 서브 Tick 뒤에 끊기 규칙으로 정리한다.
+    // 서브용: 이번 프레임 요청을 미뤄 둔다. 같은 프레임엔 하나만 남는다(먼저 든 요청을 새 요청이 끊을 수 있을 때만 바꾼다). 서브 Tick 뒤에 끊기 규칙으로 정리한다.
     // 코어 설정(Setup)은 부르기 전에 서브가 한다
     public void Request(CoreState core)
     {
-        if (m_Deferred == null || core.Type > m_Deferred.Type)
+        if (m_Deferred == null || m_Deferred.CanInterruptBy(core))
             m_Deferred = core;
     }
 
@@ -261,17 +262,23 @@ public class StateFeature : UnitFeature
         m_Return = core;
     }
 
+    // 등록한 AI 코어(AddCore)를 기본으로(MonsterDef.SetAI)
+    public void SetDefaultCore(ECoreState type)
+    {
+        SetDefaultCore(GetCore(type));
+    }
+
     // ChangeCore로 바꿀 AI 코어 등록(MonsterDef.SetAI). 종류마다 하나
     public T AddCore<T>(T core) where T : CoreState
     {
-        m_ArrCore[(int)core.Type] = core;
+        m_DicCore[core.Type] = core;
         return core;
     }
 
     // 피격이 끝나면 갈 AI 코어(MonsterDef.SetAI). 정하지 않으면 피격 전 기본 층 코어로 돌아간다
     public void SetAfterHitCore(ECoreState type)
     {
-        m_AfterHit = m_ArrCore[(int)type];
+        m_AfterHit = GetCore(type);
     }
 
     // AI 유닛만(MonsterDef.SetAI). 죽으면 먼지를 내고 충돌을 끈 뒤 사라진다
@@ -303,7 +310,7 @@ public class StateFeature : UnitFeature
             RequestCore(next);
         }
 
-        if (m_ReservedAttack == null || CanRequest(ECoreState.Attack) == false)
+        if (m_ReservedAttack == null || CanRequest(m_Attack) == false)
             return;
 
         AttackSpec spec = m_ReservedAttack;
@@ -311,6 +318,13 @@ public class StateFeature : UnitFeature
         
         ClearReservedAttack();
         RequestAttack(spec, m_ReservedDirection, faceTarget);
+    }
+
+    // 등록하지 않은 종류면 null(AfterHitCore를 비워 둔 Move 등)
+    private CoreState GetCore(ECoreState type)
+    {
+        m_DicCore.TryGetValue(type, out CoreState core);
+        return core;
     }
 
     private CoreState GetNextCore()

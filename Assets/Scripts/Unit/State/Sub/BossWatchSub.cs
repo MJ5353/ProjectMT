@@ -19,14 +19,19 @@ public class BossWatchSub : SubState
 
     // ------------------------------------------------
 
-    // 부위(PartF)는 AI보다 먼저 붙는다(MonsterDef.SetFeatures)
-    public BossWatchSub(UnitController owner, AIDef def, IReadOnlyList<SkillDef> listEnrageSkill, AttackPickerSub picker, TargetSenseSub sense) : base(owner)
+    // 부위(PartF)는 AI보다, 대상 감지·공격 선택 서브는 이 서브보다 먼저 붙는다(MonsterDef.SetAI). 보스 감시를 쓰면 둘도 함께 붙는다(AICore.GetSubs)
+    public BossWatchSub(UnitController owner, AIDef def, IReadOnlyList<SkillDef> listEnrageSkill) : base(owner)
     {
         m_Def = def;
         m_ListEnrageSkill = listEnrageSkill;
-        m_Picker = picker;
 
         owner.PartF.Broken += OnPartBroken;
+        if (owner.StateF.TryGetSub(out TargetSenseSub sense) == false || owner.StateF.TryGetSub(out m_Picker) == false)
+        {
+            CLogger.Error(nameof(BossWatchSub), $"AI 프리셋 {def.name}에 보스 감시가 쓰는 대상 감지·공격 선택 서브가 없습니다", owner);
+            return;
+        }
+
         sense.Selector.Acquired += OnTargetAcquired;
     }
 

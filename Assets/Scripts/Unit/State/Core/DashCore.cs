@@ -14,6 +14,8 @@ public class DashCore : CoreState
     private float m_CurrentDuration;   // 이번 대시 시간(대시 거리 반영)
 
     public override ECoreState Type => ECoreState.Dash;
+    public override ECoreKind Kind => ECoreKind.Dash;
+    public override ECoreKind InterruptedBy => ECoreKind.Hit | ECoreKind.Dead;
     public override bool IsFinished => Time >= m_CurrentDuration;
     public bool IsReady => m_CooldownRemain <= 0f;
 

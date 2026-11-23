@@ -16,15 +16,13 @@ public class DeadCore : CoreState
     private bool m_IsCollisionOff;
 
     public override ECoreState Type => ECoreState.Dead;
+    public override ECoreKind Kind => ECoreKind.Dead;
 
     // ------------------------------------------------
 
     public DeadCore(UnitController owner) : base(owner) { }
 
-    public override bool CanInterruptBy(ECoreState next)
-    {
-        return false;
-    }
+    public override ECoreKind InterruptedBy => ECoreKind.None;
 
     protected override void Enter()
     {

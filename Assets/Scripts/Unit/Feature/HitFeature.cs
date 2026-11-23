@@ -170,7 +170,7 @@ public class HitFeature : UnitFeature
     // 지금 코어가 피격에 끊기지 않으면(쓰러짐·포효) 쌓지도 않는다. 넘으면 비운다
     private bool AddBreak(float breakPower)
     {
-        if (Owner.StateF.CanRequest(ECoreState.Hit) == false)
+        if (Owner.StateF.CanRequest(Owner.StateF.Hit) == false)
             return false;
 
         m_BreakStack += breakPower;

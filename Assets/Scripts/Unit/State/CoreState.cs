@@ -1,23 +1,37 @@
+using System;
+
 // ==================================================
 
-// 코어 상태 종류. 숫자가 우선순위다(높을수록 지금 코어를 끊기 쉽다)
-// Move~Down은 기본 층(이동·판단): 서로는 끊기 규칙 없이 바뀌고(AI 코어는 StateFeature.ChangeCore), 행동(Approach~)이 끝나면 마지막 기본 층 코어로 돌아간다
+// 코어 상태 이름. 숫자는 이름표일 뿐 순서·우선순위가 아니다(AIDef 에셋에 숫자로 저장된다). 새 값은 맨 뒤에만 붙이고, 순서를 바꾸거나 숫자를 다시 쓰지 않는다.
+// 끊기 규칙은 코어마다 Kind·InterruptedBy로 정한다(CoreState)
 public enum ECoreState
 {
     Move = 0,       // 플레이어 자유 이동(FreeCore)
-    Idle,           // 이하 AI 코어(판단 + 이동)
-    Wander,
-    Chase,
-    Flee,
-    Follow,         // 주인 따라가기(Pet)
-    Burrow,         // 땅속에 숨었다 나오기(Burrow)
-    Roar,           // 포효(Boss). 피격에 끊기지 않는다
-    Down,           // 쓰러짐(Boss). 피격에 끊기지 않는다
-    Approach,       // 러시 돌진(플레이어). 공격 예약을 막고 피격·사망에만 끊긴다
-    Attack,
-    Dash,
-    Hit,
-    Dead,
+    Idle = 1,       // 이하 AI 코어(판단 + 이동)
+    Wander = 2,
+    Chase = 3,
+    Flee = 4,
+    Follow = 5,     // 주인 따라가기(Pet)
+    Burrow = 6,     // 땅속에 숨었다 나오기(Burrow)
+    Roar = 7,       // 포효(Boss). 사망에만 끊긴다
+    Down = 8,       // 쓰러짐(Boss). 사망에만 끊긴다
+    Approach = 9,   // 러시 돌진(플레이어). 공격 예약을 막고 피격·사망에만 끊긴다
+    Attack = 10,
+    Dash = 11,
+    Hit = 12,
+    Dead = 13,
+}
+
+// 코어 종류(끊기 규칙용). 코어는 Kind 하나를 갖고, 자기를 끊을 수 있는 종류를 InterruptedBy에 모아 둔다
+[Flags]
+public enum ECoreKind
+{
+    None = 0,
+    Base = 1 << 0,      // 기본 층(이동·판단: Move~Down). 행동이 끝나면 마지막 기본 층 코어로 돌아간다. AI 코어끼리는 끊기 규칙 없이 바뀐다(StateFeature.ChangeCore)
+    Action = 1 << 1,    // 행동(공격·러시 돌진)
+    Dash = 1 << 2,
+    Hit = 1 << 3,
+    Dead = 1 << 4,
 }
 
 // ==================================================
@@ -29,9 +43,11 @@ public enum ECoreState
 public abstract class CoreState
 {
     protected UnitController Owner { get; }
+    public float Time { get; private set; }         // 코어를 시작하고 지난 시간
 
     public abstract ECoreState Type { get; }
-    public float Time { get; private set; }         // 코어를 시작하고 지난 시간
+    public virtual ECoreKind Kind => ECoreKind.Base;
+    public virtual ECoreKind InterruptedBy => ECoreKind.Action | ECoreKind.Dash | ECoreKind.Hit | ECoreKind.Dead; // 이 코어를 끊을 수 있는 종류. 기본 층은 행동·대시·피격·사망 모두에 끊긴다
     public virtual bool IsFinished => false;        // 끝나면 StateFeature가 기본 코어로 돌린다
 
     // ------------------------------------------------
@@ -53,10 +69,10 @@ public abstract class CoreState
         Update(deltaTime);
     }
 
-    // 기본: 우선순위가 더 높은 코어만 끊을 수 있다
-    public virtual bool CanInterruptBy(ECoreState next)
+    // 기본: next의 종류가 InterruptedBy에 있으면 끊을 수 있다
+    public virtual bool CanInterruptBy(CoreState next)
     {
-        return next > Type;
+        return (InterruptedBy & next.Kind) != 0;
     }
 
     // virtual ---

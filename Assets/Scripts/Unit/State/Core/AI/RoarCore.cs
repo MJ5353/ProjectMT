@@ -9,22 +9,17 @@ public class RoarCore : AICore
 {
     private const string RoarClip = "Roar";
 
-    private readonly BossWatchSub m_Watch;
     private float m_Length;
 
     public override ECoreState Type => ECoreState.Roar;
 
     // ------------------------------------------------
 
-    public RoarCore(UnitController owner, AIDef def, TargetSenseSub sense, BossWatchSub watch) : base(owner, def, sense)
-    {
-        m_Watch = watch;
-    }
+    public const EAISub Needs = EAISub.TargetSense | EAISub.BossWatch;   // 이 코어가 쓰는 서브. 조립(MonsterDef.SetAI)이 프리셋 코어들의 Needs를 모아 서브를 붙인다(AICore.TryGetNeeds)
 
-    public override bool CanInterruptBy(ECoreState next)
-    {
-        return next == ECoreState.Dead;
-    }
+    public RoarCore(UnitController owner, AIDef def) : base(owner, def) { }
+
+    public override ECoreKind InterruptedBy => ECoreKind.Dead;
 
     protected override void Enter()
     {
@@ -35,7 +30,7 @@ public class RoarCore : AICore
 
         DefineDef define = GameManager.Instance.Define;
         CameraManager.Instance.Shake(define.Camera.RoarShake, define.Camera.RoarShakeTime);
-        SEventManager.Publish(new BossRoared(Owner, m_Watch.IsEnraged));
+        SEventManager.Publish(new BossRoared(Owner, Watch.IsEnraged));
     }
 
     protected override void Decide(float deltaTime)

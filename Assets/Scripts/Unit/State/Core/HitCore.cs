@@ -7,6 +7,7 @@ public class HitCore : CoreState
     private readonly float m_StunTime;   // UnitDef.HitStunTime
 
     public override ECoreState Type => ECoreState.Hit;
+    public override ECoreKind Kind => ECoreKind.Hit;
     public override bool IsFinished => Time >= m_StunTime;
 
     // ------------------------------------------------
@@ -16,10 +17,7 @@ public class HitCore : CoreState
         m_StunTime = stunTime;
     }
 
-    public override bool CanInterruptBy(ECoreState next)
-    {
-        return next >= ECoreState.Hit;
-    }
+    public override ECoreKind InterruptedBy => ECoreKind.Hit | ECoreKind.Dead;
 
     protected override void Enter()
     {

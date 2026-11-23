@@ -82,7 +82,7 @@ public class PlayerInputSub : SubState
 
         // 이번 프레임에 나갈 수 있을 때만 조준을 잰다(낼 때 한 번). 러시 돌진 중에는 예약만 해 두고 도착한 뒤 낸다
         AttackSpec reserved = state.ReservedAttack;
-        if (reserved == null || m_Rush.IsApproaching || state.CanRequest(ECoreState.Attack) == false)
+        if (reserved == null || m_Rush.IsApproaching || state.CanRequest(state.Attack) == false)
             return;
 
         state.ReserveAttack(reserved, FindAimDirection());

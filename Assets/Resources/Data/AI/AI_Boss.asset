@@ -16,7 +16,14 @@ MonoBehaviour:
   <ID>k__BackingField: AI_Boss
   <Description>k__BackingField: "\uBCF4\uC2A4: \uD3EC\uD6A8\u00B7\uBD80\uC704 \uD30C\uAD34 \uC4F0\uB7EC\uC9D0\u00B7\uBD84\uB178"
   <Icon>k__BackingField: {fileID: 0}
-  <Type>k__BackingField: 2
+  m_ListCore:
+  - 1
+  - 2
+  - 3
+  - 7
+  - 8
+  <DefaultCore>k__BackingField: 1
+  <AfterHitCore>k__BackingField: 3
   <WanderSpeedRate>k__BackingField: 0.4
   <FleeSpeed>k__BackingField: 4
   <SightRange>k__BackingField: 14

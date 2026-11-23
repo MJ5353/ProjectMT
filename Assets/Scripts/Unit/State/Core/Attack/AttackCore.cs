@@ -28,6 +28,8 @@ public class AttackCore : CoreState
     public bool IsQuickCancel { get; set; } // 켜져 있으면 CancelDelay를 무시하고 판정 끝나자마자 끊는다(StateFeature.SetQuickCancel)
 
     public override ECoreState Type => ECoreState.Attack;
+    public override ECoreKind Kind => ECoreKind.Action;
+    public override ECoreKind InterruptedBy => ECoreKind.Hit | ECoreKind.Dead; // 다음 공격·대시는 CanInterruptBy에서 따로 본다
     public override bool IsFinished => m_IsStarted && AttackTime >= m_Length;
     
     public bool CanBufferNext => m_IsStarted && AttackTime >= Spec.HitTime; // 판정 시작 뒤에 누른 것만 다음 타로 받는다(너무 이른 연타는 무시)
@@ -86,9 +88,9 @@ public class AttackCore : CoreState
 
     // ---
     
-    public override bool CanInterruptBy(ECoreState next)
+    public override bool CanInterruptBy(CoreState next)
     {
-        switch (next)
+        switch (next.Type)
         {
             case ECoreState.Attack:
                 return IsHitDone && AttackTime >= Spec.HitEndTime + (IsQuickCancel ? 0f : CancelDelay);
