@@ -1,14 +1,10 @@
 # 유닛 구조 설계
 
-최종 수정: 26.11.19
+최종 수정: 26.11.23
 
 전투 유닛(플레이어·몬스터·보스·동료)을 어떻게 나누는지와 그 이유를 적는다. 코드를 읽기 전에 이 문서로 큰 그림을 잡는다.
 
-## 1. 다음 단위 작업
-
-Unity에서 컴파일 확인 후 플레이 확인: 프리팹 16개의 컨트롤러가 `UnitController`로 붙어 Property 참조가 유지되는지, PlayerDef·MonsterDef의 `Prefab`이 `UnitDef`로 옮겨진 뒤에도 연결돼 있는지, 플레이어 대시·몬스터 부위·드롭·보스 포효/다운이 그대로 도는지.
-
-## 2. 전체 작업 TODO 및 진행상황
+## 1. 전체 작업 TODO 및 진행상황
 
 ### 진행
 
@@ -17,8 +13,8 @@ Unity에서 컴파일 확인 후 플레이 확인: 프리팹 16개의 컨트롤�
 - [x] AI를 `AIBrain` 하나 + `AIStateBase` 하나 + `AIDef` 프리셋으로(몬스터·보스·동료 공통)(26.11.19)
 - [x] 사망 보상 `DropFeature`(`HealthF.Died`), 숨기 `HitF.IsHidden`(26.11.19)
 - [x] 명명 정리: `UnitExecutor`·`UnitBrain`·`TargetSelector`·`AttackSelector`·`UnitService`·`UnitFactory`·`UnitID`(26.11.19)
-- [x] 컨트롤러 합치기: `PlayerController`·`MonsterController` 삭제, `UnitController` 하나 + Def 가상 함수(26.11.19, 컴파일 전)
-- [x] Def 런타임 할당: 프리팹의 `m_Def` 제거, `UnitFactory.Create(def, …)`가 `OnSpawn(unitID, def)`로 넘김(26.11.19, 컴파일 전)
+- [x] 컨트롤러 합치기: `PlayerController`·`MonsterController` 삭제, `UnitController` 하나 + Def 가상 함수(26.11.19)
+- [x] Def 런타임 할당: 프리팹의 `m_Def` 제거, `UnitFactory.Create(def, …)`가 `OnSpawn(unitID, def)`로 넘김(26.11.19)
 
 ### 보류
 
@@ -26,7 +22,7 @@ Unity에서 컴파일 확인 후 플레이 확인: 프리팹 16개의 컨트롤�
 - [ ] 판정 모양에 부위 번호 대신 부위 종류(`EBattlePartType`)를 달고 `PartFeature`가 칸을 찾게 하기. 이펙트 작업 뒤 진행
 - [ ] 동료 팀: 지금 `MonsterDef.Team`은 Monster라 펫도 몬스터 팀이다. 동료가 실제로 싸울 때 Def에서 팀을 정한다
 
-## 3. 상세 정보
+## 2. 상세 정보
 
 ### 세 층: 부품 · 실행기 · 판단
 
@@ -99,7 +95,7 @@ Unity에서 컴파일 확인 후 플레이 확인: 프리팹 16개의 컨트롤�
    - 경직: `HitFeature`가 `AttackSpec.Break`를 쌓아 `UnitDef.BreakImmune`을 넘고 판단의 `CanFlinch`가 true일 때만 넉백·피격 행동(공격 끊김 포함). 아니면 데미지·번쩍·히트스톱만. `BreakResetTime` 동안 안 맞으면 누적이 사라진다. AIBrain은 쓰러짐·포효 중 `CanFlinch` false.
 4. 공격이 끝나면 `UnitExecutor.Ended` → `AIBrain`이 쿨을 걸고, `ComboNext`가 있으면 다음 타를 요청한다.
 
-## 4. 결정된 사안
+## 3. 결정된 사안
 
 | 날짜 | 결정 | 이유 |
 |---|---|---|
