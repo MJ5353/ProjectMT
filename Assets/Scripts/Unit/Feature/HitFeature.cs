@@ -153,7 +153,7 @@ public class HitFeature : UnitFeature
             bodyRate = bodyDamageRate;
         }
 
-        int bodyDamage = DamageCalculator.GetTaken(Owner, hit.Damage, bodyRate);
+        int bodyDamage = DamageCalculator.GetTaken(Owner, hit, bodyRate);
 
         bool isFlinch = AddBreak(hit.Break);
         Owner.HealthF.TakeDamage(bodyDamage);

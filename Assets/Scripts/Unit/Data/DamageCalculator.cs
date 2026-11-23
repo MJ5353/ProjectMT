@@ -33,14 +33,15 @@ public static class DamageCalculator
     // 맞는 쪽 ---
 
     // 부위를 맞았으면 몸 피해 배율(bodyRate)을 먼저 곱하고(0이 되면 막힌 것), 1 - (방어 + 패시브 순간 방어)를 곱한다
-    public static int GetTaken(UnitController target, int damage, float bodyRate = 1f)
+    // hit은 Taken 패시브 조건·효과가 읽는다(때린 쪽·공격 등)
+    public static int GetTaken(UnitController target, in HitParams hit, float bodyRate = 1f)
     {
-        damage = Mathf.RoundToInt(damage * bodyRate);
+        int damage = Mathf.RoundToInt(hit.Damage * bodyRate);
         if (damage <= 0)
             return damage;
 
         float rate = target.StatF.GetReduceRate(EStatType.Defense, 0f)
-                     - target.PassiveF.GetRate(EPassiveTrigger.Taken, PassiveContext.S_Taken(target), EStatType.Defense);
+                     - target.PassiveF.GetRate(EPassiveTrigger.Taken, PassiveContext.S_Taken(target, hit), EStatType.Defense);
 
         return Scale(damage, Mathf.Max(MinTakenRate, rate));
     }
