@@ -33,7 +33,17 @@ public class SaveService
         catch (Exception e)
         {
             CLogger.Error("SaveService", $"세이브를 읽지 못해 새로 시작합니다: {e.Message}");
-            File.Copy(m_FilePath, m_FilePath + ".corrupt", true);
+
+            // 깨진 파일 보관은 덤이다. 파일이 잠겨 복사가 실패해도 시작은 막지 않는다
+            try
+            {
+                File.Copy(m_FilePath, m_FilePath + ".corrupt", true);
+            }
+            catch (Exception copyException)
+            {
+                CLogger.Error("SaveService", $"깨진 세이브를 .corrupt로 옮기지 못했습니다: {copyException.Message}");
+            }
+
             return new SaveData();
         }
     }

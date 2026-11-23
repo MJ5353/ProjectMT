@@ -219,3 +219,9 @@
 
 - 대장 지시로 MushTaker 메뉴에서 데이터 편집기·Define 편집기가 맨 위에 오도록 우선순위를 앞당기고 나머지와 구분선을 둠.
 - UI 골라 다시 만들기 창을 Screen·Popup·Overlay·Component 묶음으로 나눔. 묶음은 프리팹 이름 머리로 정하고(부품은 소속을 따름), 묶음별 접기·전체 선택을 둠. 만드는 순서는 그대로 GetPrefabs를 따름.
+
+## 성능·구조 마무리 점검
+
+- AI가 하루치 변경을 다시 리뷰. 대장은 실제 비용·버그·혼동이 없는 지적을 걸러내고, 그중 고칠 것만 골라 지시함.
+- 남은 매 프레임 처리·작은 할당을 줄임: 보스 바를 이벤트만 받는 ScreenBattle_BossBar로 분리, 머리 위 바·대상 탐색·스킬 연계 표시를 필요할 때만 돌게 하고, 목록 갱신이 LINQ로 걸리던 E_GetOrDefault에 IReadOnlyList용을 추가함.
+- 세이브 쓰기와 깨진 세이브 보관을 try로 감싸고, ChangeCore는 프리셋에 없는 코어면 로그만 남기게 함. Move·Approach는 Free·RushApproach로 이름을 바꾸고, 도망 몹 프리셋 AI_Flee를 추가함.
