@@ -12,7 +12,7 @@
 |---|---|
 | `GameManager` | `SceneDef`·`ESceneType`으로 씬 전환, 로딩 동안 `UIManager` 호출, 전역 데이터 보유 |
 | `FlowManager` | 현재 Flow와 공용 `EffectService → UIReuseService → PopupService` 보유, 연결·정리·Tick 전달 |
-| `FlowBase` 계열 | 씬 전용 서비스와 진행 상태. 전투는 Unit·HitStop·Battle 서비스를 보유 |
+| `FlowBase` 계열 | 씬 전용 서비스와 진행 상태. 전투는 Unit·HitStop·Spawn·Loot·Battle 서비스를 보유 |
 | `SceneControllerBase` | 매니저·UI 루트·카메라 등록, `CreateFlow`로 Flow 생성, 앱 일시정지·포커스 전달 |
 | `UIManager` | 씬 UI 루트, `OverlayLoading`, 버튼 클릭 연출. 씬 전환에도 유지 |
 | `RootManager` | [Managers] 루트 오브젝트 관리 |
@@ -25,7 +25,19 @@
 - `FlowBase`: 생성자에서 전용 서비스를 등록하고 `Begin → Tick → End`로 관리한다. Init은 등록 순서, Clear는 역순이며 자식은 `OnBegin·OnEnd`를 구현한다.
 - `FlowBase<TState>`: StateMachine과 상태 전환·경과 시간을 제공한다. Title·Lobby처럼 상태가 없으면 FlowBase를 직접 상속한다.
 - `FlowStateBase<TFlow>`: 주인 Flow를 받아 `Enter·Update·Exit`를 구현한다.
-- 서비스 Tick은 공통으로 돌고, 밤 시간·리스폰 등 진행에 따른 일은 상태에서 호출한다. BattleService는 스폰·시간·픽업·보상 처리를 맡고 사망은 `PlayerDied`로 알린다.
+- 서비스 Tick은 공통으로 돌고, 밤 시간·리스폰 등 진행에 따른 일은 상태에서 호출한다.
+
+### 전투 서비스
+
+| 서비스 | 맡는 일 |
+|---|---|
+| `UnitService` | 유닛 목록·플레이어, 생성·삭제와 위치 조회 |
+| `SpawnService` | 맵 슬롯에서 플레이어(정비 적용)·몬스터(지역 배율) 스폰, 빈 슬롯 리스폰 |
+| `LootService` | 땅 위 픽업, 주운 버섯·재화, 쓰러질 때 떨구기, 끝난 이유별 보상 정산 |
+| `BattleService` | 지역, 밤 시간, 쓰러짐(`PlayerDied`)·부활, 클리어 표시와 저장 |
+
+- Spawn·Loot·Battle은 서로 부르지 않는다. 순서가 필요한 일은 상태가 차례로 부른다(Start: 스폰 → 플레이어 구독, Result: 정산 → 저장).
+- UnitService는 바탕이라 다른 서비스가 써도 된다. 그래서 먼저 등록하고, Clear는 역순이라 맨 나중에 비운다.
 
 ### 전투 상태와 팝업
 
@@ -62,6 +74,7 @@
 
 - **26.11.21:** 11/17의 ‘Flow 계층 없음’을 바꿨다. 진행 단계가 늘면서 씬 상태와 전투 상태가 중복돼, 씬 전환·진행·서비스 소유권을 분리하기로 했다.
 - **26.11.22:** 로딩·클릭 연출은 UIManager, 진행은 Flow가 맡도록 구분했다. 다시 하기는 맵·공용 UI·Flow 인스턴스를 재사용해 재로드와 재할당을 줄이기로 했다.
+- **26.11.23:** 스폰·픽업·보상까지 들고 비대해진 BattleService를 Spawn·Loot·Battle 셋으로 나눴다. 서비스 이름만 보고 고칠 곳을 찾을 수 있게 하기 위해서다. 플레이어 참조는 UnitService 하나로 통일했다.
 
 ## 3. 미정
 

@@ -123,7 +123,7 @@ public class DebugPanel : MonoBehaviour
             distance += controller.radius;
 
         Vector3 forward = Vector3.ProjectOnPlane(player.forward, Vector3.up).normalized;
-        Vector3 position = player.position + forward * distance + Vector3.up * BattleService.SpawnLift;
+        Vector3 position = player.position + forward * distance + Vector3.up * SpawnService.SpawnLift;
         
         units.Spawn(def, position, Quaternion.LookRotation(-forward, Vector3.up));
     }
@@ -219,7 +219,7 @@ public class DebugPanel : MonoBehaviour
             MushroomDef def = listMushroom[Random.Range(0, listMushroom.Count)];
             EFreshness freshness = CRandom.Chance(0.5f) ? EFreshness.High : EFreshness.Low;
             
-            SEventManager.Publish(new LootPicked(def.ID, 1, freshness, BattleService.RollRarity()));
+            SEventManager.Publish(new LootPicked(def.ID, 1, freshness, LootService.RollRarity()));
         }
     }
 

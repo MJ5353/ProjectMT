@@ -32,7 +32,7 @@ public class ScreenBattle_SkillChain : MonoBehaviour
 
     private void Update()
     {
-        UnitController player = FlowManager.Instance.Battle?.BattleS.Player;
+        UnitController player = FlowManager.Instance.Battle?.UnitS.Player;
         if (player == null || player.Def is not PlayerDef def)
             return;
 

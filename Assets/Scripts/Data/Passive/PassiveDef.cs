@@ -11,7 +11,7 @@ public enum EPassiveTrigger
     Attack,     // 공격 피해·범위를 계산할 때(DamageCalculator)
     Taken,      // 받는 피해를 계산할 때(DamageCalculator)
     Hit,        // 맞은 뒤(UnitController.OnHit)
-    Pickup,     // 주운 뒤(BattleService)
+    Pickup,     // 주운 뒤(LootService)
     PerfectDodge, // 퍼펙트 닷지 직후(UnitController.OnPerfectDodged). Hit 칸에 피한 공격이 들어 있다
 }
 

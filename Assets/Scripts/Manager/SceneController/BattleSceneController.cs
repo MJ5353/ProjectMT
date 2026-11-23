@@ -2,7 +2,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 전투 씬. 지역(MapDef)을 골라 BattleFlow(전투 Service Unit·HitStop·Battle)를 만든다. 이펙트·팝업은 공용(FlowManager)
+// 전투 씬. 지역(MapDef)을 골라 BattleFlow(전투 Service Unit·HitStop·Spawn·Loot·Battle)를 만든다. 이펙트·팝업은 공용(FlowManager)
 // 맵은 Flow를 만들 때 한 번 만들어 넘긴다. 다시 하기는 같은 Flow를 다시 쓰므로 맵도 그대로다. 씬과 함께 지워진다
 
 [DefaultExecutionOrder(-1100)]

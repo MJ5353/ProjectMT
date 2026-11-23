@@ -7,7 +7,7 @@ using UnityEngine;
 // 유닛 능력치. 출처(정비 노드·엠블렘, 나중에 장비·코스튬·버프)별 수정치(StatModifier)를 모아 최종값을 낸다.
 // 최종값 = 기본값 × (1 + Rate 합) + Add 합. 기본값은 쓰는 쪽이 Def에서 넘긴다(StatFeature는 Def 수치를 모른다).
 // 출처는 AddSource·RemoveSource로 넣고 빼고, 바뀌면 Changed(최대 체력 등이 다시 계산한다). 풀에서 다시 꺼낼 때(Reset) 출처를 모두 비운다.
-// 몬스터는 출처가 없어 기본값 그대로, 플레이어는 스폰 직후 BattleService가 정비(GearData)를 넣는다.
+// 몬스터는 출처가 없어 기본값 그대로, 플레이어는 스폰 직후 SpawnService가 정비(GearData)를 넣는다.
 // 다른 부품이 Changed를 생성자에서 구독하므로 UnitController가 맨 먼저 만든다. 수치 하나로 안 되는 효과는 PassiveFeature
 
 public class StatFeature : UnitFeature

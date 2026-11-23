@@ -19,18 +19,22 @@ public enum EHuntResult
 
 // ==================================================
 
-// 전투 씬 흐름(한 판). 전투 전용 Service(Unit·HitStop·Battle)를 들고, 지역(MapDef)과 맵(MapRoot)은 씬 컨트롤러가 넘긴다.
+// 전투 씬 흐름(한 판). 전투 전용 Service(Unit·HitStop·Spawn·Loot·Battle)를 들고, 지역(MapDef)과 맵(MapRoot)은 씬 컨트롤러가 넘긴다.
 // 다시 하기는 씬을 다시 읽지 않고 이 Flow를 End → Begin으로 다시 돌린다(FlowManager.Restart). Service·상태는 새로 만들지 않고 Clear·Enter에서 되돌린다
-// 단계 전환과 팝업 띄우기(시작·토벌 종료 확인·시장 닫기 확인 포함)는 여기와 상태가 맡고, BattleService는 스폰·밤 시간·주운 버섯·보상 같은 데이터와 처리만 한다. 화면(ScreenBattle)은 표시와 요청만 한다.
+// 단계 전환과 팝업 띄우기(시작·토벌 종료 확인·시장 닫기 확인 포함)는 여기와 상태가 맡고, Service는 데이터와 처리만 한다. 화면(ScreenBattle)은 표시와 요청만 한다.
+//   Unit: 유닛 목록·플레이어 / Spawn: 맵 슬롯에서 스폰·리스폰 / Loot: 픽업·주운 버섯·보상 정산 / Battle: 밤 시간·쓰러짐·부활·클리어 저장
+// Spawn·Loot·Battle은 서로 부르지 않는다. 순서가 필요한 일(스폰 뒤 플레이어 구독, 정산 뒤 저장)은 상태가 차례로 부른다. UnitService는 바탕이라 누구나 쓴다
 // 상태 클래스는 BattleFlow.States.cs에 있다
-// 접근: FlowManager.Instance.Battle?.UnitS / HitStopS / BattleS (전투가 아니면 Battle이 null)
-// !!) 등록 순서 = Init 순서. BattleService가 스폰 때 UnitService를 쓰므로 Unit을 먼저 넣는다
+// 접근: FlowManager.Instance.Battle?.UnitS / HitStopS / SpawnS / LootS / BattleS (전투가 아니면 Battle이 null)
+// !!) 등록 순서 = Init 순서, Clear는 역순. 다른 Service가 UnitService를 쓰므로 Unit을 먼저 넣는다
 
 public sealed partial class BattleFlow : FlowBase<EBattleFlowState>
 {
     // service
     public UnitService UnitS { get; }
     public HitStopService HitStopS { get; }
+    public SpawnService SpawnS { get; }
+    public LootService LootS { get; }
     public BattleService BattleS { get; }
 
     public EHuntResult HuntResult { get; private set; } // Result 상태에서만 의미가 있다
@@ -41,7 +45,9 @@ public sealed partial class BattleFlow : FlowBase<EBattleFlowState>
     {
         UnitS = Register(new UnitService());
         HitStopS = Register(new HitStopService());
-        BattleS = Register(new BattleService(mapDef, map));
+        SpawnS = Register(new SpawnService(mapDef, map));
+        LootS = Register(new LootService(mapDef));
+        BattleS = Register(new BattleService(mapDef));
 
         BattleS.PlayerDied += OnPlayerDied;
 

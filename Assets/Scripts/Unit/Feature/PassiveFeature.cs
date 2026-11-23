@@ -3,7 +3,7 @@ using System.Collections.Generic;
 // ==================================================
 
 // 유닛의 패시브(PassiveDef) 목록. 출처(정비 노드, 나중에 장비 등)별로 넣고 빼며, 훅 지점에서 차례로 부른다.
-// 부르는 곳: 공격·받는 피해(DamageCalculator), 맞은 뒤(UnitController.OnHit), 퍼펙트 닷지(UnitController.OnPerfectDodged), 주웠을 때(BattleService). 스페셜 이름은 여기도 부르는 쪽도 모른다.
+// 부르는 곳: 공격·받는 피해(DamageCalculator), 맞은 뒤(UnitController.OnHit), 퍼펙트 닷지(UnitController.OnPerfectDodged), 주웠을 때(LootService). 스페셜 이름은 여기도 부르는 쪽도 모른다.
 // 풀에서 다시 꺼낼 때(Reset) 모두 비운다
 
 public class PassiveFeature : UnitFeature

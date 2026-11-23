@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 // ==================================================
 
-// 전투 결과 팝업. BattleFlow Result 상태가 Flow를 넘겨 띄우고 닫는다. 끝난 이유(BattleFlow.HuntResult)와 BattleService의 시간·받은 보상(DicReward)을 읽어 보여 준다.
+// 전투 결과 팝업. BattleFlow Result 상태가 Flow를 넘겨 띄우고 닫는다. 끝난 이유(BattleFlow.HuntResult)와 BattleService의 시간, LootService의 받은 보상(DicReward)을 읽어 보여 준다.
 // [mj] todo) 신선 등급은 전투 쪽 데이터(ListLootGrade 가안)가 확정되면 칸 뱃지로 붙인다
 
 public class PopupResult : PopupFlowBase<BattleFlow>
@@ -51,7 +51,7 @@ public class PopupResult : PopupFlowBase<BattleFlow>
         m_Title.E_SetColor(result == EHuntResult.Exited ? UIStyle.Gold : UIStyle.Accent);
         m_Summary.E_SetString(EStringKey.Result_SummaryFormat, UINightClock.FormatRealTime(Mathf.FloorToInt(battleS.ElapsedTime)), FormatTrust(result));
 
-        FillLoot(battleS.DicReward);
+        FillLoot(Flow.LootS.DicReward);
         m_LobbyButton.E_SetActive(GameManager.Instance.CanLoad(ESceneType.Lobby));
         SetButtonsInteractable(true);
     }

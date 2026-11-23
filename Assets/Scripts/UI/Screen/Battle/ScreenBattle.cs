@@ -158,8 +158,8 @@ public class ScreenBattle : ScreenBase
         if (evt.Flow is not BattleFlow battle)
             return;
 
-        BindPlayer(battle.BattleS.Player);
-        RefreshLootList(battle.BattleS.DicLoot);
+        BindPlayer(battle.UnitS.Player);
+        RefreshLootList(battle.LootS.DicLoot);
     }
 
     private void OnUnitHpChanged(UnitHpChanged evt)
@@ -203,6 +203,6 @@ public class ScreenBattle : ScreenBase
 
     private void OnLootChanged(LootChanged evt)
     {
-        RefreshLootList(FlowManager.Instance.Battle.BattleS.DicLoot);
+        RefreshLootList(FlowManager.Instance.Battle.LootS.DicLoot);
     }
 }

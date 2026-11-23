@@ -60,7 +60,7 @@ public readonly struct UnitHpChanged
     }
 }
 
-// 주운 버섯 목록(BattleService.DicLoot)이 바뀜. 줍거나, 쓰러져 떨궜을 때
+// 주운 버섯 목록(LootService.DicLoot)이 바뀜. 줍거나, 쓰러져 떨궜을 때
 public readonly struct LootChanged
 {
 }

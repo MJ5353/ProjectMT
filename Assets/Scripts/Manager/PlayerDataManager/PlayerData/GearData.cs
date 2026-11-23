@@ -13,7 +13,7 @@ public enum EGearOpenResult
 
 // ==================================================
 
-// 정비 탭 강화 노드. 연 노드 ID를 저장하고, 열기 요청·엠블렘 단계 조회를 맡는다(플레이어에 넣는 건 BattleService).
+// 정비 탭 강화 노드. 연 노드 ID를 저장하고, 열기 요청·엠블렘 단계 조회를 맡는다(플레이어에 넣는 건 SpawnService).
 // UI는 TryOpen만 부르고 GearChanged를 받아 다시 그린다. 노드·엠블렘 목록은 DB(GearNodeDef·EmblemDef)에서 처음 쓸 때 모은다
 
 public class GearData : PlayerDataBase

@@ -14,7 +14,8 @@ public sealed partial class BattleFlow
 
         public override void Enter()
         {
-            Flow.BattleS.StartHunt();
+            Flow.SpawnS.SpawnAll();
+            Flow.BattleS.WatchPlayer();
             Flow.UnitS.StopBrains();
             m_Popup = FlowManager.Instance.PopupS?.Open<PopupHuntStart, BattleFlow>(EPopupType.PopupHuntStart, Flow);
         }
@@ -37,7 +38,7 @@ public sealed partial class BattleFlow
         }
     }
 
-    // 밤 시계는 이 상태에서만 흐른다
+    // 밤 시계와 리스폰은 이 상태에서만 흐른다
     private sealed class PlayState : FlowStateBase<BattleFlow>
     {
         public PlayState(BattleFlow flow) : base(flow) { }
@@ -46,6 +47,7 @@ public sealed partial class BattleFlow
         {
             BattleService battleS = Flow.BattleS;
             battleS.AdvanceNight(deltaTime);
+            Flow.SpawnS.UpdateRespawn(deltaTime);
 
             if (battleS.IsNightOver)
                 Flow.EndHunt(EHuntResult.TimedOut);
@@ -62,7 +64,10 @@ public sealed partial class BattleFlow
         public override void Enter()
         {
             m_IsPopupOpened = false;
-            Flow.BattleS.DropLoot();
+
+            UnitController player = Flow.UnitS.Player;
+            if (player != null)
+                Flow.LootS.DropLoot(player.transform.position);
         }
 
         public override void Update(float deltaTime)
@@ -88,7 +93,7 @@ public sealed partial class BattleFlow
             SEventManager.Subscribe<MarketClosed>(OnMarketClosed);
 
             BattleService battleS = Flow.BattleS;
-            PlayerDataManager.Instance.Hunt.BeginMarket(battleS.DicLoot, battleS.RemainTime, battleS.NightTime);
+            PlayerDataManager.Instance.Hunt.BeginMarket(Flow.LootS.DicLoot, battleS.RemainTime, battleS.NightTime);
             FlowManager.Instance.PopupS?.Open<PopupMarket, BattleFlow>(EPopupType.PopupMarket, Flow);
         }
 
@@ -102,7 +107,7 @@ public sealed partial class BattleFlow
         // 시장 닫기 또는 밤이 다 감. 골드·썩은 버섯·신뢰도는 HuntData가 이미 넣었다
         private void OnMarketClosed(MarketClosed evt)
         {
-            Flow.BattleS.SetMarketReward(evt);
+            Flow.LootS.SetMarketReward(evt);
             Flow.EndHunt(EHuntResult.Exited);
         }
     }
@@ -117,7 +122,8 @@ public sealed partial class BattleFlow
         public override void Enter()
         {
             Flow.UnitS.StopBrains();
-            Flow.BattleS.Finish(Flow.HuntResult);
+            Flow.LootS.Settle(Flow.HuntResult); // 보상을 넣고
+            Flow.BattleS.Finish(Flow.HuntResult); // 클리어 표시 후 저장
             m_Popup = FlowManager.Instance.PopupS?.Open<PopupResult, BattleFlow>(EPopupType.PopupResult, Flow);
         }
 
