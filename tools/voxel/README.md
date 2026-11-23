@@ -1,123 +1,59 @@
 # 복셀 에셋 생성기
 
-최종 수정: 26.11.22
+최종 수정: 26.11.23
 
-Blender 스크립트로 전투 시제품용 복셀 에셋을 만든다. 결과물은 `Assets/Art/Voxel/Models/`에 둔다.
+Blender 스크립트로 캐릭터·버섯·맵·장식을 생성한다. 출력 이름은 [voxlib.py](voxlib.py)의 `EXPORT_NAMES`, Unity 클립 이름은 [AnimNameTable.txt](../../Assets/Art/Voxel/Editor/AnimNameTable.txt)가 기준이다.
 
-## 1. 다음 단위 작업
+## 실행과 출력
 
-Unity에서 `Socket_*`에 붙인 버섯이 바로 서는지 확인한다. 눕는다면 버섯 프리팹 안쪽 자식의 회전을 조정한다.
+프로젝트 루트에서 필요한 생성기를 실행한다. 전체 지역을 포함하는 예시는 다음과 같다.
 
-## 2. 전체 작업 TODO 및 진행상황
-
-최종 수정 26.11.17 기준 생성 절차 기록이다. 제작 완료율은 이 문서에 표시되지 않았다.
-
-- Unity에서 소켓에 붙인 버섯이 바로 서는지(뼈 축 변환). 눕는다면 버섯 프리팹 안쪽 자식에 회전을 한 번 넣으면 된다.
-
-## 3. 상세 정보
-
-### 다시 만들기
-
-```
-blender -b -P tools/voxel/build_voxel_assets.py -- <출력폴더> [--preview]
-# 또는 pip install bpy 후: python tools/voxel/build_voxel_assets.py -- <출력폴더> [--preview]
+```text
+blender -b -P tools/voxel/build_dino.py -- "<출력폴더>" --preview
 ```
 
-- `Models/`: FBX, `VoxelPalette.png`(캐릭터·버섯·장식 공용 색표), `TerrainAtlas.png`(블록 타일)
-- `Preview/`: `--preview`일 때 장면·애니 프레임·아이템 렌더
-- Unity 가져오기 설정은 `Assets/Art/Voxel/Editor/VoxelImportSettings.cs`가 자동으로 건다(점 필터, 축 변환, 클립 이름·반복).
+`bpy`를 사용할 수 있는 Python 환경에서는 `python tools/voxel/build_dino.py -- "<출력폴더>" --preview`도 가능하다. `--preview`는 선택 사항이며 애니메이션 시트 미리보기에는 Pillow를 사용한다.
 
-### 맵
+| 출력 | 내용 |
+|---|---|
+| `<출력폴더>/Models/` | 이름이 변환된 FBX, `VoxelPalette.png`, `TerrainAtlas.png` |
+| `<출력폴더>/Preview/` | `--preview` 사용 시 해당 생성기의 장면·캐릭터·애니메이션 미리보기 |
 
-`python tools/voxel/build_map.py -- <출력폴더> [--preview]` 하나로 캐릭터·버섯·블록까지 다시 만든 뒤 `Map_Field01.fbx`를 더한다(팔레트 색 위치를 맞추려고 같이 만든다).
+## 생성기별 범위
 
-- 100m x 100m 평탄한 평원, 지면 높이 0. 맵 원점은 남서쪽 모서리.
-- 남쪽 시작 지점 → 가운데 갈림길 → 엘리트 자리 4곳(균사 땅, 둘레에 바위·통나무) → 가장 먼 북쪽 보스 자리(반지름 14m, 균사 고리, 큰 바위 둘레, 남쪽 입구만 열림).
-- 가장자리 7m는 버섯 나무 숲 띠, 그 바깥은 보이지 않는 벽.
-- 소품: 거대 버섯 나무 3종, 쓰러진 통나무, 버섯 군락, 큰 바위, 작은 바위·그루터기, 풀·꽃.
-- 자식: `Map_Terrain`·`Map_Props`·`Map_Bounds`(MeshCollider 자동, Bounds는 렌더러 꺼짐), `Map_Grass`(충돌 없음), `Spawn_Player`, `Spawn_Buggi_1~15`(3마리씩 5무리), `Spawn_Bugom_1~4`(엘리트), `Spawn_Bursus`(보스).
-- 새 지역: 파일 위 `REGION`(바닥 타일, 나무·소품 비율, 씨앗, 이름)만 바꿔서 만든다.
+각 생성기는 아래의 의존 생성기를 함께 실행한다. 따라서 특정 몬스터나 맵을 추가로 만들 때도 기초 에셋·팔레트가 다시 출력된다.
 
-### 대형 버우르스 (부위 파괴 보스)
-
-`python tools/voxel/build_boss.py -- <출력폴더> [--preview]` → `Bursus_Boss.fbx`, `Mush_*_Broken.fbx`(앞 단계 에셋·맵도 같이 다시 만든다).
-
-- 키 5.8m, 길이 16m(플레이어 키의 약 3.1배). 턱·목·꼬리 3마디가 따로 움직인다.
-- 파괴 부위 소켓 8곳: `Socket_Head`, `Socket_Back1~3`, `Socket_ForelegL/R`(앞다리 바깥), `Socket_Tail1`, `Socket_TailTip`(꼬리 곤봉). 소켓 위치에 히트박스를 두면 된다.
-- 몸통 히트박스 기준점: `Hitbox_Head, Hitbox_Neck, Hitbox_Body, Hitbox_Tail, Hitbox_LegFL/FR/BL/BR`. 권장 반지름(m): 머리 1.0, 목 1.0, 몸 1.8(캡슐 길이 6), 꼬리 0.8, 다리 0.9.
-- 깨진 버섯: 부위가 깨지면 소켓의 버섯을 `Mush_*_Broken`(꺾인 밑동)으로 바꾸고, 다시 자라면 원래 버섯으로 돌린다.
-
-| 클립 | 길이 | 예비 동작 → 판정 |
+| 생성기 | 추가 출력 | 함께 호출하는 생성기 |
 |---|---|---|
-| Idle, Walk, Run | 반복 | Run은 돌진 중 반복용 |
-| Roar | 70 | 0~20 고개 젖힘 → 20~56 포효(경직·넉백) |
-| Bite | 48 | 0~12 고개 젖히며 입 벌림 → 21 물기(앞으로 0.9m) |
-| Stomp | 54 | 0~16 앞발 들기 → 22 내려찍기(충격파·포자) |
-| TailSwipe | 50 | 0~14 몸 비틀기 → 22~26 꼬리 휩쓸기 |
-| Charge | 70 | 0~20 웅크림 → 20~55 질주(이동은 코드) → 55~70 제동 |
-| Leap | 80 | 분노 전용(Skill_04). 0~20 웅크림 → 26 도약 → 34 정점 → 42 착지 판정(큰 충격파), 제자리 점프 |
-| PartBreak | 60 | 부위 파괴 시 휘청·주저앉음, 52에 회복 |
-| Down | 120 | 24~84 엎드림(약점 노출), 84~110 일어남 |
-| Hit, Death | 18, 90 | Death는 마지막 자세 유지 |
+| `build_voxel_assets.py` | 플레이어·기본 몬스터·버섯·블록·장식 | 없음 |
+| `build_map.py` | `Map_001_Field.fbx` | `build_voxel_assets` |
+| `build_boss.py` | `Mon_015_Boss_Saurus.fbx`·깨진 버섯 모델 | `build_map` |
+| `build_boss_tree.py` | `Mon_005_Boss_Tree.fbx` | `build_boss` |
+| `build_ice.py` | 얼음 몬스터·`Mon_010_Boss_PolarBear.fbx`·`Map_002_Ice.fbx` | `build_boss_tree` |
+| `build_more_mobs.py` | 평원·얼음 추가 몬스터·펫 | `build_ice` |
+| `build_dino.py` | 공룡 몬스터·`Map_003_Dino.fbx` | `build_more_mobs` |
 
-### 나무 보스 (기생 버섯 나무)
+생성 코드의 내부 이름과 출력 파일 이름은 다르다. 예: `Buggi → Mon_001_Rabbit`, `Boss_Bursus → Mon_015_Boss_Saurus`, `Mush_Cloud → Mush_002_Gureum`. 나머지 이름은 EXPORT_NAMES를 따른다.
 
-`python tools/voxel/build_boss_tree.py -- <출력폴더> [--preview]` → `Boss_Tree.fbx` (앞 단계 에셋·맵·버우르스도 같이 다시 만든다).
+## Unity 반영
 
-- 키 약 7m(머리 가지 포함), 뿌리 다리 4개로 걷는 고목. 얼굴은 파인 눈 구멍에 빛나는 심지.
-- 기생 버섯 소켓 9곳: `Socket_Crown`, `Socket_ShoulderL/R`, `Socket_TrunkL/R`(줄기 옆, 선반 버섯용), `Socket_Back`, `Socket_ForearmL/R`, `Socket_RootBL`.
-- 히트박스 기준점: `Hitbox_Trunk, Hitbox_Face, Hitbox_ArmL/R, Hitbox_RootFL/FR/BL/BR`. 권장 반지름(m): 줄기 1.3(캡슐 길이 4), 얼굴 0.8, 팔 0.5, 뿌리 0.5.
+1. FBX는 `Assets/Art/Voxel/Models/`의 기존 파일 위치에 반영하고 기존 `.meta`를 보존한다. 현재 하위 폴더는 `Actor/Monster`·`Actor/Pet`·`Mushroom`·`Map`·`Block`·`Environment`이며 플레이어는 `Actor/Player.fbx`다.
+2. 팔레트·지형 아틀라스는 같은 Models 루트에 반영한다. [VoxelImportSettings.cs](../../Assets/Art/Voxel/Editor/VoxelImportSettings.cs)가 점 필터·압축·축 변환·머티리얼 연결·클립 이름과 반복 설정을 처리한다.
+3. 클립을 추가·변경하면 AnimNameTable에 `모델|원래 클립|표준 이름`을 기록한다. **해당 FBX Reimport 완료 후** `MushTaker/에셋/애니메이터 다시 만들기`를 실행한다.
+4. 데이터 편집기에서 모델과 Def를 연결하고 필요한 프리팹을 빌드한다. 데이터는 `Assets/Resources/Data`, 프리팹은 `Assets/Resources/Prefabs`에 둔다.
 
-| 클립 | 길이 | 예비 동작 → 판정 |
-|---|---|---|
-| Idle, Walk | 반복 | |
-| Roar | 75 | 0~18 몸 젖히며 팔 벌림 → 20~60 떨림(넉백·경직) |
-| Slam | 60 | 0~18 두 팔을 머리 위로 → 24 지면 강타 |
-| Sweep | 54 | 0~16 몸 비틀며 오른팔 뒤로 → 22~28 앞 휩쓸기 |
-| RootStrike | 60 | 0~20 웅크리며 뿌리 박기 → 24 앞쪽 뿌리 솟음(위치·판정은 코드) |
-| SporeBurst | 66 | 0~24 웅크리고 부르르 → 30 버섯마다 포자 폭발 |
-| RootPrison | 96 | 분노 전용(Skill_04). 0~18 팔 들기 → 24 땅에 꽂음 → 34·50·66 들썩일 때마다 주변 뿌리 솟음 |
-| PartBreak | 60 | 휘청이며 팔 늘어뜨림, 52 회복 |
-| Down | 120 | 26~84 주저앉아 팔로 땅 짚음(얼굴·등 노출), 84~110 일어남 |
-| Hit, Death | 18, 96 | Death는 나무처럼 앞으로 쓰러져 유지 |
+### 애니메이션 이름
 
-### 북버곰 보스 추가 클립
+생성 스크립트에는 `Slam`·`Attack_Up` 같은 원래 이름을 사용한다. Unity에서는 이름 표에 따라 `Attack_01`·`Attack_02` 등으로 바뀌며, SkillDef의 클립 이름도 표준 이름에 맞춘다.
 
-- Frenzy(76, 분노 전용 Skill_04, `build_ice.py`): 0~12 반쯤 일어섬 → 20 오른발 할퀴기 → 34 왼발 할퀴기 → 42 크게 일어섬 → 48 두 앞발 내려찍기.
-- 새 클립은 `Assets/Art/Voxel/Editor/AnimNameTable.txt`에 표준 이름 줄을 더하고, 가져온 뒤 메뉴 MushTaker/에셋/애니메이터 다시 만들기를 돌린다.
+기본 공격은 `Attack_NN`, 스킬은 `Skill_NN`이고 클립 이름과 애니메이터 상태 이름을 같게 둔다. 이동·반응 클립은 기존 이름을 유지하며 판정 시점은 SkillDef의 공격 데이터에서 조절한다.
 
-### 에셋 목록
+## 맵·소켓 참고
 
-| 파일 | 내용 | 크기 |
-|---|---|---|
-| Buggi | 버끼, 토끼 몸 | 키 약 1m |
-| Bugom | 버곰, 곰 몸(네발) | 키 1.6m, 길이 2.8m |
-| Bursus | 버우르스, 공룡 몸(보스) | 키 약 2.3m, 길이 4.4m |
-| Player | 채집꾼. 몸·모자·무기 메시 분리 | 키 1.85m(모자 포함) |
-| Mush_Songi / Mush_Cloud / Mush_Malbul | 송이·구름·말불. 소켓 부품 겸 드랍 아이템 | 높이 0.3~0.5m |
-| Block_Grass / Dirt / Stone / Mycel | 1m 블록, 원점은 중심 | 1m |
-| Deco_Grass / Flower / Rock / Stump | 장식, 원점은 밑면 중심 | 0.2~0.6m |
+- 맵 설정은 평원 `build_map.REGION`, 얼음 `build_ice.ICE_REGION`, 공룡 `build_dino.DINO_REGION`에 둔다. 지형·프랍·내부 배치 종류를 여기서 바꾼다.
+- 맵은 `Map_Terrain`·`Map_Props`·`Map_Grass`·`Map_Bounds`로 구성한다. 임포터가 지형·프랍·경계에 MeshCollider를 붙이고 경계 렌더러는 숨긴다.
+- 스폰 지점은 `SpawnSlot_001~021`이다. 생성 의도는 [스폰 슬롯 표](SpawnSlots.md), 실제 플레이어 위치·몬스터 배정은 MapDef에서 관리한다.
+- `Socket_*`는 버섯 부착, `Hitbox_*`는 몸 판정 기준이다. [BodyPartMap.cs](../../Assets/Scripts/Editor/Battle/BodyPartMap.cs)와 프리팹 빌더가 뼈를 연결하며 부위 배치·크기·파괴 값은 MonsterDef에서 설정한다.
+- 버섯 원점은 밑동이며 소켓의 로컬 좌표를 기준으로 붙인다. 축 차이로 눕는 경우 모델 자식의 회전으로 보정한다.
 
-### 애니메이션
-
-| 대상 | 클립 | 판정 프레임(30fps) |
-|---|---|---|
-| Buggi | Idle, Walk(깡충), Attack(박치기), Hit, Death | Attack 13 |
-| Bugom | Idle, Walk, Attack(일어서서 내려찍기), Hit, Death | Attack 19 |
-| Bursus | Idle, Walk, Attack(꼬리치기), Stomp(내려찍기·포자), Hit, Death | Attack 18, Stomp 20 |
-| Player | Idle, Walk, Run, Attack(내려치기), Attack_Up(위로베기), Attack_SlashL(좌로베기), Attack_SlashR(우로베기), Attack_Finish(막타 내려찍기), Attack_Whirlwind(두 바퀴), Attack_RunSlash(달리다가 베기), Attack_RushL·RushR(퍼펙트 닷지 러시 좌·우 베기, 번갈아 이어짐), Attack_RushFinish(러시 막타: 돌며 도약 후 내려찍기), Hit, Death | Attack 9, Up 7, SlashL 8, SlashR 8, Finish 17, Whirlwind 8~26, RunSlash 7, RushL·RushR 3(길이 10), RushFinish 21(36까지 착지 자세 유지, 길이 50) |
-
-Death는 마지막 자세를 유지하고, 나머지 단발 클립은 끝에서 기본 자세로 돌아온다. 이동은 제자리 애니(루트 모션 없음).
-
-### 버섯 갈아끼우기
-
-- 몸의 `Socket_*` 뼈가 꽂는 자리다. 버섯 프리팹을 소켓의 자식으로 넣고 위치·회전 0, 크기만 정한다.
-- 버섯 원점은 밑동 중심이고, 위쪽이 소켓 뼈 방향을 따른다.
-- 소켓: Buggi `Head, Back` / Bugom `Head, Back1, Back2, SideL, SideR` / Bursus `Head, Back1~3, Tail`
-- 미리보기 배율: 버끼 머리 송이 0.8, 버곰 등 구름 1.3~1.6, 버우르스 등 말불 2.2~2.8
-
-## 4. 결정된 사안
-
-Blender 스크립트로 전투 시제품용 복셀 에셋을 만들고 결과물은 `Assets/Art/Voxel/Models/`에 둔다. `--preview`는 미리보기 렌더를 만든다. Unity 가져오기 설정은 `Assets/Art/Voxel/Editor/VoxelImportSettings.cs`가 적용한다.
-
-- 지형은 일반적인 복셀 관례(윗면 풀, 옆면 흙)를 따르되 무늬와 색은 직접 만들었다.
+세부 명명은 [콘텐츠 명명 규칙](../../_Else/Rule/콘텐츠_명명_규칙.md)을 따른다.

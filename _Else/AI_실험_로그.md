@@ -202,9 +202,15 @@
 ## 시장·정비·전체 기획 통일
 
 - 대장 지시로 AI가 기획서 세 개를 현재 시장·정비·전투 흐름에 맞추고 상세 중복·UI 디자인 설명을 줄임. 경쟁·담합·개량·파견·장비 등 후속 기획은 현재 범위와 구분함.
-
 - 지역 해금은 보스 첫 처치 원안을 유지하라는 직접 판단을 반영. 현재 구현의 시장 종료 클리어 처리와 차이를 전체 기획서에 명시함.
 
 ## 상태 구조 1단계(StateFeature 뼈대·실행기 교체)
 
 - 대장과 합의한 코어·서브 상태 설계의 1단계로, AI가 UnitExecutor·UnitAction을 StateFeature·CoreState로 바꾸고 SubState 뼈대를 추가함. 동작은 그대로 두려고 코어 요청은 즉시 적용하고, 프레임 단위 모아 고르기는 2단계로 미룸.
+- 퍼닷 막타 안 들어감 추적(AI 작성): PlayerBrain → PerfectDodgeRush → StateFeature → AttackCore → AttackHitter 흐름을 d9e4762(리팩터 전)과 줄 단위로 비교. 110d900·f6ab0b9·eb12520·34e3c8d 모두 막타 경로의 동작은 같음(CancelDelay=0 ↔ IsQuickCancel, SetSlow(1) ↔ ClearSlow, Started·Ended 순서 동일, 서브 없음). 리팩터 회귀는 아니고, 막타 구간에서 베기 판정 전(0.1초)에 누른 클릭이 버려지던 것을 원인 후보로 보고 PlayerBrain.UpdateAttackInput에서 막타 구간(IsFinishWindow)이면 CanBufferNext와 상관없이 막타를 예약하도록 수정. 슬로우가 풀릴 때 넉백이 한꺼번에 나가는 문제는 대장 확인 뒤로 미룸.
+- 막타 모션 없이 러시 종료 추적(AI 작성): 원인은 110d900의 StateFeature.RequestAttack이 Setup(새 Spec) 뒤에 RequestCore로 끊기 판단을 한 번 더 하던 것. 베기 → 막타일 때 두 번째 판단이 막타 Spec의 판정 시간으로 재져 거절되고, 도는 베기의 Spec만 막타로 바뀐 채 예약이 버려짐 → PerfectDodgeRush가 막타가 돈다고 보고 베기가 끝나자 러시 종료. 리팩터 전 UnitExecutor처럼 확인 뒤 바로 Change하도록 수정. 앞 줄의 '리팩터 회귀 아님' 판단은 틀렸음.
+
+## 도구 문서·폴더 안내 정리
+
+- 대장 지시로 AI가 복셀 README를 실행·출력·임포트 절차 중심으로 줄이고, 세 맵의 스폰 의도를 한 표로 통합함. Resources·DevDocs·도구 문서 위치를 실제 구성에 맞춰 안내하고 불필요한 진행 구획을 제거함.
+
