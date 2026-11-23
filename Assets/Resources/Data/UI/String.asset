@@ -102,6 +102,10 @@ MonoBehaviour:
     <Value>k__BackingField: "\uCDE8\uC18C"
   - <Key>k__BackingField: Common_Confirm
     <Value>k__BackingField: "\uD655\uC778"
+  - <Key>k__BackingField: Common_Quit
+    <Value>k__BackingField: "\uC885\uB8CC"
+  - <Key>k__BackingField: Common_QuitConfirm
+    <Value>k__BackingField: "\uAC8C\uC784\uC744 \uC885\uB8CC\uD560\uAE4C\uC694?"
   - <Key>k__BackingField: Market_MerchantCaption
     <Value>k__BackingField: "\uC624\uB298 \uC628 \uC0C1\uC778"
   - <Key>k__BackingField: Market_Close

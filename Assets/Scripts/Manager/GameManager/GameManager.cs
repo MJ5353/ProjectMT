@@ -71,6 +71,29 @@ public class GameManager : MonoSingleton<GameManager>
         return true;
     }
 
+    // 종료 버튼(타이틀·로비). 확인 팝업에서 예를 누르면 끈다. 저장은 PlayerDataManager.OnApplicationQuit가 한다
+    public void ConfirmQuit()
+    {
+        if (IsTransitioning)
+            return;
+
+        PopupConfirm confirm = FlowManager.Instance.PopupS?.Open<PopupConfirm>(EPopupType.PopupConfirm);
+        if (confirm == null)
+            return; // 원본이 없으면 PopupDef가 에러를 남긴다
+
+        confirm.Set(EStringKey.Common_QuitConfirm, Quit);
+    }
+
+    // 에디터에서는 플레이 모드를 끈다
+    private static void Quit()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
     private bool TryGetSceneName(ESceneType type, out string sceneName)
     {
         sceneName = null;

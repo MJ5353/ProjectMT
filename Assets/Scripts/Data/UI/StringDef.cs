@@ -16,6 +16,8 @@ public enum EStringKey
     Common_No,
     Common_Cancel,
     Common_Confirm,
+    Common_Quit,            // 게임 종료 버튼(타이틀·로비)
+    Common_QuitConfirm,     // 게임 종료 확인
 
     // title·loading (ScreenTitle·ScreenLoading)
     Title_PressToStart,

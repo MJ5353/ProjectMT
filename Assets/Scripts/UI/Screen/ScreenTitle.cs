@@ -4,11 +4,12 @@ using UnityEngine.UI;
 // ==================================================
 
 // 타이틀 화면. 가운데 타이틀 그림, 아래 "클릭하여 시작하기"가 한 번 튀고 쉬기를 되풀이한다.
-// 화면 전체를 덮는 배경 버튼을 누르면 버섯이 튀고 로비로 간다. 프리팹은 TitleUISetup.Prefabs 표로 만든다
+// 화면 전체를 덮는 배경 버튼을 누르면 버섯이 튀고 로비로 간다. 왼쪽 위 종료 버튼은 확인 뒤 게임을 끈다. 프리팹은 TitleUISetup.Prefabs 표로 만든다
 
 public class ScreenTitle : ScreenBase
 {
     [SerializeField] private Button m_StartButton = null;
+    [SerializeField] private Button m_QuitButton = null;
     [SerializeField] private RectTransform m_PressLabel = null;
 
     private const float HopHeight = 4f;   // 튀는 높이
@@ -24,6 +25,7 @@ public class ScreenTitle : ScreenBase
     private void Awake()
     {
         m_StartButton.E_SetOnClick(OnClickStart);
+        m_QuitButton.E_SetOnClick(OnClickQuit);
 
         m_PressLabelPos = m_PressLabel.anchoredPosition;
         m_BobSequence.Tween(HopTime, t => m_PressLabel.anchoredPosition = m_PressLabelPos + Vector2.up * (Mathf.Sin(t * Mathf.PI) * HopHeight)).Wait(HopRestTime);
@@ -52,10 +54,13 @@ public class ScreenTitle : ScreenBase
         m_StartSequence.Clear().Wait(gameM.Define.ClickBurst.Time).Call(() => GameManager.Instance.ChangeScene(ESceneType.Lobby)).Play(this);
     }
 
+    private void OnClickQuit() => GameManager.Instance.ConfirmQuit();
+
 #if UNITY_EDITOR
-    public void EditorSetup(Button startButton, RectTransform pressLabel)
+    public void EditorSetup(Button startButton, Button quitButton, RectTransform pressLabel)
     {
         m_StartButton = startButton;
+        m_QuitButton = quitButton;
         m_PressLabel = pressLabel;
     }
 #endif

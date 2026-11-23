@@ -14,6 +14,7 @@ public static class LobbyUISetup
 {
 
     private const float TopBarHeight = 110f;
+    private static readonly Vector2 QuitButtonSize = new Vector2(160, 72); // 윗줄 왼쪽 끝. 게임 이름은 그 오른쪽
     private const float TabBarHeight = 150f;
 
     // 하단 탭 순서(26.11.17 대장 확정: 정비·토벌·개량·파견, 야시장 탭 폐지). 토벌이 기본 탭.
@@ -26,6 +27,8 @@ public static class LobbyUISetup
         ("Dispatch", "Tab_Dispatch", EStringKey.Lobby_Tab_Dispatch),
     };
     private const string GoldIconSprite = "Icon_Gold"; // 실행 중에는 UICountLabel이 재화 Def 아이콘으로 다시 채운다
+    private const string TitleSprite = "UI_Title_Engrave_Line"; // 153x25 음각 한 줄 "버섯을 줍자!"
+    private const float TitleScale = 3f;
     private const int GearTabIndex = 0;
     private const int HuntTabIndex = 1;
     private const float GearNodeSize = 84f;
@@ -95,7 +98,7 @@ public static class LobbyUISetup
         RectTransform root = UIBuilder.CreateScreenRoot(nameof(ScreenLobby), out RectTransform safe);
         UIBuilder.AddImage(root, UIStyle.Background); // 노치까지 덮는 바탕
 
-        UICountLabel goldLabel = BuildTopBar(safe);
+        UICountLabel goldLabel = BuildTopBar(safe, out Button quitButton);
 
         RectTransform content = UIBuilder.Rect("Content", safe, Vector2.zero, Vector2.one, new Vector2(0, TabBarHeight), new Vector2(0, -TopBarHeight));
 
@@ -121,17 +124,26 @@ public static class LobbyUISetup
         UITabBar tabBar = BuildTabBar(safe, listView);
 
         ScreenLobby screen = root.gameObject.AddComponent<ScreenLobby>();
-        screen.EditorSetup(tabBar, huntView, goldLabel);
+        screen.EditorSetup(tabBar, huntView, goldLabel, quitButton);
         return screen;
     }
 
-    private static UICountLabel BuildTopBar(RectTransform parent)
+    private static UICountLabel BuildTopBar(RectTransform parent, out Button quitButton)
     {
         RectTransform bar = UIBuilder.Rect("TopBar", parent, new Vector2(0, 1), Vector2.one, new Vector2(0, -TopBarHeight), Vector2.zero);
         UIBuilder.AddImage(bar, UIStyle.Panel);
 
-        TMP_Text title = UIBuilder.Label(bar, EStringKey.Common_GameTitle, UIStyle.FontLarge, TextAlignmentOptions.Left, "Title");
-        title.rectTransform.offsetMin = new Vector2(40, 0);
+        // 종료: 왼쪽 끝, 게임 이름은 그 오른쪽
+        quitButton = UIBuilder.Button(bar, "QuitButton", EStringKey.Common_Quit, QuitButtonSize);
+        RectTransform quitRt = quitButton.transform as RectTransform;
+        quitRt.anchorMin = quitRt.anchorMax = quitRt.pivot = new Vector2(0, 0.5f);
+        quitRt.anchoredPosition = new Vector2(40, 0);
+
+        // 게임 이름: 음각 한 줄 그림. 그림이 없으면 빈 칸(LoadSprite가 경고)
+        Sprite titleSprite = UIBuilder.LoadSprite(TitleSprite);
+        Vector2 titleSize = titleSprite != null ? titleSprite.rect.size * TitleScale : Vector2.zero;
+        RectTransform titleRt = UIBuilder.Anchored("Title", bar, new Vector2(0, 0.5f), new Vector2(40 + QuitButtonSize.x + 30, 0), titleSize);
+        UIBuilder.AddImage(titleRt, Color.white).sprite = titleSprite;
 
         // 재화: 오른쪽 위. 늘어나면 칸을 복사해 ID만 바꾼다
         RectTransform gold = UIBuilder.Anchored("Gold", bar, new Vector2(1, 0.5f), new Vector2(-40, 0), new Vector2(320, 72));

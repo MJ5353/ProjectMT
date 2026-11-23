@@ -23,6 +23,8 @@ public static class TitleUISetup
     private static readonly Color TitleBackgroundTint = new Color(0.65f, 0.65f, 0.65f); // 그림을 어둡게 눌러 글자가 뜨게(26.11.22 대장 프리팹 값)
     private const int LoadingSortingOrder = 1000; // 씬 캔버스·팝업보다 위
     private static readonly Vector2 LoadingBarSize = new Vector2(720, 28);
+    private static readonly Vector2 QuitButtonSize = new Vector2(200, 80);
+    private static readonly Vector2 QuitButtonPos = new Vector2(40, -40); // 왼쪽 위 모서리에서 띄운 거리
 
     // ------------------------------------------------
 
@@ -86,7 +88,7 @@ public static class TitleUISetup
         return true;
     }
 
-    // 루트(꽉 참, 배경 그림, 누르면 시작하는 버튼) 아래 SafeArea → 왼쪽 위 타이틀 그림·"클릭하여 시작하기"
+    // 루트(꽉 참, 배경 그림, 누르면 시작하는 버튼) 아래 SafeArea → 왼쪽 위 타이틀 그림·"클릭하여 시작하기"·왼쪽 위 종료 버튼
     // 배치는 26.11.22 대장이 프리팹에서 고친 값
     private static ScreenTitle BuildTitleScreen()
     {
@@ -106,8 +108,14 @@ public static class TitleUISetup
 
         UIBuilder.SetOutline(UIBuilder.Label(press, EStringKey.Title_PressToStart, UIStyle.FontLarge));
 
+        // 바탕 버튼보다 위에 있어 눌러도 시작하지 않는다
+        Button quitButton = UIBuilder.Button(safe, "QuitButton", EStringKey.Common_Quit, QuitButtonSize);
+        RectTransform quitRt = quitButton.transform as RectTransform;
+        quitRt.anchorMin = quitRt.anchorMax = quitRt.pivot = new Vector2(0f, 1f);
+        quitRt.anchoredPosition = QuitButtonPos;
+
         ScreenTitle screen = root.gameObject.AddComponent<ScreenTitle>();
-        screen.EditorSetup(startButton, press);
+        screen.EditorSetup(startButton, quitButton, press);
         return screen;
     }
 
