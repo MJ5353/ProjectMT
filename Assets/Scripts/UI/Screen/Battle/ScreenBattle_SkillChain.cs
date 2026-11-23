@@ -39,10 +39,10 @@ public class ScreenBattle_SkillChain : MonoBehaviour
         if (m_Def != def)
             BuildLookup(def);
 
-        UnitExecutor executor = player.UnitExecutor;
-        bool isAttack = executor.Current == EActionType.Attack;
+        StateFeature state = player.StateF;
+        bool isAttack = state.Current == ECoreState.Attack;
 
-        SkillDef main = isAttack ? Find(executor.Attack.Spec) : def.ComboStart;
+        SkillDef main = isAttack ? Find(state.Attack.Spec) : def.ComboStart;
         if (main != m_MainSkill)
         {
             m_MainSkill = main;
@@ -50,17 +50,17 @@ public class ScreenBattle_SkillChain : MonoBehaviour
         }
 
         // 공격 중이거나, 공격이 끝나고 콤보 리셋 시간 안이면 이어 쓸 수 있다
-        bool isCombo = isAttack || (executor.IsIdle && executor.Attack.Spec != null && executor.TimeInAction <= def.ComboResetTime);
+        bool isCombo = isAttack || (state.IsIdle && state.Attack.Spec != null && state.TimeInAction <= def.ComboResetTime);
         m_ListNext.Clear();
         
         if (isCombo)
         {
-            AddNext(Find(executor.ComboNext), main);
+            AddNext(Find(state.ComboNext), main);
             AddNext(Find(def.UpAttack), main);
             AddNext(def.HoldAttack, main);
         }
 
-        bool canChain = isAttack ? executor.Attack.CanBufferNext : isCombo;
+        bool canChain = isAttack ? state.Attack.CanBufferNext : isCombo;
         RefreshChain(canChain ? 1f : DimAlpha);
     }
 

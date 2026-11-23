@@ -4,7 +4,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 공격 하나의 판정(AttackAction이 들고 부른다). 판정 구간(HitTime~HitEndTime) 동안 범위(AttackArea)와 후보 유닛의 몸(HitFeature 모양)을 비교해 타격을 넣는다.
+// 공격 하나의 판정(AttackCore가 들고 부른다). 판정 구간(HitTime~HitEndTime) 동안 범위(AttackArea)와 후보 유닛의 몸(HitFeature 모양)을 비교해 타격을 넣는다.
 // 한 회차(AttackSpec.RehitFrame)에서 맞은 대상은 다시 맞지 않는다. 처음 열릴 때 판정 이펙트를 터뜨린다. 무적 등으로 막히면 구간 안에서 다시 노린다
 
 public class AttackHitter

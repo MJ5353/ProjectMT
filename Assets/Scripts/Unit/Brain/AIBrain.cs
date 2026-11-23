@@ -3,7 +3,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 판단 상태. 행동(공격·피격 등)은 실행기(UnitExecutor, EActionType)이 맡고, 여기는 "무엇을 할지"만
+// 판단 상태. 행동(공격·피격 등)은 상태(StateFeature, ECoreState)가 맡고, 여기는 "무엇을 할지"만
 public enum EAIState
 {
     Idle,
@@ -25,7 +25,7 @@ public enum EAIState
 //  | Boss +Roar·Down
 //  | Pet은 Follow·Dead만
 
-// AI 판단(몬스터·보스·동료 공통). 대상(TargetSelector)·공격 고르기(AttackSelector)·상태 머신·스폰 자리를 갖고 실행기(UnitExecutor)에 요청만 한다.
+// AI 판단(몬스터·보스·동료 공통). 대상(TargetSelector)·공격 고르기(AttackSelector)·상태 머신·스폰 자리를 갖고 상태(StateFeature)에 요청만 한다.
 // 종류 차이는 클래스가 아니라 AI 프리셋(AIDef.Type)에 따라 등록하는 상태 묶음으로 낸다(SetStates). 상태는 State/ 폴더, 수치는 AIDef.
 // 공격·피격·대시 행동 중에는 상태를 돌리지 않고, 감지(대상·쿨·보스 분노)만 계속한다
 
@@ -159,24 +159,24 @@ public class AIBrain : BrainBase
     }
 
     // 공격은 끝날 때마다 쿨을 걸고, 끝까지 했으면 콤보 다음 타. 피격 경직이 풀리면 종류별 다음 상태(쓰러짐·포효 중엔 경직하지 않는다)
-    protected override void OnActionEnded(EActionType action, bool isFinished)
+    protected override void OnActionEnded(ECoreState action, bool isFinished)
     {
         if (Owner.IsDead)
             return;
 
         switch (action)
         {
-            case EActionType.Attack:
+            case ECoreState.Attack:
             {
                 AttackSelector.StartCooldown();
-                AttackSpec comboNext = Owner.UnitExecutor.ComboNext;
+                AttackSpec comboNext = Owner.StateF.ComboNext;
 
                 if (isFinished && comboNext != null)
-                    Owner.UnitExecutor.RequestAttack(comboNext, Vector3.zero, TargetSelector.TargetTransform);
+                    Owner.StateF.RequestAttack(comboNext, Vector3.zero, TargetSelector.TargetTransform);
 
                 break;
             }
-            case EActionType.Hit:
+            case ECoreState.Hit:
             {
                 if (isFinished)
                     m_Fsm.Change(GetStateAfterHit());
@@ -261,11 +261,11 @@ public class AIBrain : BrainBase
     
     // get ---
     
-    // 공격·피격·대시는 실행기가 끝까지 맡는다. 사망은 사망 뒤 처리(사라짐)를 위해 판단을 계속 돈다
+    // 공격·피격·대시는 StateF가 끝까지 맡는다. 사망은 사망 뒤 처리(사라짐)를 위해 판단을 계속 돈다
     private bool IsActing()
     {
-        EActionType action = Owner.UnitExecutor.Current;
-        return action == EActionType.Attack || action == EActionType.Hit || action == EActionType.Dash;
+        ECoreState action = Owner.StateF.Current;
+        return action == ECoreState.Attack || action == ECoreState.Hit || action == ECoreState.Dash;
     }
 
     private EAIState GetStateAfterHit()

@@ -29,7 +29,7 @@ public class AIHideStateBase : AIStateBase
 
     public override void Enter()
     {
-        m_Controller.UnitExecutor.SetMove(Vector3.zero, 0f);
+        m_Controller.StateF.SetMove(Vector3.zero, 0f);
         m_Controller.HitF.SetHidden(true);
         ChangePhase(EPhase.Burrow, m_Controller.AnimF.GetLength(BurrowClip), BurrowClip);
     }

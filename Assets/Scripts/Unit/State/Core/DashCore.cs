@@ -2,10 +2,10 @@ using UnityEngine;
 
 // ==================================================
 
-// 대시. 정한 방향으로 순간 돌아서 일정 시간 빠르게 달리고, 끝난 뒤 쿨을 돈다(쿨은 행동이 아닐 때도 UnitExecutor가 돌린다).
+// 대시. 정한 방향으로 순간 돌아서 일정 시간 빠르게 달리고, 끝난 뒤 쿨을 돈다(쿨은 코어가 아닐 때도 StateFeature가 돌린다).
 // 생성 때 받는 값은 Def 기본값이고, 시간·쿨 최종값은 쓸 때마다 능력치(StatFeature)에서 읽는다
 
-public class DashAction : UnitAction
+public class DashCore : CoreState
 {
     private readonly DashSpec m_Spec; // Def 기본값(PlayerDef.Dash)
 
@@ -13,13 +13,13 @@ public class DashAction : UnitAction
     private float m_CooldownRemain;
     private float m_CurrentDuration;   // 이번 대시 시간(대시 거리 반영)
 
-    public override EActionType Type => EActionType.Dash;
+    public override ECoreState Type => ECoreState.Dash;
     public override bool IsFinished => Time >= m_CurrentDuration;
     public bool IsReady => m_CooldownRemain <= 0f;
 
     // ------------------------------------------------
 
-    public DashAction(UnitController owner, DashSpec spec) : base(owner)
+    public DashCore(UnitController owner, DashSpec spec) : base(owner)
     {
         m_Spec = spec;
     }

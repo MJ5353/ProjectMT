@@ -3,7 +3,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 대시 수치 한 벌. PlayerDef.Dash가 들고 UnitExecutor.EnableDash로 DashAction에 넘긴다.
+// 대시 수치 한 벌. PlayerDef.Dash가 들고 StateFeature.EnableDash로 DashCore에 넘긴다.
 // 시간·쿨은 기본값이고, 최종값은 대시할 때마다 능력치(StatFeature)에서 읽는다
 
 [Serializable]

@@ -3,14 +3,14 @@ using UnityEngine;
 
 // ==================================================
 
-// 공격 하나의 퍼펙트 닷지 알림(AttackAction이 들고 부른다). 피할 수 있는 적(PerfectDodgeFeature)에게 알려 주기만 하고, 판단은 받는 쪽이 한다.
+// 공격 하나의 퍼펙트 닷지 알림(AttackCore가 들고 부른다). 피할 수 있는 적(PerfectDodgeFeature)에게 알려 주기만 하고, 판단은 받는 쪽이 한다.
 // 알림: 판정 전 범위 안이면 매 프레임 OnThreatened, 맞으면·공격이 끊기면 OnAttackEnded, 판정이 지나갔는데 안 맞으면 OnAttackMissed.
 // 일반 공격은 첫 판정 때 한 번에, 돌진은 판정 구가 그 적 자리를 지나갈 때(못 지나가면 판정 구간 끝) 적마다 알린다
 
 public class AttackDodgeNotifier
 {
     private readonly UnitController m_Owner;
-    private readonly AttackAction m_Attack; // 받는 쪽이 공격별로 기록하는 열쇠
+    private readonly AttackCore m_Attack; // 받는 쪽이 공격별로 기록하는 열쇠
     private readonly List<UnitHitCandidate> m_ListCandidate = new();
     private readonly HashSet<UnitController> m_SetThreat = new(); // 범위에 들어와 알린 적(아직 판정이 안 지나감)
     private readonly HashSet<UnitController> m_SetDone = new();   // 이번 공격에서 알림을 끝낸 적. 다시 알리지 않는다
@@ -18,7 +18,7 @@ public class AttackDodgeNotifier
 
     // ------------------------------------------------
 
-    public AttackDodgeNotifier(UnitController owner, AttackAction attack)
+    public AttackDodgeNotifier(UnitController owner, AttackCore attack)
     {
         m_Owner = owner;
         m_Attack = attack;

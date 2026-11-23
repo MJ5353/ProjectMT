@@ -55,7 +55,7 @@ public abstract class UnitDef : DataDef
 
     // 조립 (UnitController.Set이 부른다) ---
 
-    // 공통 부품·실행기 다음에 붙일 Def별 부품(부위·판정 모양·대시 등)
+    // 공통 부품·StateF 다음에 붙일 Def별 부품(부위·판정 모양·대시 등)
     public virtual void SetFeatures(UnitController unit) { }
 
     // 판단. 기본은 AI 프리셋(AI)으로 도는 AIBrain. AI가 비면 AIBrain이 오류 로그 후 기본값 AIDef로 돈다

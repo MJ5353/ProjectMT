@@ -11,7 +11,7 @@ using UnityEngine;
 public sealed class EffectService : ServiceBase
 {
     private readonly List<EffectController> m_ListActive = new();
-    private readonly List<TelegraphController> m_ListTelegraph = new(); // 켜져 있는 공격 예고. 끄는 건 부른 쪽(AttackAction)
+    private readonly List<TelegraphController> m_ListTelegraph = new(); // 켜져 있는 공격 예고. 끄는 건 부른 쪽(AttackCore)
     private readonly List<EffectController> m_ListShown = new();         // 켜 둔 고정 연출(빛기둥 등). 끄는 건 부른 쪽(Hide)
     private readonly Dictionary<ECommonEffectType, EffectController> m_DicCommon = new();
     

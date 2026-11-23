@@ -9,7 +9,7 @@ using UnityEngine;
 // 예고·알림은 몬스터 공격(플레이어가 피할 공격)만. 범위는 매 프레임 AttackArea 하나로 계산해 세 부품이 같이 쓴다
 // 시간: Time은 실제로 흐른 시간, AttackTime은 클립 시간(공격 속도가 곱해짐). 클립 시간을 실제 시간으로 바꿀 땐 ToRealTime
 
-public class AttackAction : UnitAction
+public class AttackCore : CoreState
 {
     private static readonly Vector3 s_SquashScale = new(1.15f, 0.8f, 1.15f); // 예고 끝 움츠림 배율
     private readonly float m_BlendTime;    // 공격 애니로 넘어갈 때 섞는 시간(UnitDef.AttackBlendTime)
@@ -25,9 +25,9 @@ public class AttackAction : UnitAction
     
     public AttackSpec Spec { get; private set; }  // 지금(끝난 뒤엔 마지막) 공격. 콤보 다음 타를 여기서 읽는다
     public float CancelDelay { get; set; }  // 판정 뒤 이 시간이 지나면 다음 공격으로 끊을 수 있다. 0이면 판정 끝나자마자
-    public bool IsQuickCancel { get; set; } // 켜져 있으면 CancelDelay를 무시하고 판정 끝나자마자 끊는다(UnitExecutor.SetQuickCancel)
+    public bool IsQuickCancel { get; set; } // 켜져 있으면 CancelDelay를 무시하고 판정 끝나자마자 끊는다(StateFeature.SetQuickCancel)
 
-    public override EActionType Type => EActionType.Attack;
+    public override ECoreState Type => ECoreState.Attack;
     public override bool IsFinished => m_IsStarted && AttackTime >= m_Length;
     
     public bool CanBufferNext => m_IsStarted && AttackTime >= Spec.HitTime; // 판정 시작 뒤에 누른 것만 다음 타로 받는다(너무 이른 연타는 무시)
@@ -42,7 +42,7 @@ public class AttackAction : UnitAction
 
     // ------------------------------------------------
 
-    public AttackAction(UnitController owner, UnitDef def) : base(owner)
+    public AttackCore(UnitController owner, UnitDef def) : base(owner)
     {
         m_BlendTime = def.AttackBlendTime;
         m_Hitter = new AttackHitter(owner);
@@ -56,7 +56,7 @@ public class AttackAction : UnitAction
         foreach (AttackSpec attack in listAttack)
         {
             if (attack.HitPart != EBattlePartType.None && owner.Property.GetBattleBone(attack.HitPart) == null)
-                CLogger.Warning("AttackAction", $"판정 부위 뼈가 프리팹에 없음: {attack.HitPart} ({owner.transform.name})", owner.transform);
+                CLogger.Warning("AttackCore", $"판정 부위 뼈가 프리팹에 없음: {attack.HitPart} ({owner.transform.name})", owner.transform);
         }
     }
 
@@ -86,13 +86,13 @@ public class AttackAction : UnitAction
 
     // ---
     
-    public override bool CanInterruptBy(EActionType next)
+    public override bool CanInterruptBy(ECoreState next)
     {
         switch (next)
         {
-            case EActionType.Attack:
+            case ECoreState.Attack:
                 return IsHitDone && AttackTime >= Spec.HitEndTime + (IsQuickCancel ? 0f : CancelDelay);
-            case EActionType.Dash:
+            case ECoreState.Dash:
                 return IsHitDone;
             default:
                 return base.CanInterruptBy(next);

@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 
 // ==================================================
 
-// 플레이어 판단(UnitBrain). 입력을 읽어 실행기(UnitExecutor)에 요청만 한다.
+// 플레이어 판단(UnitBrain). 입력을 읽어 상태(StateFeature)에 요청만 한다.
 // 입력은 InputManager가 들고 있는 생성 클래스(InputSystem_Actions)의 Player 맵 Move·Attack·AttackUp·Dash를 쓴다.
 // 키 배치는 에셋에서 바꾼다(기본: 이동 WASD·방향키·왼스틱, 공격 클릭·스페이스·J·패드 A/X, 대시 Shift·패드 B).
 // 공격 버튼을 누르면 가까운 적 쪽으로 자동으로 돌아서 벤다(모바일 대비). 연타하면 Def.ComboStart부터 AttackSpec.Next 순서, 달리는 중이면 Def.RunAttack. 수치는 PlayerDef
@@ -72,7 +72,7 @@ public class PlayerBrain : BrainBase
 
         // 러시 중에는 대시·길게 누르기 없이 클릭만 받는다
         AttackSpec pressedAttack = m_Rush.IsActive ? GetRushAttack() : GetPressedAttack(deltaTime);
-        if (m_Rush.IsActive == false && Actions.Dash.WasPressedThisFrame() && Owner.UnitExecutor.RequestDash(GetDashDirection()))
+        if (m_Rush.IsActive == false && Actions.Dash.WasPressedThisFrame() && Owner.StateF.RequestDash(GetDashDirection()))
             return;
 
         UpdateAttackInput(pressedAttack);
@@ -84,11 +84,11 @@ public class PlayerBrain : BrainBase
 
     // ==================================================
 
-    // 대기 중엔 바로, 공격 중엔 판정 시작 뒤 누른 것만 다음 타로 예약한다. 실행기가 끊기를 허락해도 보낸다
+    // 대기 중엔 바로, 공격 중엔 판정 시작 뒤 누른 것만 다음 타로 예약한다. StateF가 끊기를 허락해도 보낸다
     private void UpdateAttackInput(AttackSpec pressedAttack)
     {
-        UnitExecutor action = Owner.UnitExecutor;
-        bool canBuffer = action.IsIdle || (action.Current == EActionType.Attack && action.Attack.CanBufferNext);
+        StateFeature state = Owner.StateF;
+        bool canBuffer = state.IsIdle || (state.Current == ECoreState.Attack && state.Attack.CanBufferNext);
         if (pressedAttack != null && canBuffer)
         {
             m_QueuedAttack = pressedAttack;
@@ -96,12 +96,12 @@ public class PlayerBrain : BrainBase
         }
 
         // 러시 돌진 중에는 예약만 해 두고 도착한 뒤 낸다
-        if (m_QueuedAttack == null || m_Rush.IsApproaching || action.CanRequest(EActionType.Attack) == false)
+        if (m_QueuedAttack == null || m_Rush.IsApproaching || state.CanRequest(ECoreState.Attack) == false)
             return;
 
         AttackSpec attack = m_QueuedAttack;
         m_QueuedAttack = null;
-        action.RequestAttack(attack, FindAimDirection());
+        state.RequestAttack(attack, FindAimDirection());
     }
 
     private void UpdateMoveInput()
@@ -110,7 +110,7 @@ public class PlayerBrain : BrainBase
         float strength = Mathf.Clamp01(input.magnitude);
         float speed = strength < 0.1f ? 0f : Owner.StatF.Get(EStatType.MoveSpeed, m_Def.MoveSpeed) * strength;
         
-        Owner.UnitExecutor.SetMove(input, speed, strength >= m_Def.RunThreshold);
+        Owner.StateF.SetMove(input, speed, strength >= m_Def.RunThreshold);
     }
 
     // get ---
@@ -145,18 +145,18 @@ public class PlayerBrain : BrainBase
     // 달리는 중이면 달리다 베기, 아니면 콤보 다음 타. 콤보가 없으면 기본 공격
     private AttackSpec GetNextAttack()
     {
-        UnitExecutor action = Owner.UnitExecutor;
-        if (action.IsIdle && m_Def.RunAttack != null && GetMoveInput().magnitude >= m_Def.RunThreshold)
+        StateFeature state = Owner.StateF;
+        if (state.IsIdle && m_Def.RunAttack != null && GetMoveInput().magnitude >= m_Def.RunThreshold)
             return m_Def.RunAttack.Attack;
 
         if (m_Def.ComboStart == null)
             return m_Def.MainAttack;
 
         // 공격이 끝나고 리셋 시간이 지나면 첫 타부터. 막타·콤보 밖 공격(Next 없음) 다음도 첫 타
-        if (action.Current != EActionType.Attack && action.TimeInAction > m_Def.ComboResetTime)
+        if (state.Current != ECoreState.Attack && state.TimeInAction > m_Def.ComboResetTime)
             return m_Def.ComboStart.Attack;
 
-        return action.ComboNext ?? m_Def.ComboStart.Attack;
+        return state.ComboNext ?? m_Def.ComboStart.Attack;
     }
 
     // 카메라 기준 입력 방향(수평)

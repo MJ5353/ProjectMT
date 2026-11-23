@@ -19,7 +19,7 @@ public class AIDownStateBase : AIStateBase
 
     public override void Enter()
     {
-        m_Controller.UnitExecutor.SetMove(Vector3.zero, 0f);
+        m_Controller.StateF.SetMove(Vector3.zero, 0f);
         m_BreakLength = m_Controller.AnimF.GetLength(PartBreakClip);
         m_IsDown = false;
         m_Controller.AnimF.Play(PartBreakClip, true);

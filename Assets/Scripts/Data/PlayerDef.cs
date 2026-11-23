@@ -52,9 +52,9 @@ public class PlayerDef : UnitDef
     // 대시·퍼펙트 닷지를 켜고 공격 끊기 시간을 넣는다. 몸 렌더러는 Player 레이어로 옮겨 가려지면 실루엣이 보이게 한다
     public override void SetFeatures(UnitController unit)
     {
-        unit.UnitExecutor.EnableDash(Dash);
+        unit.StateF.EnableDash(Dash);
         unit.SetPerfectDodgeFeature(new PerfectDodgeFeature(unit, Dash.PerfectDodgeWindow));
-        unit.UnitExecutor.Attack.CancelDelay = CancelDelay;
+        unit.StateF.Attack.CancelDelay = CancelDelay;
 
         int playerLayer = LayerMask.NameToLayer(GameLayers.Player);
         if (playerLayer < 0)

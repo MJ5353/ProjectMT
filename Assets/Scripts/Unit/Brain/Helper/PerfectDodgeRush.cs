@@ -75,7 +75,7 @@ public class PerfectDodgeRush
         m_HasTarget = m_TargetSelector.HasTarget;
 
         TimeManager.Instance.SetSlow(ESlowReason.Rush, m_Def.Rush.SlowRate);
-        m_Owner.UnitExecutor.SetQuickCancel(true); // 판정이 끝나자마자 다음 타로 끊는다
+        m_Owner.StateF.SetQuickCancel(true); // 판정이 끝나자마자 다음 타로 끊는다
         m_Owner.HitF.SetInvincible(InvincibleKeep);
 
         SEventManager.Publish(new RushStarted(m_Owner, m_Def.Rush.Time, m_Def.Rush.FinishWindow));
@@ -172,8 +172,8 @@ public class PerfectDodgeRush
     // 대시가 끝나 대기로 돌아오면 대상 앞(베기 사거리 안)까지 달린다. 닿거나 막히면(시간 초과) 빈틈 타이머 시작
     private void TickApproach(float deltaTime)
     {
-        UnitExecutor executor = m_Owner.UnitExecutor;
-        if (executor.IsIdle == false)
+        StateFeature state = m_Owner.StateF;
+        if (state.IsIdle == false)
             return;
 
         UnitController target = m_TargetSelector.Target;
@@ -191,13 +191,13 @@ public class PerfectDodgeRush
         float stopDistance = target.HurtBody.radius * target.transform.lossyScale.x + m_Def.Rush.Left.Attack.Reach;
         if (offset.magnitude <= stopDistance || m_ApproachTime >= m_Def.Rush.ApproachMaxTime)
         {
-            executor.SetMove(Vector3.zero, 0f);
+            state.SetMove(Vector3.zero, 0f);
             m_Owner.MoveF.FaceToInstant(offset);
             BeginRush();
             return;
         }
 
-        executor.SetMove(offset, m_Def.Rush.ApproachSpeed, true);
+        state.SetMove(offset, m_Def.Rush.ApproachSpeed, true);
     }
 
     private void BeginRush()
@@ -208,9 +208,9 @@ public class PerfectDodgeRush
     // 막타가 시작되면 정점에서 시간을 되돌리고, 막타가 끝나면(다른 행동으로 바뀌면) 러시를 끝낸다
     private void TickFinisher()
     {
-        UnitExecutor executor = m_Owner.UnitExecutor;
+        StateFeature state = m_Owner.StateF;
         AttackSpec finisher = m_Def.Rush.Finisher.Attack;
-        bool isRunning = executor.Current == EActionType.Attack && executor.Attack.Spec == finisher;
+        bool isRunning = state.Current == ECoreState.Attack && state.Attack.Spec == finisher;
 
         if (m_IsFinisherStarted == false)
         {
@@ -224,7 +224,7 @@ public class PerfectDodgeRush
             return;
         }
 
-        if (TimeManager.Instance.IsSlow && executor.Attack.AttackTime >= finisher.HitTime - FinisherRestoreLead)
+        if (TimeManager.Instance.IsSlow && state.Attack.AttackTime >= finisher.HitTime - FinisherRestoreLead)
             TimeManager.Instance.ClearSlow(ESlowReason.Rush);
     }
 
@@ -236,7 +236,7 @@ public class PerfectDodgeRush
         m_TargetSelector.Clear();
 
         TimeManager.Instance.ClearSlow(ESlowReason.Rush);
-        m_Owner.UnitExecutor.SetQuickCancel(false);
+        m_Owner.StateF.SetQuickCancel(false);
 
         SEventManager.Publish(new RushEnded(m_Owner, isFinisher));
     }

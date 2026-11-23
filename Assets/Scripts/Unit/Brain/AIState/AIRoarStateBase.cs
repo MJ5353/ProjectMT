@@ -16,7 +16,7 @@ public class AIRoarStateBase : AIStateBase
 
     public override void Enter()
     {
-        m_Controller.UnitExecutor.SetMove(Vector3.zero, 0f);
+        m_Controller.StateF.SetMove(Vector3.zero, 0f);
         m_Length = m_Controller.AnimF.GetLength(RoarClip);
         m_Controller.AnimF.Play(RoarClip, true);
 

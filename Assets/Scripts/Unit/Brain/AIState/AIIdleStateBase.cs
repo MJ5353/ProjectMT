@@ -12,7 +12,7 @@ public class AIIdleStateBase : AIStateBase
 
     public override void Enter()
     {
-        m_Controller.UnitExecutor.SetMove(Vector3.zero, 0f);
+        m_Controller.StateF.SetMove(Vector3.zero, 0f);
         m_Duration = Random.Range(1f, 2.5f);
     }
 

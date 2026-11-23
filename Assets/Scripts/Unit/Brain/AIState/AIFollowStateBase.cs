@@ -15,7 +15,7 @@ public class AIFollowStateBase : AIStateBase
         UnitController leader = m_AI.GetLeader();
         if (leader == null)
         {
-            m_Controller.UnitExecutor.SetMove(Vector3.zero, 0f);
+            m_Controller.StateF.SetMove(Vector3.zero, 0f);
             return;
         }
 
@@ -25,10 +25,10 @@ public class AIFollowStateBase : AIStateBase
         float distance = diff.magnitude;
         if (distance <= Def.FollowDistance)
         {
-            m_Controller.UnitExecutor.SetMove(Vector3.zero, 0f);
+            m_Controller.StateF.SetMove(Vector3.zero, 0f);
             return;
         }
 
-        m_Controller.UnitExecutor.SetMove(diff, m_AI.MoveSpeed, distance > Def.FollowDistance * 2f);
+        m_Controller.StateF.SetMove(diff, m_AI.MoveSpeed, distance > Def.FollowDistance * 2f);
     }
 }

@@ -33,6 +33,6 @@ public class AIWanderStateBase : AIStateBase
             return;
         }
 
-        m_Controller.UnitExecutor.SetMove(diff, m_AI.WanderSpeed);
+        m_Controller.StateF.SetMove(diff, m_AI.WanderSpeed);
     }
 }

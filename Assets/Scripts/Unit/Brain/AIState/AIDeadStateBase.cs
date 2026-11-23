@@ -16,7 +16,7 @@ public class AIDeadStateBase : AIStateBase
     public override void Enter()
     {
         m_IsCollisionOff = false;
-        m_Controller.AnimF.SetSpeed(1f); // 멈춤·Death 애니는 사망 행동(DeadAction)이 한다
+        m_Controller.AnimF.SetSpeed(1f); // 멈춤·Death 애니는 사망 행동(DeadCore)이 한다
 
         PlayDeathEffect();
     }

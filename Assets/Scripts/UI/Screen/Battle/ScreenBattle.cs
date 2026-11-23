@@ -6,7 +6,7 @@ using UnityEngine.UI;
 // ==================================================
 
 // 전투 화면(HUD). 좌상단 밤 시계, 중앙 하단 체력, 공격·대시 아이콘(사용 중, 연계는 ScreenBattle_SkillChain), 우상단 주운 버섯 목록(신선도별), 토벌 종료 버튼(현장 시장 팝업), 보스 포효 연출.
-// 시계만 매 프레임 그리고, 체력(UnitHpChanged)·아이콘(UnitExecutor.Started)·포효(BossRoared)는 이벤트로 그린다.
+// 시계만 매 프레임 그리고, 체력(UnitHpChanged)·아이콘(StateFeature.Started)·포효(BossRoared)는 이벤트로 그린다.
 // 사망·시장·결과 팝업은 BattleFlow 상태가 띄우고, 여기서는 토벌 종료 요청만 보낸다(확인 팝업도 BattleFlow가 띄운다)
 
 public class ScreenBattle : ScreenBase
@@ -28,7 +28,7 @@ public class ScreenBattle : ScreenBase
     private readonly Dictionary<string, int> m_DicStale = new();      // 버섯별 덜 신선 개수
     private readonly UISequence m_RoarSequence = new();
 
-    private UnitController m_Player;   // 이번 판 플레이어. 실행기 구독은 풀 재사용으로 남으니 다음 판·OnDisable에서 푼다
+    private UnitController m_Player;   // 이번 판 플레이어. StateF 구독은 풀 재사용으로 남으니 다음 판·OnDisable에서 푼다
 
     // ------------------------------------------------
 
@@ -75,19 +75,19 @@ public class ScreenBattle : ScreenBase
 
     // ---
 
-    // 플레이어를 바꿔 잡는다. 지난 플레이어 실행기 구독을 풀고, 새 플레이어의 체력·행동을 바로 그린다
+    // 플레이어를 바꿔 잡는다. 지난 플레이어 StateF 구독을 풀고, 새 플레이어의 체력·행동을 바로 그린다
     private void BindPlayer(UnitController player)
     {
         if (m_Player != null)
-            m_Player.UnitExecutor.Started -= OnPlayerActionStarted;
+            m_Player.StateF.Started -= OnPlayerActionStarted;
 
         m_Player = player;
         if (player == null)
             return;
 
-        player.UnitExecutor.Started += OnPlayerActionStarted;
+        player.StateF.Started += OnPlayerActionStarted;
         m_Hp.SetValue(player.HealthF.Current, player.HealthF.MaxHp, true);
-        OnPlayerActionStarted(player.UnitExecutor.Current);
+        OnPlayerActionStarted(player.StateF.Current);
     }
 
     private void SetRoarAlpha(float alpha)
@@ -170,10 +170,10 @@ public class ScreenBattle : ScreenBase
         m_Hp.SetValue(m_Player.HealthF.Current, m_Player.HealthF.MaxHp);
     }
 
-    private void OnPlayerActionStarted(EActionType action)
+    private void OnPlayerActionStarted(ECoreState action)
     {
-        m_AttackActive.E_SetActive(action == EActionType.Attack);
-        m_DashActive.E_SetActive(action == EActionType.Dash);
+        m_AttackActive.E_SetActive(action == ECoreState.Attack);
+        m_DashActive.E_SetActive(action == ECoreState.Dash);
     }
 
     // 붉은 가장자리·이름 띠가 앞 20% 동안 나타나고 끝 20% 동안 사라진다. 히트스톱·일시정지와 상관없이 실제 시간(UISequence)

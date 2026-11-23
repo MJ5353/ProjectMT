@@ -24,7 +24,7 @@ public class AIFleeStateBase : AIStateBase
         }
 
         Vector3 away = -TargetSelector.GetDirection();
-        m_Controller.UnitExecutor.SetMove(away, Def.FleeSpeed);
+        m_Controller.StateF.SetMove(away, Def.FleeSpeed);
     }
 
     public override void Exit()
