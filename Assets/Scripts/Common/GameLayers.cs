@@ -9,4 +9,7 @@ public static class GameLayers
     public const string Terrain = "Terrain";   // 맵 지형(Map_Terrain)
     public const string Player = "Player";     // 플레이어 몸 렌더러만(루트는 Actor). 가려지면 실루엣으로 그린다(렌더러 기능 PlayerSilhouette)
     public const string Occluder = "Occluder"; // 보스 몸 렌더러만. 이 뒤에 가려진 플레이어만 실루엣으로 그린다(렌더러 기능 BossOccluder)
+
+    // 마스크. 레이어 번호(TagManager 순서)를 바꾸면 같이 바꾼다
+    public const int TerrainMask = 1 << 8; // Terrain(떨어지는 물건이 닿는 땅)
 }

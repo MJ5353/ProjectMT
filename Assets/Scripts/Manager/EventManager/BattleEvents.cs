@@ -93,6 +93,17 @@ public readonly struct RushEnded
     }
 }
 
+// 보스가 대상을 잡음(없다가 생길 때마다, AIBrain). 화면 위 보스 체력바가 처음 한 번 잡는다
+public readonly struct BossAggroed
+{
+    public readonly UnitController Unit;
+
+    public BossAggroed(UnitController unit)
+    {
+        Unit = unit;
+    }
+}
+
 // 보스가 포효함(첫 발견·분노). HUD가 붉은 가장자리·이름 배너를 띄운다
 public readonly struct BossRoared
 {

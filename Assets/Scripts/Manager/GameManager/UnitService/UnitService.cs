@@ -144,8 +144,9 @@ public sealed class UnitService : ServiceBase
         UnitController nearest = null;
         float nearestDistanceSq = range * range;
         
-        foreach (UnitController unit in m_DicUnit.Values)
+        for (int i = 0; i < m_ListUnit.Count; i++)
         {
+            UnitController unit = m_ListUnit[i];
             if (IsEnemy(unit, team) == false)
                 continue;
 
@@ -163,8 +164,9 @@ public sealed class UnitService : ServiceBase
     public void CollectNearbyEnemies(Vector3 center, float radius, ETeam team, List<UnitHitCandidate> results)
     {
         results.Clear();
-        foreach (UnitController unit in m_DicUnit.Values)
+        for (int i = 0; i < m_ListUnit.Count; i++)
         {
+            UnitController unit = m_ListUnit[i];
             CharacterController body = unit.HurtBody;
             if (IsEnemy(unit, team) == false || body == null || body.enabled == false)
                 continue;
@@ -179,9 +181,9 @@ public sealed class UnitService : ServiceBase
     public bool IsBodyNear(CharacterController self, float margin)
     {
         Vector3 position = self.transform.position;
-        foreach (UnitController unit in m_DicUnit.Values)
+        for (int i = 0; i < m_ListUnit.Count; i++)
         {
-            CharacterController body = unit.HurtBody;
+            CharacterController body = m_ListUnit[i].HurtBody;
             if (body == null || body == self || body.enabled == false)
                 continue;
 
@@ -281,8 +283,10 @@ public readonly struct UnitHitCandidate
         if (HasBodyShape() == false)
             return false;
 
-        foreach (HitShape shape in Unit.HitF.ListShape)
+        IReadOnlyList<HitShape> listShape = Unit.HitF.ListShape;
+        for (int i = 0; i < listShape.Count; i++)
         {
+            HitShape shape = listShape[i];
             if ((shape.PartIndex >= 0) != isPart)
                 continue;
 

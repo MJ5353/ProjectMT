@@ -48,10 +48,11 @@ public class SaveService
         string tmpPath = m_FilePath + ".tmp";
         File.WriteAllText(tmpPath, JsonUtility.ToJson(data, true));
 
+        // 있으면 한 번에 바꿔 끼운다(지우고 옮기는 사이에 꺼져도 파일이 사라지지 않게)
         if (File.Exists(m_FilePath))
-            File.Delete(m_FilePath);
-
-        File.Move(tmpPath, m_FilePath);
+            File.Replace(tmpPath, m_FilePath, null);
+        else
+            File.Move(tmpPath, m_FilePath);
     }
 
     public void Delete()

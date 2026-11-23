@@ -15,6 +15,7 @@ public class StatFeature : UnitFeature
     private static readonly int s_StatCount = Enum.GetValues(typeof(EStatType)).Length;
 
     private readonly Dictionary<object, List<StatModifier>> m_DicSource = new();   // 출처 → 수정치
+    private readonly Stack<List<StatModifier>> m_StackFreeList = new();            // 빠진 출처의 리스트. 스폰마다 new 하지 않게 다시 쓴다
     private readonly float[] m_ArrRate = new float[s_StatCount];                    // EStatType 순서. Rate 합
     private readonly float[] m_ArrAdd = new float[s_StatCount];                     // Add 합
 
@@ -37,6 +38,11 @@ public class StatFeature : UnitFeature
     // 다시 꺼낼 때·풀로 돌아갈 때. 체력은 자기 Reset에서 다시 계산하므로 Changed는 보내지 않는다
     private void ClearAll()
     {
+        foreach (List<StatModifier> list in m_DicSource.Values)
+        {
+            m_StackFreeList.Push(list);
+        }
+
         m_DicSource.Clear();
         
         Array.Clear(m_ArrRate, 0, m_ArrRate.Length);
@@ -53,7 +59,7 @@ public class StatFeature : UnitFeature
 
         if (m_DicSource.TryGetValue(source, out List<StatModifier> list) == false)
         {
-            list = new List<StatModifier>();
+            list = m_StackFreeList.Count > 0 ? m_StackFreeList.Pop() : new List<StatModifier>();
             m_DicSource[source] = list;
         }
 
@@ -65,9 +71,10 @@ public class StatFeature : UnitFeature
 
     public void RemoveSource(object source)
     {
-        if (source == null || m_DicSource.Remove(source) == false)
+        if (source == null || m_DicSource.Remove(source, out List<StatModifier> list) == false)
             return;
 
+        m_StackFreeList.Push(list);
         Recalculate();
     }
     

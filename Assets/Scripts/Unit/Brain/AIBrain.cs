@@ -72,6 +72,9 @@ public class AIBrain : BrainBase
         // 부위는 판단보다 먼저 붙는다(MonsterDef.SetFeatures)
         if (Def.Type == EAIType.Boss && owner.PartF != null)
             owner.PartF.Broken += OnPartBroken;
+
+        if (Def.Type == EAIType.Boss)
+            TargetSelector.Acquired += OnBossTargetAcquired;
     }
 
     public override void Reset()
@@ -242,6 +245,12 @@ public class AIBrain : BrainBase
         AttackSelector.Enrage(listEnrageSkill, Def.EnrageCooldownRate);
         
         m_IsRoarPending = true;
+    }
+
+    // 보스가 대상을 잡음. 화면 위 보스 체력바가 받는다
+    private void OnBossTargetAcquired()
+    {
+        SEventManager.Publish(new BossAggroed(Owner));
     }
 
     private void OnPartBroken(PartFeature.Part part)

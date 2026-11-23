@@ -149,11 +149,13 @@ public sealed class ChunkRenderer
         }
     }
 
+    // 조각만 비운다. 배치(색별 배열)·머티리얼·메시는 다음 판에 그대로 다시 쓴다
     public void Clear()
     {
-        m_DicBatch.Clear();
-        m_Material = null;   // 에셋(Resources)이라 지우지 않는다
-        m_Mesh = null;
+        foreach (ChunkBatch batch in m_DicBatch.Values)
+        {
+            batch.Count = 0;
+        }
     }
 
     private ChunkBatch GetBatch(Color color)

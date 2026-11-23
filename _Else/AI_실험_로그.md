@@ -624,3 +624,5 @@
 
 ## 주요 코드 성능·구조 리뷰 반영
 - 리뷰 6건 반영(AI 작성): 빌드 직전 DB 갱신(DataBuildPreprocess), 정비 적용을 GearData에서 BattleService로 옮김(GearData는 조회만), HUD 폴링을 이벤트로(UnitHpChanged·UnitExecutor.Started, 보스 분노 확인은 OnHit로), 포효 연출을 ScreenBattle 안 UISequence로 합치고 RoarEffect 삭제, 러시 문구 페이드를 UISequence로·다 꺼지면 RushEffect 쉼. 스킬 연계 아이콘은 콤보 리셋·버퍼가 시간 기준이라 폴링 유지로 판단. 보스 바는 어그로(HasTarget) 감지만 매 프레임 남김. Unity 컴파일만 확인(에러 0), 플레이 확인 안 함, 커밋하지 않음.
+- 남은 리뷰 7건 반영(AI 작성): 보스 바를 BossAggroed 이벤트로(TargetSelector.Acquired→AIBrain 보스만 발행, 놓는 건 기존대로 죽음·제거), FollowCamera를 실제 시간으로 따라가되 timeScale 0이면 멈춤, 버섯 낙하 레이를 GameLayers.GroundMask(Actor 제외)로·GetComponentInParent 제거, UnitService 순회를 인덱스 for로·수평 이동 없으면 IsBodyNear 생략, StatFeature 출처 리스트 재사용, ChunkRenderer.Clear는 배치 Count만 0, SaveService는 File.Replace. Unity 컴파일만 확인(에러·경고 0), 플레이 확인 안 함, 커밋하지 않음.
+- 대장 피드백 반영(AI 작성): FollowCamera는 러시 슬로우에 카메라가 뒤처지는 게 좋아서 scaled time으로 되돌림(HEAD와 같음). 버섯 낙하 레이는 GroundMask 대신 GameLayers.TerrainMask(1<<8)만 보도록 바꾸고 GroundMask·ActorMask 삭제. 맵 3종의 Map_Terrain은 이미 VoxelImportSettings가 Terrain 레이어로 넣고 있어 프리팹 수정 없음. Unity 컴파일만 확인(에러 0), 플레이 확인 안 함, 커밋하지 않음.

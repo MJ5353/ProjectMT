@@ -117,14 +117,12 @@ public class MushroomPickup : PoolableMono
         m_Velocity.y += Gravity * deltaTime;
         Vector3 next = transform.position + m_Velocity * deltaTime;
 
-        // 땅에 닿으면 멈춘다(콜라이더가 있는 지형만)
+        // 땅에 닿으면 멈춘다(Terrain 레이어만)
         Vector3 rayStart = transform.position + Vector3.up * 0.5f;
         float rayLength = 0.5f + Mathf.Max(0f, -m_Velocity.y * deltaTime) + 0.05f;
 
-        // [mj] todo) 콜라이더에서 대상 찾기. 레이어 검사로 바꿀지 검토
         if (m_Velocity.y < 0f &&
-            Physics.Raycast(rayStart, Vector3.down, out RaycastHit hitInfo, rayLength, ~0, QueryTriggerInteraction.Ignore) &&
-            hitInfo.collider.GetComponentInParent<CharacterController>() == null)
+            Physics.Raycast(rayStart, Vector3.down, out RaycastHit hitInfo, rayLength, GameLayers.TerrainMask, QueryTriggerInteraction.Ignore))
         {
             next.y = hitInfo.point.y;
             m_GroundY = next.y;

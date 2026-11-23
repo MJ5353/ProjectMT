@@ -52,6 +52,7 @@ public class MoveFeature : UnitFeature
 
         // 씬 로드 직후 같은 긴 프레임에 한 번에 크게 떨어지지 않게 자른다
         // [mj] todo) 게임 플레이에 지장이 있을까? 확인 필요
+        
         deltaTime = Mathf.Min(deltaTime, MaxDeltaTime);
         if (deltaTime <= 0f)
             return;
@@ -65,10 +66,15 @@ public class MoveFeature : UnitFeature
         motion.y = m_VerticalSpeed * deltaTime;
 
         // !!) 계단 오르기가 켜져 있으면 둥근 캡슐 바닥이 다른 캐릭터를 계단으로 보고 타고 올라간다(큰 몬스터가 플레이어 위로)
-        UnitService units = FlowManager.Instance.Battle?.UnitS;
-        bool isTouchingUnit = units != null && units.IsBodyNear(m_Controller, UnitContactMargin);
+        // 수평으로 안 움직이면 계단을 오르지 않으니 검사하지 않는다
+        if (motion.x != 0f || motion.z != 0f)
+        {
+            UnitService units = FlowManager.Instance.Battle?.UnitS;
+            bool isTouchingUnit = units != null && units.IsBodyNear(m_Controller, UnitContactMargin);
+            
+            m_Controller.stepOffset = isTouchingUnit ? 0f : m_StepOffset;
+        }
 
-        m_Controller.stepOffset = isTouchingUnit ? 0f : m_StepOffset;
         m_Controller.Move(motion);
         m_Impulse = Vector3.Lerp(m_Impulse, Vector3.zero, 1f - Mathf.Exp(-ImpulseDamping * deltaTime));
     }

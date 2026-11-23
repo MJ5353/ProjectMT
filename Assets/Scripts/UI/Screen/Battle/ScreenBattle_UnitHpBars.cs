@@ -5,7 +5,7 @@ using TMPro;
 // ==================================================
 
 // 몬스터 체력바. 잡몹·엘리트는 맞으면 머리 위에 작은 바가 잠깐(Define.Hud.MonsterHpBarShowTime) 뜨고,
-// 보스는 어그로가 끌리면 화면 위에 큰 바가 뜬다(분노하면 분노 표시). 체력은 UnitHpChanged로 받고, 매 프레임은 떠 있는 바 위치·시간과 보스만 본다.
+// 보스는 어그로가 끌리면(BossAggroed) 화면 위에 큰 바가 뜬다(분노하면 분노 표시). 체력은 UnitHpChanged로 받고, 매 프레임은 떠 있는 바 위치·시간과 보스만 본다.
 // 머리 위 바는 UIReuseService로 꺼내고, 유닛이 지워지면(UnitService.UnitRemoved) 돌려준다. 새 판이 시작되면(FlowBegan, 다시 하기 포함) 남은 바를 모두 돌려주고 새 UnitService에 다시 붙는다.
 
 public class ScreenBattle_UnitHpBars : MonoBehaviour
@@ -39,12 +39,14 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
     {
         SEventManager.Subscribe<FlowBegan>(OnFlowBegan);
         SEventManager.Subscribe<UnitHpChanged>(OnUnitHpChanged);
+        SEventManager.Subscribe<BossAggroed>(OnBossAggroed);
     }
 
     private void OnDisable()
     {
         SEventManager.Unsubscribe<FlowBegan>(OnFlowBegan);
         SEventManager.Unsubscribe<UnitHpChanged>(OnUnitHpChanged);
+        SEventManager.Unsubscribe<BossAggroed>(OnBossAggroed);
     }
 
     private void LateUpdate()
@@ -54,9 +56,6 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
         
         if (units == null || cam == null)
             return;
-
-        if (m_Boss == null)
-            FindBoss(units.ListUnit);
 
         UpdateBars(cam, GameManager.Instance.Define, Time.unscaledDeltaTime);
         UpdateBoss();
@@ -179,20 +178,16 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
     }
 
     // 어그로가 끌린 첫 보스를 잡고, 죽거나 사라질 때까지 놓지 않는다
-    private void FindBoss(IReadOnlyList<UnitController> listUnit)
+    private void OnBossAggroed(BossAggroed evt)
     {
-        for (int i = 0; i < listUnit.Count; i++)
-        {
-            UnitController unit = listUnit[i];
-            if (unit == null || unit.IsDead || IsBoss(unit) == false || ((AIBrain)unit.BrainBase).TargetSelector.HasTarget == false)
-                continue;
-
-            m_Boss = unit;
-            m_BossName.E_SetText(unit.Def.DisplayName);
-            m_BossBar.SetValue(unit.HealthF.Current, unit.HealthF.MaxHp, true);
-            m_BossRoot.E_SetActive(true);
+        UnitController unit = evt.Unit;
+        if (m_Boss != null || unit == null || unit.IsDead)
             return;
-        }
+
+        m_Boss = unit;
+        m_BossName.E_SetText(unit.Def.DisplayName);
+        m_BossBar.SetValue(unit.HealthF.Current, unit.HealthF.MaxHp, true);
+        m_BossRoot.E_SetActive(true);
     }
 
     private void UpdateBoss()

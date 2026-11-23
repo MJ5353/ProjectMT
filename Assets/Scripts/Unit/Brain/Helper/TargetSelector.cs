@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 // ==================================================
@@ -14,6 +15,8 @@ public class TargetSelector
     public UnitController Target => IsValid(m_Target) ? m_Target : null;
     public Transform TargetTransform => Target.E_Alive()?.transform;
     public bool HasTarget => Target != null;
+
+    public event Action Acquired; // 대상이 없다가 생김(SetTarget·Refresh). 놓칠 때는 알리지 않는다
 
     // ------------------------------------------------
 
@@ -34,15 +37,25 @@ public class TargetSelector
 
     public void SetTarget(UnitController target)
     {
-        if (IsValid(target))
-            m_Target = target;
+        if (IsValid(target) == false)
+            return;
+
+        bool hadTarget = HasTarget;
+        m_Target = target;
+        
+        if (hadTarget == false)
+            Acquired?.Invoke();
     }
 
     // 대상이 없거나 무효면 range 안에서 가장 가까운 적으로 바꾼다
     public void Refresh(float range)
     {
-        if (HasTarget == false)
-            m_Target = FindNearest(range);
+        if (HasTarget)
+            return;
+
+        m_Target = FindNearest(range);
+        if (m_Target != null)
+            Acquired?.Invoke();
     }
 
     // range 안에서 가장 가까운 적(기억하지 않음)
