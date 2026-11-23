@@ -10,7 +10,7 @@ public enum EMarketResult
     Closed,     // 시장이 열려 있지 않거나 밤이 다 갔다
     NoMerchant, // 오늘 온 상인이 아니다
     Empty,      // 고른 버섯이 없다
-    OverLimit,  // 거래 한 번 묶음 상한(Define.MarketTradeLimit)을 넘었다
+    OverLimit,  // 거래 한 번 묶음 상한(Define.Market.TradeLimit)을 넘었다
     NotEnough,  // 가진 것보다 많이 골랐다
     NotBuying,  // 이 상인이 사지 않는 버섯이 섞였다
 }
@@ -98,7 +98,7 @@ public partial class HuntData
         SEventManager.Publish(new MarketChanged());
     }
 
-    // 거래. 성공하면 버섯이 빠지고 골드·신뢰도가 쌓이며 밤이 Define.MarketActionTime만큼 줄어든다(MarketChanged).
+    // 거래. 성공하면 버섯이 빠지고 골드·신뢰도가 쌓이며 밤이 Define.Market.ActionTime만큼 줄어든다(MarketChanged).
     // gold는 이번 거래로 받은 골드. 실패하면 0이고 아무것도 바뀌지 않는다
     public EMarketResult Trade(MerchantDef merchant, IReadOnlyList<MarketItem> listItem, out int gold)
     {
@@ -117,7 +117,7 @@ public partial class HuntData
 
         SoldGold += gold;
         m_DicTrustGain.TryGetValue(merchant.ID, out int gain);
-        m_DicTrustGain[merchant.ID] = gain + Define.TrustPerTrade;
+        m_DicTrustGain[merchant.ID] = gain + Define.Market.TrustPerTrade;
 
         SpendTime();
         return EMarketResult.Success;
@@ -152,7 +152,7 @@ public partial class HuntData
 
         if (total == 0)
             return EMarketResult.Empty;
-        if (m_DicTradeBuffer.Count > Define.MarketTradeLimit) // 묶음(LootKey) 수로 센다. 묶음마다 개수 제한은 없다
+        if (m_DicTradeBuffer.Count > Define.Market.TradeLimit) // 묶음(LootKey) 수로 센다. 묶음마다 개수 제한은 없다
             return EMarketResult.OverLimit;
 
         int sum = 0;
@@ -224,12 +224,12 @@ public partial class HuntData
 
         float rarityRate = key.Rarity switch
         {
-            ERarity.Rare => Define.MarketRareRate,
-            ERarity.Epic => Define.MarketEpicRate,
+            ERarity.Rare => Define.Market.RareRate,
+            ERarity.Epic => Define.Market.EpicRate,
             _ => 1f,
         };
-        float freshRate = key.Freshness == EFreshness.High ? 1f : Define.MarketLowFreshRate;
-        float trustRate = 1f + m_Market.GetTrust(merchant.ID) * Define.TrustPriceRate;
+        float freshRate = key.Freshness == EFreshness.High ? 1f : Define.Market.LowFreshRate;
+        float trustRate = 1f + m_Market.GetTrust(merchant.ID) * Define.Market.TrustPriceRate;
         float swingRate = Mathf.Max(0f, GetSwingRate(merchant));
 
         return Mathf.Max(1, Mathf.RoundToInt(mushroom.Price * rarityRate * rate * freshRate * trustRate * swingRate));
@@ -249,14 +249,14 @@ public partial class HuntData
 
     private void SpendTime()
     {
-        RemainTime = Mathf.Max(0f, RemainTime - Define.MarketActionTime);
+        RemainTime = Mathf.Max(0f, RemainTime - Define.Market.ActionTime);
         SEventManager.Publish(new MarketChanged());
 
         if (RemainTime <= 0f)
             EndMarket();
     }
 
-    // 신뢰도로 가중치를 매겨 겹치지 않게 Define.MarketMerchantCount명을 뽑는다
+    // 신뢰도로 가중치를 매겨 겹치지 않게 Define.Market.MerchantCount명을 뽑는다
     private void RollMerchants()
     {
         m_ListMerchant.Clear();
@@ -267,7 +267,7 @@ public partial class HuntData
             m_ListCandidate.Add(merchant);
         }
 
-        int count = Mathf.Min(Define.MarketMerchantCount, m_ListCandidate.Count);
+        int count = Mathf.Min(Define.Market.MerchantCount, m_ListCandidate.Count);
         for (int i = 0; i < count; ++i)
         {
             int index = Mathf.Max(0, CRandom.PickIndex(m_ListCandidate, GetVisitWeight)); // 가중치가 모두 0이면 앞에서부터
@@ -291,7 +291,7 @@ public partial class HuntData
     // 밤마다 상인을 뽑을 때 쓰는 가중치. 신뢰도가 오를수록 커진다
     private float GetVisitWeight(MerchantDef merchant)
     {
-        return Mathf.Max(0f, merchant.VisitWeight) * (1f + m_Market.GetTrust(merchant.ID) * Define.TrustVisitRate);
+        return Mathf.Max(0f, merchant.VisitWeight) * (1f + m_Market.GetTrust(merchant.ID) * Define.Market.TrustVisitRate);
     }
 
     private void ClearMarket()

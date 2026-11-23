@@ -21,7 +21,7 @@ public class AIRoarStateBase : AIStateBase
         m_Controller.AnimF.Play(RoarClip, true);
 
         DefineDef define = GameManager.Instance.Define;
-        CameraManager.Instance.Shake(define.RoarShake, define.RoarShakeTime);
+        CameraManager.Instance.Shake(define.Camera.RoarShake, define.Camera.RoarShakeTime);
         SEventManager.Publish(new BossRoared(m_Controller, m_AI.IsEnraged));
     }
 

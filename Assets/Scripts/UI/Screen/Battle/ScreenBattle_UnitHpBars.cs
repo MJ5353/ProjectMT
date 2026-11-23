@@ -4,7 +4,7 @@ using TMPro;
 
 // ==================================================
 
-// 몬스터 체력바. 잡몹·엘리트는 맞으면 머리 위에 작은 바가 잠깐(Define.MonsterHpBarShowTime) 뜨고,
+// 몬스터 체력바. 잡몹·엘리트는 맞으면 머리 위에 작은 바가 잠깐(Define.Hud.MonsterHpBarShowTime) 뜨고,
 // 보스는 어그로가 끌리면 화면 위에 큰 바가 뜬다(분노하면 분노 표시). 매 프레임 UnitService의 유닛을 읽어 그린다.
 // 머리 위 바는 UIReuseService로 꺼내고, 유닛이 지워지면(UnitService.UnitRemoved) 돌려준다. 새 판이 시작되면(FlowBegan, 다시 하기 포함) 남은 바를 모두 돌려주고 새 UnitService에 다시 붙는다.
 
@@ -87,7 +87,7 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
 
         if (hp < bar.LastHp)
         {
-            bar.Remain = define.MonsterHpBarShowTime;
+            bar.Remain = define.Hud.MonsterHpBarShowTime;
             if (bar.Gauge == null)
             {
                 bar.Gauge = FlowManager.Instance.UIReuseS?.Spawn<UIGauge>(EUIComponentType.ScreenBattle_UnitHpBar, m_Root);
@@ -117,7 +117,7 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
         if (body != null)
             top = (body.center.y + body.height * 0.5f) * unit.transform.lossyScale.y;
 
-        Vector3 screen = cam.WorldToScreenPoint(unit.transform.position + Vector3.up * (top + define.MonsterHpBarOffset));
+        Vector3 screen = cam.WorldToScreenPoint(unit.transform.position + Vector3.up * (top + define.Hud.MonsterHpBarOffset));
         if (screen.z <= 0f)
             return false;
 

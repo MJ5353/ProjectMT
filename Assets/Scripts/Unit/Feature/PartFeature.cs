@@ -161,9 +161,9 @@ public class PartFeature : UnitFeature
         {
             IsBroken = false;
             Durability = Entry.Durability;
-            m_GrowRemain = Define.PartRegrowTime;
+            m_GrowRemain = Define.Part.RegrowTime;
 
-            SetNormalScale(Define.PartRegrowStartScale);
+            SetNormalScale(Define.Part.RegrowStartScale);
             SetBrokenModel(false);
         }
 
@@ -171,8 +171,8 @@ public class PartFeature : UnitFeature
         {
             m_GrowRemain = Mathf.Max(0f, m_GrowRemain - deltaTime);
 
-            float t = 1f - m_GrowRemain / Define.PartRegrowTime;
-            SetNormalScale(Mathf.Lerp(Define.PartRegrowStartScale, 1f, t));
+            float t = 1f - m_GrowRemain / Define.Part.RegrowTime;
+            SetNormalScale(Mathf.Lerp(Define.Part.RegrowStartScale, 1f, t));
         }
 
         private void SetNormalScale(float rate)
@@ -280,13 +280,13 @@ public class PartFeature : UnitFeature
         for (int i = 0; i < part.PlacedCount; i++)
         {
             Vector3 position = part.ListMushroom[i].Socket.position;
-            MushroomPickup pickup = battleS.SpawnPickup(prefab, position);
+            MushroomPickup pickup = battleS.SpawnPickup(prefab, position + Vector3.up * Define.Drop.PartDrop.Height);
             
             if (pickup == null)
                 return;
 
-            Vector2 spread = Random.insideUnitCircle * Define.PartDropSpread;
-            pickup.Launch(new Vector3(spread.x, Define.PartDropUpSpeed, spread.y), freshness, BattleService.RollRarity());
+            Vector2 spread = Random.insideUnitCircle * Define.Drop.PartDrop.Spread;
+            pickup.Launch(new Vector3(spread.x, Define.Drop.PartDrop.UpSpeed, spread.y), freshness, BattleService.RollRarity());
         }
     }
 

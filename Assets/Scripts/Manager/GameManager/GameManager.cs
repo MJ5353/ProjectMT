@@ -114,7 +114,7 @@ public class GameManager : MonoSingleton<GameManager>
     private IEnumerator LoadSceneRoutine(string sceneName)
     {
         FlowManager.Instance.End();
-        yield return SceneLoader.Load(sceneName, Define.MinLoadingTime, UIManager.Instance.SetLoadingProgress);
+        yield return SceneLoader.Load(sceneName, Define.Loading.MinLoadingTime, UIManager.Instance.SetLoadingProgress);
     }
 
     // 누른 버튼(결과 팝업) 처리가 끝난 다음 프레임에 Flow를 다시 돌리고, 씬 전환과 같은 시간만큼 덮는다
@@ -123,7 +123,7 @@ public class GameManager : MonoSingleton<GameManager>
         yield return null;
 
         FlowManager.Instance.Restart();
-        yield return SceneLoader.Wait(Define.MinLoadingTime, UIManager.Instance.SetLoadingProgress);
+        yield return SceneLoader.Wait(Define.Loading.MinLoadingTime, UIManager.Instance.SetLoadingProgress);
     }
 
     // virtual ---

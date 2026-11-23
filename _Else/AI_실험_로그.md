@@ -613,3 +613,8 @@
 - 퍼닷 판정 구조 정리(개념 유지): AttackAction에 붙어 있던 퍼닷 기록·확인을 PerfectDodgeTracker(Unit/Action/Helper)로 분리, 바닥 예고·판정 효과·퍼닷 범위가 같이 쓰는 이번 프레임 범위를 AttackArea(Unit/Data) 하나로 계산(예고 사각형과 판정 길이 어긋남 해소), 공격 속도 시간 변환을 ToRealTime으로 모음, BrainBase 옛 주석 수정. AttackAction 19KB→15KB. 컴파일·플레이 확인 안 함, 커밋하지 않음.
 - 대장 지적(퍼닷은 피하는 쪽 일)으로 구조 변경: 기록·판단을 플레이어 전용 PerfectDodgeFeature(대시 창, 공격별 범위 기록, PerfectDodged 이벤트)로 옮기고 HitFeature의 퍼닷 창 제거. AttackAction은 범위 안(OnThreatened)·맞음/끊김(OnAttackEnded)·안 맞고 지나감(OnAttackMissed) 알림만 함. PerfectDodgeTracker는 빈 파일로 남김(대장 삭제 요청). 컴파일·플레이 확인 안 함, 커밋하지 않음.
 - AttackAction 쪼개기(대장 선택 1안): AttackAction은 흐름(예고→클립→끝)·끊기 규칙만 남기고 판정 AttackHitter(회차·맞은 대상·이펙트·TargetHit 이벤트), 바닥 예고 AttackTelegraph, 퍼닷 알림 AttackDodgeNotifier로 분리(Unit/Action/Helper). 동작 변경 없음. AttackAction 17.7KB→10KB. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+## DefineDef 스펙 나누기·Define 도구
+- 대장 방향: 전역 조절값을 성격별 스펙(DefineSpecBase 상속 일반 클래스)으로 쪼개고 DefineDef가 스펙을 하나씩 들게 함. Loading·Battle·Drop·Part·Camera·Hud·Market·ClickBurst 8개(Data/Define/), 드롭 튀는 값은 DropSpec(Height·Spread·UpSpeed) 세 벌로 통일하고 부위 드롭도 높이를 받게 함.
+- 스펙 이름과 겹치는 접두어를 빼고(Define.Camera.Distance, Define.Market.ActionTime) 사용처 18곳 교체, Define.asset은 기존 값 그대로 새 구조로 옮겨 적음(러시 연출·최소 로딩은 코드 기본값).
+- MushTaker/Define 도구 추가: 왼쪽 스펙 목록(DefineDef의 스펙 프로퍼티를 자동 수집), 오른쪽 고른 스펙 값 편집. 데이터 편집기에서 Define을 고르면 도구 열기 버튼만 보임. 컴파일·플레이 확인 안 함, 커밋하지 않음.

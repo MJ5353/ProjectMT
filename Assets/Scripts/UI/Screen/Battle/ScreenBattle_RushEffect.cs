@@ -29,7 +29,7 @@ public class ScreenBattle_RushEffect : MonoBehaviour
     private PerfectDodgeRush m_Rush;   // 러시 중인 플레이어 것. 끝나면 null
     private Transform m_Player;
     private float m_TotalTime;
-    private float m_DimAlpha;          // 어둠 진하기 0~1(Define.RushDimAlpha를 곱하기 전)
+    private float m_DimAlpha;          // 어둠 진하기 0~1(Define.Hud.RushDimAlpha를 곱하기 전)
     private float m_BannerElapsed = -1f; // 0보다 작으면 꺼져 있다
     private Color m_FillColor;
     private Texture2D m_HoleTexture;
@@ -84,7 +84,7 @@ public class ScreenBattle_RushEffect : MonoBehaviour
     private void UpdateDim(float deltaTime)
     {
         bool isDark = m_Rush != null && TimeManager.Instance.IsSlow;
-        m_DimAlpha = Mathf.MoveTowards(m_DimAlpha, isDark ? 1f : 0f, deltaTime / Define.RushDimFadeTime);
+        m_DimAlpha = Mathf.MoveTowards(m_DimAlpha, isDark ? 1f : 0f, deltaTime / Define.Hud.RushDimFadeTime);
         SetDimAlpha(m_DimAlpha);
 
         if (m_DimAlpha <= 0f || m_Player == null)
@@ -131,7 +131,7 @@ public class ScreenBattle_RushEffect : MonoBehaviour
         if (m_BannerElapsed < 0f)
             return;
 
-        float total = Define.RushBannerTime;
+        float total = Define.Hud.RushBannerTime;
         m_BannerElapsed += deltaTime;
 
         if (m_BannerElapsed >= total)
@@ -161,7 +161,7 @@ public class ScreenBattle_RushEffect : MonoBehaviour
     private void SetDimAlpha(float alpha)
     {
         Color color = m_Dim.color;
-        color.a = alpha * Define.RushDimAlpha;
+        color.a = alpha * Define.Hud.RushDimAlpha;
         m_Dim.color = color;
     }
 
@@ -172,8 +172,8 @@ public class ScreenBattle_RushEffect : MonoBehaviour
         texture.wrapMode = TextureWrapMode.Clamp;
 
         float unitPerPixel = DimSize / HoleTextureSize;
-        float radius = Define.RushLightRadius;
-        float softness = Mathf.Max(1f, Define.RushLightSoftness);
+        float radius = Define.Hud.RushLightRadius;
+        float softness = Mathf.Max(1f, Define.Hud.RushLightSoftness);
         float center = (HoleTextureSize - 1) * 0.5f;
 
         Color32[] pixels = new Color32[HoleTextureSize * HoleTextureSize];

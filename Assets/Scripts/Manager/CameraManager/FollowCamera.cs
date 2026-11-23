@@ -30,11 +30,11 @@ public class FollowCamera : MonoBehaviour
         if (m_Target == null)
             return;
 
-        m_BasePosition = Vector3.SmoothDamp(m_BasePosition, GetDesiredPosition(), ref m_Velocity, Define.CameraSmoothTime);
+        m_BasePosition = Vector3.SmoothDamp(m_BasePosition, GetDesiredPosition(), ref m_Velocity, Define.Camera.SmoothTime);
         
         float shake = CameraManager.Instance.ShakeAmount;
         Quaternion rotation = GetRotation();
-        transform.SetPositionAndRotation(m_BasePosition + rotation * Vector3.forward * (Define.CameraDistance * shake), rotation);
+        transform.SetPositionAndRotation(m_BasePosition + rotation * Vector3.forward * (Define.Camera.Distance * shake), rotation);
     }
 
     public void SetTarget(Transform target)
@@ -57,12 +57,12 @@ public class FollowCamera : MonoBehaviour
 
     private static Quaternion GetRotation()
     {
-        return Quaternion.Euler(Define.CameraPitch, Define.CameraYaw, 0f);
+        return Quaternion.Euler(Define.Camera.Pitch, Define.Camera.Yaw, 0f);
     }
 
     private Vector3 GetDesiredPosition()
     {
-        Vector3 lookPoint = m_Target.position + Vector3.up * Define.CameraLookHeight;
-        return lookPoint - GetRotation() * Vector3.forward * Define.CameraDistance;
+        Vector3 lookPoint = m_Target.position + Vector3.up * Define.Camera.LookHeight;
+        return lookPoint - GetRotation() * Vector3.forward * Define.Camera.Distance;
     }
 }

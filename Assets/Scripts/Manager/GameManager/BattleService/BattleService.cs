@@ -52,7 +52,7 @@ public sealed class BattleService : ServiceBase
     public float RemainTime => Mathf.Max(0f, NightTime - ElapsedTime);
     public bool IsNightOver => NightTime > 0f && ElapsedTime >= NightTime;
     public bool IsPlayerDown => m_Player != null && m_Player.IsDead;
-    public int ReviveGold => Define.ReviveGold;
+    public int ReviveGold => Define.Battle.ReviveGold;
     public bool CanRevive => IsPlayerDown && PlayerDataManager.Instance.Inventory.Has(CurrencyDef.GoldID, ReviveGold);
     
     // ------------------------------------------------
@@ -167,7 +167,7 @@ public sealed class BattleService : ServiceBase
         if (playerDataM.Inventory.TryRemove(CurrencyDef.GoldID, ReviveGold) == false)
             return false;
 
-        m_Player.Revive(Define.ReviveInvincibleTime);
+        m_Player.Revive(Define.Battle.ReviveInvincibleTime);
         return true;
     }
 
@@ -279,7 +279,7 @@ public sealed class BattleService : ServiceBase
         if (m_Player == null)
             return false;
 
-        return (m_Player.transform.position - position).sqrMagnitude < Define.RespawnBlockDistance * Define.RespawnBlockDistance;
+        return (m_Player.transform.position - position).sqrMagnitude < Define.Battle.RespawnBlockDistance * Define.Battle.RespawnBlockDistance;
     }
 
     private void ReleaseSpawnSlot(int unitID)
@@ -328,7 +328,7 @@ public sealed class BattleService : ServiceBase
         if (m_Player == null)
             return;
 
-        Vector3 origin = m_Player.transform.position + Vector3.up * Define.DownDropHeight;
+        Vector3 origin = m_Player.transform.position + Vector3.up * Define.Drop.DownDrop.Height;
         foreach (var pair in m_DicLoot)
         {
             if (GameDatabase.S_TryGet(pair.Key.ItemID, out MushroomDef def) == false)
@@ -342,8 +342,8 @@ public sealed class BattleService : ServiceBase
             for (int i = 0; i < pair.Value; i++)
             {
                 MushroomPickup pickup = SpawnPickup(prefab, origin);
-                Vector2 spread = Random.insideUnitCircle * Define.DownDropSpread;
-                pickup.Launch(new Vector3(spread.x, Define.DownDropUpSpeed, spread.y), pair.Key.Freshness, pair.Key.Rarity);
+                Vector2 spread = Random.insideUnitCircle * Define.Drop.DownDrop.Spread;
+                pickup.Launch(new Vector3(spread.x, Define.Drop.DownDrop.UpSpeed, spread.y), pair.Key.Freshness, pair.Key.Rarity);
             }
         }
 

@@ -4,7 +4,7 @@ using UnityEngine;
 // ==================================================
 
 // 보스 포효 연출(HUD). BossRoared를 받으면 화면 가장자리가 붉게 번졌다 빠지고, 가운데 띠에 보스 이름이 잠깐 뜬다.
-// 시간은 Define.RoarEffectTime. 히트스톱·일시정지와 상관없이 실제 시간으로 돈다
+// 시간은 Define.Hud.RoarEffectTime. 히트스톱·일시정지와 상관없이 실제 시간으로 돈다
 
 public class ScreenBattle_RoarEffect : MonoBehaviour
 {
@@ -39,7 +39,7 @@ public class ScreenBattle_RoarEffect : MonoBehaviour
         if (m_Elapsed < 0f)
             return;
 
-        float total = GameManager.Instance.Define.RoarEffectTime;
+        float total = GameManager.Instance.Define.Hud.RoarEffectTime;
         m_Elapsed += Time.unscaledDeltaTime;
 
         if (m_Elapsed >= total)
@@ -77,7 +77,7 @@ public class ScreenBattle_RoarEffect : MonoBehaviour
 
     private void SetAlpha(float alpha)
     {
-        m_Vignette.alpha = alpha * GameManager.Instance.Define.RoarVignetteAlpha;
+        m_Vignette.alpha = alpha * GameManager.Instance.Define.Hud.RoarVignetteAlpha;
         m_Banner.alpha = alpha;
     }
 }

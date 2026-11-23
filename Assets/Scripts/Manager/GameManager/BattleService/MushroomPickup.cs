@@ -65,7 +65,7 @@ public class MushroomPickup : PoolableMono
         else
             UpdateIdle(deltaTime);
 
-        if (m_Age >= Define.PickupActivateDelay && IsPlayerNear())
+        if (m_Age >= Define.Drop.PickupActivateDelay && IsPlayerNear())
         {
             m_IsMagnet = true;
             HideBeam();
@@ -79,15 +79,15 @@ public class MushroomPickup : PoolableMono
         if (battleS == null)
             return;
 
-        Vector3 position = origin + Vector3.up * Define.MonsterDropHeight;
+        Vector3 position = origin + Vector3.up * Define.Drop.MonsterDrop.Height;
         for (int i = 0; i < count; i++)
         {
             MushroomPickup pickup = battleS.SpawnPickup(prefab, position);
             if (pickup == null)
                 return;
 
-            Vector2 spread = Random.insideUnitCircle * Define.MonsterDropSpread;
-            pickup.Launch(new Vector3(spread.x, Define.MonsterDropUpSpeed, spread.y), freshness, rarity);
+            Vector2 spread = Random.insideUnitCircle * Define.Drop.MonsterDrop.Spread;
+            pickup.Launch(new Vector3(spread.x, Define.Drop.MonsterDrop.UpSpeed, spread.y), freshness, rarity);
         }
     }
 
@@ -157,9 +157,9 @@ public class MushroomPickup : PoolableMono
         }
 
         Vector3 target = player.transform.position + Vector3.up * 0.8f;
-        transform.position = Vector3.MoveTowards(transform.position, target, Define.PickupMagnetSpeed * deltaTime);
+        transform.position = Vector3.MoveTowards(transform.position, target, Define.Drop.PickupMagnetSpeed * deltaTime);
         
-        if (Vector3.Distance(transform.position, target) > Define.PickupCollectDistance)
+        if (Vector3.Distance(transform.position, target) > Define.Drop.PickupCollectDistance)
             return;
 
         Collect();
@@ -171,7 +171,7 @@ public class MushroomPickup : PoolableMono
         if (player == null || player.IsValid() == false)
             return false;
 
-        return Vector3.Distance(player.transform.position, transform.position) <= Define.PickupRadius;
+        return Vector3.Distance(player.transform.position, transform.position) <= Define.Drop.PickupRadius;
     }
 
     // 희귀도 빛기둥. 색은 희귀도별 프리팹에 박혀 있다
