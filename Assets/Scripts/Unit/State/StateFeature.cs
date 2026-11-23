@@ -6,7 +6,7 @@ using UnityEngine;
 
 // 상태(StateFeature). 코어 하나(CoreState: 몸을 차지하는 일, 끊기 규칙)와 서브 여러 개(SubState: 함께 도는 일)를 든다.
 // 부품 목록이 아니라 주인이 직접 Tick한다(부품 Tick → 상태[코어 Step → 서브(Timed → Unit) → 요청 정리 → 코어 Think] → 부품 LateTick). Def.SetFeatures보다 먼저 만들어져 조건부 코어(대시)·기본 코어·AI 코어를 받는다.
-// 코어는 요청으로만 바뀌고, 행동(공격·대시 등)이 끝나면 마지막 기본 층 코어(플레이어 FreeCore, AI는 추적 등)로, 피격이 끝나면 피격 뒤 코어(SetAfterHitCore)로 간다.
+// 코어는 요청으로만 바뀌고, 행동(공격·대시 등)이 끝나면 마지막 모드 코어(플레이어 FreeCore, AI는 추적 등)로, 피격이 끝나면 피격 뒤 코어(SetAfterHitCore)로 간다.
 // 요청 정리: 서브가 미뤄 둔 요청(Request, 프레임에 하나) → 예약 공격(ReserveAttack, 끊을 수 있게 되면 바로).
 // 서브·요청·Think를 코어 Step 다음에 두는 건 판단(AI·입력)이 코어 다음에 돌던 예전 순서 그대로라서다(새 코어는 그 프레임 Begin, 다음 프레임부터 Step)
 
@@ -20,7 +20,7 @@ public class StateFeature : UnitFeature
     // conditional core
     private DashCore m_Dash;        // 대시를 쓰는 유닛만(EnableDash)
     private CoreState m_Default;    // 꺼낼 때·멈출 때 들어가는 코어. 플레이어 FreeCore, AI 대기(펫 따라가기). Def.SetFeatures가 정한다(SetDefaultCore)
-    private CoreState m_Return;     // 행동이 끝나면 돌아갈 코어: 마지막 기본 층 코어(공격을 낸 추적 등)
+    private CoreState m_Return;     // 행동이 끝나면 돌아갈 코어: 마지막 모드 코어(공격을 낸 추적 등)
     private CoreState m_AfterHit;   // 피격이 끝나면 갈 코어(AIDef.AfterHitCore). 없으면 m_Return
     private CoreState m_Current;
     private readonly Dictionary<ECoreState, CoreState> m_DicCore = new(); // ChangeCore로 바꿀 AI 코어(AddCore)
@@ -129,7 +129,7 @@ public class StateFeature : UnitFeature
         m_Current = next;
         m_Current.Begin();
 
-        if (next.Kind == ECoreKind.Base)
+        if (next.Kind == ECoreKind.Mode)
             m_Return = next;
 
         for (int i = 0; i < m_ListSub.Count; ++i)
@@ -275,7 +275,7 @@ public class StateFeature : UnitFeature
         return core;
     }
 
-    // 피격이 끝나면 갈 AI 코어(MonsterDef.SetAI). 정하지 않으면 피격 전 기본 층 코어로 돌아간다
+    // 피격이 끝나면 갈 AI 코어(MonsterDef.SetAI). 정하지 않으면 피격 전 모드 코어로 돌아간다
     public void SetAfterHitCore(ECoreState type)
     {
         m_AfterHit = GetCore(type);

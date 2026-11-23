@@ -24,6 +24,8 @@ public class BurrowCore : AICore
     private float m_PhaseLength;
 
     public override ECoreState Type => ECoreState.Burrow;
+    public override ECoreKind Kind => ECoreKind.Action;
+    public override ECoreKind InterruptedBy => ECoreKind.Hit | ECoreKind.Dead; // 숨는 중에는 공격·대시가 끼지 않게
 
     // ------------------------------------------------
 

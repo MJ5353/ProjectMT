@@ -19,6 +19,7 @@ public class RoarCore : AICore
 
     public RoarCore(UnitController owner, AIDef def) : base(owner, def) { }
 
+    public override ECoreKind Kind => ECoreKind.Action;
     public override ECoreKind InterruptedBy => ECoreKind.Dead;
 
     protected override void Enter()

@@ -21,6 +21,7 @@ public class DownCore : AICore
 
     public DownCore(UnitController owner, AIDef def) : base(owner, def) { }
 
+    public override ECoreKind Kind => ECoreKind.Action;
     public override ECoreKind InterruptedBy => ECoreKind.Dead;
 
     protected override void Enter()

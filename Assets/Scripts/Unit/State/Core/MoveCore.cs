@@ -2,7 +2,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 걷는 기본 층 코어의 바탕(플레이어 FreeCore, AI 코어). SetMove로 속도·걷기/달리기 애니를 주고, 도는 건 Step(Update)에서 유닛 시간으로 한다
+// 걷는 모드 코어의 바탕(플레이어 FreeCore, AI 코어). SetMove로 속도·걷기/달리기 애니를 주고, 도는 건 Step(Update)에서 유닛 시간으로 한다
 
 public abstract class MoveCore : CoreState
 {

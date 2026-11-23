@@ -27,8 +27,8 @@ public enum ECoreState
 public enum ECoreKind
 {
     None = 0,
-    Base = 1 << 0,      // 기본 층(이동·판단: Move~Down). 행동이 끝나면 마지막 기본 층 코어로 돌아간다. AI 코어끼리는 끊기 규칙 없이 바뀐다(StateFeature.ChangeCore)
-    Action = 1 << 1,    // 행동(공격·러시 돌진)
+    Mode = 1 << 0,      // 모드: 몸을 묶지 않고 이동 애니만 쓰며 다음 행동을 고르는 자리(Move·Idle~Follow). 행동이 끝나면 마지막 모드 코어로 돌아온다. AI 코어끼리는 끊기 규칙 없이 바뀐다(StateFeature.ChangeCore)
+    Action = 1 << 1,    // 행동: 전용 클립이나 정해진 움직임으로 몸을 묶는 동작(공격·러시 돌진·숨기·포효·쓰러짐)
     Dash = 1 << 2,
     Hit = 1 << 3,
     Dead = 1 << 4,
@@ -44,10 +44,10 @@ public abstract class CoreState
 {
     protected UnitController Owner { get; }
     public float Time { get; private set; }         // 코어를 시작하고 지난 시간
-
     public abstract ECoreState Type { get; }
-    public virtual ECoreKind Kind => ECoreKind.Base;
-    public virtual ECoreKind InterruptedBy => ECoreKind.Action | ECoreKind.Dash | ECoreKind.Hit | ECoreKind.Dead; // 이 코어를 끊을 수 있는 종류. 기본 층은 행동·대시·피격·사망 모두에 끊긴다
+
+    public virtual ECoreKind Kind => ECoreKind.Mode;
+    public virtual ECoreKind InterruptedBy => ECoreKind.Action | ECoreKind.Dash | ECoreKind.Hit | ECoreKind.Dead; // 이 코어를 끊을 수 있는 종류. 모드는 행동·대시·피격·사망 모두에 끊긴다
     public virtual bool IsFinished => false;        // 끝나면 StateFeature가 기본 코어로 돌린다
 
     // ------------------------------------------------
