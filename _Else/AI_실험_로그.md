@@ -619,3 +619,8 @@
 - 스펙 이름과 겹치는 접두어를 빼고(Define.Camera.Distance, Define.Market.ActionTime) 사용처 18곳 교체, Define.asset은 기존 값 그대로 새 구조로 옮겨 적음(러시 연출·최소 로딩은 코드 기본값).
 - MushTaker/Define 편집기 추가(DefineEditorWindow): 왼쪽 스펙 목록(DefineDef의 스펙 프로퍼티를 자동 수집), 오른쪽 고른 스펙 값 편집. 대장 지시로 데이터 편집기 목록에서는 Define을 뺌. 컴파일·플레이 확인 안 함, 커밋하지 않음.
 - PlayerDef 대시·러시 묶기: 대시 값을 DashSpec(속도·시간·쿨·쿨 하한·무적·애니 배속·퍼닷 판정 창), 러시 값을 RushSpec(슬로우·시간·막타 구간·돌진 속도·돌진 최대 시간·좌/우/막타 스킬)으로 묶어 PlayerDef.Dash·Rush로 둠. EnableDash(DashSpec) 하나로 넘기고, 코드 상수였던 쿨 하한 0.2·돌진 최대 0.5초를 Def로 옮김. Player.asset은 기존 값 그대로 옮김. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+
+# 26.11.23 - 주요 코드 성능·구조 리뷰
+
+## 주요 코드 성능·구조 리뷰 반영
+- 리뷰 6건 반영(AI 작성): 빌드 직전 DB 갱신(DataBuildPreprocess), 정비 적용을 GearData에서 BattleService로 옮김(GearData는 조회만), HUD 폴링을 이벤트로(UnitHpChanged·UnitExecutor.Started, 보스 분노 확인은 OnHit로), 포효 연출을 ScreenBattle 안 UISequence로 합치고 RoarEffect 삭제, 러시 문구 페이드를 UISequence로·다 꺼지면 RushEffect 쉼. 스킬 연계 아이콘은 콤보 리셋·버퍼가 시간 기준이라 폴링 유지로 판단. 보스 바는 어그로(HasTarget) 감지만 매 프레임 남김. Unity 컴파일만 확인(에러 0), 플레이 확인 안 함, 커밋하지 않음.

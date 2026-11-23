@@ -5,7 +5,8 @@ using UnityEngine.UI;
 
 // 퍼펙트 닷지 러시 연출(HUD). RushStarted를 받으면 화면을 어둡게 덮고 플레이어 주변만 동그랗게 밝히며, 빈틈 타이머 바와 "퍼펙트 닷지!" 문구를 띄운다.
 // 어둠은 슬로우 동안만 깔린다(막타 정점에서 시간이 돌아오면 걷힌다). 바는 막타 구간을 따로 칠하고, 그 구간에 들어오면 "막타!"가 깜빡인다.
-// 구멍 난 어둠 그림은 처음 한 번 코드로 만든다(텍스처 에셋 없음). 시간은 실제 시간(unscaled)
+// 구멍 난 어둠 그림은 처음 한 번 코드로 만든다(텍스처 에셋 없음). 시간은 실제 시간(unscaled), 문구 페이드는 UISequence.
+// 러시·어둠·문구가 모두 꺼지면 스스로 꺼지고(enabled), RushStarted에서 다시 켠다. 그래서 구독은 Awake·OnDestroy에서 한다
 
 public class ScreenBattle_RushEffect : MonoBehaviour
 {
@@ -30,10 +31,10 @@ public class ScreenBattle_RushEffect : MonoBehaviour
     private Transform m_Player;
     private float m_TotalTime;
     private float m_DimAlpha;          // 어둠 진하기 0~1(Define.Hud.RushDimAlpha를 곱하기 전)
-    private float m_BannerElapsed = -1f; // 0보다 작으면 꺼져 있다
     private Color m_FillColor;
     private Texture2D m_HoleTexture;
     private Sprite m_HoleSprite;
+    private readonly UISequence m_BannerSequence = new();
 
     // ------------------------------------------------
 
@@ -49,33 +50,28 @@ public class ScreenBattle_RushEffect : MonoBehaviour
         SetVisible(m_Bar, false);
         SetVisible(m_FinishLabel, false);
         SetVisible(m_Banner, false);
-    }
 
-    private void OnDestroy()
-    {
-        Destroy(m_HoleSprite);
-        Destroy(m_HoleTexture);
-    }
-
-    private void OnEnable()
-    {
         SEventManager.Subscribe<RushStarted>(OnRushStarted);
         SEventManager.Subscribe<RushEnded>(OnRushEnded);
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
         SEventManager.Unsubscribe<RushStarted>(OnRushStarted);
         SEventManager.Unsubscribe<RushEnded>(OnRushEnded);
+
+        Destroy(m_HoleSprite);
+        Destroy(m_HoleTexture);
     }
 
     private void Update()
     {
-        float deltaTime = Time.unscaledDeltaTime;
-
-        UpdateDim(deltaTime);
+        UpdateDim(Time.unscaledDeltaTime);
         UpdateBar();
-        UpdateBanner(deltaTime);
+
+        // 다 꺼졌으면 쉰다
+        if (m_Rush == null && m_DimAlpha <= 0f && m_BannerSequence.IsPlaying == false)
+            enabled = false;
     }
 
     // ==================================================
@@ -123,33 +119,6 @@ public class ScreenBattle_RushEffect : MonoBehaviour
         SetVisible(m_FinishLabel, isFinish);
         if (isFinish)
             m_FinishLabel.alpha = 0.4f + 0.6f * blink;
-    }
-
-    // 앞 20% 동안 나타나고, 끝 20% 동안 사라진다
-    private void UpdateBanner(float deltaTime)
-    {
-        if (m_BannerElapsed < 0f)
-            return;
-
-        float total = Define.Hud.RushBannerTime;
-        m_BannerElapsed += deltaTime;
-
-        if (m_BannerElapsed >= total)
-        {
-            m_BannerElapsed = -1f;
-            SetVisible(m_Banner, false);
-            return;
-        }
-
-        float t = m_BannerElapsed / total;
-        float alpha = 1f;
-
-        if (t < BannerFadeRatio)
-            alpha = t / BannerFadeRatio;
-        else if (t > 1f - BannerFadeRatio)
-            alpha = (1f - t) / BannerFadeRatio;
-
-        m_Banner.alpha = alpha;
     }
 
     // 클릭을 막지 않게 alpha만 바꾼다(E_SetVisible은 보일 때 blocksRaycasts를 켠다)
@@ -205,9 +174,17 @@ public class ScreenBattle_RushEffect : MonoBehaviour
         m_FinishZone.anchorMax = new Vector2(Mathf.Clamp01(evt.FinishWindow / m_TotalTime), 1f);
 
         SetVisible(m_Bar, true);
-        SetVisible(m_Banner, true);
-        m_Banner.alpha = 0f;
-        m_BannerElapsed = 0f;
+        enabled = true; // 꺼진 host에서는 UISequence가 바로 끝나므로 먼저 켠다
+
+        // 앞 20% 동안 나타나고, 끝 20% 동안 사라진다
+        float total = Define.Hud.RushBannerTime;
+        float fade = total * BannerFadeRatio;
+
+        m_BannerSequence.Clear()
+            .Tween(fade, t => m_Banner.alpha = t)
+            .Wait(total - fade * 2f)
+            .Tween(fade, t => m_Banner.alpha = 1f - t)
+            .Play(this);
     }
 
     // 어둠은 Update에서 천천히 걷힌다

@@ -105,11 +105,11 @@ public static class BattleUISetup
         UIBuilder.ListOption lootList = new(lootRect, EUIListAxis.Vertical, new Vector2(0, 43), new Vector2(0, 3), TextAnchor.UpperRight,
             isStretch: true, isFitContent: true);
 
+        ScreenBattle screen = root.gameObject.AddComponent<ScreenBattle>();
         AddUnitHpBars(safe);
-        AddRoarEffect(safe);
+        AddRoarEffect(safe, screen);
         AddRushEffect(safe);
 
-        ScreenBattle screen = root.gameObject.AddComponent<ScreenBattle>();
         UIBuilder.SetRef(screen, "m_Clock", clock);
         UIBuilder.SetRef(screen, "m_Hp", hp);
         UIBuilder.SetRef(screen, "m_AttackActive", attackActive);
@@ -174,8 +174,8 @@ public static class BattleUISetup
         return bars;
     }
 
-    // 보스 포효 연출: 노치까지 덮는 붉은 가장자리(맨 뒤) + 가운데 위 이름 띠(맨 앞)
-    private static ScreenBattle_RoarEffect AddRoarEffect(RectTransform safe)
+    // 보스 포효 연출: 노치까지 덮는 붉은 가장자리(맨 뒤) + 가운데 위 이름 띠(맨 앞). 재생은 ScreenBattle
+    private static void AddRoarEffect(RectTransform safe, ScreenBattle screen)
     {
         RectTransform vignette = UIBuilder.Stretch("RoarVignette", safe.parent);
         vignette.SetAsFirstSibling();
@@ -194,12 +194,9 @@ public static class BattleUISetup
         bannerGroup.blocksRaycasts = false;
         bannerGroup.interactable = false;
 
-        ScreenBattle_RoarEffect effect = banner.gameObject.AddComponent<ScreenBattle_RoarEffect>();
-        UIBuilder.SetRef(effect, "m_Vignette", vignetteGroup);
-        UIBuilder.SetRef(effect, "m_Banner", bannerGroup);
-        UIBuilder.SetRef(effect, "m_BannerText", text);
-
-        return effect;
+        UIBuilder.SetRef(screen, "m_RoarVignette", vignetteGroup);
+        UIBuilder.SetRef(screen, "m_RoarBanner", bannerGroup);
+        UIBuilder.SetRef(screen, "m_RoarText", text);
     }
 
     // 퍼펙트 닷지 러시 연출: 노치까지 덮는 어둠(구멍은 실행 중에 코드로 그림, HUD 뒤) + 중앙 하단 빈틈 타이머 바 + 가운데 문구

@@ -140,11 +140,14 @@ public class AIBrain : BrainBase
     
     #region OnAction
     
-    // 맞으면 때린 쪽을 노린다
+    // 맞으면 때린 쪽을 노린다. 보스는 체력이 깎인 뒤라 여기서 분노를 확인한다
     public override void OnHit(HitParams hit)
     {
         LastHitDirection = hit.Direction;
         TargetSelector.SetTarget(hit.Attacker);
+
+        if (Def.Type == EAIType.Boss)
+            UpdateEnrage();
     }
 
     public override void OnDied()
@@ -203,14 +206,10 @@ public class AIBrain : BrainBase
 
     // boss ---
 
-    // 분노 확인 뒤, 행동이 없으면 쓰러짐 > 포효 순으로 끼운다
+    // 행동이 없으면 쓰러짐 > 포효 순으로 끼운다(분노는 OnHit에서 확인)
     private void UpdateBoss()
     {
-        if (Owner.IsDead)
-            return;
-
-        UpdateEnrage();
-        if (IsActing())
+        if (Owner.IsDead || IsActing())
             return;
 
         if (m_IsDownPending)

@@ -47,6 +47,19 @@ public readonly struct BattleStateChanged
     }
 }
 
+// 유닛 체력이 바뀜(피해·회복·Reset·능력치, HealthFeature). 지금 값은 Unit.HealthF에서 읽는다
+public readonly struct UnitHpChanged
+{
+    public readonly UnitController Unit;
+    public readonly int Previous; // 바뀌기 전 체력(체력바 잔상 시작점)
+
+    public UnitHpChanged(UnitController unit, int previous)
+    {
+        Unit = unit;
+        Previous = previous;
+    }
+}
+
 // 주운 버섯 목록(BattleService.DicLoot)이 바뀜. 줍거나, 쓰러져 떨궜을 때
 public readonly struct LootChanged
 {

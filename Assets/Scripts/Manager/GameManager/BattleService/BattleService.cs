@@ -219,8 +219,26 @@ public sealed class BattleService : ServiceBase
         if (m_Player == null)
             return;
 
-        // 정비 강화를 능력치·패시브 출처로 넣는다. 늘어난 최대 체력만큼 체력도 찬다(HealthFeature가 StatFeature.Changed로)
-        PlayerDataManager.Instance.Gear.ApplyTo(m_Player);
+        ApplyGear(m_Player, PlayerDataManager.Instance.Gear);
+    }
+
+    // 정비 강화를 출처로 넣는다. 연 노드(능력치·패시브)와 지금 단계까지 엠블렘(능력치)이 각각 출처 하나.
+    // 늘어난 최대 체력만큼 체력도 찬다(HealthFeature가 StatFeature.Changed로)
+    private static void ApplyGear(UnitController player, GearData gear)
+    {
+        foreach (GearNodeDef node in gear.ListNode)
+        {
+            if (gear.IsOpened(node) == false)
+                continue;
+
+            player.StatF.AddSource(node, node.ListModifier);
+            player.PassiveF.AddSource(node, node.Passive);
+        }
+
+        foreach (EmblemDef emblem in gear.GetReachedEmblems())
+        {
+            player.StatF.AddSource(emblem, emblem.ListModifier);
+        }
     }
 
     // 슬롯 번호(1부터) → 맵 지점

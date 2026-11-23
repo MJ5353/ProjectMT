@@ -23,6 +23,7 @@ public class UnitExecutor
 
     // 행동이 끝날 때(끝까지 했으면 isFinished, 다른 행동에 끊겼으면 false). 그 뒤 할 일은 판단 쪽이 정한다
     public event Action<EActionType, bool> Ended;
+    public event Action<EActionType> Started; // 행동을 시작할 때(Begin 직후). HUD 공격·대시 아이콘이 받는다
 
     // get
     public EActionType Current => m_Current.Type;
@@ -77,6 +78,7 @@ public class UnitExecutor
         prev.Exit();
         m_Current = next;
         m_Current.Begin();
+        Started?.Invoke(m_Current.Type);
         Ended?.Invoke(prev.Type, isFinished);
     }
     
