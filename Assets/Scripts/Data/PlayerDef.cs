@@ -18,46 +18,12 @@ public class PlayerDef : UnitDef
     [field: SerializeField, FormerlySerializedAs("m_CancelDelay")]
     public float CancelDelay { get; private set; } = 0.12f;    // 판정 뒤 이 시간이 지나면 다음 공격으로 끊을 수 있음
 
-    // 대시 ---
-    [field: SerializeField, FormerlySerializedAs("m_DashSpeed")]
-    public float DashSpeed { get; private set; } = 16f;
-
-    [field: SerializeField, FormerlySerializedAs("m_DashTime")]
-    public float DashTime { get; private set; } = 0.18f;       // 대시 지속 시간(초)
-
-    [field: SerializeField, FormerlySerializedAs("m_DashCooldown")]
-    public float DashCooldown { get; private set; } = 0.5f;    // 대시가 끝난 뒤 다시 쓰기까지
-
-    [field: SerializeField, FormerlySerializedAs("m_IsDashInvincible")]
-    public bool IsDashInvincible { get; private set; } = true; // 대시 중 무적
-
-    [field: SerializeField, FormerlySerializedAs("m_DashAnimSpeed")]
-    public float DashAnimSpeed { get; private set; } = 1.6f;   // 대시 중 Run 애니 배속
+    // 대시·러시 --- 묶음별로 DashSpec·RushSpec
+    [field: SerializeField]
+    public DashSpec Dash { get; private set; } = new();         // 대시·퍼펙트 닷지 판정 창
 
     [field: SerializeField]
-    public float PerfectDodgeWindow { get; private set; } = 0.8f; // [mj] todo) 임시값. 판정 전 이 시간(초) 안에 공격 범위에 들어와 있다가, 대시를 쓴 뒤 이 시간 안에 판정을 안 맞으면 퍼펙트 닷지. 0이면 끔
-
-    // 러시(퍼펙트 닷지 반격) --- 시간은 실제 시간(플레이어 시간) 기준
-    [field: SerializeField]
-    public float RushSlowRate { get; private set; } = 0.05f;     // [mj] todo) 임시값. 러시 중 전체 시간 배율. 몬스터가 이만큼 느려진다(플레이어는 제 속도)
-
-    [field: SerializeField]
-    public float RushTime { get; private set; } = 3f;            // [mj] todo) 임시값. 빈틈 타이머 전체 길이
-
-    [field: SerializeField]
-    public float RushFinishWindow { get; private set; } = 1f;    // 빈틈 타이머 마지막 이 시간 안의 첫 클릭이 막타
-
-    [field: SerializeField]
-    public float RushApproachSpeed { get; private set; } = 25f;  // [mj] todo) 임시값. 러시 시작 때 퍼닷몹 앞까지 돌진하는 속도
-
-    [field: SerializeField]
-    public SkillDef RushLeft { get; private set; } = null;       // 러시 좌 베기. 클릭마다 좌·우를 번갈아 낸다. 비면 러시 없음
-
-    [field: SerializeField]
-    public SkillDef RushRight { get; private set; } = null;      // 러시 우 베기
-
-    [field: SerializeField]
-    public SkillDef RushFinisher { get; private set; } = null;   // 러시 막타(점프 내려찍기)
+    public RushSpec Rush { get; private set; } = new();         // 퍼펙트 닷지 반격(러시)
 
     // 콤보 ---
     // 연타 순서는 첫 타의 AttackSpec.Next로 이어진다(좌 → 우 → 막타). 막타(Next 없음) 다음은 다시 첫 타
@@ -86,8 +52,8 @@ public class PlayerDef : UnitDef
     // 대시·퍼펙트 닷지를 켜고 공격 끊기 시간을 넣는다. 몸 렌더러는 Player 레이어로 옮겨 가려지면 실루엣이 보이게 한다
     public override void SetFeatures(UnitController unit)
     {
-        unit.UnitExecutor.EnableDash(DashSpeed, DashTime, DashCooldown, IsDashInvincible, DashAnimSpeed);
-        unit.SetPerfectDodgeFeature(new PerfectDodgeFeature(unit, PerfectDodgeWindow));
+        unit.UnitExecutor.EnableDash(Dash);
+        unit.SetPerfectDodgeFeature(new PerfectDodgeFeature(unit, Dash.PerfectDodgeWindow));
         unit.UnitExecutor.Attack.CancelDelay = CancelDelay;
 
         int playerLayer = LayerMask.NameToLayer(GameLayers.Player);

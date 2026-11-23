@@ -618,3 +618,4 @@
 - 대장 방향: 전역 조절값을 성격별 스펙(DefineSpecBase 상속 일반 클래스)으로 쪼개고 DefineDef가 스펙을 하나씩 들게 함. Loading·Battle·Drop·Part·Camera·Hud·Market·ClickBurst 8개(Data/Define/), 드롭 튀는 값은 DropSpec(Height·Spread·UpSpeed) 세 벌로 통일하고 부위 드롭도 높이를 받게 함.
 - 스펙 이름과 겹치는 접두어를 빼고(Define.Camera.Distance, Define.Market.ActionTime) 사용처 18곳 교체, Define.asset은 기존 값 그대로 새 구조로 옮겨 적음(러시 연출·최소 로딩은 코드 기본값).
 - MushTaker/Define 편집기 추가(DefineEditorWindow): 왼쪽 스펙 목록(DefineDef의 스펙 프로퍼티를 자동 수집), 오른쪽 고른 스펙 값 편집. 대장 지시로 데이터 편집기 목록에서는 Define을 뺌. 컴파일·플레이 확인 안 함, 커밋하지 않음.
+- PlayerDef 대시·러시 묶기: 대시 값을 DashSpec(속도·시간·쿨·쿨 하한·무적·애니 배속·퍼닷 판정 창), 러시 값을 RushSpec(슬로우·시간·막타 구간·돌진 속도·돌진 최대 시간·좌/우/막타 스킬)으로 묶어 PlayerDef.Dash·Rush로 둠. EnableDash(DashSpec) 하나로 넘기고, 코드 상수였던 쿨 하한 0.2·돌진 최대 0.5초를 Def로 옮김. Player.asset은 기존 값 그대로 옮김. 컴파일·플레이 확인 안 함, 커밋하지 않음.

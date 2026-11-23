@@ -262,7 +262,7 @@ public sealed class DataEditorWindow : EditorWindow
             AddLabelColumn("프리팹", 90f, def => AssetDatabase.LoadAssetAtPath<UnitController>(MonsterPrefabBuilder.GetPrefabPath((MonsterDef)def)) != null ? "있음" : "빌드 필요");
         }
         else if (type == typeof(PlayerDef))
-            AddPropertyColumn(nameof(PlayerDef.DashCooldown), "회피 쿨타임", 90f);
+            AddPropertyColumn("<Dash>k__BackingField.<Cooldown>k__BackingField", "회피 쿨타임", 90f); // PlayerDef.Dash.Cooldown
         else if (type == typeof(MushroomDef))
         {
             AddPropertyColumn(nameof(MushroomDef.DexNo), "도감 번호", 75f);

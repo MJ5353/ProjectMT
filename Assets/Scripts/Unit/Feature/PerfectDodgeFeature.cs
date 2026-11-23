@@ -11,7 +11,7 @@ public class PerfectDodgeFeature : UnitFeature
 {
     public event Action<HitParams> PerfectDodged; // 반격(러시)·패시브는 주인이 이어받는다(UnitController.OnPerfectDodged)
 
-    private readonly float m_Window; // 판정 창(초, PlayerDef.PerfectDodgeWindow). 0이면 끔
+    private readonly float m_Window; // 판정 창(초, PlayerDef.Dash.PerfectDodgeWindow). 0이면 끔
     private readonly Dictionary<AttackAction, float> m_DictThreat = new(); // 범위에 든 공격 → 들어와 있던 가장 늦은 시점의 판정까지 남은 시간
     private float m_DashRemain; // 대시 뒤 창 남은 시간. 한 번 터지면 0
 

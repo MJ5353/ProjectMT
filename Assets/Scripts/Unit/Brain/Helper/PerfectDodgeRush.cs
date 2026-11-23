@@ -23,7 +23,6 @@ public class PerfectDodgeRush
 {
     private const float InvincibleKeep = 0.1f;                       // 러시 동안 매 프레임 이만큼 무적을 채운다
     private const float FinisherRestoreLead = 4f / AttackSpec.Fps;    // 막타 판정 4프레임 전(도약 정점)에 시간을 되돌린다
-    private const float ApproachMaxTime = 0.5f;                       // 돌진이 이 시간(플레이어 시간) 안에 못 닿으면(막힘 등) 그 자리에서 시작
 
     private readonly UnitController m_Owner;
     private readonly PlayerDef m_Def;
@@ -41,8 +40,8 @@ public class PerfectDodgeRush
     public bool IsApproaching => Phase == ERushPhase.Approach;
     private bool IsTakingClick => Phase == ERushPhase.Approach || Phase == ERushPhase.Rush; // 막타를 내기 전까지만 클릭을 받는다
     public UnitController Target => m_TargetSelector.Target; // 퍼닷몹. 죽었으면 null
-    public bool IsFinishWindow => Phase == ERushPhase.Rush && Remain <= m_Def.RushFinishWindow;
-    private bool CanRush => m_Def.RushLeft != null && m_Def.RushRight != null && m_Def.RushFinisher != null;
+    public bool IsFinishWindow => Phase == ERushPhase.Rush && Remain <= m_Def.Rush.FinishWindow;
+    private bool CanRush => m_Def.Rush.Left != null && m_Def.Rush.Right != null && m_Def.Rush.Finisher != null;
 
     // ------------------------------------------------
 
@@ -61,12 +60,12 @@ public class PerfectDodgeRush
 
         if (CanRush == false)
         {
-            CLogger.Warning(nameof(PerfectDodgeRush), $"{m_Def.name}의 러시 공격(RushLeft·RushRight·RushFinisher)이 비어 있어 러시를 건너뜁니다");
+            CLogger.Warning(nameof(PerfectDodgeRush), $"{m_Def.name}의 러시 공격(Rush.Left·Right·Finisher)이 비어 있어 러시를 건너뜁니다");
             return false;
         }
 
         Phase = ERushPhase.Approach;
-        Remain = m_Def.RushTime;
+        Remain = m_Def.Rush.Time;
         m_SlashCount = 0;
         m_IsFinisherStarted = false;
         m_ApproachTime = 0f;
@@ -75,11 +74,11 @@ public class PerfectDodgeRush
         m_TargetSelector.SetTarget(attacker);
         m_HasTarget = m_TargetSelector.HasTarget;
 
-        TimeManager.Instance.SetSlow(m_Def.RushSlowRate);
+        TimeManager.Instance.SetSlow(m_Def.Rush.SlowRate);
         m_Owner.UnitExecutor.Attack.CancelDelay = 0f; // 판정이 끝나자마자 다음 타로 끊는다
         m_Owner.HitF.SetInvincible(InvincibleKeep);
 
-        SEventManager.Publish(new RushStarted(m_Owner, m_Def.RushTime, m_Def.RushFinishWindow));
+        SEventManager.Publish(new RushStarted(m_Owner, m_Def.Rush.Time, m_Def.Rush.FinishWindow));
         return true;
     }
 
@@ -135,9 +134,9 @@ public class PerfectDodgeRush
             return null;
 
         if (IsFinishWindow)
-            return m_Def.RushFinisher.Attack;
+            return m_Def.Rush.Finisher.Attack;
 
-        return (m_SlashCount % 2 == 0 ? m_Def.RushLeft : m_Def.RushRight).Attack;
+        return (m_SlashCount % 2 == 0 ? m_Def.Rush.Left : m_Def.Rush.Right).Attack;
     }
 
     // PlayerBrain이 공격을 예약했을 때. 실제로 받은 클릭만 좌·우 순서와 막타 단계에 반영한다
@@ -146,7 +145,7 @@ public class PerfectDodgeRush
         if (IsTakingClick == false)
             return;
 
-        if (spec == m_Def.RushFinisher.Attack)
+        if (spec == m_Def.Rush.Finisher.Attack)
         {
             Phase = ERushPhase.Finisher;
             return;
@@ -164,7 +163,7 @@ public class PerfectDodgeRush
             return;
 
         m_HasTarget = false;
-        Remain = Mathf.Min(Remain, m_Def.RushFinishWindow);
+        Remain = Mathf.Min(Remain, m_Def.Rush.FinishWindow);
 
         if (Phase == ERushPhase.Approach)
             BeginRush();
@@ -189,8 +188,8 @@ public class PerfectDodgeRush
         Vector3 offset = target.transform.position - m_Owner.transform.position;
         offset.y = 0f;
 
-        float stopDistance = target.HurtBody.radius * target.transform.lossyScale.x + m_Def.RushLeft.Attack.Reach;
-        if (offset.magnitude <= stopDistance || m_ApproachTime >= ApproachMaxTime)
+        float stopDistance = target.HurtBody.radius * target.transform.lossyScale.x + m_Def.Rush.Left.Attack.Reach;
+        if (offset.magnitude <= stopDistance || m_ApproachTime >= m_Def.Rush.ApproachMaxTime)
         {
             executor.SetMove(Vector3.zero, 0f);
             m_Owner.MoveF.FaceTo(offset, true);
@@ -198,7 +197,7 @@ public class PerfectDodgeRush
             return;
         }
 
-        executor.SetMove(offset, m_Def.RushApproachSpeed, true);
+        executor.SetMove(offset, m_Def.Rush.ApproachSpeed, true);
     }
 
     private void BeginRush()
@@ -210,7 +209,7 @@ public class PerfectDodgeRush
     private void TickFinisher()
     {
         UnitExecutor executor = m_Owner.UnitExecutor;
-        AttackSpec finisher = m_Def.RushFinisher.Attack;
+        AttackSpec finisher = m_Def.Rush.Finisher.Attack;
         bool isRunning = executor.Current == EActionType.Attack && executor.Attack.Spec == finisher;
 
         if (m_IsFinisherStarted == false)
