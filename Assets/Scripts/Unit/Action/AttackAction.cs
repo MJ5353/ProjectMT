@@ -4,6 +4,7 @@ using UnityEngine;
 // ==================================================
 
 // 공격 하나. 예고(AttackSpec.WindupTime)가 있으면 먼저 움츠리며 대상 쪽으로 돌고, 그 뒤 클립·돌진·판정을 돌린다.
+// 몬스터 공격은 예고가 없어도(클립 자체 예비 동작) 시작부터 판정 시작까지 바닥 예고를 그린다.
 // 판정: 판정 구간(HitTime~HitEndTime) 동안 공격 구체와 후보 유닛의 몸(HitFeature 모양)을 비교한다. 한 공격(한 회차)에서 맞은 대상은 다시 맞지 않는다.
 // 클립이 끝나면 끝. 판정 구간이 지나면 대시로, 거기서 캔슬 지연까지 지나면 다음 공격으로 끊을 수 있다(피격·사망은 언제나)
 
@@ -21,7 +22,7 @@ public class AttackAction : UnitAction
     private float m_Length;        // 지금 공격 클립 길이(초)
     private bool m_IsTicked;       // 판정을 한 번이라도 했는지(한 프레임 판정 보장)
     private int m_HitRound;        // 다시 맞히기 회차(AttackSpec.RehitFrame). 바뀌면 맞은 대상 목록을 비운다
-    private TelegraphController m_Telegraph; // 바닥 위험 범위. 예고가 있는 공격만, 판정 시작까지
+    private TelegraphController m_Telegraph; // 바닥 위험 범위. 몬스터 공격만, 판정 시작까지
     
     public AttackSpec Spec { get; private set; }  // 지금(끝난 뒤엔 마지막) 공격. 콤보 다음 타를 여기서 읽는다
     public float CancelDelay { get; set; }  // 판정 뒤 이 시간이 지나면 다음 공격으로 끊을 수 있다. 0이면 판정 끝나자마자
@@ -94,9 +95,15 @@ public class AttackAction : UnitAction
         if (m_Direction.sqrMagnitude > 0.0001f)
             Owner.MoveF.FaceTo(m_Direction, true);
 
+        // 바닥 예고는 플레이어가 피할 공격(몬스터)만 그린다
+        if (Owner.Team != ETeam.Player)
+            m_Telegraph = FlowManager.Instance.EffectS?.ShowTelegraph(Spec.ActiveMoveSpeed > 0f);
+
         if (Spec.WindupTime <= 0f)
         {
             StartClip();
+            UpdateTelegraph();
+            
             return;
         }
 
@@ -105,7 +112,6 @@ public class AttackAction : UnitAction
         Owner.AnimF.Play(AnimKey.Idle);
         
         m_BaseScale = VisualRoot.localScale;
-        m_Telegraph = FlowManager.Instance.EffectS?.ShowTelegraph(Spec.ActiveMoveSpeed > 0f);
         UpdateTelegraph();
     }
 
@@ -154,7 +160,7 @@ public class AttackAction : UnitAction
         if (m_Telegraph == null)
             return;
 
-        float total = Spec.WindupTime + Spec.HitTime;
+        float total = Spec.WindupTime + Spec.HitTime / Owner.StatF.GetRate(EStatType.AttackSpeed); // 판정은 공격 속도만큼 당겨진다(AttackTime)
         if (Time >= total)
         {
             HideTelegraph();

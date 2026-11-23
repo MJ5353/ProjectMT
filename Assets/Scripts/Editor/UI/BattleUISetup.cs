@@ -219,7 +219,8 @@ public static class BattleUISetup
         UIBuilder.AddImage(zone, new Color(UIStyle.Accent.r, UIStyle.Accent.g, UIStyle.Accent.b, 0.55f));
         CanvasGroup barGroup = AddNonBlockingGroup(barRect);
 
-        RectTransform finishRect = UIBuilder.Rect("FinishLabel", barRect, new Vector2(0f, 1f), new Vector2(0.33f, 1f), new Vector2(0, 4), new Vector2(0, 60));
+        // "막타!"는 막타 구간 위에 붙여, 실행 중 구간 너비가 바뀌어도 따라간다
+        RectTransform finishRect = UIBuilder.Rect("FinishLabel", zone, new Vector2(0f, 1f), Vector2.one, new Vector2(0, 4), new Vector2(0, 60));
         TMP_Text finishText = UIBuilder.Label(finishRect, EStringKey.Battle_RushFinish, UIStyle.FontLarge);
         finishText.color = UIStyle.Gold;
         UIBuilder.SetOutline(finishText);

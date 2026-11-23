@@ -16,13 +16,13 @@ public class DashAction : UnitAction
     private readonly float m_AnimSpeed;     // 대시 중 달리기 애니 배속
     private readonly float m_PerfectDodgeWindow; // 대시 시작부터 퍼펙트 닷지로 치는 시간. 0이면 대시 무적 전체
 
-    public override EActionType Type => EActionType.Dash;
-    public override bool IsFinished => Time >= m_CurrentDuration;
-    public bool IsReady => m_CooldownRemain <= 0f;
-
     private Vector3 m_Direction;
     private float m_CooldownRemain;
     private float m_CurrentDuration;   // 이번 대시 시간(대시 거리 반영)
+
+    public override EActionType Type => EActionType.Dash;
+    public override bool IsFinished => Time >= m_CurrentDuration;
+    public bool IsReady => m_CooldownRemain <= 0f;
 
     // ------------------------------------------------
 
@@ -67,7 +67,9 @@ public class DashAction : UnitAction
         if (m_IsInvincible)
         {
             Owner.HitF.SetInvincible(m_CurrentDuration);
-            Owner.HitF.SetPerfectDodge(m_PerfectDodgeWindow > 0f ? Mathf.Min(m_PerfectDodgeWindow, m_CurrentDuration) : m_CurrentDuration);
+            
+            float perfectDodgeWindow = m_PerfectDodgeWindow > 0f ? Mathf.Min(m_PerfectDodgeWindow, m_CurrentDuration) : m_CurrentDuration;
+            Owner.HitF.SetPerfectDodge(perfectDodgeWindow);
         }
     }
 
