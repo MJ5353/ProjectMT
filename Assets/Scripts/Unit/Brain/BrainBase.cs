@@ -88,7 +88,7 @@ public abstract class BrainBase
     
     public virtual void OnHit(HitParams hit) { }                         // 맞았을 때(살아 있을 때만). 피격 행동 요청은 주인이 한다
     public virtual void OnDied() { }                                     // 죽었을 때. 사망 행동 요청은 주인이 한다
-    public virtual void OnPerfectDodge(HitParams hit) { }                // 퍼펙트 닷지(판정 직전 범위 안에 있다가 대시로 안 맞음, HitFeature.PerfectDodged)
+    public virtual void OnPerfectDodge(HitParams hit) { }                // 퍼펙트 닷지(판정 직전 범위 안에 있다가 대시로 안 맞음, PerfectDodgeFeature.PerfectDodged)
     public virtual bool CanFlinch => true;                               // false면 맞아도 경직(피격 행동·넉백) 없이 데미지만
 
     protected virtual void OnActionEnded(EActionType action, bool isFinished) { } // 행동이 끝났을 때 다음 판단

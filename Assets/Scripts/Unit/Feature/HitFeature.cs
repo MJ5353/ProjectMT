@@ -19,7 +19,6 @@ public class HitFeature : UnitFeature
     private readonly List<HitShape> m_ListShape = new(); // 만들 때 한 번 정하고 풀 재사용 때도 그대로
 
     public event Action<HitParams, bool> Hit; // bool: 경직하는 타격인지
-    public event Action<HitParams> PerfectDodged; // 판정 직전 공격 범위 안에 있다가 대시로 안 맞음(AttackAction이 판정 때 부른다). 대시 한 번에 한 번
     public float BoundRadius { get; private set; } // 몸 중심(transform)에서 모양들을 감싸는 반지름. 후보 거르기용
 
     // 번쩍
@@ -32,8 +31,6 @@ public class HitFeature : UnitFeature
 
     // flag
     private float m_InvincibleRemain;
-    private float m_PerfectDodgeRemain; // 대시 뒤 퍼펙트 닷지 판정 창 남은 시간. 대시가 켜고, 한 번 터지면 0
-    private float m_PerfectDodgeWindow; // 마지막 대시의 판정 창 길이. 공격 범위에 들어온 시점도 이 안이어야 한다
     private float m_FlashRemain;
     private float m_BreakStack; // 쌓인 경직
     private float m_BreakIdleTime; // 마지막 타격 뒤 지난 게임 시간
@@ -60,8 +57,6 @@ public class HitFeature : UnitFeature
     public override void Reset()
     {
         m_InvincibleRemain = 0f;
-        m_PerfectDodgeRemain = 0f;
-        m_PerfectDodgeWindow = 0f;
         m_BreakStack = 0f;
         IsHidden = false;
         RestoreFlash();
@@ -73,9 +68,6 @@ public class HitFeature : UnitFeature
         float deltaTime = unscaledDeltaTime * Time.timeScale * Owner.TimeRate;
         if (m_InvincibleRemain > 0f)
             m_InvincibleRemain -= deltaTime;
-
-        if (m_PerfectDodgeRemain > 0f)
-            m_PerfectDodgeRemain -= deltaTime;
 
         if (m_BreakStack > 0f)
         {
@@ -130,13 +122,6 @@ public class HitFeature : UnitFeature
         m_InvincibleRemain = Mathf.Max(m_InvincibleRemain, duration);
     }
 
-    // 퍼펙트 닷지 판정 창(대시가 켠다). 맞은 뒤 무적·부활 무적과 구분하려고 따로 든다
-    public void SetPerfectDodge(float window)
-    {
-        m_PerfectDodgeRemain = window;
-        m_PerfectDodgeWindow = window;
-    }
-
     // 숨기(AIHideState). 무적과 달리 대상 찾기·조준(UnitService)에서도 빠진다
     public void SetHidden(bool isHidden)
     {
@@ -180,17 +165,6 @@ public class HitFeature : UnitFeature
         Hit?.Invoke(hit, isFlinch);
 
         return true;
-    }
-
-    // 판정 때 안 맞은 공격. 판정 전 threatLead초 시점에 범위 안에 있었고, 그게 판정 창 안이며 대시한 지 창 안이면 퍼펙트 닷지.
-    // 창은 한 번 쓰면 닫아 여러 공격·다단 히트에 다시 터지지 않게 한다
-    public void TryPerfectDodge(in HitParams hit, float threatLead)
-    {
-        if (Owner.IsDead || IsHidden || m_PerfectDodgeRemain <= 0f || threatLead > m_PerfectDodgeWindow)
-            return;
-
-        m_PerfectDodgeRemain = 0f;
-        PerfectDodged?.Invoke(hit);
     }
 
     // 경직 판단이 막으면(쓰러짐·포효) 쌓지도 않는다. 넘으면 비운다

@@ -14,7 +14,6 @@ public class DashAction : UnitAction
     private readonly float m_Cooldown;      // 대시가 끝난 뒤 다시 쓰기까지. 기본값
     private readonly bool m_IsInvincible;   // 대시 중 무적
     private readonly float m_AnimSpeed;     // 대시 중 달리기 애니 배속
-    private readonly float m_PerfectDodgeWindow; // 퍼펙트 닷지 판정 창(PlayerDef.PerfectDodgeWindow). 0이면 끔
 
     private Vector3 m_Direction;
     private float m_CooldownRemain;
@@ -26,14 +25,13 @@ public class DashAction : UnitAction
 
     // ------------------------------------------------
 
-    public DashAction(UnitController owner, float speed, float duration, float cooldown, bool isInvincible, float animSpeed, float perfectDodgeWindow) : base(owner)
+    public DashAction(UnitController owner, float speed, float duration, float cooldown, bool isInvincible, float animSpeed) : base(owner)
     {
         m_Speed = speed;
         m_Duration = duration;
         m_Cooldown = cooldown;
         m_IsInvincible = isInvincible;
         m_AnimSpeed = animSpeed;
-        m_PerfectDodgeWindow = perfectDodgeWindow;
     }
 
     public void Setup(Vector3 direction)
@@ -67,8 +65,8 @@ public class DashAction : UnitAction
         if (m_IsInvincible)
             Owner.HitF.SetInvincible(m_CurrentDuration);
 
-        // 무적으로 버티든 범위 밖으로 빠지든, 대시 뒤 창 안에 판정을 안 맞으면 퍼펙트 닷지(AttackAction이 판정 때 본다)
-        Owner.HitF.SetPerfectDodge(m_PerfectDodgeWindow);
+        // 무적으로 버티든 범위 밖으로 빠지든, 대시 뒤 창 안에 판정을 안 맞으면 퍼펙트 닷지
+        Owner.PerfectDodgeF?.OnDash();
     }
 
     public override void Exit()
