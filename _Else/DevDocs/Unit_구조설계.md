@@ -21,11 +21,11 @@
 ### StateFeature: 코어 하나 + 서브 여러 개
 
 - **CoreState**: 몸을 차지하는 일 하나. 자기 시간·끝(`IsFinished`)·끊기 규칙만 안다. AI 코어는 판단을 `Think`에서 한다.
-- **SubState**: 코어와 겹쳐 도는 일(입력·대상 감지·공격 선택 등). 수명은 `Unit`(Def가 등록, 유닛과 함께) / `Timed`(끝나면 스스로 빠짐). 알림은 구독 대신 가상 훅 `OnHit`·`OnDied`·`OnPerfectDodge`·`OnCoreChanged`로 받는다.
+- **SubState**: 코어와 겹쳐 도는 일(입력·대상 감지·공격 선택 등). 수명은 `Unit`(Def가 등록, 유닛과 함께) / `Timed`(끝나면 스스로 빠짐). 상태 알림은 가상 훅 `OnHit`·`OnDied`·`OnPerfectDodge`·`OnCoreChanged`로 받는다. 상태 밖 알림(부위 파괴 `PartF.Broken`, 대상 잡음 `TargetSelector.Acquired`)은 서브가 생성 때 구독한다(BossWatchSub).
 - **즉시 API**: `RequestAttack`·`RequestDash`·`RequestHit`·`RequestDead`·`Interrupt`(기본 코어로)·`Revive`(사망 → 기본 코어). 끊기 규칙을 통과하면 바로 바꾼다.
 - **미룬 요청** `Request(core)`: 서브가 쓴다. 코어 Step 뒤 요청 정리에서 처리하고, 같은 프레임에 둘이면 `pending.CanInterruptBy(new)`일 때만 새 요청으로 바꾼다.
 - **예약 공격** `ReserveAttack`: 다음 타 하나(덮어씀). 미룬 요청 다음, 공격으로 끊을 수 있게 되면 그 프레임에 낸다.
-- **설정**: `SetDefaultCore`(스폰·멈춤 때 들어갈 코어), `SetAfterHitCore`(피격이 끝나면 갈 코어, 없으면 복귀점), `ChangeCore`(AI 코어 사이 이동, 끊기 규칙 없음), `Stop`/`Resume`(전투 정지: 기본 코어로 두고 서브 Exit), `TryGetSub<T>`.
+- **설정**: `SetDefaultCore`(스폰·멈춤 때 들어갈 코어), `SetAfterHitCore`(피격이 끝나면 갈 코어, 없으면 복귀점), `ChangeCore`(AI 코어 사이 이동·보스 끼우기, **끊기 규칙을 보지 않는다**. 프리셋에 없는 코어면 오류 로그 뒤 무시), `Stop`/`Resume`(전투 정지: 기본 코어로 두고 서브 Exit), `TryGetSub<T>`.
 - 코어가 끝나면 피격은 피격 뒤 코어로, 나머지는 복귀점(마지막 Mode 코어)으로 간다.
 
 ### ECoreKind와 끊기 규칙
@@ -40,14 +40,14 @@
 |---|---|---|
 | Free·Idle·Wander·Chase·Flee·Follow | Mode | Action·Dash·Hit·Dead |
 | Attack | Action | Hit·Dead (+ 다음 공격: 판정 뒤 캔슬 지연 지나면, 대시: 판정 뒤) |
-| Approach(러시 돌진) | Action | Hit·Dead |
+| RushApproach(러시 돌진) | Action | Hit·Dead |
 | Burrow | Action | Hit·Dead |
-| Roar·Down | Action | Dead |
+| Roar·Down | Action | Dead (요청 기준. 보스 감시가 `ChangeCore`로 끼우는 쓰러짐은 포효를 끊고, 쓰러진 중 또 깨지면 쓰러짐을 처음부터) |
 | Dash | Dash | Hit·Dead |
 | Hit | Hit | Hit·Dead |
 | Dead | Dead | 없음 |
 
-- `ECoreState`는 이름표다. 값을 명시하고 AIDef 에셋에 숫자로 저장되므로 새 값은 맨 뒤에만 붙인다(Move 0 · Idle 1 · Wander 2 · Chase 3 · Flee 4 · Follow 5 · Burrow 6 · Roar 7 · Down 8 · Approach 9 · Attack 10 · Dash 11 · Hit 12 · Dead 13).
+- `ECoreState`는 이름표다. 값을 명시하고 AIDef 에셋에 숫자로 저장되므로 새 값은 맨 뒤에만 붙인다(Free 0 · Idle 1 · Wander 2 · Chase 3 · Flee 4 · Follow 5 · Burrow 6 · Roar 7 · Down 8 · RushApproach 9 · Attack 10 · Dash 11 · Hit 12 · Dead 13).
 
 ### 코어 · 서브 목록
 
@@ -86,9 +86,10 @@
 |---|---|---|---|
 | AI_Normal | Idle·Wander·Chase·Flee | Idle | Chase |
 | AI_Elite | Idle·Wander·Chase·Flee | Idle | Chase |
+| AI_Flee | Idle·Wander·Chase·Flee | Idle | Flee |
 | AI_Burrow | Idle·Wander·Chase·Burrow | Idle | Burrow |
 | AI_Boss | Idle·Wander·Chase·Roar·Down | Idle | Chase |
-| AI_Pet | Follow | Follow | Move(없음) |
+| AI_Pet | Follow | Follow | Free(없음) |
 
 ### 새 코어 · 서브 추가
 

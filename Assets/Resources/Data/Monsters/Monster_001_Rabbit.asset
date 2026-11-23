@@ -18,12 +18,15 @@ MonoBehaviour:
   <Icon>k__BackingField: {fileID: 0}
   <MaxHp>k__BackingField: 30
   <HitStunTime>k__BackingField: 0.35
+  <BreakImmune>k__BackingField: 0
+  <BreakResetTime>k__BackingField: 2
+  <MoveSpeed>k__BackingField: 3
   <TurnSpeed>k__BackingField: 900
+  <AttackBlendTime>k__BackingField: 0.08
   <Hit>k__BackingField: {fileID: 11400000, guid: 9707896f19aae5149ab2a53582632c5e, type: 2}
+  <AI>k__BackingField: {fileID: 11400000, guid: 652546045d824fb09b456603542d94a2, type: 2}
   <ListSkill>k__BackingField:
   - {fileID: 11400000, guid: fd9c6d353c664a64db92224ef1129246, type: 2}
-  <MoveSpeed>k__BackingField: 3
-  <AI>k__BackingField: {fileID: 11400000, guid: 93f6457ec256445a8d65f9017e1f66aa, type: 2}
   <ModelName>k__BackingField: Mon_001_Rabbit
   <BodyHeight>k__BackingField: 1.1
   <BodyRadius>k__BackingField: 0.2
@@ -40,9 +43,9 @@ MonoBehaviour:
     <Durability>k__BackingField: 0
     <BodyDamageScale>k__BackingField: 1
     <RegenTime>k__BackingField: 0
-  m_ListMushroom: []
   m_ListDrop:
   - <Mushroom>k__BackingField: {fileID: 11400000, guid: f5c08f1e51dd52b47b4afe44f988d506, type: 2}
     <Min>k__BackingField: 1
     <Max>k__BackingField: 2
     <Chance>k__BackingField: 1
+  m_ListEnrageSkill: []

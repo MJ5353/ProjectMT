@@ -143,7 +143,15 @@ public class StateFeature : UnitFeature
     // AI 코어 사이 이동(판단 코어가 스스로, 보스 감시가 행동이 없을 때). 끊기 규칙 없이 바로 바꾼다. 같은 코어면 다시 시작한다
     public void ChangeCore(ECoreState type)
     {
-        Change(GetCore(type));
+        // 프리셋(AIDef.ListCore)에 없는 코어로 가려 하면 바꾸지 않고 알린다(데이터 검사는 기본·피격 뒤 코어만 본다)
+        CoreState core = GetCore(type);
+        if (core == null)
+        {
+            CLogger.Error(nameof(StateFeature), $"{Owner.Def.name}의 AI 프리셋에 {type} 코어가 없어 바꾸지 않습니다", Owner);
+            return;
+        }
+
+        Change(core);
     }
 
     // 하던 코어를 정리하고 기본 코어로. 사망은 그대로 둔다
@@ -320,7 +328,7 @@ public class StateFeature : UnitFeature
         RequestAttack(spec, m_ReservedDirection, faceTarget);
     }
 
-    // 등록하지 않은 종류면 null(AfterHitCore를 비워 둔 Move 등)
+    // 등록하지 않은 종류면 null(AfterHitCore를 비워 둔 Free 등)
     private CoreState GetCore(ECoreState type)
     {
         m_DicCore.TryGetValue(type, out CoreState core);

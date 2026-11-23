@@ -14,7 +14,7 @@ public class RushApproachCore : CoreState
     private Vector3 m_FaceDirection; // 달리는 쪽. 다음 프레임 Update에서 TurnSpeed로 돈다(MoveCore와 같은 순서)
     private bool m_IsDone;
 
-    public override ECoreState Type => ECoreState.Approach;
+    public override ECoreState Type => ECoreState.RushApproach;
     public override ECoreKind Kind => ECoreKind.Action;
     public override bool IsFinished => m_IsDone;
 

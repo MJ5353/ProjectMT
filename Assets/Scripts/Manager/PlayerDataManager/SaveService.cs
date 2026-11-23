@@ -45,14 +45,22 @@ public class SaveService
 
         data.version = SaveData.CurrentVersion;
 
+        // 백신·동기화 프로그램이 파일을 잡고 있으면 쓰기·바꿔 끼우기가 예외를 낸다. 기존 파일은 그대로 두고 다음 저장에서 다시 쓴다
         string tmpPath = m_FilePath + ".tmp";
-        File.WriteAllText(tmpPath, JsonUtility.ToJson(data, true));
+        try
+        {
+            File.WriteAllText(tmpPath, JsonUtility.ToJson(data, true));
 
-        // 있으면 한 번에 바꿔 끼운다(지우고 옮기는 사이에 꺼져도 파일이 사라지지 않게)
-        if (File.Exists(m_FilePath))
-            File.Replace(tmpPath, m_FilePath, null);
-        else
-            File.Move(tmpPath, m_FilePath);
+            // 있으면 한 번에 바꿔 끼운다(지우고 옮기는 사이에 꺼져도 파일이 사라지지 않게)
+            if (File.Exists(m_FilePath))
+                File.Replace(tmpPath, m_FilePath, null);
+            else
+                File.Move(tmpPath, m_FilePath);
+        }
+        catch (Exception e)
+        {
+            CLogger.Error("SaveService", $"세이브를 쓰지 못했습니다(기존 파일 유지): {e.Message}");
+        }
     }
 
     public void Delete()

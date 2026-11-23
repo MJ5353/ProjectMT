@@ -6,7 +6,7 @@ using System;
 // 끊기 규칙은 코어마다 Kind·InterruptedBy로 정한다(CoreState)
 public enum ECoreState
 {
-    Move = 0,       // 플레이어 자유 이동(FreeCore)
+    Free = 0,       // 플레이어 자유 이동(FreeCore)
     Idle = 1,       // 이하 AI 코어(판단 + 이동)
     Wander = 2,
     Chase = 3,
@@ -15,7 +15,7 @@ public enum ECoreState
     Burrow = 6,     // 땅속에 숨었다 나오기(Burrow)
     Roar = 7,       // 포효(Boss). 사망에만 끊긴다
     Down = 8,       // 쓰러짐(Boss). 사망에만 끊긴다
-    Approach = 9,   // 러시 돌진(플레이어). 공격 예약을 막고 피격·사망에만 끊긴다
+    RushApproach = 9, // 러시 돌진(플레이어, RushApproachCore). 공격 예약을 막고 피격·사망에만 끊긴다
     Attack = 10,
     Dash = 11,
     Hit = 12,
@@ -27,7 +27,7 @@ public enum ECoreState
 public enum ECoreKind
 {
     None = 0,
-    Mode = 1 << 0,      // 모드: 몸을 묶지 않고 이동 애니만 쓰며 다음 행동을 고르는 자리(Move·Idle~Follow). 행동이 끝나면 마지막 모드 코어로 돌아온다. AI 코어끼리는 끊기 규칙 없이 바뀐다(StateFeature.ChangeCore)
+    Mode = 1 << 0,      // 모드: 몸을 묶지 않고 이동 애니만 쓰며 다음 행동을 고르는 자리(Free·Idle~Follow). 행동이 끝나면 마지막 모드 코어로 돌아온다. AI 코어끼리는 끊기 규칙 없이 바뀐다(StateFeature.ChangeCore)
     Action = 1 << 1,    // 행동: 전용 클립이나 정해진 움직임으로 몸을 묶는 동작(공격·러시 돌진·숨기·포효·쓰러짐)
     Dash = 1 << 2,
     Hit = 1 << 3,

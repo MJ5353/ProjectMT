@@ -228,6 +228,7 @@ public class RushSub : SubState
             return;
         }
 
+        // [mj] todo) 슬로우 이유가 Rush 말고 더 생기면 TimeManager.IsSlowBy(ESlowReason) 추가해 IsSlow 대신 IsSlowBy(ESlowReason.Rush)로 본다
         if (TimeManager.Instance.IsSlow && state.Attack.AttackTime >= finisher.HitTime - FinisherRestoreLead)
             TimeManager.Instance.ClearSlow(ESlowReason.Rush);
     }

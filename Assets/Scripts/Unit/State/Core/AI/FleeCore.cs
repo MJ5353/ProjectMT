@@ -2,7 +2,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 버끼처럼 겁 많은 몬스터: 맞으면(Def.FleeTime > 0) 대상 반대로 빠르게 달아났다가 추적. 애니 배속은 자기 Exit에서 되돌린다
+// 겁 많은 몬스터(AI_Flee): 맞으면(피격 뒤 코어 AIDef.AfterHitCore = Flee) Def.FleeTime 동안 대상 반대로 빠르게 달아났다가 추적. 애니 배속은 자기 Exit에서 되돌린다
 
 public class FleeCore : AICore
 {

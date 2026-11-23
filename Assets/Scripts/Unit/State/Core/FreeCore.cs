@@ -10,7 +10,7 @@ public class FreeCore : MoveCore
 
     private readonly PlayerDef m_Def;
 
-    public override ECoreState Type => ECoreState.Move;
+    public override ECoreState Type => ECoreState.Free;
 
     // ------------------------------------------------
 

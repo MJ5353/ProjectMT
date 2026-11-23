@@ -33,7 +33,7 @@ public class PerfectDodgeFeature : UnitFeature
         m_DictThreat.Clear();
     }
 
-    // 무적은 게임 시간 기준(슬로우 무시 유닛은 제 시간). 히트스톱 중에는 같이 멈춘다
+    // 대시 뒤 창은 유닛 시간으로 줄인다(슬로우 무시 유닛은 제 시간). 히트스톱 중에는 같이 멈춘다
     public override void Tick(float deltaTime)
     {
         if (m_DashRemain > 0f)

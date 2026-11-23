@@ -132,8 +132,8 @@ public static class DataTools
         if (setCore.Contains(ai.DefaultCore) == false)
             listError.Add($"기본 코어 {ai.DefaultCore}가 목록에 없음");
 
-        // 피격 뒤 코어는 없어도 된다(Move): 피격 전 코어로 돌아간다
-        if (ai.AfterHitCore != ECoreState.Move && setCore.Contains(ai.AfterHitCore) == false)
+        // 피격 뒤 코어는 없어도 된다(Free): 피격 전 코어로 돌아간다
+        if (ai.AfterHitCore != ECoreState.Free && setCore.Contains(ai.AfterHitCore) == false)
             listError.Add($"피격 뒤 코어 {ai.AfterHitCore}가 목록에 없음");
 
         foreach (string error in listError)

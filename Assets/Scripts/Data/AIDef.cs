@@ -31,7 +31,7 @@ public class AIDef : DataDef
     public ECoreState DefaultCore { get; private set; } = ECoreState.Idle;     // 스폰·멈출 때 들어가는 코어. 보통 Idle, 펫은 Follow
 
     [field: SerializeField]
-    public ECoreState AfterHitCore { get; private set; } = ECoreState.Chase;   // 피격이 끝나면 갈 코어(Chase·Flee·Burrow). 목록에 없는 값(Move)이면 피격 전 코어로 돌아간다
+    public ECoreState AfterHitCore { get; private set; } = ECoreState.Chase;   // 피격이 끝나면 갈 코어(Chase·Flee·Burrow). 목록에 없는 값(Free)이면 피격 전 코어로 돌아간다
 
     // 이동 --- 기준 속도는 UnitDef.MoveSpeed(추적·땅속 이동·따라가기)
     [field: SerializeField]
@@ -58,7 +58,7 @@ public class AIDef : DataDef
 
     // 맞은 뒤 ---
     [field: SerializeField]
-    public float FleeTime { get; private set; } = 0f;           // 도망: 맞은 뒤 도망치는 시간. 0이면 바로 반격
+    public float FleeTime { get; private set; } = 0f;           // 도망: 피격 뒤 코어가 Flee일 때 달아나는 시간(초)
 
     [field: SerializeField]
     public float HideTime { get; private set; } = 1.5f;         // 숨기: 땅속에서 대상 쪽으로 파고드는 시간(초)
