@@ -5,7 +5,7 @@ using UnityEngine.Serialization;
 // ==================================================
 
 // 플레이어와 몬스터가 같이 쓰는 몸 수치. 몬스터는 MonsterDef, 플레이어는 PlayerDef가 이어받는다.
-// 컨트롤러(UnitController)는 하나라서, 무엇을 붙일지·팀·판단 종류는 여기 가상 함수(SetFeatures·CreateBrain·Team)로 Def가 정한다
+// 컨트롤러(UnitController)는 하나라서, 무엇을 붙일지(부품·코어·서브)·팀은 여기 가상 함수(SetFeatures·Team)로 Def가 정한다
 
 public abstract class UnitDef : DataDef
 {
@@ -55,14 +55,8 @@ public abstract class UnitDef : DataDef
 
     // 조립 (UnitController.Set이 부른다) ---
 
-    // 공통 부품·StateF 다음에 붙일 Def별 부품(부위·판정 모양·대시 등)
+    // 공통 부품·StateF 다음에 붙일 Def별 부품(부위·판정 모양·대시 등)과 코어·서브(입력·AI)
     public virtual void SetFeatures(UnitController unit) { }
-
-    // 판단. 기본은 AI 프리셋(AI)으로 도는 AIBrain. AI가 비면 AIBrain이 오류 로그 후 기본값 AIDef로 돈다
-    public virtual BrainBase CreateBrain(UnitController unit)
-    {
-        return new AIBrain(unit, this);
-    }
 
 #if UNITY_EDITOR
     // 선택했을 때 씬 뷰에 Def별 기즈모(UnitController.OnDrawGizmosSelected가 부른다)

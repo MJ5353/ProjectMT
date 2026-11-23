@@ -3,11 +3,11 @@ using UnityEngine;
 
 // ==================================================
 
-// 플레이어와 몬스터가 같이 쓰는 유닛 하나. 부품(Feature 목록) · 상태(StateFeature: 코어·서브) · 판단(UnitBrain)으로 이뤄진다.
-// 무엇을 붙일지·팀·판단 종류는 Def가 정한다(UnitDef.SetFeatures·CreateBrain·Team). 그래서 컨트롤러는 이 클래스 하나다.
-// 조립 순서: 공통 부품 → 상태 → Def별 부품(Def.SetFeatures) → 판단(Def.CreateBrain).
-// 매 프레임 순서는 Tick 한 곳에 적는다: 부품 Tick → 상태(코어 → 서브 → 요청 정리) → 판단 → 부품 LateTick(이동). 호출은 판단 → 상태 → 부품 방향으로만
-// 피격·사망은 여기서 상태(RequestHit·RequestDead)에 바로 넘기고, 그 뒤 할 일은 판단 쪽 훅이 정한다.
+// 플레이어와 몬스터가 같이 쓰는 유닛 하나. 부품(Feature 목록) · 상태(StateFeature: 코어·서브, 입력·AI 판단 포함)로 이뤄진다.
+// 무엇을 붙일지·팀은 Def가 정한다(UnitDef.SetFeatures·Team). 그래서 컨트롤러는 이 클래스 하나다.
+// 조립 순서: 공통 부품 → 상태 → Def별 부품·코어·서브(Def.SetFeatures).
+// 매 프레임 순서는 Tick 한 곳에 적는다: 부품 Tick → 상태(코어 Step → 서브 → 요청 정리 → 코어 Think) → 부품 LateTick(이동). 호출은 상태 → 부품 방향으로만
+// 피격·사망은 여기서 상태(RequestHit·RequestDead)에 바로 넘기고, 그 뒤 할 일은 서브 훅·코어가 정한다.
 // 프리팹은 몸(UnitProperty)만 갖고, Def는 스폰 때 UnitFactory가 OnSpawn으로 넘긴다(같은 몸에 다른 Def 가능).
 // UnitProperty 참조는 에디터 메뉴(BattleSetup)가 프리팹을 만들 때 채운다
 
@@ -17,7 +17,6 @@ public class UnitController : PoolableMono
 
     // core
     private readonly List<UnitFeature> m_ListFeature = new();   // 수명 주기를 함께 돌릴 부품. 등록 순서대로 실행
-    public BrainBase BrainBase { get; private set; }            // 판단(AI). 플레이어는 null(입력은 서브 PlayerInputSub). BrainBase는 묶음 5에서 사라진다
     public int UnitID { get; private set; }                     // UnitService가 꺼낼 때 넣어 준다. 0이면 등록 안 됨
     public UnitDef Def { get; private set; }                    // 수치 데이터(PlayerDef·MonsterDef). OnSpawn에서 받는다
 
@@ -30,7 +29,7 @@ public class UnitController : PoolableMono
     public HitFeature HitF { get; private set; }
     public PartFeature PartF { get; private set; }    // 버섯 부위. 없으면 null(SetPartFeature로 붙인다)
     public PerfectDodgeFeature PerfectDodgeF { get; private set; }    // 퍼펙트 닷지. 플레이어만, 없으면 null(SetPerfectDodgeFeature로 붙인다)
-    public StateFeature StateF { get; private set; }  // 상태(코어: 이동·공격·대시·피격·사망 + 서브). 부품 목록 밖에서 Tick 순서대로 직접 돌린다. 판단 쪽은 여기에 요청만 한다
+    public StateFeature StateF { get; private set; }  // 상태(코어: 이동·AI·공격·대시·피격·사망 + 서브). 부품 목록 밖에서 Tick 순서대로 직접 돌린다
 
     // get
     public ETeam Team => Def.Team;
@@ -61,7 +60,6 @@ public class UnitController : PoolableMono
         StateF = new StateFeature(this, Def);
 
         Def.SetFeatures(this);
-        BrainBase = Def.CreateBrain(this);
 
         // 피격 반응 수치가 없으면 체력만 깎이고 반응은 없다
         if (Def.Hit == null)
@@ -110,7 +108,6 @@ public class UnitController : PoolableMono
         }
 
         StateF.Tick(deltaTime);
-        BrainBase?.Tick(deltaTime);
 
         foreach (var feature in m_ListFeature)
         {
@@ -140,7 +137,6 @@ public class UnitController : PoolableMono
         PartF = null;
         PerfectDodgeF = null;
         StateF = null;
-        BrainBase = null;
     }
 
     // UnitFactory가 풀에서 꺼낸 직후. Def가 바뀌었으면(또는 처음이면) 다시 조립하고, 처음 상태로 되돌린다
@@ -173,22 +169,20 @@ public class UnitController : PoolableMono
         }
 
         StateF.Reset();
-        BrainBase?.Reset();
     }
 
     public void OnDespawn()
     {
         // 풀로 돌아가기 직전
         UnitID = 0;
-        BrainBase?.Clear();      // 조립 실패(Def·UnitProperty 없음)로 비어 있을 수 있다
-        StateF?.Clear();
+        StateF?.Clear();         // 조립 실패(Def·UnitProperty 없음)로 비어 있을 수 있다
         foreach (var feature in m_ListFeature)
         {
             feature.Clear();
         }
     }
 
-    // 맞으면 서브·판단 쪽이 먼저 기록(공격자 등)하고, 경직하는 타격이면 상태는 피격 경직으로(공격 중이면 끊긴다). 죽는 타격은 사망이 먼저 처리돼 여기서 끝난다
+    // 맞으면 서브가 먼저 기록(공격자·분노 등)하고, 경직하는 타격이면 상태는 피격 경직으로(공격 중이면 끊긴다). 죽는 타격은 사망이 먼저 처리돼 여기서 끝난다
     private void OnHit(HitParams hit, bool isFlinch)
     {
         if (IsDead)
@@ -196,7 +190,6 @@ public class UnitController : PoolableMono
 
         PassiveF.OnHit(hit);
         StateF.OnHit(hit);
-        BrainBase?.OnHit(hit);
         if (isFlinch)
             StateF.RequestHit();
     }
@@ -209,14 +202,12 @@ public class UnitController : PoolableMono
 
         PassiveF.OnPerfectDodge(hit);
         StateF.OnPerfectDodge(hit);
-        BrainBase?.OnPerfectDodge(hit);
     }
 
     private void OnDied()
     {
         StateF.RequestDead();
         StateF.OnDied();
-        BrainBase?.OnDied();
     }
 
     // 체력을 채우고 사망에서 일으킨다. 잠깐 무적을 줘서 일어나자마자 맞지 않게 한다

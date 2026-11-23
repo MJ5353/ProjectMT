@@ -10,6 +10,8 @@ public class FreeCore : MoveCore
 
     private readonly PlayerDef m_Def;
 
+    public override ECoreState Type => ECoreState.Move;
+
     // ------------------------------------------------
 
     public FreeCore(UnitController owner, PlayerDef def) : base(owner)

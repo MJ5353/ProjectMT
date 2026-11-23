@@ -5,36 +5,36 @@ using UnityEngine;
 // ==================================================
 
 // 상태(StateFeature). 코어 하나(CoreState: 몸을 차지하는 일, 끊기 우선순위)와 서브 여러 개(SubState: 함께 도는 일)를 든다.
-// 부품 목록이 아니라 주인이 직접 Tick한다(부품 Tick → 상태[코어 → 서브(Timed → Unit) → 요청 정리] → 판단 → 부품 LateTick). Def.SetFeatures보다 먼저 만들어져 조건부 코어(대시)·기본 코어를 받는다.
-// 코어는 요청으로만 바뀌고, 끝나면 기본 코어(플레이어 FreeCore, 그 밖 MoveCore)로 돌아간다. 그 뒤 할 일은 서브·판단 쪽이 다시 요청한다.
+// 부품 목록이 아니라 주인이 직접 Tick한다(부품 Tick → 상태[코어 Step → 서브(Timed → Unit) → 요청 정리 → 코어 Think] → 부품 LateTick). Def.SetFeatures보다 먼저 만들어져 조건부 코어(대시)·기본 코어·AI 코어를 받는다.
+// 코어는 요청으로만 바뀌고, 행동(공격·대시 등)이 끝나면 마지막 기본 층 코어(플레이어 FreeCore, AI는 추적 등)로, 피격이 끝나면 피격 뒤 코어(SetAfterHitCore)로 간다.
 // 요청 정리: 서브가 미뤄 둔 요청(Request, 프레임에 가장 높은 우선순위 하나) → 예약 공격(ReserveAttack, 끊을 수 있게 되면 바로).
-// 서브·요청을 코어 다음에 두는 건 판단이 코어 다음에 돌던 예전 순서 그대로라서다(새 코어는 그 프레임 Begin, 다음 프레임부터 Step)
+// 서브·요청·Think를 코어 Step 다음에 두는 건 판단(AI·입력)이 코어 다음에 돌던 예전 순서 그대로라서다(새 코어는 그 프레임 Begin, 다음 프레임부터 Step)
 
 public class StateFeature : UnitFeature
 {
     // core
-    private readonly MoveCore m_Move;
     private readonly AttackCore m_Attack;
     private readonly HitCore m_Hit;
     private readonly DeadCore m_Dead;
 
     // conditional core
     private DashCore m_Dash;        // 대시를 쓰는 유닛만(EnableDash)
-    private CoreState m_Default;    // 끝나면 돌아갈 코어. 기본은 MoveCore, 플레이어는 FreeCore(SetDefaultCore)
+    private CoreState m_Default;    // 꺼낼 때·멈출 때 들어가는 코어. 플레이어 FreeCore, AI 대기(펫 따라가기). Def.SetFeatures가 정한다(SetDefaultCore)
+    private CoreState m_Return;     // 행동이 끝나면 돌아갈 코어: 마지막 기본 층 코어(공격을 낸 추적 등)
+    private CoreState m_AfterHit;   // 피격이 끝나면 갈 코어(AI 종류별). 없으면 m_Return
     private CoreState m_Current;
+    private readonly CoreState[] m_ArrCore = new CoreState[Enum.GetValues(typeof(ECoreState)).Length]; // ChangeCore로 바꿀 AI 코어(AddCore)
 
     // sub
     private readonly List<SubState> m_ListSub = new();
     private bool m_IsStopped;       // Stop ~ Resume. 서브가 빠져 있고 요청을 정리하지 않는다
 
     // request
-    private CoreState m_Deferred;           // 서브가 이번 프레임 미뤄 둔 요청(가장 높은 우선순위 하나)
+    private CoreState m_Deferred;           // 서브가 이번 프레임 미뤄 둔 요청(Z가장 높은 우선순위 하나)
     private AttackSpec m_ReservedAttack;    // 끊을 수 있게 되면 낼 공격 하나(다음 타 버퍼)
     private Vector3 m_ReservedDirection;
     private Transform m_ReservedFaceTarget;
 
-    // 코어가 끝날 때(끝까지 했으면 isFinished, 다른 코어에 끊겼으면 false). 그 뒤 할 일은 판단 쪽이 정한다
-    public event Action<ECoreState, bool> Ended;
     public event Action<ECoreState> Started; // 코어를 시작할 때(Begin 직후). HUD 공격·대시 아이콘이 받는다
 
     // get
@@ -49,16 +49,13 @@ public class StateFeature : UnitFeature
 
     public StateFeature(UnitController owner, UnitDef def) : base(owner)
     {
-        m_Move = new MoveCore(owner);
         m_Attack = new AttackCore(owner, def);
         m_Hit = new HitCore(owner, def.HitStunTime);
         m_Dead = new DeadCore(owner);
-        m_Default = m_Move;
-        m_Current = m_Move;
     }
 
-    // 코어 → 서브(Timed 먼저: 러시가 그 프레임 상태를 정한 뒤 입력이 읽는다) → 요청 정리.
-    // 히트스톱(deltaTime 0)·멈춤 중에는 서브와 요청 정리를 쉰다(예전 판단이 그 프레임 생각하지 않던 것과 같다)
+    // 코어 Step → 서브(Timed 먼저: 러시가 그 프레임 상태를 정한 뒤 입력이 읽는다) → 요청 정리 → 코어 Think(AI 판단: 대상·쿨·보스 감시 다음).
+    // 히트스톱(deltaTime 0)·멈춤 중에는 서브·요청 정리·Think를 쉰다
     public override void Tick(float deltaTime)
     {
         if (m_Dash != null)
@@ -67,7 +64,7 @@ public class StateFeature : UnitFeature
         m_Current.Step(deltaTime);
 
         if (m_Current.IsFinished)
-            Change(m_Default, true);
+            Change(GetNextCore(), true);
 
         if (m_IsStopped || deltaTime <= 0f)
             return;
@@ -75,6 +72,8 @@ public class StateFeature : UnitFeature
         TickSubs(ESubLifetime.Timed, deltaTime);
         TickSubs(ESubLifetime.Unit, deltaTime);
         ResolveRequests();
+
+        m_Current.Think(deltaTime);
     }
 
     // 풀에서 꺼낼 때. 유닛 수명 서브는 여기서 시작한다
@@ -88,11 +87,12 @@ public class StateFeature : UnitFeature
         
         m_IsStopped = false;
         m_Current = m_Default;
+        m_Return = m_Default;
         m_Current.Begin();
 
-        foreach (SubState sub in m_ListSub)
+        for (int i = 0; i < m_ListSub.Count; ++i)
         {
-            sub.Begin();
+            m_ListSub[i].Begin();
         }
     }
 
@@ -101,6 +101,7 @@ public class StateFeature : UnitFeature
     {
         m_Current.Exit();
         m_Current = m_Default;
+        m_Return = m_Default;
         ClearRequests();
 
         // 멈춘 동안은 유닛 수명 서브도 이미 Exit했다
@@ -119,7 +120,7 @@ public class StateFeature : UnitFeature
         return true;
     }
 
-    // 다음 코어를 먼저 시작하고 알린다. 알림을 받은 쪽이 곧바로 또 요청해도(콤보) 순서가 꼬이지 않는다
+    // 다음 코어를 먼저 시작하고 알린다(isFinished: 지난 코어가 끝까지 했으면 true, 끊겼으면 false). 서브는 알림 안에서 요청하지 말고 예약한다(ReserveAttack)
     private void Change(CoreState next, bool isFinished = false)
     {
         CoreState prev = m_Current;
@@ -127,13 +128,21 @@ public class StateFeature : UnitFeature
         m_Current = next;
         m_Current.Begin();
 
+        if (next.Type < ECoreState.Approach)
+            m_Return = next;
+
         for (int i = 0; i < m_ListSub.Count; ++i)
         {
-            m_ListSub[i].OnCoreChanged(prev.Type, next.Type);
+            m_ListSub[i].OnCoreChanged(prev.Type, next.Type, isFinished);
         }
 
         Started?.Invoke(m_Current.Type);
-        Ended?.Invoke(prev.Type, isFinished);
+    }
+
+    // AI 코어 사이 이동(판단 코어가 스스로, 보스 감시가 행동이 없을 때). 끊기 규칙 없이 바로 바꾼다. 같은 코어면 다시 시작한다
+    public void ChangeCore(ECoreState type)
+    {
+        Change(m_ArrCore[(int)type]);
     }
 
     // 하던 코어를 정리하고 기본 코어로. 사망은 그대로 둔다
@@ -143,7 +152,8 @@ public class StateFeature : UnitFeature
             Change(m_Default);
     }
 
-    // 전투 정지(UnitService.StopBrains, BrainBase.Stop). 코어를 끊고 서브를 모두 Exit하고(Timed는 뺀다) 제자리에 세운다. 중력만 계속 받는다
+    // 전투 정지(UnitService.StopBrains). 코어를 끊어 기본 코어로 두고 서브를 모두 Exit하고(Timed는 뺀다) 제자리에 세운다. 중력만 계속 받는다.
+    // 멈춘 동안은 Think가 돌지 않으니 다시 켜면 기본 코어(대기·따라가기)를 처음부터 하는 것과 같다
     public void Stop()
     {
         if (m_IsStopped)
@@ -169,9 +179,9 @@ public class StateFeature : UnitFeature
             return;
 
         m_IsStopped = false;
-        foreach (SubState sub in m_ListSub)
+        for (int i = 0; i < m_ListSub.Count; ++i)
         {
-            sub.Begin();
+            m_ListSub[i].Begin();
         }
     }
 
@@ -243,21 +253,31 @@ public class StateFeature : UnitFeature
             Change(m_Default);
     }
 
-    // MoveCore(AI 기본 코어)에 있을 때만 따른다. 방향은 수평으로 펴서 정규화한다. speed가 0이면 멈춰서 Idle
-    public void SetMove(Vector3 direction, float speed, bool isRun = false)
-    {
-        if (m_Current != m_Move)
-            return;
-
-        direction.y = 0f;
-        m_Move.SetMove(direction.normalized * speed, isRun);
-    }
-
-    // 끝나면 돌아갈 코어를 바꾼다(PlayerDef.SetFeatures: FreeCore). Reset에서 이 코어로 시작한다
+    // 기본 코어를 정한다(PlayerDef: FreeCore, MonsterDef: 대기·따라가기). Reset에서 이 코어로 시작한다
     public void SetDefaultCore(CoreState core)
     {
         m_Default = core;
         m_Current = core;
+        m_Return = core;
+    }
+
+    // ChangeCore로 바꿀 AI 코어 등록(MonsterDef.SetAI). 종류마다 하나
+    public T AddCore<T>(T core) where T : CoreState
+    {
+        m_ArrCore[(int)core.Type] = core;
+        return core;
+    }
+
+    // 피격이 끝나면 갈 AI 코어(MonsterDef.SetAI). 정하지 않으면 피격 전 기본 층 코어로 돌아간다
+    public void SetAfterHitCore(ECoreState type)
+    {
+        m_AfterHit = m_ArrCore[(int)type];
+    }
+
+    // AI 유닛만(MonsterDef.SetAI). 죽으면 먼지를 내고 충돌을 끈 뒤 사라진다
+    public void EnableDespawnOnDead()
+    {
+        m_Dead.IsDespawn = true;
     }
 
     // 대시를 쓰는 유닛만(PlayerDef.SetFeatures)
@@ -293,6 +313,14 @@ public class StateFeature : UnitFeature
         RequestAttack(spec, m_ReservedDirection, faceTarget);
     }
 
+    private CoreState GetNextCore()
+    {
+        if (m_Current == m_Hit && m_AfterHit != null)
+            return m_AfterHit;
+
+        return m_Return;
+    }
+
     private void ClearRequests()
     {
         m_Deferred = null;
@@ -310,6 +338,7 @@ public class StateFeature : UnitFeature
             sub.Begin();
     }
 
+    // 서브 Tick·알림을 도는 중에 부르면 터지지는 않지만 그 루프에서 서브 하나를 건너뛸 수 있다. 지금은 부르는 곳이 없다. 알림 안에서 쓰게 되면 루프가 끝난 뒤로 미뤄 뺀다
     public void RemoveSub(SubState sub)
     {
         if (m_ListSub.Remove(sub))
@@ -377,15 +406,16 @@ public class StateFeature : UnitFeature
     }
 
     // notify --- 멈춘 동안은 서브가 빠져 있어 알리지 않는다
+    // 서브 목록은 인덱스로 돈다: 알림 안에서 AddSub(퍼펙트 닷지 → 러시)해도 foreach처럼 터지지 않는다
 
     public void OnHit(in HitParams hit)
     {
         if (m_IsStopped)
             return;
 
-        foreach (var sub in m_ListSub)
+        for (int i = 0; i < m_ListSub.Count; ++i)
         {
-            sub.OnHit(hit);
+            m_ListSub[i].OnHit(hit);
         }
     }
 
@@ -394,9 +424,9 @@ public class StateFeature : UnitFeature
         if (m_IsStopped)
             return;
 
-        foreach (var sub in m_ListSub)
+        for (int i = 0; i < m_ListSub.Count; ++i)
         {
-            sub.OnDied();
+            m_ListSub[i].OnDied();
         }
     }
 
@@ -405,9 +435,9 @@ public class StateFeature : UnitFeature
         if (m_IsStopped)
             return;
 
-        foreach (var sub in m_ListSub)
+        for (int i = 0; i < m_ListSub.Count; ++i)
         {
-            sub.OnPerfectDodge(hit);
+            m_ListSub[i].OnPerfectDodge(hit);
         }
     }
 }

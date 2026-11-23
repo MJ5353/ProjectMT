@@ -75,10 +75,4 @@ public class PlayerDef : UnitDef
                 renderer.gameObject.layer = playerLayer;
         }
     }
-
-    // 판단 없음: 입력은 서브(PlayerInputSub)가 맡는다. UnitController·UnitService는 null 판단을 건너뛴다(BrainBase는 묶음 5에서 사라진다)
-    public override BrainBase CreateBrain(UnitController unit)
-    {
-        return null;
-    }
 }

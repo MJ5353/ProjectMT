@@ -2,22 +2,20 @@ using UnityEngine;
 
 // ==================================================
 
-// 이동·대기. 다른 행동이 끝나면 여기로 돌아온다. 판단 쪽이 SetMove로 속도를 줄 때만 움직인다(스스로 아무것도 하지 않음)
+// 걷는 기본 층 코어의 바탕(플레이어 FreeCore, AI 코어). SetMove로 속도·걷기/달리기 애니를 주고, 도는 건 Step(Update)에서 유닛 시간으로 한다
 
-public class MoveCore : CoreState
+public abstract class MoveCore : CoreState
 {
     private const float StopSpeed = 0.01f;
 
     private Vector3 m_FaceDirection; // 걷는 쪽. 0이면 돌지 않는다(대기)
 
-    public override ECoreState Type => ECoreState.Move;
-
     // ------------------------------------------------
 
-    public MoveCore(UnitController owner) : base(owner) { }
+    protected MoveCore(UnitController owner) : base(owner) { }
 
     // 속도가 거의 0이면 멈추고 Idle, 아니면 그쪽을 보며 걷기·달리기(도는 건 Update에서 유닛 시간으로)
-    public void SetMove(Vector3 velocity, bool isRun)
+    protected void SetMove(Vector3 velocity, bool isRun)
     {
         velocity.y = 0f;
         if (velocity.sqrMagnitude < StopSpeed)

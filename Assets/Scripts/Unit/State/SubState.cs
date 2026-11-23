@@ -48,5 +48,5 @@ public abstract class SubState
     public virtual void OnHit(in HitParams hit) { }                           // 맞았을 때(살아 있을 때만)
     public virtual void OnDied() { }                                          // 죽었을 때
     public virtual void OnPerfectDodge(in HitParams hit) { }                  // 퍼펙트 닷지
-    public virtual void OnCoreChanged(ECoreState prev, ECoreState next) { }   // 코어가 바뀌었을 때(새 코어 Begin 직후)
+    public virtual void OnCoreChanged(ECoreState prev, ECoreState next, bool isFinished) { } // 코어가 바뀌었을 때(새 코어 Begin 직후). isFinished: 지난 코어가 끝까지 했는지
 }

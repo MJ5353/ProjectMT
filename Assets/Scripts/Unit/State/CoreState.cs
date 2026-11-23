@@ -1,14 +1,23 @@
 // ==================================================
 
 // 코어 상태 종류. 숫자가 우선순위다(높을수록 지금 코어를 끊기 쉽다)
+// Move~Down은 기본 층(이동·판단): 서로는 끊기 규칙 없이 바뀌고(AI 코어는 StateFeature.ChangeCore), 행동(Approach~)이 끝나면 마지막 기본 층 코어로 돌아간다
 public enum ECoreState
 {
-    Move = 0,
-    Approach = 1,   // 러시 돌진(플레이어). 공격 예약을 막고 피격·사망에만 끊긴다
-    Attack = 2,
-    Dash = 3,
-    Hit = 4,
-    Dead = 5,
+    Move = 0,       // 플레이어 자유 이동(FreeCore)
+    Idle,           // 이하 AI 코어(판단 + 이동)
+    Wander,
+    Chase,
+    Flee,
+    Follow,         // 주인 따라가기(Pet)
+    Burrow,         // 땅속에 숨었다 나오기(Burrow)
+    Roar,           // 포효(Boss). 피격에 끊기지 않는다
+    Down,           // 쓰러짐(Boss). 피격에 끊기지 않는다
+    Approach,       // 러시 돌진(플레이어). 공격 예약을 막고 피격·사망에만 끊긴다
+    Attack,
+    Dash,
+    Hit,
+    Dead,
 }
 
 // ==================================================
@@ -55,4 +64,5 @@ public abstract class CoreState
     protected virtual void Enter() { }
     protected virtual void Update(float deltaTime) { }
     public virtual void Exit() { }
+    public virtual void Think(float deltaTime) { }  // 판단(AI 코어). 서브·요청 정리 다음에 돈다. 멈춤·시간 정지(히트스톱) 중에는 쉰다
 }

@@ -174,7 +174,8 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
 
     private static bool IsBoss(UnitController unit)
     {
-        return unit.BrainBase is AIBrain ai && ai.Def != null && ai.Def.Type == EAIType.Boss;
+        AIDef ai = unit.Def.AI;
+        return ai != null && ai.Type == EAIType.Boss;
     }
 
     // 어그로가 끌린 첫 보스를 잡고, 죽거나 사라질 때까지 놓지 않는다
@@ -201,7 +202,7 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
             return;
         }
 
-        m_EnrageIcon.E_SetActive(m_Boss.BrainBase is AIBrain ai && ai.IsEnraged);
+        m_EnrageIcon.E_SetActive(m_Boss.StateF.TryGetSub(out BossWatchSub watch) && watch.IsEnraged);
     }
 
     private void ReleaseBoss()

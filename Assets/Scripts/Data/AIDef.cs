@@ -2,7 +2,7 @@ using UnityEngine;
 
 // ==================================================
 
-// AI 종류. AIBrain이 이 값으로 상태 묶음을 등록한다
+// AI 종류. MonsterDef.SetAI가 이 값으로 코어·서브 묶음을 등록한다
 public enum EAIType
 {
     Normal,     // 대기·배회·추적·도망
@@ -14,7 +14,7 @@ public enum EAIType
 // ==================================================
 
 // AI 프리셋. 여러 유닛이 같은 에셋을 같이 쓴다(UnitDef.AI, 예: AI_Normal·AI_Elite·AI_Boss). 비어 있으면 AI가 없는 유닛(플레이어).
-// AIBrain과 AI 상태는 이것과 유닛 이동 속도(UnitDef.MoveSpeed)만 읽는다. 종류(Type)에 따라 쓰지 않는 칸은 무시한다
+// AI 코어·서브는 이것과 유닛 이동 속도(UnitDef.MoveSpeed)만 읽는다. 종류(Type)에 따라 쓰지 않는 칸은 무시한다
 
 [CreateAssetMenu(menuName = "MushTaker/Data/AI", fileName = "AI_")]
 public class AIDef : DataDef

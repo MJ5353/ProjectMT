@@ -3,7 +3,7 @@ using UnityEngine;
 
 // ==================================================
 
-// 판단(UnitBrain)의 대상 고르기: 대상(다른 팀 유닛) 찾기·기억·거리 재기. UnitBrain이 들고 있다(UnitBrain.TargetSelector). 누구를 노릴지는 판단 쪽(입력·AI)이 정하고, 여기는 찾고 재는 것만 한다.
+// 대상 고르기: 대상(다른 팀 유닛) 찾기·기억·거리 재기. 서브가 들고 있다(AI TargetSenseSub, 플레이어 PlayerInputSub·RushSub). 누구를 노릴지는 서브·AI 코어가 정하고, 여기는 찾고 재는 것만 한다.
 // 몬스터는 대상을 기억해 쫓고(Target), 플레이어는 공격할 때마다 가까운 적 쪽으로 조준만 한다(GetAimDirection)
 
 public class TargetSelector

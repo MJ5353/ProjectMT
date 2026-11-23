@@ -218,3 +218,8 @@
 ## 상태 묶음 2: 플레이어 판단 → 서브·코어
 
 - AI가 PlayerBrain을 PlayerInputSub(입력 서브)+FreeCore(기본 코어)로, PerfectDodgeRush를 RushSub(Timed 서브)+RushApproachCore(돌진 코어)로 옮기고 StateFeature에 공격 예약·서브 미룬 요청·기본 코어·Resume을 더함. 프레임 순서를 예전 판단 위치(코어 다음)에 맞춰 서브·요청 정리를 코어 Step 뒤에 두어 콤보·러시 막타·빠른 캔슬 타이밍을 유지함. 컴파일만 확인, 플레이 확인은 대장.
+
+## 상태 묶음 3+4: AI 판단 → 코어·서브
+
+- AI가 AIBrain·AI 상태를 AI 코어(Idle·Wander·Chase·Flee·Follow·Burrow·Roar·Down, 판단은 서브 뒤 Think)와 서브(TargetSense·AttackPicker·BossWatch)로 옮기고 BrainBase·EAIState를 지움. 행동이 끝나면 마지막 기본 층 코어로, 피격 뒤는 종류별 코어로 가게 해 예전 프레임 순서를 맞춤. 히트스톱 중 판단을 쉬는 것만 다름(1프레임). 컴파일만 확인, 플레이 확인은 대장.
+- 퍼펙트 닷지 때 `Collection was modified` 예외: StateFeature 알림 foreach(OnPerfectDodge) 안에서 PlayerInputSub가 RushSub를 AddSub해서 터짐(brain → sub 커밋에서 생긴 문제, 대장 수정분과 무관). AI가 서브 목록을 도는 foreach(Reset·Resume·OnHit·OnDied·OnPerfectDodge)를 Change와 같은 인덱스 for로 바꿈. 할당 없음, 러시는 예전처럼 그 자리에서 Begin하고 다음 프레임부터 Tick. 컴파일 0 오류, 플레이 확인은 대장.

@@ -69,23 +69,20 @@ public sealed class UnitService : ServiceBase
         m_ListToRemove.Clear();
     }
 
-    // 모든 유닛의 판단을 멈추고 제자리에 세운다(시작 팝업·시장·결과에서 BattleFlow가 부른다). 다음 판은 새로 꺼낸 유닛이라 다시 움직인다
+    // 모든 유닛의 상태(입력·AI)를 멈추고 제자리에 세운다(시작 팝업·시장·결과에서 BattleFlow가 부른다). 다음 판은 새로 꺼낸 유닛이라 다시 움직인다
     public void StopBrains()
     {
         foreach (UnitController unit in m_ListUnit)
         {
-            // 판단이 없는 유닛(플레이어: 입력은 PlayerInputSub)은 상태만 멈춘다. 판단이 있으면 Stop 안에서 이미 멈췄다
-            unit.BrainBase?.Stop();
             unit.StateF.Stop();
         }
     }
 
-    // 멈춘 판단을 다시 켠다(시작 팝업을 눌러 Play로 넘어갈 때)
+    // 멈춘 상태를 다시 켠다(시작 팝업을 눌러 Play로 넘어갈 때)
     public void ResumeBrains()
     {
         foreach (UnitController unit in m_ListUnit)
         {
-            unit.BrainBase?.Resume();
             unit.StateF.Resume();
         }
     }

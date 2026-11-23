@@ -143,10 +143,10 @@ public class MonsterDef : UnitDef
 
     // ------------------------------------------------
 
-    // 버섯 부위·판정 모양·사망 보상을 붙인다. 판단은 기본(AIBrain, 프리셋 AI)
+    // 버섯 부위·판정 모양·사망 보상·AI(코어·서브)를 붙인다
     public override void SetFeatures(UnitController unit)
     {
-        // 버섯 부위(스폰 때 소켓을 골라 꽂는다)
+        // 버섯 부위(스폰 때 소켓을 골라 꽂는다). 보스 감시(BossWatchSub)가 구독하므로 AI보다 먼저
         unit.SetPartFeature(new PartFeature(unit, ListPart));
 
         // 뼈 판정 모양. 부위 번호를 쓰므로 부위 다음
@@ -159,6 +159,64 @@ public class MonsterDef : UnitDef
         // 보스 몸은 Occluder 레이어로 옮긴다. 보스 뒤에 가려진 플레이어만 실루엣이 보인다
         if (AI != null && AI.Type == EAIType.Boss)
             SetBodyLayer(unit, GameLayers.Occluder);
+
+        SetAI(unit);
+    }
+
+    // AI 종류(AIDef.Type)별 코어·서브 묶음. 코어는 어느 종류에나 끼울 수 있다.
+    // 공통 대기(기본)·배회·추적 | Normal +도망 | Burrow +숨기 | Boss +포효·쓰러짐·보스 감시 | Pet은 따라가기(기본)만.
+    // 서브 등록 순서가 Tick 순서다: 공격 쿨 → 대상 감지 → 보스 감시(예전 AIBrain.Think 순서)
+    private void SetAI(UnitController unit)
+    {
+        AIDef ai = AI;
+        if (ai == null)
+        {
+            CLogger.Error(nameof(MonsterDef), $"{name}의 AI 프리셋(UnitDef.AI)이 비어 있어 기본값으로 움직입니다", unit);
+            ai = CreateInstance<AIDef>();
+        }
+
+        StateFeature state = unit.StateF;
+        state.EnableDespawnOnDead();
+
+        if (ai.Type == EAIType.Pet)
+        {
+            state.SetDefaultCore(state.AddCore(new FollowCore(unit, ai)));
+            return;
+        }
+
+        TargetSenseSub sense = new(unit, ai);
+        AttackPickerSub picker = new(unit, this, ai.AttackCooldown, sense);
+        state.AddSub(picker);
+        state.AddSub(sense);
+
+        state.SetDefaultCore(state.AddCore(new IdleCore(unit, ai, sense)));
+        state.AddCore(new WanderCore(unit, ai, sense));
+        state.AddCore(new ChaseCore(unit, ai, sense, picker));
+
+        switch (ai.Type)
+        {
+            case EAIType.Burrow:
+            {
+                state.AddCore(new BurrowCore(unit, ai, sense));
+                state.SetAfterHitCore(ECoreState.Burrow);
+                break;
+            }
+            case EAIType.Boss:
+            {
+                BossWatchSub watch = new(unit, ai, ListEnrageSkill, picker, sense);
+                state.AddSub(watch);
+                state.AddCore(new RoarCore(unit, ai, sense, watch));
+                state.AddCore(new DownCore(unit, ai, sense));
+                state.SetAfterHitCore(ECoreState.Chase);
+                break;
+            }
+            default:
+            {
+                state.AddCore(new FleeCore(unit, ai, sense));
+                state.SetAfterHitCore(ai.FleeTime > 0f ? ECoreState.Flee : ECoreState.Chase);
+                break;
+            }
+        }
     }
 
     private static void SetBodyLayer(UnitController unit, string layerName)
