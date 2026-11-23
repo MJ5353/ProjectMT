@@ -18,3 +18,5 @@ MonoBehaviour:
   <Icon>k__BackingField: {fileID: 0}
   <Type>k__BackingField: 3
   <SceneName>k__BackingField: Battle
+  <CursorTexture>k__BackingField: {fileID: 2800000, guid: 040be4ed07304508989b45dbfe58808e, type: 3}
+  <CursorHotspot>k__BackingField: {x: 5, y: 5}

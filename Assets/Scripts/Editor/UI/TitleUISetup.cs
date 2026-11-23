@@ -23,8 +23,7 @@ public static class TitleUISetup
     private static readonly Color TitleBackgroundTint = new Color(0.65f, 0.65f, 0.65f); // 그림을 어둡게 눌러 글자가 뜨게(26.11.22 대장 프리팹 값)
     private const int LoadingSortingOrder = 1000; // 씬 캔버스·팝업보다 위
     private static readonly Vector2 LoadingBarSize = new Vector2(720, 28);
-    private static readonly Vector2 QuitButtonSize = new Vector2(200, 80);
-    private static readonly Vector2 QuitButtonPos = new Vector2(40, -40); // 왼쪽 위 모서리에서 띄운 거리
+    private static readonly Vector2 QuitButtonPos = new Vector2(17, -17); // 왼쪽 위 모서리에서 띄운 거리(26.11.24 대장 프리팹 값)
 
     // ------------------------------------------------
 
@@ -89,7 +88,7 @@ public static class TitleUISetup
     }
 
     // 루트(꽉 참, 배경 그림, 누르면 시작하는 버튼) 아래 SafeArea → 왼쪽 위 타이틀 그림·"클릭하여 시작하기"·왼쪽 위 종료 버튼
-    // 배치는 26.11.22 대장이 프리팹에서 고친 값
+    // 배치는 대장이 프리팹에서 고친 값(26.11.22, 타이틀 그림·종료 버튼 26.11.24)
     private static ScreenTitle BuildTitleScreen()
     {
         RectTransform root = UIBuilder.CreateScreenRoot(nameof(ScreenTitle), out RectTransform safe);
@@ -97,7 +96,7 @@ public static class TitleUISetup
 
         RectTransform title = AddTitleImage(safe, new Vector2(0f, 1f), TitleScale);
         title.pivot = new Vector2(0f, 1f);
-        title.anchoredPosition = new Vector2(100, -75);
+        title.anchoredPosition = new Vector2(150, -100);
 
         RectTransform press = UIBuilder.Anchored("Press", safe, new Vector2(0.5f, 0.18f), Vector2.zero, new Vector2(800, 60));
 
@@ -109,10 +108,7 @@ public static class TitleUISetup
         UIBuilder.SetOutline(UIBuilder.Label(press, EStringKey.Title_PressToStart, UIStyle.FontLarge));
 
         // 바탕 버튼보다 위에 있어 눌러도 시작하지 않는다
-        Button quitButton = UIBuilder.Button(safe, "QuitButton", EStringKey.Common_Quit, QuitButtonSize);
-        RectTransform quitRt = quitButton.transform as RectTransform;
-        quitRt.anchorMin = quitRt.anchorMax = quitRt.pivot = new Vector2(0f, 1f);
-        quitRt.anchoredPosition = QuitButtonPos;
+        Button quitButton = UIBuilder.QuitButton(safe, QuitButtonPos);
 
         ScreenTitle screen = root.gameObject.AddComponent<ScreenTitle>();
         screen.EditorSetup(startButton, quitButton, press);

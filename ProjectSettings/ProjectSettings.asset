@@ -14,8 +14,8 @@ PlayerSettings:
   accelerometerFrequency: 60
   companyName: BunnyRuleTheWorld
   productName: MushTaker
-  defaultCursor: {fileID: 2800000, guid: 716a835196d46964d8aa93645efae5b2, type: 3}
-  cursorHotspot: {x: 0, y: 0}
+  defaultCursor: {fileID: 2800000, guid: ef90ceab768054640850e4154e091de1, type: 3}
+  cursorHotspot: {x: 5, y: 5}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
   m_ShowUnitySplashScreen: 1
   m_ShowUnitySplashLogo: 1
@@ -304,7 +304,7 @@ PlayerSettings:
   - m_BuildTarget: 
     m_Icons:
     - serializedVersion: 2
-      m_Icon: {fileID: 2800000, guid: 87bdafd32f6e484f9a459d0f7e92e132, type: 3}
+      m_Icon: {fileID: 2800000, guid: 1ab60fd120a1af44fb03ab9148dde6e8, type: 3}
       m_Width: 128
       m_Height: 128
       m_Kind: 0

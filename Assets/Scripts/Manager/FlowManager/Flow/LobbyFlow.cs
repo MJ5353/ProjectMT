@@ -4,4 +4,7 @@
 
 public sealed class LobbyFlow : FlowBase
 {
+    // virtual ---
+
+    protected override void OnBack() => GameManager.Instance.ConfirmQuit(); // Esc → 종료 확인
 }

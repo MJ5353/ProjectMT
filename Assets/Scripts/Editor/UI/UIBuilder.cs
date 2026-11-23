@@ -14,6 +14,13 @@ public static class UIBuilder
     private const string SlotMoldBackSprite = "UI_Slot_MoldBack"; // 덜 신선한 칸의 상한 색 바탕(아이콘 아래)
     private const string SlotBadgeSprite = "UI_Badge_Prefer";     // 상인 선호 버섯 하트
     private const string SlotCountSprite = "UI_Badge_Count";      // 개수 뱃지 바탕(9-slice)
+    // 종료 버튼(26.11.24 대장 프리팹 값)
+    private const string QuitPlateSprite = "UI_Button";       // 바탕 판(9-slice)
+    private const string QuitIconSprite = "UI_Power_Engrave"; // 음각 전원 표시(24x24)
+    private static readonly Color QuitPlateColor = new Color(0.3152f, 0.4151f, 0.3419f, 1f);
+    private static readonly Vector2 QuitButtonSize = new Vector2(85, 85);
+    private static readonly Vector2 QuitIconOffsetMin = new Vector2(12, 19.1f); // 판 안쪽 여백. 판 아래 턱만큼 위로 올린다
+    private static readonly Vector2 QuitIconOffsetMax = new Vector2(-12, -4.9f);
 
     private static TMP_FontAsset s_Font;
 
@@ -249,6 +256,41 @@ public static class UIBuilder
         if (color.HasValue)
             button.targetGraphic.color = color.Value;
 
+        return button;
+    }
+
+    // 종료 버튼 프리팹(타이틀·로비 공용)을 놓는다. 왼쪽 위 기준이라 자리만 넘긴다
+    public static Button QuitButton(Transform parent, Vector2 position)
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorPath.QuitButtonPrefab);
+        Button button = prefab != null ? Spawn<Button>(prefab, parent) : BuildQuitButton(parent);
+
+        button.name = "UIQuitButton";
+        RectTransform buttonRt = button.transform as RectTransform;
+        if (buttonRt != null)
+            buttonRt.anchoredPosition = position;
+
+        return button;
+    }
+
+    // 종료 버튼 원본: Tint 버튼 판 위 음각 전원 아이콘. 누르면 판이 어두워진다
+    public static Button BuildQuitButton(Transform parent)
+    {
+        RectTransform rt = Anchored("UIQuitButton", parent, new Vector2(0, 1), Vector2.zero, QuitButtonSize);
+        Image plate = AddImage(rt, QuitPlateColor, true);
+        plate.sprite = LoadSprite(QuitPlateSprite);
+        plate.type = Image.Type.Sliced;
+
+        RectTransform iconRt = Stretch("Icon", rt);
+        iconRt.offsetMin = QuitIconOffsetMin;
+        iconRt.offsetMax = QuitIconOffsetMax;
+        AddImage(iconRt, Color.white).sprite = LoadSprite(QuitIconSprite);
+
+        Button button = rt.gameObject.AddComponent<Button>();
+        button.targetGraphic = plate;
+        ColorBlock colors = button.colors;
+        colors.pressedColor = new Color(0.6f, 0.6f, 0.6f, 1f);
+        button.colors = colors;
         return button;
     }
 

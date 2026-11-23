@@ -68,6 +68,7 @@ public static class UISetup
         List<(string Path, Func<GameObject> Build)> listPrefab = new()
         {
             (EditorPath.ButtonPrefab, () => UIBuilder.BuildButton(null).gameObject),
+            (EditorPath.QuitButtonPrefab, () => UIBuilder.BuildQuitButton(null).gameObject),
             (EditorPath.GaugePrefab, () => UIBuilder.BuildGauge(null).gameObject),
             (EditorPath.CommonSlotPrefab, () => UIBuilder.BuildCommonSlot(null).gameObject),
             (EditorPath.CommonImagePrefab, () => UIBuilder.BuildCommonImage(null).gameObject),

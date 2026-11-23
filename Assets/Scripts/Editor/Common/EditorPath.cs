@@ -40,7 +40,6 @@ public static class EditorPath
     public const string PopupUIPrefabDir = UIPrefabDir + "Popup/";
     public const string MarketPopupUIPrefabDir = PopupUIPrefabDir + "Market/";
     public const string ScreenUIPrefabDir = UIPrefabDir + "Screen/";
-    public const string LobbyScreenUIPrefabDir = ScreenUIPrefabDir + "Lobby/";
     public const string BattleScreenUIPrefabDir = ScreenUIPrefabDir + "Battle/";
     public const string MaterialAssetDir = ResourcesRoot + CommonPath.MaterialDir;
 
@@ -60,7 +59,7 @@ public static class EditorPath
     public const string PopupResultPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupResult) + PrefabExtension;
     public const string ScreenTitlePrefab = ScreenUIPrefabDir + nameof(ScreenTitle) + PrefabExtension;
     public const string OverlayLoadingPrefab = ResourcesRoot + CommonPath.OverlayLoading + PrefabExtension;
-    public const string ScreenLobbyPrefab = LobbyScreenUIPrefabDir + nameof(ScreenLobby) + PrefabExtension;
+    public const string ScreenLobbyPrefab = ScreenUIPrefabDir + nameof(ScreenLobby) + PrefabExtension;
     public const string ScreenBattlePrefab = BattleScreenUIPrefabDir + nameof(ScreenBattle) + PrefabExtension;
     public const string PopupDeathPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupDeath) + PrefabExtension;
     public const string PopupConfirmPrefab = PopupUIPrefabDir + nameof(EPopupType.PopupConfirm) + PrefabExtension;
@@ -77,6 +76,7 @@ public static class EditorPath
     public const string CommonSlotPrefab = ComponentUIPrefabDir + nameof(EUIComponentType.UICommonSlot) + PrefabExtension;
     public const string CommonImagePrefab = ComponentUIPrefabDir + nameof(EUIComponentType.UICommonImage) + PrefabExtension;
     public const string ButtonPrefab = ComponentUIPrefabDir + "UIButton.prefab";
+    public const string QuitButtonPrefab = ComponentUIPrefabDir + "UIQuitButton.prefab"; // 타이틀·로비 공용 종료 버튼
     public const string Font = FontDir + "Galmuri11.ttf";
     public const string FontAsset = FontDir + "Galmuri11 SDF.asset";
     public const string FontOutlineAsset = FontDir + "Galmuri11_OutLine SDF.asset"; // 배경 없이 화면에 바로 뜨는 라벨용

@@ -47,6 +47,9 @@ public abstract class FlowBase
         }
     }
 
+    // 팝업이 없을 때 뒤로 가기(Esc). PopupService가 부른다
+    public void Back() => OnBack();
+
     // 생성자에서 부른다
     protected T Register<T>(T service) where T : ServiceBase
     {
@@ -58,6 +61,7 @@ public abstract class FlowBase
 
     protected virtual void OnBegin() { }
     protected virtual void OnEnd() { }
+    protected virtual void OnBack() { }
 
     // FlowBase<TState>만 쓴다
     protected virtual void TickState(float deltaTime) { }

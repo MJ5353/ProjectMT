@@ -32,7 +32,11 @@ public abstract class SceneControllerBase : MonoBehaviour
     }
 
     // 다른 오브젝트의 Awake·OnEnable이 끝난 뒤 Flow를 시작한다(화면이 OnEnable에서 이벤트를 먼저 구독한다)
-    private void Start() => FlowManager.Instance.Begin(CreateFlow());
+    private void Start()
+    {
+        GameManager.Instance.ApplySceneCursor(gameObject.scene.name);
+        FlowManager.Instance.Begin(CreateFlow());
+    }
 
     private void Update()
     {

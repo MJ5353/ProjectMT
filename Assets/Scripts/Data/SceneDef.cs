@@ -24,4 +24,10 @@ public class SceneDef : DataDef
 
     [field: SerializeField, Tooltip("Build Settings의 씬 이름(확장자 없이)")]
     public string SceneName { get; private set; } = null;
+
+    [field: SerializeField, Tooltip("이 씬의 마우스 커서(가져오기 형식 Cursor). 비우면 시스템 기본 커서")]
+    public Texture2D CursorTexture { get; private set; } = null;
+
+    [field: SerializeField, Tooltip("커서에서 클릭이 찍히는 점(그림 왼쪽 위 기준 픽셀)")]
+    public Vector2 CursorHotspot { get; private set; } = new Vector2(5f, 5f);
 }

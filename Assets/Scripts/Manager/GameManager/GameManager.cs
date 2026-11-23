@@ -94,6 +94,19 @@ public class GameManager : MonoSingleton<GameManager>
 #endif
     }
 
+    // 씬마다 정한 커서로 바꾼다(SceneDef.CursorTexture). 씬 컨트롤러가 Flow를 시작하기 전에 부른다
+    public void ApplySceneCursor(string sceneName)
+    {
+        foreach (SceneDef def in m_DicScene.Values)
+        {
+            if (def.SceneName != sceneName)
+                continue;
+
+            Cursor.SetCursor(def.CursorTexture, def.CursorHotspot, CursorMode.Auto);
+            return;
+        }
+    }
+
     private bool TryGetSceneName(ESceneType type, out string sceneName)
     {
         sceneName = null;

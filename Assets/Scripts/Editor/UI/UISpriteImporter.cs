@@ -8,6 +8,7 @@ public class UISpriteImporter : AssetPostprocessor
 
     // 갈무리 11px 격자를 4배로 쓰는 것과 맞춘다(캔버스 기준 PPU 100 / 4)
     private const float PixelsPerUnit = 25f;
+    private const string CursorFilePrefix = "UI_Cursor"; // UI_Cursor(기본)·UI_Cursor_Battle(전투)
 
     // ==================================================
 
@@ -26,6 +27,13 @@ public class UISpriteImporter : AssetPostprocessor
         importer.mipmapEnabled = false;
         importer.alphaIsTransparency = true;
         importer.spriteBorder = GetBorder(System.IO.Path.GetFileNameWithoutExtension(assetPath));
+
+        // 커서(Player Settings 기본·SceneDef 씬별)는 Cursor 형식이어야 투명하게 그려진다
+        if (System.IO.Path.GetFileNameWithoutExtension(assetPath).StartsWith(CursorFilePrefix))
+        {
+            importer.textureType = TextureImporterType.Cursor;
+            importer.isReadable = true;
+        }
     }
 
     // 9-slice 테두리(왼, 아래, 오른, 위). 틀이 아닌 아이콘은 0

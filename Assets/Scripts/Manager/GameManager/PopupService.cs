@@ -1,13 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
-
-#if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
-#endif
 
 // ==================================================
 
-// 팝업 스택. 공용 Service라 FlowManager가 한 번 만들어 두고 씬마다 연결(Init)·해제(Clear)한다. 마지막에 연 팝업이 맨 위에 오고, 뒤로 가기는 맨 위부터 닫는다.
+// 팝업 스택. 공용 Service라 FlowManager가 한 번 만들어 두고 씬마다 연결(Init)·해제(Clear)한다. 마지막에 연 팝업이 맨 위에 오고, 뒤로 가기(UI/Cancel: Esc·패드 B)는 맨 위부터 닫고, 열린 팝업이 없으면 Flow에 넘긴다(타이틀·로비는 종료 확인).
 // 팝업 원본은 팝업 ID(EPopupType)로 PopupDef(에디터가 채운 프리팹 표)에서 꺼낸다.
 // 팝업은 종류마다 하나만 만들어 두고 닫으면 끄기만 한다. 다시 열면 같은 인스턴스를 쓰고, 씬이 바뀔 때만 지운다
 
@@ -29,6 +26,7 @@ public sealed class PopupService : ServiceBase
     public override void Init()
     {
         m_Root = UIManager.Instance.UIRoot;
+        InputManager.Instance.UI.Cancel.performed += OnCancel;
         
         if (GameDatabase.S_TryGet(PopupDef.PopupID, out m_Def) == false)
             CLogger.Error("PopupService", "PopupDef가 DB에 없습니다. UI 프리팹 표 갱신을 실행하세요.");
@@ -38,6 +36,8 @@ public sealed class PopupService : ServiceBase
     // FlowManager.End가 씬이 내려가기 전에 부른다(OnDestroy 때는 팝업이 씬과 함께 이미 지워졌을 수 있다)
     public override void Clear()
     {
+        InputManager.Instance.UI.Cancel.performed -= OnCancel;
+
         List<PopupBase> listInstance = new(m_DicInstance.Values);
         
         m_ListPopup.Clear();
@@ -54,14 +54,6 @@ public sealed class PopupService : ServiceBase
 
         m_Root = null;
         m_Def = null;
-    }
-
-    public override void Tick(float deltaTime)
-    {
-        if (m_ListPopup.Count <= 0 || IsBackPressed() == false)
-            return;
-        
-        CloseTop();
     }
 
     // 팝업 ID의 팝업을 띄운다(Flow가 없어도 되는 공용 팝업). 만들어 둔 것이 있으면 다시 쓰고, 이미 열려 있으면 맨 위로 올려 다시 연다.
@@ -115,6 +107,15 @@ public sealed class PopupService : ServiceBase
         return true;
     }
 
+    // 뒤로 가기. 팝업이 있으면 맨 위를 닫고(닫을 수 없는 팝업이면 무시), 없으면 지금 Flow가 받는다
+    private void OnCancel(InputAction.CallbackContext context)
+    {
+        if (m_ListPopup.Count > 0)
+            CloseTop();
+        else
+            FlowManager.Instance.Current.Back();
+    }
+
     // 만들어 둔 팝업을 꺼내거나 처음이면 만든다(아직 열지 않는다)
     private T GetOrCreate<T>(EPopupType type) where T : PopupBase
     {
@@ -150,15 +151,5 @@ public sealed class PopupService : ServiceBase
         popup.transform.SetAsLastSibling();
         popup.gameObject.SetActive(true);
         popup.Open();
-    }
-
-    private static bool IsBackPressed()
-    {
-#if ENABLE_INPUT_SYSTEM
-        // 안드로이드 뒤로 버튼도 Input System에서는 Escape로 들어온다
-        return Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
-#else
-        return Input.GetKeyDown(KeyCode.Escape);
-#endif
     }
 }
