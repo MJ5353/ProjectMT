@@ -11,7 +11,7 @@ AI 도구를 활용하여 뽑아낼 수 있는 속도와 효율 한계치를 확
 | 항목 | 내용 |
 |---|---|
 | 플레이 영상 | (준비 중) |
-| PC 빌드 | (준비 중) |
+| PC 빌드 | [Releases v1.0 다운로드](https://github.com/MJ5353/ProjectMT/releases/latest) (Windows 64bit) |
 | 엔진 | Unity 6000.3.25f1 (URP, Input System) |
 | 플랫폼 | Windows PC(추후 모바일 확장 예정), 가로 화면 |
 
@@ -23,6 +23,13 @@ AI 도구를 활용하여 뽑아낼 수 있는 속도와 효율 한계치를 확
 | 회오리 베기 | 공격 길게 누르기 | 공격 길게 누르기 |
 | 달리다 베기 | 이동 중 공격 | 이동 중 공격 |
 | 대시(무적) | Shift | B |
+| 팝업 닫기 / 게임 종료 확인(타이틀·로비) | Esc | - |
+
+### 실행 방법
+
+1. [Releases](https://github.com/MJ5353/ProjectMT/releases/latest)에서 `MushTaker_PC_v1.0.zip`을 받습니다.
+2. 새 폴더에 압축을 모두 풀고 `MushTaker.exe`를 실행합니다. exe만 따로 옮기면 실행되지 않습니다.
+3. "Windows의 PC 보호" 창이 뜨면 `추가 정보` → `실행`을 누릅니다(서명하지 않은 개인 빌드라 뜨는 안내입니다).
 
 <!-- 대표 이미지·GIF 자리 -->
 
