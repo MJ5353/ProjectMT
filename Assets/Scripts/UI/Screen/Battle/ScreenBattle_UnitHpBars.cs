@@ -1,24 +1,19 @@
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 
 // ==================================================
 
-// 몬스터 체력바. 잡몹·엘리트는 맞으면 머리 위에 작은 바가 잠깐(Define.Hud.MonsterHpBarShowTime) 뜨고,
-// 보스는 어그로가 끌리면(BossAggroed) 화면 위에 큰 바가 뜬다(분노하면 분노 표시). 체력은 UnitHpChanged로 받고, 매 프레임은 떠 있는 바 위치·시간과 보스만 본다.
+// 머리 위 몬스터 체력바. 잡몹·엘리트가 맞으면(UnitHpChanged) 머리 위에 작은 바가 잠깐(Define.Hud.MonsterHpBarShowTime) 뜬다.
+// 매 프레임은 떠 있는 바의 위치·시간만 본다(없으면 쉰다). 보스는 화면 위 큰 바(ScreenBattle_BossBar)만 쓴다.
+// 바 묶음(Bar)은 버리지 않고 m_StackFreeBar에 돌려 다시 쓴다
 // 머리 위 바는 UIReuseService로 꺼내고, 유닛이 지워지면(UnitService.UnitRemoved) 돌려준다. 새 판이 시작되면(FlowBegan, 다시 하기 포함) 남은 바를 모두 돌려주고 새 UnitService에 다시 붙는다.
 
 public class ScreenBattle_UnitHpBars : MonoBehaviour
 {
     [SerializeField] private RectTransform m_Root = null;      // 머리 위 바를 놓을 캔버스 영역(꽉 찬 RectTransform)
-    [SerializeField] private GameObject m_BossRoot = null;     // 보스 바 묶음. 어그로 전엔 꺼 둔다
-    [SerializeField] private UIGauge m_BossBar = null;
-    [SerializeField] private TMP_Text m_BossName = null;
-    [SerializeField] private GameObject m_EnrageIcon = null;
 
     private readonly List<Bar> m_ListBar = new(); // 떠 있는 머리 위 바
-
-    private UnitController m_Boss;
+    private readonly Stack<Bar> m_StackFreeBar = new(); // 돌려받은 바 묶음(다시 쓴다)
 
     private class Bar
     {
@@ -30,35 +25,28 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
 
     // ------------------------------------------------
 
-    private void Awake()
-    {
-        m_BossRoot.E_SetActive(false);
-    }
-
     private void OnEnable()
     {
         SEventManager.Subscribe<FlowBegan>(OnFlowBegan);
         SEventManager.Subscribe<UnitHpChanged>(OnUnitHpChanged);
-        SEventManager.Subscribe<BossAggroed>(OnBossAggroed);
     }
 
     private void OnDisable()
     {
         SEventManager.Unsubscribe<FlowBegan>(OnFlowBegan);
         SEventManager.Unsubscribe<UnitHpChanged>(OnUnitHpChanged);
-        SEventManager.Unsubscribe<BossAggroed>(OnBossAggroed);
     }
 
     private void LateUpdate()
     {
-        UnitService units = FlowManager.Instance.Battle?.UnitS;
+        if (m_ListBar.Count == 0 || FlowManager.Instance.Battle == null)
+            return;
+
         Camera cam = CameraManager.Instance.Main;
-        
-        if (units == null || cam == null)
+        if (cam == null)
             return;
 
         UpdateBars(cam, GameManager.Instance.Define, Time.unscaledDeltaTime);
-        UpdateBoss();
     }
 
     // ---
@@ -72,10 +60,7 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
             bar.Remain -= deltaTime;
 
             if (bar.Remain <= 0f || bar.Unit == null || bar.Unit.IsDead || TryPlace(bar.Gauge, bar.Unit, cam, define) == false)
-            {
-                Release(bar);
-                m_ListBar.RemoveAt(i);
-            }
+                RemoveBar(i);
         }
     }
 
@@ -103,18 +88,15 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
         if (evt.Flow is not BattleFlow battle)
             return;
 
-        foreach (Bar bar in m_ListBar)
+        for (int i = m_ListBar.Count - 1; i >= 0; --i)
         {
-            Release(bar);
+            RemoveBar(i);
         }
-
-        m_ListBar.Clear();
-        ReleaseBoss();
 
         battle.UnitS.UnitRemoved += OnUnitRemoved;
     }
 
-    // 체력이 줄면 머리 위 바를 띄우거나(줄기 전 값에서 시작해야 잔상이 보인다) 시간을 다시 채운다. 보스는 큰 바만
+    // 체력이 줄면 머리 위 바를 띄우거나(줄기 전 값에서 시작해야 잔상이 보인다) 시간을 다시 채운다. 보스는 큰 바만(ScreenBattle_BossBar)
     private void OnUnitHpChanged(UnitHpChanged evt)
     {
         UnitController unit = evt.Unit;
@@ -122,16 +104,11 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
             return;
 
         HealthFeature health = unit.HealthF;
-        if (unit == m_Boss)
-        {
-            m_BossBar.SetValue(health.Current, health.MaxHp);
-            return;
-        }
-
         if (health.Current >= evt.Previous || unit.Def is not MonsterDef monster || monster.IsPet || IsBoss(unit))
             return;
 
-        Bar bar = m_ListBar.Find(shown => shown.Unit == unit);
+        int index = FindBarIndex(unit.UnitID);
+        Bar bar = index >= 0 ? m_ListBar[index] : null;
         if (bar == null)
         {
             UIGauge gauge = FlowManager.Instance.UIReuseS?.Spawn<UIGauge>(EUIComponentType.ScreenBattle_UnitHpBar, m_Root);
@@ -139,7 +116,10 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
                 return;
 
             gauge.SetValue(evt.Previous, health.MaxHp, true);
-            bar = new Bar { Unit = unit, UnitID = unit.UnitID, Gauge = gauge };
+            bar = m_StackFreeBar.Count > 0 ? m_StackFreeBar.Pop() : new Bar();
+            bar.Unit = unit;
+            bar.UnitID = unit.UnitID;
+            bar.Gauge = gauge;
             m_ListBar.Add(bar);
         }
 
@@ -147,66 +127,45 @@ public class ScreenBattle_UnitHpBars : MonoBehaviour
         bar.Gauge.SetValue(health.Current, health.MaxHp);
     }
 
-    // 지워진 유닛의 바를 돌려놓고, 잡고 있던 보스면 놓는다
+    // 지워진 유닛의 바를 돌려놓는다
     private void OnUnitRemoved(int unitID)
     {
-        int index = m_ListBar.FindIndex(bar => bar.UnitID == unitID);
+        int index = FindBarIndex(unitID);
         if (index >= 0)
+            RemoveBar(index);
+    }
+
+    // 람다 없이 찾는다(Find·FindIndex는 부를 때마다 캡처 할당)
+    private int FindBarIndex(int unitID)
+    {
+        for (int i = 0; i < m_ListBar.Count; ++i)
         {
-            Release(m_ListBar[index]);
-            m_ListBar.RemoveAt(index);
+            if (m_ListBar[i].UnitID == unitID)
+                return i;
         }
 
-        if (m_Boss.E_Alive()?.UnitID == unitID)
-            ReleaseBoss();
+        return -1;
     }
 
-    private static void Release(Bar bar)
+    // 게이지를 돌려주고 바 묶음은 비워서 다시 쓴다
+    private void RemoveBar(int index)
     {
-        if (bar.Gauge == null)
-            return;
+        Bar bar = m_ListBar[index];
+        m_ListBar.RemoveAt(index);
 
-        FlowManager.Instance.UIReuseS?.Despawn(bar.Gauge);
+        if (bar.Gauge != null)
+            FlowManager.Instance.UIReuseS?.Despawn(bar.Gauge);
+
+        bar.Unit = null;
+        bar.UnitID = 0;
         bar.Gauge = null;
+        bar.Remain = 0f;
+        m_StackFreeBar.Push(bar);
     }
 
-    // boss ---
-
+    // 보스 판정은 보스 감시 서브 유무(AIDef). 보스는 화면 위 큰 바가 맡는다
     private static bool IsBoss(UnitController unit)
     {
         return unit.StateF.TryGetSub(out BossWatchSub _);
-    }
-
-    // 어그로가 끌린 첫 보스를 잡고, 죽거나 사라질 때까지 놓지 않는다
-    private void OnBossAggroed(BossAggroed evt)
-    {
-        UnitController unit = evt.Unit;
-        if (m_Boss != null || unit == null || unit.IsDead)
-            return;
-
-        m_Boss = unit;
-        m_BossName.E_SetText(unit.Def.DisplayName);
-        m_BossBar.SetValue(unit.HealthF.Current, unit.HealthF.MaxHp, true);
-        m_BossRoot.E_SetActive(true);
-    }
-
-    private void UpdateBoss()
-    {
-        if (m_Boss == null)
-            return;
-
-        if (m_Boss.IsDead)
-        {
-            ReleaseBoss();
-            return;
-        }
-
-        m_EnrageIcon.E_SetActive(m_Boss.StateF.TryGetSub(out BossWatchSub watch) && watch.IsEnraged);
-    }
-
-    private void ReleaseBoss()
-    {
-        m_Boss = null;
-        m_BossRoot.E_SetActive(false);
     }
 }

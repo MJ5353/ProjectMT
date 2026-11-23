@@ -100,8 +100,9 @@ public class AttackPickerSub : SubState
     public void Enrage(IReadOnlyList<SkillDef> listSkill, float cooldownRate)
     {
         m_CooldownRate = cooldownRate;
-        foreach (SkillDef skill in listSkill)
+        for (int i = 0; i < listSkill.Count; ++i)
         {
+            SkillDef skill = listSkill[i];
             if (skill == null)
                 continue;
 

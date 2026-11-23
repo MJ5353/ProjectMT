@@ -52,10 +52,11 @@ public abstract class AICore : MoveCore
     // 코어 목록이 쓰는 서브를 모으고, 서브끼리 쓰는 서브를 더한다(공격 선택 → 대상 감지, 보스 감시 → 대상 감지·공격 선택)
     public static EAISub GetSubs(IReadOnlyList<ECoreState> listCore)
     {
+        // IReadOnlyList를 foreach로 돌면 열거자가 박싱돼 할당된다. 인덱스로 돈다
         EAISub subs = EAISub.None;
-        foreach (ECoreState type in listCore)
+        for (int i = 0; i < listCore.Count; ++i)
         {
-            if (TryGetNeeds(type, out EAISub needs))
+            if (TryGetNeeds(listCore[i], out EAISub needs))
                 subs |= needs;
         }
 
