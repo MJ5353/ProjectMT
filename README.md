@@ -50,7 +50,7 @@ AI 도구를 활용하여 뽑아낼 수 있는 속도와 효율 한계치를 확
   - **현장 시장**: 상인마다 선호하는 버섯과 희귀도가 있으며, 30분마다 시세가 달라집니다. 시세가 바뀌기를 기다려 볼수도 있지만, 남은 시간을 잘 확인해야 합니다.
     <table>
       <tr>
-        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510690837" src="https://github.com/user-attachments/assets/ba5858d9-a557-48b1-9123-e83da9039b2c" /></td>
+        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510827202" src="https://github.com/user-attachments/assets/e1533e6e-de39-4cfd-9734-5ce2d8a8968a" /></td>
         <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510843049" src="https://github.com/user-attachments/assets/7ce96568-8c0d-4b98-be37-1ca131fb95e8" /></td>
         <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795513524020" src="https://github.com/user-attachments/assets/f5304303-af8c-4fca-98cf-12f98642e401" /></td>
       </tr>
