@@ -51,8 +51,8 @@ AI 도구를 활용하여 뽑아낼 수 있는 속도와 효율 한계치를 확
     <table>
       <tr>
         <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510690837" src="https://github.com/user-attachments/assets/ba5858d9-a557-48b1-9123-e83da9039b2c" /></td>
-        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510768743" src="https://github.com/user-attachments/assets/cb466634-1ce4-41c6-9c25-f2040c32fe81" /></td>
-        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510827202" src="https://github.com/user-attachments/assets/5335e3d9-e58a-4b70-ad21-59de84c97dc3" /></td>
+        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510843049" src="https://github.com/user-attachments/assets/7ce96568-8c0d-4b98-be37-1ca131fb95e8" /></td>
+        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795513524020" src="https://github.com/user-attachments/assets/f5304303-af8c-4fca-98cf-12f98642e401" /></td>
       </tr>
     </table>
 <br>
@@ -63,7 +63,7 @@ AI 도구를 활용하여 뽑아낼 수 있는 속도와 효율 한계치를 확
   - 이 외에도 다양한 능력을 강화하는 노드가 존재합니다. 
     <table>
       <tr>
-        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510843049" src="https://github.com/user-attachments/assets/769f0a14-b18d-4705-a0a5-005179dd52a4" /></td>
+        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510648243" src="https://github.com/user-attachments/assets/ab272374-8d56-4a95-885c-e571287c06cc" /></td>
         <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795511625758" src="https://github.com/user-attachments/assets/e3ef7fb8-1288-4849-b4be-d5e3250b24ab" /></td>
         <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510877599" src="https://github.com/user-attachments/assets/8b707095-3065-441a-9741-6fe24bdcaf2c" /></td>
       </tr>
