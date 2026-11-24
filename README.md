@@ -34,35 +34,39 @@ AI 도구를 활용하여 뽑아낼 수 있는 속도와 효율 한계치를 확
 
 ## 플레이 루프
 
-<table>
-  <tr>
-    <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510807490" src="https://github.com/user-attachments/assets/6787a912-dac1-43ab-9da8-b3279242a12d" /></td>
-    <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510898910" src="https://github.com/user-attachments/assets/47bbf5c0-d8f8-44c0-9831-f17ac38b553c" /></td>
-    <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795511323833" src="https://github.com/user-attachments/assets/ab3cacec-c51b-4ff4-b302-1518012e8e0f" /></td>
-  </tr>
-  <tr>
-    <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510690837" src="https://github.com/user-attachments/assets/ba5858d9-a557-48b1-9123-e83da9039b2c" /></td>
-    <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510768743" src="https://github.com/user-attachments/assets/cb466634-1ce4-41c6-9c25-f2040c32fe81" /></td>
-    <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510827202" src="https://github.com/user-attachments/assets/5335e3d9-e58a-4b70-ad21-59de84c97dc3" /></td>
-  </tr>
-  <tr>
-    <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510843049" src="https://github.com/user-attachments/assets/769f0a14-b18d-4705-a0a5-005179dd52a4" /></td>
-    <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795511625758" src="https://github.com/user-attachments/assets/e3ef7fb8-1288-4849-b4be-d5e3250b24ab" /></td>
-    <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510877599" src="https://github.com/user-attachments/assets/8b707095-3065-441a-9741-6fe24bdcaf2c" /></td>
-  </tr>
-</table>
-
  **토벌**:  맵에 진입하면 하루(3분 타이머)가 시작됩니다. 몬스터를 잡는 방식으로도 버섯을 얻을 수 있지만, 고가의 신선한 버섯은 보스가 살아있는 동안 특정 부위를 파괴해야만 얻을 수 있습니다.
    - **부위 파괴**: 보스는 부위마다 내구도가 있으며, 해당 부위를 파괴하면 버섯을 떨구고 쓰러집니다. 이렇게 얻은 버섯은 신선도가 높아 더 비싸게 팔립니다.
    - **퍼펙트 닷지와 러시**: 피격 직전 대시로 공격을 피하면 퍼펙트 닷지가 발동됩니다. 3초간 플레이어를 제외한 모든 생물이 느려지고, 공격자에게 돌진해 연타를 퍼부을 수 있습니다.
+   - <table>
+       <tr>
+         <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510807490" src="https://github.com/user-attachments/assets/6787a912-dac1-43ab-9da8-b3279242a12d" /></td>
+         <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510898910" src="https://github.com/user-attachments/assets/47bbf5c0-d8f8-44c0-9831-f17ac38b553c" /></td>
+         <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795511323833" src="https://github.com/user-attachments/assets/ab3cacec-c51b-4ff4-b302-1518012e8e0f" /></td>
+       </tr>
+     </table>
 
-**시장**: 토벌 타이머의 남은 시간은 거래 가능 시간으로 변환됩니다. 그 시간 동안 시장에서 버섯을 판매할 수 있습니다. 팔지 못한 버섯은 그날 밤 상해버립니다. 
-   - **현장 시장**: 상인마다 선호하는 버섯과 희귀도가 있으며, 30분마다 시세가 달라집니다. 시세가 바뀌기를 기다려 볼수도 있지만, 남은 시간을 잘 확인해야 합니다.
+**시장**: 토벌 타이머의 남은 시간은 거래 가능 시간으로 변환됩니다. 그 시간 동안 시장에서 버섯을 판매할 수 있습니다. 팔지 못한 버섯은 그날 밤 상해버립니다.
+  - **현장 시장**: 상인마다 선호하는 버섯과 희귀도가 있으며, 30분마다 시세가 달라집니다. 시세가 바뀌기를 기다려 볼수도 있지만, 남은 시간을 잘 확인해야 합니다.
+  - <table>
+      <tr>
+        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510690837" src="https://github.com/user-attachments/assets/ba5858d9-a557-48b1-9123-e83da9039b2c" /></td>
+        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510768743" src="https://github.com/user-attachments/assets/cb466634-1ce4-41c6-9c25-f2040c32fe81" /></td>
+        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510827202" src="https://github.com/user-attachments/assets/5335e3d9-e58a-4b70-ad21-59de84c97dc3" /></td>
+      </tr>
+    </table>
 
 **정비**: 판매를 통해 얻은 골드로 플레이어를 강화할 수 있습니다. 강화는 노드 형식으로 구성되어 특정 노드를 강화해야만 열 수 있는 스페셜 노드도 존재합니다. 스페셜 노드를 통해 수치 변화 뿐만이 아니라, 전투 체험의 변화를 느낄 수 있습니다. 
-   - "상해 보험"노드는 피격시 골드가 드랍됩니다. 
-   - "포자 재생"노드는 버섯을 얻으면 체력이 회복됩니다. 
-   - 이 외에도 다양한 능력을 강화하는 노드가 존재합니다. 
+  - "상해 보험"노드는 피격시 골드가 드랍됩니다. 
+  - "포자 재생"노드는 버섯을 얻으면 체력이 회복됩니다. 
+  - 이 외에도 다양한 능력을 강화하는 노드가 존재합니다. 
+  - <table>
+      <tr>
+        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510843049" src="https://github.com/user-attachments/assets/769f0a14-b18d-4705-a0a5-005179dd52a4" /></td>
+        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795511625758" src="https://github.com/user-attachments/assets/e3ef7fb8-1288-4849-b4be-d5e3250b24ab" /></td>
+        <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510877599" src="https://github.com/user-attachments/assets/8b707095-3065-441a-9741-6fe24bdcaf2c" /></td>
+      </tr>
+    </table>
+
 
 (*로비 하단 탭 중 개량, 파견은 후속 기획으로 설명만 제공됩니다.)
 
