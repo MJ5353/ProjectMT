@@ -44,6 +44,7 @@ AI 도구를 활용하여 뽑아낼 수 있는 속도와 효율 한계치를 확
          <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795511323833" src="https://github.com/user-attachments/assets/ab3cacec-c51b-4ff4-b302-1518012e8e0f" /></td>
        </tr>
      </table>
+<br>
 
 **시장**: 토벌 타이머의 남은 시간은 거래 가능 시간으로 변환됩니다. 그 시간 동안 시장에서 버섯을 판매할 수 있습니다. 팔지 못한 버섯은 그날 밤 상해버립니다.
   - **현장 시장**: 상인마다 선호하는 버섯과 희귀도가 있으며, 30분마다 시세가 달라집니다. 시세가 바뀌기를 기다려 볼수도 있지만, 남은 시간을 잘 확인해야 합니다.
@@ -54,6 +55,7 @@ AI 도구를 활용하여 뽑아낼 수 있는 속도와 효율 한계치를 확
         <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510827202" src="https://github.com/user-attachments/assets/5335e3d9-e58a-4b70-ad21-59de84c97dc3" /></td>
       </tr>
     </table>
+<br>
 
 **정비**: 판매를 통해 얻은 골드로 플레이어를 강화할 수 있습니다. 강화는 노드 형식으로 구성되어 특정 노드를 강화해야만 열 수 있는 스페셜 노드도 존재합니다. 스페셜 노드를 통해 수치 변화 뿐만이 아니라, 전투 체험의 변화를 느낄 수 있습니다. 
   - "상해 보험"노드는 피격시 골드가 드랍됩니다. 
@@ -66,10 +68,9 @@ AI 도구를 활용하여 뽑아낼 수 있는 속도와 효율 한계치를 확
         <td width="33%"><img width="100%" alt="artplayer org_screenshot_1795510877599" src="https://github.com/user-attachments/assets/8b707095-3065-441a-9741-6fe24bdcaf2c" /></td>
       </tr>
     </table>
-
+<br>
 
 (*로비 하단 탭 중 개량, 파견은 후속 기획으로 설명만 제공됩니다.)
-
 
 ## 기술 설계
 
