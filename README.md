@@ -1,4 +1,4 @@
-# 버섯을 줍자! (MushTaker)
+<img width="1280" height="720" alt="artplayer org_screenshot_1795511323833" src="https://github.com/user-attachments/assets/7a0ef2b7-ec37-4e5a-bcb1-bbfdce223b98" /># 버섯을 줍자! (MushTaker)
 #### 7일간의 AI Limit Test - 3D 복셀 그래픽 부위 파괴 액션 & 시장 거래
 
 ## 개요
@@ -10,7 +10,7 @@ AI 도구를 활용하여 뽑아낼 수 있는 속도와 효율 한계치를 확
 
 | 항목 | 내용 |
 |---|---|
-| 플레이 영상 | (준비 중) |
+| 플레이 영상 | [버섯을 쥽자! 플레이 영상](https://youtu.be/INH3VKYxHVU) |
 | PC 빌드 | [Releases v1.0 다운로드](https://github.com/MJ5353/ProjectMT/releases/latest) (Windows 64bit) |
 | 엔진 | Unity 6000.3.25f1 (URP, Input System) |
 | 플랫폼 | Windows PC(추후 모바일 확장 예정), 가로 화면 |
@@ -34,7 +34,9 @@ AI 도구를 활용하여 뽑아낼 수 있는 속도와 효율 한계치를 확
 
 ## 플레이 루프
 
-<!-- 대표 이미지·GIF 자리 -->
+<img width="1280" height="720" alt="artplayer org_screenshot_1795510807490" src="https://github.com/user-attachments/assets/6787a912-dac1-43ab-9da8-b3279242a12d" />
+<img width="1280" height="720" alt="artplayer org_screenshot_1795510898910" src="https://github.com/user-attachments/assets/47bbf5c0-d8f8-44c0-9831-f17ac38b553c" />
+<img width="1280" height="720" alt="artplayer org_screenshot_1795511323833" src="https://github.com/user-attachments/assets/ab3cacec-c51b-4ff4-b302-1518012e8e0f" />
 
  **토벌**:  맵에 진입하면 하루(3분 타이머)가 시작됩니다. 몬스터를 잡는 방식으로도 버섯을 얻을 수 있지만, 고가의 신선한 버섯은 보스가 살아있는 동안 특정 부위를 파괴해야만 얻을 수 있습니다.
    - **부위 파괴**: 보스는 부위마다 내구도가 있으며, 해당 부위를 파괴하면 버섯을 떨구고 쓰러집니다. 이렇게 얻은 버섯은 신선도가 높아 더 비싸게 팔립니다.
